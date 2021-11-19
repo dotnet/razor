@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(LSPEditorFeatureDetector))]
     internal class DefaultLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
+        private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
@@ -44,6 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _useLegacyEditor = new Lazy<bool>(() =>
             {
+                var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+                var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
+                if (legacyEditorFeatureFlagEnabled)
+                {
+                    return true;
+                }
+
                 var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
                 Assumes.Present(settingsManager);
 

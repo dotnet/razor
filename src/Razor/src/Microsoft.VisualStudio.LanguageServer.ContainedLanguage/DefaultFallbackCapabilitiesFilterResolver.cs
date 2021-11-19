@@ -66,6 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                     return CheckLinkedEditingRangeCapabilities;
                 case Methods.CodeActionResolveName:
                     return CheckCodeActionResolveCapabilities;
+                case Methods.TextDocumentDocumentColorName:
+                    return CheckDocumentColorCapabilities;
 
                 // VS LSP Expansion capabilities
                 case VSMethods.GetProjectContextsName:
@@ -81,6 +83,15 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 default:
                     return FallbackCheckCapabilties;
             }
+        }
+
+        private bool CheckDocumentColorCapabilities(JToken token)
+        {
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
+
+            return serverCapabilities?.DocumentColorProvider?.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckSemanticTokensCapabilities(JToken token)
