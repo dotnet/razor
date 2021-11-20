@@ -11,8 +11,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -50,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Normalize and re-map the C# edits.
             var codeDocument = context.CodeDocument;
             var csharpText = codeDocument.GetCSharpSourceText();
-            var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits);
+            var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits, out var originalTextWithChanges);
             var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
             var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
             if (filteredEdits.Length == 0)
@@ -146,7 +149,45 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var finalChanges = cleanedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
+            finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
+
             return new FormattingResult(finalEdits);
+        }
+
+        private async Task<TextEdit[]> AddUsingStatementEditsAsync(RazorCodeDocument codeDocument, TextEdit[] finalEdits, SourceText csharpText, SourceText originalTextWithChanges, CancellationToken cancellationToken)
+        {
+            // Now that we're done with everything, lets see if there are any using statements to fix up
+            // We do this by comparing the original generated C# code, and the changed C# code, and look for a difference
+            // in using statements. We can't use edits for this for two main reasons:
+            //
+            // 1. Using statements in the generated code might come from _Imports.razor, or from this file, and C# will shove them anywhere
+            // 2. The edit might not be clean. eg given:
+            //      using System;
+            //      using System.Text;
+            //    Adding "using System.Linq;" could result in an insert of "Linq;\r\nusing System." on line 2
+            //
+            // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
+            // to the Razor document.
+
+            // First grab the old usings. We just convert them all to strings, because we only care about how the statements are represented in code.
+            var oldSyntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken);
+            var oldUsings = oldRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+
+            // Grab the new usings
+            var newSyntaxTree = CSharpSyntaxTree.ParseText(originalTextWithChanges, cancellationToken: cancellationToken);
+            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken);
+            var newUsings = newRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+
+            var edits = new List<TextEdit>();
+            foreach (var usingStatement in newUsings.Except(oldUsings))
+            {
+                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, null);
+                edits.AddRange(workspaceEdit.DocumentChanges.First().TextDocumentEdit!.Edits);
+            }
+
+            edits.AddRange(finalEdits);
+            return edits.ToArray();
         }
 
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
@@ -420,11 +461,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             changes.Add(change);
         }
 
-        private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
+        private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
         {
             var changes = edits.Select(e => e.AsTextChange(originalText));
-            var changedText = originalText.WithChanges(changes);
-            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            originalTextWithChanges = originalText.WithChanges(changes);
+            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
             var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
         }
