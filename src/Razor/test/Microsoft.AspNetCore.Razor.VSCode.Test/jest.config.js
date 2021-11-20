@@ -3,13 +3,15 @@
 
 module.exports = {
   globals: {
-    "ts-jest": {
-      "tsConfig": "./tsconfig.json",
-      "babeConfig": true,
-      "diagnostics": true
-    }
+    'ts-jest': {
+      tsconfig: './tsconfig.json',
+      babeConfig: true,
+      diagnostics: true,
+    },
   },
-  testPathIgnorePatterns: [ 'dist' ],
+  testPathIgnorePatterns: [
+    'dist',
+  ],
   preset: 'ts-jest',
-  testEnvironment: 'jsdom'
-};
+  testEnvironment: 'jsdom',
+}
