@@ -28,7 +28,7 @@ const killProcess = (targetPid: number | undefined, logger: RazorLogger) => {
     logger.logVerbose(`[DEBUGGER] Terminating debugging session with PID ${targetPid}...`);
     process.kill(targetPid);
   } catch (error) {
-    logger.logError(`[DEBUGGER] Error terminating debug processes with PID ${targetPid}: `, error);
+    logger.logError(`[DEBUGGER] Error terminating debug processes with PID ${targetPid}: `, error as Error);
   }
 };
 
@@ -76,7 +76,7 @@ async function terminateByProcessName(
   try {
     processes = await psList();
   } catch (error) {
-    logger.logError(`Error retrieving processes to clean-up: `, error);
+    logger.logError(`Error retrieving processes to clean-up: `, error as Error);
   }
 
   const devserver = processes.find(

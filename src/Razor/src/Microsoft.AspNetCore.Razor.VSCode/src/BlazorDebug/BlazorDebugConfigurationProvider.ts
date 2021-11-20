@@ -84,7 +84,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
                 });
             }
         } catch (error) {
-            this.logger.logError('[DEBUGGER] Error when launching application: ', error);
+            this.logger.logError('[DEBUGGER] Error when launching application: ', error as Error);
         }
     }
 
@@ -120,7 +120,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         } catch (error) {
             this.logger.logError(
                 '[DEBUGGER] Error when launching browser debugger: ',
-                error,
+                error as Error,
             );
             const message = `There was an unexpected error while launching your debugging session. Check the console for helpful logs and visit the debugging docs for more info.`;
             this.vscodeType.window.showErrorMessage(message, `View Debug Docs`, `Ignore`).then(async result => {

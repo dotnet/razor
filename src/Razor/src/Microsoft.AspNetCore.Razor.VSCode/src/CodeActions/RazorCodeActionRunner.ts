@@ -38,7 +38,7 @@ export class RazorCodeActionRunner {
             changesWorkspaceEdit = convertWorkspaceEditFromSerializable({changes: response.edit.changes});
             documentChangesWorkspaceEdit = convertWorkspaceEditFromSerializable({documentChanges: response.edit.documentChanges});
         } catch (error) {
-            this.logger.logError(`Unexpected error deserializing code action for ${request.action}`, error);
+            this.logger.logError(`Unexpected error deserializing code action for ${request.action}`, error as Error);
             return Promise.resolve(false);
         }
 

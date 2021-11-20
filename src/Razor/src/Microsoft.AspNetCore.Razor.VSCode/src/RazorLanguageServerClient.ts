@@ -138,7 +138,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
                 'Razor Language Server failed to start unexpectedly, ' +
                 'please check the \'Razor Log\' and report an issue.');
 
-            this.telemetryReporter.reportErrorOnServerStart(error);
+            this.telemetryReporter.reportErrorOnServerStart(error as Error);
             reject(error);
         }
 
