@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
-    "@types/node": "9.4.7",
+    "@types/node": "^10.9.4",
     "@types/vscode": "1.45.1",
     "jest": "^24.9.0",
     "ts-jest": "^24.3.0",
