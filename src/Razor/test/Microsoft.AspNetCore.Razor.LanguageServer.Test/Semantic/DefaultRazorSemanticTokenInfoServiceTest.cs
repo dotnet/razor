@@ -1022,11 +1022,7 @@ slf*@";
                     var passingRange = razorRange;
                     documentMappingService
                         .Setup(s => s.TryMapFromProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), cSharpRange, out passingRange))
-#pragma warning disable CS8604 // Possible null reference argument.
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                         .Returns(razorRange != null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8604 // Possible null reference argument.
                 }
             }
             var loggingFactory = new Mock<LoggerFactory>(MockBehavior.Strict);

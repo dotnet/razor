@@ -11,7 +11,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -41,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
-        public async override Task<CodeAction> ResolveAsync(
+        public async override Task<CodeAction?> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
@@ -59,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             cancellationToken.ThrowIfCancellationRequested();
 
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction.Edit?.DocumentChanges is null)
+            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
                 return codeAction;
@@ -79,26 +82,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var textEdit = documentChanged.TextDocumentEdit.Edits.FirstOrDefault();
+            var textEdit = documentChanged.TextDocumentEdit!.Edits.FirstOrDefault();
             if (textEdit is null)
             {
                 // No text edit available
                 return codeAction;
             }
 
-            var (documentSnapshot, documentVersion) = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentInfo = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot, int)?>(() =>
             {
-                _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                if (_documentResolver.TryResolveDocument(csharpParams.RazorFileUri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot))
+                {
+                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
+                    {
+                        return (documentSnapshot, version.Value);
+                    }
+                }
 
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
-
-                return (documentSnapshot, version);
+                return null;
             }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            if (documentInfo is null)
             {
                 return codeAction;
             }
+            var (documentSnapshot, documentVersion) = documentInfo.Value;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())

@@ -14,11 +14,13 @@ using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
+#nullable enable
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
-        public override bool TryMapFromProjectedDocumentEdit(RazorCodeDocument codeDocument, TextEdit edit, out TextEdit newEdit)
+        public override bool TryMapFromProjectedDocumentEdit(RazorCodeDocument codeDocument, TextEdit edit, [NotNullWhen(true)] out TextEdit? newEdit)
         {
             newEdit = default;
 
@@ -40,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 newEdit = new TextEdit()
                 {
                     NewText = edit.NewText,
-                    Range = new Range(hostDocumentStart, hostDocumentEnd)
+                    Range = new Range(hostDocumentStart!, hostDocumentEnd!)
                 };
                 return true;
             }
@@ -91,9 +93,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return false;
         }
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, out Range originalRange)
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
             if (codeDocument is null)
             {
@@ -118,8 +120,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Unknown_mapping_behavior);
             }
         }
-
-#nullable enable
 
         public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
         {
@@ -182,9 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-#nullable restore
-
-        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, out Position originalPosition, out int originalIndex)
+        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
         {
             if (codeDocument is null)
             {
@@ -218,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return false;
         }
 
-        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, out Position projectedPosition, out int projectedIndex)
+        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         {
             if (codeDocument is null)
             {
@@ -349,7 +347,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private bool TryMapFromProjectedDocumentRangeStrict(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange)
+        private bool TryMapFromProjectedDocumentRangeStrict(RazorCodeDocument codeDocument, Range projectedRange, out Range? originalRange)
         {
             originalRange = default;
 
@@ -379,7 +377,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange)
+        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, out Range? originalRange)
         {
             originalRange = default;
 
@@ -396,7 +394,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (startMappedDirectly && endMappedDirectly)
             {
                 // We strictly mapped the start/end of the projected range.
-                originalRange = new Range(hostDocumentStart, hostDocumentEnd);
+                originalRange = new Range(hostDocumentStart!, hostDocumentEnd!);
                 return true;
             }
 
