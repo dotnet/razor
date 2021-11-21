@@ -157,10 +157,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
 
             // Assert
-            var edited = ApplyEdits(razorSourceText, edits);
-            var actual = edited.ToString();
+            if (input.Equals(expected))
+            {
+                Assert.Empty(edits);
+            }
+            else
+            {
+                var edited = ApplyEdits(razorSourceText, edits);
+                var actual = edited.ToString();
 
-            new XUnitVerifier().EqualOrDiff(expected, actual);
+                new XUnitVerifier().EqualOrDiff(expected, actual);
+            }
         }
 
         protected async Task RunCodeActionFormattingTestAsync(
