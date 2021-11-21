@@ -149,7 +149,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var finalChanges = cleanedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
-            finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
+            if (context.AutomaticallyAddUsings)
+            {
+                // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
+                if (result.Edits.Any(e => e.NewText.IndexOf("using") != -1))
+                {
+                    finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
+                }
+            }
 
             return new FormattingResult(finalEdits);
         }
