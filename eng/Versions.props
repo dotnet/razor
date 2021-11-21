@@ -51,12 +51,12 @@
   -->
   <PropertyGroup Label="Automated">
     <MicrosoftCodeAnalysisRazorPackageVersion>6.0.1</MicrosoftCodeAnalysisRazorPackageVersion>
-    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.1-servicing.21563.2</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.1-servicing.21565.21</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
     <MicrosoftAspNetCoreRazorLanguagePackageVersion>6.0.1</MicrosoftAspNetCoreRazorLanguagePackageVersion>
-    <MicrosoftAspNetCoreTestingPackageVersion>6.0.1-servicing.21563.2</MicrosoftAspNetCoreTestingPackageVersion>
+    <MicrosoftAspNetCoreTestingPackageVersion>6.0.1-servicing.21565.21</MicrosoftAspNetCoreTestingPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>6.0.1</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>6.0.1-servicing.21563.2</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>6.0.1-servicing.21563.2</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>6.0.1-servicing.21565.21</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>6.0.1-servicing.21565.21</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>6.0.0</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>6.0.0</MicrosoftExtensionsConfigurationPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>6.0.0</MicrosoftExtensionsLoggingPackageVersion>
@@ -93,7 +93,7 @@
     <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31410-258</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.0.35-gdeb9415fdc</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.1.0-1.21471.13</RoslynPackageVersion>
-    <VisualStudioLanguageServerProtocolVersion>17.0.5133</VisualStudioLanguageServerProtocolVersion>
+    <VisualStudioLanguageServerProtocolVersion>17.1.2</VisualStudioLanguageServerProtocolVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>5.0.0-preview.4.20205.1</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>

@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
+#nullable enable
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 {
     internal class DefaultRazorProjectService : RazorProjectService

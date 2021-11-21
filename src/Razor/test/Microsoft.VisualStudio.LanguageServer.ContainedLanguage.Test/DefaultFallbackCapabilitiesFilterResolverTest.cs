@@ -455,6 +455,44 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         [Fact]
+        public void Resolve_DocumentColor_ReturnsTrue()
+        {
+            // Arrange
+            var methodName = Methods.TextDocumentDocumentColorName;
+            var capabilities = new ServerCapabilities()
+            {
+                DocumentColorProvider = true,
+            };
+            var jobjectCapabilities = JObject.FromObject(capabilities);
+            var filter = Resolver.Resolve(methodName);
+
+            // Act
+            var result = filter(jobjectCapabilities);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void Resolve_DocumentColorOptions_ReturnsTrue()
+        {
+            // Arrange
+            var methodName = Methods.TextDocumentDocumentColorName;
+            var capabilities = new ServerCapabilities()
+            {
+                DocumentColorProvider = new DocumentColorOptions(),
+            };
+            var jobjectCapabilities = JObject.FromObject(capabilities);
+            var filter = Resolver.Resolve(methodName);
+
+            // Act
+            var result = filter(jobjectCapabilities);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
         public void Resolve_Completion_ReturnsTrue()
         {
             // Arrange
@@ -684,6 +722,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         [InlineData(Methods.TextDocumentHoverName)]
         [InlineData(Methods.TextDocumentCodeActionName)]
         [InlineData(Methods.TextDocumentCodeLensName)]
+        [InlineData(Methods.TextDocumentDocumentColorName)]
         [InlineData(Methods.TextDocumentCompletionName)]
         [InlineData(Methods.TextDocumentCompletionResolveName)]
         [InlineData(Methods.TextDocumentDefinitionName)]
