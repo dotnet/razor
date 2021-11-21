@@ -83,6 +83,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public bool IsFormatOnType { get; private set; }
 
+        public bool AutomaticallyAddUsings { get; private set; }
+
         public Range Range { get; private set; } = null!;
 
         /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
@@ -248,33 +250,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            bool isFormatOnType = false)
+            bool isFormatOnType = false,
+            bool automaticallyAddUsings = false)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (originalSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(originalSnapshot));
-            }
-
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (workspaceFactory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceFactory));
-            }
-
             var syntaxTree = codeDocument.GetSyntaxTree();
             var formattingSpans = syntaxTree.GetFormattingSpans();
 
@@ -285,6 +263,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 CodeDocument = codeDocument,
                 Options = options,
                 IsFormatOnType = isFormatOnType,
+                AutomaticallyAddUsings = automaticallyAddUsings,
                 FormattingSpans = formattingSpans
             };
 

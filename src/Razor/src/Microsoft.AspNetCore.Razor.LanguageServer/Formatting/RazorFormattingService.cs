@@ -21,14 +21,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             FormattingOptions options,
             CancellationToken cancellationToken);
 
-        public abstract Task<TextEdit[]> ApplyFormattedEditsAsync(
+        public abstract Task<TextEdit[]> FormatOnTypeAsync(
+           DocumentUri uri,
+           DocumentSnapshot documentSnapshot,
+           RazorLanguageKind kind,
+           TextEdit[] formattedEdits,
+           FormattingOptions options,
+           CancellationToken cancellationToken);
+
+        public abstract Task<TextEdit[]> FormatCodeActionAsync(
             DocumentUri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,
             FormattingOptions options,
-            CancellationToken cancellationToken,
-            bool bypassValidationPasses = false,
-            bool collapseEdits = false);
+            CancellationToken cancellationToken);
+
+        public abstract Task<TextEdit[]> FormatSnippetAsync(
+            DocumentUri uri,
+            DocumentSnapshot documentSnapshot,
+            RazorLanguageKind kind,
+            TextEdit[] formattedEdits,
+            FormattingOptions options,
+            CancellationToken cancellationToken);
     }
 }

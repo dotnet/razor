@@ -265,8 +265,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, textEdits, request.Options, cancellationToken).ConfigureAwait(false);
+            var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, textEdits, request.Options, cancellationToken).ConfigureAwait(false);
             if (formattedEdits.Length == 0)
             {
                 _logger.LogInformation("No formatting changes were necessary");

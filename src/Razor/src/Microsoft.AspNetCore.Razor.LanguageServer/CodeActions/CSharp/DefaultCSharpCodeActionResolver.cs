@@ -124,14 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
-            var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                csharpParams.RazorFileUri,
-                documentSnapshot,
-                RazorLanguageKind.CSharp,
-                csharpTextEdits,
-                s_defaultFormattingOptions,
-                cancellationToken,
-                bypassValidationPasses: true);
+            var formattedEdits = await _razorFormattingService.FormatCodeActionAsync(csharpParams.RazorFileUri, documentSnapshot, RazorLanguageKind.CSharp, csharpTextEdits, s_defaultFormattingOptions, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
