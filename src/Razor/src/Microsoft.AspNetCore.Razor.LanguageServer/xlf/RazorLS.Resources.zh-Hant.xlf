@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Document_Not_Found">
         <source>Document {0} was not found.</source>
-        <target state="new">Document {0} was not found.</target>
+        <target state="translated">找不到文件 {0}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
