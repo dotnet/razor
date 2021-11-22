@@ -7,5 +7,6 @@
       though the projects directly w/in this folder are more like test infrastructure.
     -->
     <IsTestAssetProject>true</IsTestAssetProject>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>

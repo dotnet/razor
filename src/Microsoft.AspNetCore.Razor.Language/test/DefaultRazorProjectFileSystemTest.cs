@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.AspNetCore.Testing;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -25,7 +25,8 @@ public class DefaultRazorProjectFileSystemTest
         var fileSystem = new TestRazorProjectFileSystem("C:/some/test/path/root");
 
         // Act and Assert
-        ExceptionAssert.ThrowsArgumentNullOrEmptyString(() => fileSystem.NormalizeAndEnsureValidPath(path), "path");
+        var exception = Assert.Throws<ArgumentException>(() => fileSystem.NormalizeAndEnsureValidPath(path));
+        Assert.Equal("path", exception.ParamName);
     }
 
     [Fact]
@@ -258,10 +259,15 @@ public class DefaultRazorProjectFileSystemTest
         Assert.Equal(Path.Combine("Views", "About", "About.cshtml"), item.RelativePhysicalPath);
     }
 
-    [ConditionalFact]
-    [OSSkipCondition(OperatingSystems.Linux, SkipReason = "This test does not makes sense for case sensitive Operating Systems.")]
+    [Fact]
     public void GetItem_MismatchedCase_ReturnsFileFromDisk()
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // "This test does not makes sense for case sensitive Operating Systems."
+            return;
+        }
+
         // Arrange
         var filePath = "/Views/About/About.cshtml";
         var lowerCaseTestFolder = TestFolder.ToLowerInvariant();
@@ -301,9 +307,11 @@ public class DefaultRazorProjectFileSystemTest
         var path = "\\\\some\\other\\network\\share\\root\\file.cshtml";
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => fileSystem.GetItem(path, fileKind: null),
-            $"The file '{path.Replace('\\', '/')}' is not a descendent of the base path '{rootPath}'.");
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => fileSystem.GetItem(path, fileKind: null));
+        Assert.Equal(
+            $"The file '{path.Replace('\\', '/')}' is not a descendent of the base path '{rootPath}'.",
+            ex.Message);
     }
 
     private class TestRazorProjectFileSystem : DefaultRazorProjectFileSystem

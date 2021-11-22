@@ -10,13 +10,13 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.csproj" />
 
-    <Reference Include="Microsoft.AspNetCore.Razor.Language" />
-    <Reference Include="Microsoft.CodeAnalysis.Razor" />
-    <Reference Include="Microsoft.CodeAnalysis.CSharp" />
-    <Reference Include="Microsoft.Extensions.DependencyModel" />
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" />
 
-    <Reference Include="xunit.assert" />
-    <Reference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
 </Project>

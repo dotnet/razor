@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Testing;
 using Moq;
 using Xunit;
 
@@ -46,10 +45,12 @@ public class DefaultRazorOptimizationPhaseTest
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => phase.Execute(codeDocument),
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => phase.Execute(codeDocument));
+        Assert.Equal(
             $"The '{nameof(DefaultRazorOptimizationPhase)}' phase requires a '{nameof(DocumentIntermediateNode)}' " +
-            $"provided by the '{nameof(RazorCodeDocument)}'.");
+            $"provided by the '{nameof(RazorCodeDocument)}'.",
+            exception.Message);
     }
 
     [Fact]

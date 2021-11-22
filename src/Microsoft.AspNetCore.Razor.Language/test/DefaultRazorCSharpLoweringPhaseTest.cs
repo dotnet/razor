@@ -4,7 +4,6 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -24,10 +23,12 @@ public class DefaultRazorCSharpLoweringPhaseTest
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => phase.Execute(codeDocument),
+        var exception = Assert.Throws<InvalidOperationException>(() => phase.Execute(codeDocument));
+
+        Assert.Equal(
             $"The '{nameof(DefaultRazorCSharpLoweringPhase)}' phase requires a '{nameof(DocumentIntermediateNode)}' " +
-            $"provided by the '{nameof(RazorCodeDocument)}'.");
+            $"provided by the '{nameof(RazorCodeDocument)}'.",
+             exception.Message);
     }
 
     [Fact]
@@ -49,10 +50,11 @@ public class DefaultRazorCSharpLoweringPhaseTest
         codeDocument.SetDocumentIntermediateNode(irDocument);
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => phase.Execute(codeDocument),
+        var exception = Assert.Throws<InvalidOperationException>(() => phase.Execute(codeDocument));
+        Assert.Equal(
             $"The document of kind 'test' does not have a '{nameof(CodeTarget)}'. " +
-            $"The document classifier must set a value for '{nameof(DocumentIntermediateNode.Target)}'.");
+            $"The document classifier must set a value for '{nameof(DocumentIntermediateNode.Target)}'.",
+            exception.Message);
     }
 
     [Fact]

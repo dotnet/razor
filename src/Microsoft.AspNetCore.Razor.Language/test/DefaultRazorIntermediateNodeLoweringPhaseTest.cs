@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -229,10 +228,12 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => phase.Execute(codeDocument),
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => phase.Execute(codeDocument));
+        Assert.Equal(
             $"The '{nameof(DefaultRazorIntermediateNodeLoweringPhase)}' phase requires a '{nameof(RazorSyntaxTree)}' " +
-            $"provided by the '{nameof(RazorCodeDocument)}'.");
+            $"provided by the '{nameof(RazorCodeDocument)}'.",
+            exception.Message);
     }
 
     [Fact]

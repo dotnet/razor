@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.AspNetCore.Testing;
 using Moq;
 using Xunit;
 
@@ -45,10 +44,12 @@ public class DefaultRazorSyntaxTreePhaseTest
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => phase.Execute(codeDocument),
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => phase.Execute(codeDocument));
+        Assert.Equal(
             $"The '{nameof(DefaultRazorSyntaxTreePhase)}' phase requires a '{nameof(RazorSyntaxTree)}' " +
-            $"provided by the '{nameof(RazorCodeDocument)}'.");
+            $"provided by the '{nameof(RazorCodeDocument)}'.",
+            ex.Message);
     }
 
     [Fact]

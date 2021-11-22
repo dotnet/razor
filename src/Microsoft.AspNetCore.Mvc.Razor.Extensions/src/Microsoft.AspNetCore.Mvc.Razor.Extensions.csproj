@@ -4,7 +4,6 @@
     <Description>ASP.NET Core design time hosting infrastructure for the Razor view engine.</Description>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageTags>$(PackageTags);aspnetcoremvc</PackageTags>
-    <PublishWindowsPdb>true</PublishWindowsPdb>
     <!-- Need to build this project in source build -->
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
   </PropertyGroup>
@@ -17,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.AspNetCore.Razor.Language" />
-    <Reference Include="Microsoft.CodeAnalysis.Razor" />
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
   </ItemGroup>
 
 </Project>

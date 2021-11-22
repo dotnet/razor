@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Testing;
 using Moq;
 using Xunit;
 
@@ -33,7 +32,8 @@ public class RazorProjectTest
         var project = new TestRazorProject();
 
         // Act and Assert
-        ExceptionAssert.ThrowsArgumentNullOrEmptyString(() => project.NormalizeAndEnsureValidPath(path), "path");
+        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path));
+        Assert.Equal("path", ex.ParamName);
     }
 
     [Theory]
@@ -46,10 +46,8 @@ public class RazorProjectTest
         var project = new TestRazorProject();
 
         // Act and Assert
-        ExceptionAssert.ThrowsArgument(
-            () => project.NormalizeAndEnsureValidPath(path),
-            "path",
-            "Path must begin with a forward slash '/'.");
+        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path));
+        Assert.Equal("path", ex.ParamName);
     }
 
     [Fact]

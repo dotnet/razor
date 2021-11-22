@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Description>Transport package for Razor Source Generator support.</Description>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PublishWindowsPdb>true</PublishWindowsPdb>
     <!-- Need to build this project in source build -->
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
@@ -28,8 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis.Common" />
-    <Reference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
 </Project>

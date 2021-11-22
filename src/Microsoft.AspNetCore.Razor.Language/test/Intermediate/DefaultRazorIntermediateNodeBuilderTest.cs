@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -60,9 +59,11 @@ public class DefaultRazorIntermediateNodeBuilderTest
         var builder = new DefaultRazorIntermediateNodeBuilder();
 
         // Act & Assert
-        ExceptionAssert.Throws<InvalidOperationException>(
-            () => builder.Pop(),
-            "The 'Pop' operation is not valid when the builder is empty.");
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => builder.Pop());
+        Assert.Equal(
+            "The 'Pop' operation is not valid when the builder is empty.",
+            ex.Message);
     }
 
     [Fact]
