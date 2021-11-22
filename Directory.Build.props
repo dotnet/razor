@@ -58,10 +58,4 @@
     <!-- xUnit1004 = warns about skipped tests. Make this a non-fatal build warning. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);xUnit1004</WarningsNotAsErrors>
   </PropertyGroup>
-
-  <!-- The location of the local installation of the .NET Core shared framework. -->
-  <PropertyGroup>
-    <LocalDotNetRoot>$(RepoRoot).dotnet\</LocalDotNetRoot>
-  </PropertyGroup>
-
 </Project>
