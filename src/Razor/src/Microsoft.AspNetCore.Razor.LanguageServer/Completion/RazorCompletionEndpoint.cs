@@ -180,7 +180,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText, _logger);
+            if(!request.Position.TryGetAbsoluteIndex(sourceText, out var hostDocumentIndex, _logger))
+            {
+                return new CompletionList(isIncomplete: false);
+            }
+
             var location = new SourceSpan(hostDocumentIndex, 0);
             var reason = request.Context.TriggerKind switch
             {

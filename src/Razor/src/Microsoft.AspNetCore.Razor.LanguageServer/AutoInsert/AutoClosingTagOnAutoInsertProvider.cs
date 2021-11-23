@@ -75,7 +75,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText, Logger);
+            if (!position.TryGetAbsoluteIndex(context.SourceText, out var afterCloseAngleIndex, Logger))
+            {
+                format = default;
+                edit = default;
+                return false;
+            }
+
             if (!TryResolveAutoClosingBehavior(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
             {
                 format = default;

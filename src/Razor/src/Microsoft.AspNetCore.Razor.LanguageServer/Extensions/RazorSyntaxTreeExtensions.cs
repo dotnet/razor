@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return statements;
         }
 
-        public static SyntaxNode GetOwner(
+        public static SyntaxNode? GetOwner(
             this RazorSyntaxTree syntaxTree,
             SourceText sourceText,
             Position position,
@@ -87,13 +87,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            var absoluteIndex = position.GetAbsoluteIndex(sourceText, logger);
+            if(!position.TryGetAbsoluteIndex(sourceText, out var absoluteIndex, logger))
+            {
+                return default;
+            }
+
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
             return owner;
         }
 
-        public static SyntaxNode GetOwner(
+        public static SyntaxNode? GetOwner(
             this RazorSyntaxTree syntaxTree,
             SourceText sourceText,
             Range range,
@@ -114,8 +118,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(range));
             }
 
-            var absoluteStartIndex = range.Start.GetAbsoluteIndex(sourceText, logger);
-            var absoluteEndIndex = range.End.GetAbsoluteIndex(sourceText, logger);
+            var startInSync = range.Start.TryGetAbsoluteIndex(sourceText, out var absoluteStartIndex, logger);
+            var endInSync = range.End.TryGetAbsoluteIndex(sourceText, out var absoluteEndIndex, logger);
+            if (startInSync is false || endInSync is false)
+            {
+                return default;
+            }
+
             var length = absoluteEndIndex - absoluteStartIndex;
             var change = new SourceChange(absoluteStartIndex, length, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);

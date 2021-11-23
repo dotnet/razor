@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {
-        public static int GetAbsoluteIndex(this Position position, SourceText sourceText, ILogger? logger = null)
+        public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, out int absoluteIndex, ILogger? logger = null)
         {
             if (position is null)
             {
@@ -33,10 +33,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                     nameof(sourceText),
                     sourceText.Lines.Count);
                 logger?.LogError(errorMessage);
-                throw new ArgumentOutOfRangeException(nameof(linePosition), errorMessage);
+                absoluteIndex = -1;
+                return false;
             }
             var index = sourceText.Lines.GetPosition(linePosition);
-            return index;
+            absoluteIndex = index;
+            return true;
         }
 
         public static int CompareTo(this Position position, Position other)

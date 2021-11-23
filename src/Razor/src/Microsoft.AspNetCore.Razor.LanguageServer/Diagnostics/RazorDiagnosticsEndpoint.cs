@@ -270,6 +270,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 // C# in a style block causes diagnostics because the HTML background document replaces C# with "~"
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
 
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(
                     n => n.StartTag.Name.Content.Equals("style", StringComparison.Ordinal));
@@ -283,6 +287,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             static bool IsAnyFilteredTooFewElementsError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
+
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
                 if (!element.StartTag.Name.Content.Equals("html", StringComparison.Ordinal))
@@ -299,6 +308,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             static bool IsHtmlWithBangAndMatchingTags(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
 
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
                 var startNode = element.StartTag;
@@ -325,6 +338,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             static bool IsInvalidNestingWarningWithinComponent(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
 
                 var taghelperNode = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
 
@@ -336,6 +353,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             static bool IsInvalidNestingFromBody(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
+
                 var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag.Name.Content.Equals("body", StringComparison.Ordinal));
 
                 if (ReferenceEquals(body, owner))
