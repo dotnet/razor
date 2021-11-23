@@ -390,6 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = semanticTokensParams.TextDocument,
                 PartialResultToken = semanticTokensParams.PartialResultToken,
+                Range = semanticTokensParams.Range,
             };
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
