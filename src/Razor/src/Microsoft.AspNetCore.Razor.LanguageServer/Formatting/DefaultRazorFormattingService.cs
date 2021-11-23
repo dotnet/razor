@@ -90,15 +90,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return filteredEdits;
         }
 
-        public override async Task<TextEdit[]> ApplyFormattedEditsAsync(
+        public override Task<TextEdit[]> FormatOnTypeAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+
+        public override Task<TextEdit[]> FormatCodeActionAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
+
+        public override Task<TextEdit[]> FormatSnippetAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+
+        private async Task<TextEdit[]> ApplyFormattedEditsAsync(
             DocumentUri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,
             FormattingOptions options,
-            CancellationToken cancellationToken,
-            bool bypassValidationPasses = false,
-            bool collapseEdits = false)
+            bool bypassValidationPasses,
+            bool collapseEdits,
+            bool automaticallyAddUsings,
+            CancellationToken cancellationToken)
         {
             if (kind == RazorLanguageKind.Html)
             {
@@ -111,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             collapseEdits |= formattedEdits.Length == 1;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: true);
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: true, automaticallyAddUsings: automaticallyAddUsings);
             var result = new FormattingResult(formattedEdits, kind);
 
             foreach (var pass in _formattingPasses)

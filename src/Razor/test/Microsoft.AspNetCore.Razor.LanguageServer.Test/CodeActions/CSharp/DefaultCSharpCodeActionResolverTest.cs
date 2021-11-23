@@ -212,15 +212,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static RazorFormattingService CreateRazorFormattingService(Uri documentUri)
         {
             var razorFormattingService = Mock.Of<RazorFormattingService>(
-                            rfs => rfs.ApplyFormattedEditsAsync(
+                            rfs => rfs.FormatCodeActionAsync(
                                 documentUri,
                                 It.IsAny<DocumentSnapshot>(),
                                 RazorLanguageKind.CSharp,
                                 It.IsAny<TextEdit[]>(),
                                 It.IsAny<FormattingOptions>(),
-                                It.IsAny<CancellationToken>(),
-                                /*bypassValidationPasses:*/ true,
-                                It.IsAny<bool>()) == Task.FromResult(s_defaultFormattedEdits), MockBehavior.Strict);
+                                It.IsAny<CancellationToken>()) == Task.FromResult(s_defaultFormattedEdits), MockBehavior.Strict);
             return razorFormattingService;
         }
 
