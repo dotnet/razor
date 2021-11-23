@@ -7,6 +7,8 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.Extensions.Logging;
+using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -15,11 +17,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DefaultRazorDocumentMappingServiceTest
     {
+        private ILoggerFactory LoggerFactory { get; }
+
+        public DefaultRazorDocumentMappingServiceTest()
+        {
+            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
+            LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
+        }
+
         [Fact]
         public void TryMapFromProjectedDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -46,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Strict_EndOnlyMaps_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -73,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Strict_StartAndEndMap_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -105,7 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_DirectlyMaps_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -137,7 +149,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_StartSinglyIntersects_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -169,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_EndSinglyIntersects_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -201,7 +213,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_StartDoublyIntersects_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -232,7 +244,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_EndDoublyIntersects_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -263,7 +275,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsSingleMapping_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -295,7 +307,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsTwoMappings_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -326,7 +338,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentPosition_NotMatchingAnyMapping()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "test razor source",
                 "test C# source",
@@ -349,7 +361,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentPosition_CSharp_OnLeadingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -376,7 +388,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentPosition_CSharp_InMiddle()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -403,7 +415,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentPosition_CSharp_OnTrailingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -430,7 +442,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentPosition_NotMatchingAnyMapping()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "test razor source",
                 projectedCSharpSource: "projectedCSharpSource: test C# source",
@@ -453,7 +465,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentPosition_CSharp_OnLeadingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -480,7 +492,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentPosition_CSharp_InMiddle()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -507,7 +519,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentPosition_CSharp_OnTrailingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -534,7 +546,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentRange_CSharp()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -562,7 +574,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentRange_CSharp_MissingSourceMappings()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -586,7 +598,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentRange_CSharp_End_LessThan_Start()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",

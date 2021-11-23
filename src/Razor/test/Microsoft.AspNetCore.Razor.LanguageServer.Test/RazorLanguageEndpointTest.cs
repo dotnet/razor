@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Returns(true);
 
             DocumentVersionCache = documentVersionCache.Object;
-            MappingService = new DefaultRazorDocumentMappingService();
+            MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
         }
 
         private DocumentVersionCache DocumentVersionCache { get; }

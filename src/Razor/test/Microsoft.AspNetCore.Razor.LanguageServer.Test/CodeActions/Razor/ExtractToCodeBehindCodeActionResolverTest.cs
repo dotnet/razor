@@ -14,9 +14,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -24,10 +27,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         private readonly DocumentResolver _emptyDocumentResolver;
 
+        private readonly ILogger _logger;
+
         public ExtractToCodeBehindCodeActionResolverTest()
         {
             _emptyDocumentResolver = new Mock<DocumentResolver>(MockBehavior.Strict).Object;
             Mock.Get(_emptyDocumentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny)).Returns(false);
+
+            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
+
+            _logger = logger;
         }
 
         [Fact]
@@ -129,19 +140,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(3, workspaceEdit.DocumentChanges.Count());
+            Assert.Equal(3, workspaceEdit.DocumentChanges!.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
+            var documentChanges = workspaceEdit.DocumentChanges!.ToArray();
             var createFileChange = documentChanges[0];
             Assert.True(createFileChange.IsCreateFile);
 
             var editCodeDocumentChange = documentChanges[1];
-            var editCodeDocumentEdit = editCodeDocumentChange.TextDocumentEdit.Edits.First();
-            Assert.Equal(actionParams.RemoveStart, editCodeDocumentEdit.Range.Start.GetAbsoluteIndex(codeDocument.GetSourceText()));
-            Assert.Equal(actionParams.RemoveEnd, editCodeDocumentEdit.Range.End.GetAbsoluteIndex(codeDocument.GetSourceText()));
+            Assert.NotNull(editCodeDocumentChange.TextDocumentEdit);
+            var editCodeDocumentEdit = editCodeDocumentChange.TextDocumentEdit!.Edits.First();
+            Assert.Equal(actionParams.RemoveStart, editCodeDocumentEdit.Range.Start.GetAbsoluteIndex(codeDocument.GetSourceText(), _logger));
+            Assert.Equal(actionParams.RemoveEnd, editCodeDocumentEdit.Range.End.GetAbsoluteIndex(codeDocument.GetSourceText(), _logger));
 
             var editCodeBehindChange = documentChanges[2];
-            var editCodeBehindEdit = editCodeBehindChange.TextDocumentEdit.Edits.First();
+            Assert.NotNull(editCodeBehindChange.TextDocumentEdit);
+            var editCodeBehindEdit = editCodeBehindChange.TextDocumentEdit!.Edits.First();
             Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
             Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
             Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
@@ -173,19 +186,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(3, workspaceEdit.DocumentChanges.Count());
+            Assert.Equal(3, workspaceEdit.DocumentChanges!.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
+            var documentChanges = workspaceEdit.DocumentChanges!.ToArray();
             var createFileChange = documentChanges[0];
             Assert.True(createFileChange.IsCreateFile);
 
             var editCodeDocumentChange = documentChanges[1];
-            var editCodeDocumentEdit = editCodeDocumentChange.TextDocumentEdit.Edits.First();
-            Assert.Equal(actionParams.RemoveStart, editCodeDocumentEdit.Range.Start.GetAbsoluteIndex(codeDocument.GetSourceText()));
-            Assert.Equal(actionParams.RemoveEnd, editCodeDocumentEdit.Range.End.GetAbsoluteIndex(codeDocument.GetSourceText()));
+            Assert.NotNull(editCodeDocumentChange.TextDocumentEdit);
+            var editCodeDocumentEdit = editCodeDocumentChange.TextDocumentEdit!.Edits.First();
+            Assert.Equal(actionParams.RemoveStart, editCodeDocumentEdit.Range.Start.GetAbsoluteIndex(codeDocument.GetSourceText(), _logger));
+            Assert.Equal(actionParams.RemoveEnd, editCodeDocumentEdit.Range.End.GetAbsoluteIndex(codeDocument.GetSourceText(), _logger));
 
             var editCodeBehindChange = documentChanges[2];
-            var editCodeBehindEdit = editCodeBehindChange.TextDocumentEdit.Edits.First();
+            Assert.NotNull(editCodeBehindChange.TextDocumentEdit);
+            var editCodeBehindEdit = editCodeBehindChange.TextDocumentEdit!.Edits.First();
             Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
             Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
             Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
@@ -217,19 +232,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(3, workspaceEdit.DocumentChanges.Count());
+            Assert.Equal(3, workspaceEdit.DocumentChanges!.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
+            var documentChanges = workspaceEdit.DocumentChanges!.ToArray();
             var createFileChange = documentChanges[0];
             Assert.True(createFileChange.IsCreateFile);
 
             var editCodeDocumentChange = documentChanges[1];
-            var editCodeDocumentEdit = editCodeDocumentChange.TextDocumentEdit.Edits.First();
-            Assert.Equal(actionParams.RemoveStart, editCodeDocumentEdit.Range.Start.GetAbsoluteIndex(codeDocument.GetSourceText()));
-            Assert.Equal(actionParams.RemoveEnd, editCodeDocumentEdit.Range.End.GetAbsoluteIndex(codeDocument.GetSourceText()));
+            Assert.NotNull(editCodeDocumentChange.TextDocumentEdit);
+            var editCodeDocumentEdit = editCodeDocumentChange.TextDocumentEdit!.Edits.First();
+            Assert.Equal(actionParams.RemoveStart, editCodeDocumentEdit.Range.Start.GetAbsoluteIndex(codeDocument.GetSourceText(), _logger));
+            Assert.Equal(actionParams.RemoveEnd, editCodeDocumentEdit.Range.End.GetAbsoluteIndex(codeDocument.GetSourceText(), _logger));
 
             var editCodeBehindChange = documentChanges[2];
-            var editCodeBehindEdit = editCodeBehindChange.TextDocumentEdit.Edits.First();
+            Assert.NotNull(editCodeBehindChange.TextDocumentEdit);
+            var editCodeBehindEdit = editCodeBehindChange.TextDocumentEdit!.Edits.First();
             Assert.Contains("using System.Diagnostics", editCodeBehindEdit.NewText, StringComparison.Ordinal);
             Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
             Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);

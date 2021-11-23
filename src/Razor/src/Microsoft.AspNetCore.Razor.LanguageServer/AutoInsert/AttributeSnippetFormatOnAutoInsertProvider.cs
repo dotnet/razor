@@ -2,15 +2,19 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
@@ -20,7 +24,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public override string TriggerCharacter => "=";
 
-        public AttributeSnippetOnAutoInsertProvider(TagHelperFactsService tagHelperFactsService)
+        public AttributeSnippetOnAutoInsertProvider(
+            TagHelperFactsService tagHelperFactsService, ILoggerFactory loggerFactory) :
+            base(loggerFactory)
         {
             if (tagHelperFactsService is null)
             {
@@ -30,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)]out TextEdit? edit, out InsertTextFormat format)
         {
             if (position is null)
             {
@@ -64,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
 
-            var absoluteIndex = position.GetAbsoluteIndex(context.SourceText);
+            var absoluteIndex = position.GetAbsoluteIndex(context.SourceText, Logger);
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
 

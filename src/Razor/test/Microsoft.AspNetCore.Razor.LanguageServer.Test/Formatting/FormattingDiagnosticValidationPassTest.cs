@@ -125,7 +125,7 @@ public class Foo { }
 
         private FormattingDiagnosticValidationPass GetPass()
         {
-            var mappingService = new DefaultRazorDocumentMappingService();
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
             var pass = new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory)

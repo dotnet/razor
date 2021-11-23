@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri(path);
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-            var mappingService = new DefaultRazorDocumentMappingService();
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
 
             if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var projectedIndex))
@@ -266,7 +266,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private RazorFormattingService CreateFormattingService(RazorCodeDocument codeDocument)
         {
-            var mappingService = new DefaultRazorDocumentMappingService();
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);

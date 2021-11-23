@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             // Arrange
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.AbsolutePath, codeDocument);
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             // Arrange
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var uri = new Uri("file://path/test.razor");
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver("file://path/testDifferentFile.razor", codeDocument);
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
@@ -192,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
@@ -293,7 +293,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
@@ -326,7 +326,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService();
+            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(

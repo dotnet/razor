@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -42,7 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+            : base(loggerFactory)
         {
             if (optionsMonitor is null)
             {
@@ -73,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText);
+            var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText, Logger);
             if (!TryResolveAutoClosingBehavior(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
             {
                 format = default;

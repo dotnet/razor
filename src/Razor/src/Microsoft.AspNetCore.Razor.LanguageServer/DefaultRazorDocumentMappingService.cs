@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.Extensions.Logging;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 #nullable enable
@@ -20,6 +21,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
+        private readonly ILogger? _logger;
+
+        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
+        {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
+        }
+
+        public DefaultRazorDocumentMappingService() { }
+
         public override TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits)
         {
             var projectedEdits = new List<TextEdit>();
@@ -34,8 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     continue;
                 }
 
-                var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
-                var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
+                var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText, _logger);
+                var endIndex = range.End.GetAbsoluteIndex(csharpSourceText, _logger);
                 var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
                 var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
@@ -229,13 +244,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var startIndex = range.Start.GetAbsoluteIndex(sourceText);
+            var startIndex = range.Start.GetAbsoluteIndex(sourceText, _logger);
             if (!TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
             {
                 return false;
             }
 
-            var endIndex = range.End.GetAbsoluteIndex(sourceText);
+            var endIndex = range.End.GetAbsoluteIndex(sourceText, _logger);
             if (!TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
             {
                 return false;
@@ -437,13 +452,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
+            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText, _logger);
             if (!TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
 
-            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
+            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText, _logger);
             if (!TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
             {
                 return false;

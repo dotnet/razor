@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
+            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText, _logger);
             var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
             if (triggerCharacterKind is not RazorLanguageKind.CSharp)
             {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
@@ -37,8 +40,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Name = "editor.action.triggerSuggest",
             Title = RazorLS.Resources.ReTrigger_Completions_Title,
         };
-        private PlatformAgnosticCompletionCapability _capability;
-        private IReadOnlyList<ExtendedCompletionItemKinds> _supportedItemKinds;
+        private PlatformAgnosticCompletionCapability? _capability;
+        private IReadOnlyList<ExtendedCompletionItemKinds>? _supportedItemKinds;
+
+        private PlatformAgnosticCompletionCapability Capability
+        {
+            get
+            {
+                if (_capability is null)
+                {
+                    throw new InvalidOperationException($"Tried to access {nameof(Capability)} before {nameof(GetRegistrationOptions)} was called.");
+                }
+
+                return _capability;
+            }
+        }
+
+        private IReadOnlyList<ExtendedCompletionItemKinds> SupportedItemKinds
+        {
+            get
+            {
+                if (_supportedItemKinds is null)
+                {
+                    throw new InvalidOperationException($"Tried to access {nameof(SupportedItemKinds)} before {nameof(GetRegistrationOptions)} was called.");
+                }
+
+                return _supportedItemKinds;
+            }
+        }
 
         // Guid is magically generated and doesn't mean anything. O# magic.
         public Guid Id => new Guid("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
@@ -104,7 +133,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public CompletionRegistrationOptions GetRegistrationOptions(CompletionCapability capability, ClientCapabilities clientCapabilities)
         {
             _capability = (PlatformAgnosticCompletionCapability)capability;
-            _supportedItemKinds = _capability.CompletionItemKind.ValueSet.Cast<ExtendedCompletionItemKinds>().ToList();
+            if (Capability.CompletionItemKind is null)
+            {
+                throw new ArgumentNullException(nameof(CompletionItemKind), $"{nameof(CompletionItemKind)} was not supplied. Value is mandatory.");
+            }
+
+            _supportedItemKinds = Capability.CompletionItemKind.ValueSet.Cast<ExtendedCompletionItemKinds>().ToList();
             return new CompletionRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector,
@@ -131,7 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return new CompletionList(isIncomplete: false);
             }
 
-            if (!IsApplicableTriggerContext(request.Context))
+            if (request.Context is null || !IsApplicableTriggerContext(request.Context))
             {
                 return new CompletionList(isIncomplete: false);
             }
@@ -146,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
+            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText, _logger);
             var location = new SourceSpan(hostDocumentIndex, 0);
             var reason = request.Context.TriggerKind switch
             {
@@ -191,8 +225,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var useDescriptionProperty = _languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
                 clientCapabilities.SupportsVisualStudioExtensions;
 
-            MarkupContent tagHelperMarkupTooltip = null;
-            VSClassifiedTextElement tagHelperClassifiedTextTooltip = null;
+            MarkupContent? tagHelperMarkupTooltip = null;
+            VSClassifiedTextElement? tagHelperClassifiedTextTooltip = null;
 
             switch (associatedRazorCompletion.Kind)
             {
@@ -278,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         // Internal for testing
-        internal CompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems) => CreateLSPCompletionList(razorCompletionItems, _completionListCache, _supportedItemKinds, _capability);
+        internal CompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems) => CreateLSPCompletionList(razorCompletionItems, _completionListCache, SupportedItemKinds, Capability);
 
         // Internal for benchmarking and testing
         internal static CompletionList CreateLSPCompletionList(
@@ -323,7 +357,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         internal static bool TryConvert(
             RazorCompletionItem razorCompletionItem,
             IReadOnlyList<ExtendedCompletionItemKinds> supportedItemKinds,
-            out CompletionItem completionItem)
+            [NotNullWhen(true)]out CompletionItem? completionItem)
         {
             if (razorCompletionItem is null)
             {
