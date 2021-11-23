@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End, logger);
 
-            var startOrEndTag = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
+            var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
             if (startOrEndTag == null)
             {
                 return false;

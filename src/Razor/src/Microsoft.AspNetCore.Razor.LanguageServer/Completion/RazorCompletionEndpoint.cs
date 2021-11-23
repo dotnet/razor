@@ -43,32 +43,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private PlatformAgnosticCompletionCapability? _capability;
         private IReadOnlyList<ExtendedCompletionItemKinds>? _supportedItemKinds;
 
-        private PlatformAgnosticCompletionCapability Capability
-        {
-            get
-            {
-                if (_capability is null)
-                {
-                    throw new InvalidOperationException($"Tried to access {nameof(Capability)} before {nameof(GetRegistrationOptions)} was called.");
-                }
-
-                return _capability;
-            }
-        }
-
-        private IReadOnlyList<ExtendedCompletionItemKinds> SupportedItemKinds
-        {
-            get
-            {
-                if (_supportedItemKinds is null)
-                {
-                    throw new InvalidOperationException($"Tried to access {nameof(SupportedItemKinds)} before {nameof(GetRegistrationOptions)} was called.");
-                }
-
-                return _supportedItemKinds;
-            }
-        }
-
         // Guid is magically generated and doesn't mean anything. O# magic.
         public Guid Id => new Guid("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
 
@@ -133,12 +107,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public CompletionRegistrationOptions GetRegistrationOptions(CompletionCapability capability, ClientCapabilities clientCapabilities)
         {
             _capability = (PlatformAgnosticCompletionCapability)capability;
-            if (Capability.CompletionItemKind is null)
+            if (_capability.CompletionItemKind is null)
             {
                 throw new ArgumentNullException(nameof(CompletionItemKind), $"{nameof(CompletionItemKind)} was not supplied. Value is mandatory.");
             }
 
-            _supportedItemKinds = Capability.CompletionItemKind.ValueSet.Cast<ExtendedCompletionItemKinds>().ToList();
+            _supportedItemKinds = _capability.CompletionItemKind.ValueSet.Cast<ExtendedCompletionItemKinds>().ToList();
             return new CompletionRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector,
@@ -316,14 +290,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         // Internal for testing
-        internal CompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems) => CreateLSPCompletionList(razorCompletionItems, _completionListCache, SupportedItemKinds, Capability);
+        internal CompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems) => CreateLSPCompletionList(razorCompletionItems, _completionListCache, _supportedItemKinds, _capability);
 
         // Internal for benchmarking and testing
         internal static CompletionList CreateLSPCompletionList(
             IReadOnlyList<RazorCompletionItem> razorCompletionItems,
             CompletionListCache completionListCache,
-            IReadOnlyList<ExtendedCompletionItemKinds> supportedItemKinds,
-            PlatformAgnosticCompletionCapability completionCapability)
+            IReadOnlyList<ExtendedCompletionItemKinds>? supportedItemKinds,
+            PlatformAgnosticCompletionCapability? completionCapability)
         {
             var resultId = completionListCache.Set(razorCompletionItems);
             var completionItems = new List<CompletionItem>();
@@ -360,7 +334,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         // Internal for testing
         internal static bool TryConvert(
             RazorCompletionItem razorCompletionItem,
-            IReadOnlyList<ExtendedCompletionItemKinds> supportedItemKinds,
+            IReadOnlyList<ExtendedCompletionItemKinds>? supportedItemKinds,
             [NotNullWhen(true)]out CompletionItem? completionItem)
         {
             if (razorCompletionItem is null)

@@ -461,14 +461,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
 
-            if (range.Start.TryGetAbsoluteIndex(csharpSourceText, out var startIndex, _logger) ||
+            if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, out var startIndex, _logger) ||
                 !TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
 
 
-            if (range.End.TryGetAbsoluteIndex(csharpSourceText, out var endIndex, _logger) ||
+            if (!range.End.TryGetAbsoluteIndex(csharpSourceText, out var endIndex, _logger) ||
                 !TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
             {
                 return false;
