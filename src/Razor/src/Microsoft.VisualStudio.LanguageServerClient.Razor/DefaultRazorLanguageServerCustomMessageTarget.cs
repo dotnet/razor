@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -20,7 +22,7 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
-using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams;
+using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -103,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentSynchronizer));
             }
 
-            _documentManager = documentManager as TrackingLSPDocumentManager;
+            _documentManager = (TrackingLSPDocumentManager)documentManager;
 
             if (_documentManager is null)
             {
@@ -119,7 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Testing constructor
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal DefaultRazorLanguageServerCustomMessageTarget(TrackingLSPDocumentManager documentManager)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _documentManager = documentManager;
         }
@@ -275,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<IReadOnlyList<VSInternalCodeAction>> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<VSInternalCodeAction>?> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
         {
             if (codeActionParams is null)
             {
@@ -313,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return codeActions;
         }
-#nullable enable
+
         public override async Task<VSInternalCodeAction?> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
         {
             if (resolveCodeActionParams is null)
@@ -347,15 +351,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return null;
         }
-#nullable disable
 
-        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
-            ProvideSemanticTokensParams semanticTokensParams,
+        public override async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(
+            ProvideSemanticTokensRangeParams semanticTokensParams,
             CancellationToken cancellationToken)
         {
             if (semanticTokensParams is null)
             {
                 throw new ArgumentNullException(nameof(semanticTokensParams));
+            }
+
+            if (semanticTokensParams.Range is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensParams.Range));
             }
 
             var csharpDoc = GetCSharpDocumentSnapshsot(semanticTokensParams.TextDocument.Uri.ToUri());
@@ -378,16 +386,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
             semanticTokensParams = semanticTokensParams with { TextDocument = csharpTextDocument };
 
-            var newParams = new SemanticTokensParams
+            var newParams = new SemanticTokensRangeParams
             {
                 TextDocument = semanticTokensParams.TextDocument,
                 PartialResultToken = semanticTokensParams.PartialResultToken,
+                Range = semanticTokensParams.Range,
             };
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
-            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                 textBuffer,
-                Methods.TextDocumentSemanticTokensFullName,
+                Methods.TextDocumentSemanticTokensRangeName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
@@ -406,82 +415,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(
-            ProvideSemanticTokensDeltaParams semanticTokensEditsParams,
-            CancellationToken cancellationToken)
-        {
-            if (semanticTokensEditsParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensEditsParams));
-            }
-
-            var documentUri = semanticTokensEditsParams.TextDocument.Uri.ToUri();
-            var csharpDoc = GetCSharpDocumentSnapshsot(documentUri);
-            if (csharpDoc is null)
-            {
-                return null;
-            }
-
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                (int)semanticTokensEditsParams.RequiredHostDocumentVersion, csharpDoc, cancellationToken);
-            if (!synchronized)
-            {
-                // If we're unable to synchronize we won't produce useful results
-                return new ProvideSemanticTokensEditsResponse(
-                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
-            }
-
-            var newParams = new SemanticTokensDeltaParams
-            {
-                TextDocument = new TextDocumentIdentifier
-                {
-                    Uri = csharpDoc.Uri,
-                },
-                PreviousResultId = semanticTokensEditsParams.PreviousResultId,
-            };
-
-            var textBuffer = csharpDoc.Snapshot.TextBuffer;
-            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<VSSemanticTokensResponse, VSSemanticTokensDeltaResponse>>(
-                textBuffer,
-                Methods.TextDocumentSemanticTokensFullDeltaName,
-                RazorLSPConstants.RazorCSharpLanguageServerName,
-                newParams,
-                cancellationToken).ConfigureAwait(false);
-            var csharpResults = csharpResponse?.Response;
-            if (csharpResults is null)
-            {
-                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
-                return new ProvideSemanticTokensEditsResponse(
-                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
-            }
-
-            // Converting from LSP to O# types
-            if (csharpResults.Value.Value is VSSemanticTokensResponse tokens)
-            {
-                var response = new ProvideSemanticTokensEditsResponse(
-                    tokens.ResultId, tokens.Data, edits: null, isFinalized: tokens.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
-                return response;
-            }
-            else if (csharpResults.Value.Value is VSSemanticTokensDeltaResponse edits)
-            {
-                var results = new RazorSemanticTokensEdit[edits.Edits.Length];
-                for (var i = 0; i < edits.Edits.Length; i++)
-                {
-                    var currentEdit = edits.Edits[i];
-                    results[i] = new RazorSemanticTokensEdit(currentEdit.Start, currentEdit.DeleteCount, currentEdit.Data);
-                }
-
-                var response = new ProvideSemanticTokensEditsResponse(
-                    edits.ResultId, tokens: null, edits: results, isFinalized: edits.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
-                return response;
-            }
-            else
-            {
-                throw new ArgumentException("Returned tokens should be of type VSSemanticTokensResponse or VSSemanticTokensDeltaResponse.");
-            }
-        }
-
-        private CSharpVirtualDocumentSnapshot GetCSharpDocumentSnapshsot(Uri uri)
+        private CSharpVirtualDocumentSnapshot? GetCSharpDocumentSnapshsot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
             var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));

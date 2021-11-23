@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +40,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // in one giant cache to improve colorization speeds when working with multiple files.
         private const int MaxCachesPerDoc = 6;
         private readonly MemoryCache<DocumentUri, MemoryCache<string, VersionedSemanticTokens>> _razorDocTokensCache = new();
-        private readonly MemoryCache<DocumentUri, MemoryCache<string, IReadOnlyList<int>>> _csharpGeneratedDocTokensCache = new();
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -333,21 +333,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken,
             string? previousResultId = null)
         {
-            IReadOnlyList<int>? previousCSharpTokens = null;
+            var razorRanges = new List<SemanticRange>();
 
-            // Attempting to retrieve cached tokens for the C# generated document.
-            if (previousResultId != null &&
-                _csharpGeneratedDocTokensCache.TryGetValue(textDocumentIdentifier.Uri, out var documentCache) &&
-                documentCache.TryGetValue(previousResultId, out var cachedTokens))
+            if (!TryGetMinimalCSharpRange(codeDocument, out var csharpRange))
             {
-                previousCSharpTokens = cachedTokens;
+                return new VersionedSemanticRange(razorRanges, ResultId: null, IsFinalizedCSharp: true);
             }
 
-            var csharpResponse = previousResultId == null || previousCSharpTokens == null
-                ? await GetMatchingCSharpResponseAsync(
-                    textDocumentIdentifier, documentVersion, cancellationToken)
-                : await GetMatchingCSharpEditsResponseAsync(
-                    textDocumentIdentifier, documentVersion, previousResultId, previousCSharpTokens, cancellationToken);
+            var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
 
             // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
             // Unrecoverable, return null to indicate no change. It will retry in a bit.
@@ -356,27 +349,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return VersionedSemanticRange.Default;
             }
 
-            var razorRanges = new List<SemanticRange>();
-
             // Indicates no C# code in Razor doc.
             if (csharpResponse.ResultId is null)
             {
-                return new VersionedSemanticRange(razorRanges, null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
-            }
-
-            // Keep track of the tokens for the C# generated document so we can reference them
-            // the next time we're called for edits. We only need to insert into the cache if
-            // we receive new responses.
-            if (!_csharpGeneratedDocTokensCache.TryGetValue(
-                textDocumentIdentifier.Uri, out documentCache))
-            {
-                documentCache = new MemoryCache<string, IReadOnlyList<int>>(sizeLimit: MaxCachesPerDoc);
-                _csharpGeneratedDocTokensCache.Set(textDocumentIdentifier.Uri, documentCache);
-            }
-
-            if (!documentCache.TryGetValue(csharpResponse.ResultId, out _))
-            {
-                documentCache.Set(csharpResponse.ResultId, csharpResponse.Data);
+                return new VersionedSemanticRange(razorRanges, ResultId: null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
             }
 
             SemanticRange? previousSemanticRange = null;
@@ -405,17 +381,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsFinalizedCSharp);
         }
 
+        // Internal for testing only
+        internal static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, [NotNullWhen(true)] out Range? range)
+        {
+            var csharpDoc = codeDocument.GetCSharpDocument();
+
+            // If there aren't any source mappings, there's no C# code in the Razor doc.
+            if (csharpDoc.SourceMappings.Count == 0)
+            {
+                range = null;
+                return false;
+            }
+
+            // We only need to colorize the portions of the generated doc that correspond with a C# mapping.
+            // To accomplish this while minimizing the amount of work we need to do, we'll only colorize the
+            // range spanning from the first C# span to the last C# span.
+            SourceSpan? minSpan = null;
+            SourceSpan? maxSpan = null;
+
+            foreach (var mapping in csharpDoc.SourceMappings)
+            {
+                var generatedSpan = mapping.GeneratedSpan;
+                if (minSpan is null || generatedSpan.AbsoluteIndex < minSpan.Value.AbsoluteIndex)
+                {
+                    minSpan = generatedSpan;
+                }
+
+                if (maxSpan is null || generatedSpan.AbsoluteIndex + generatedSpan.Length > maxSpan.Value.AbsoluteIndex + maxSpan.Value.Length)
+                {
+                    maxSpan = generatedSpan;
+                }
+            }
+
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var start = csharpSourceText.Lines.GetLinePosition(minSpan!.Value.AbsoluteIndex);
+            var startPosition = new Position(start.Line, start.Character);
+
+            var end = csharpSourceText.Lines.GetLinePosition(maxSpan!.Value.AbsoluteIndex + maxSpan!.Value.Length);
+            var endPosition = new Position(end.Line, end.Character);
+
+            range = new Range(startPosition, endPosition);
+            return true;
+        }
+
         private async Task<SemanticTokensResponse?> GetMatchingCSharpResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             long documentVersion,
+            Range csharpRange,
             CancellationToken cancellationToken)
         {
-            var parameter = new ProvideSemanticTokensParams
-            {
-                TextDocument = textDocumentIdentifier,
-                RequiredHostDocumentVersion = documentVersion,
-            };
-            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
+            var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
+            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
 
             if (csharpResponse is null)
@@ -430,78 +446,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return new SemanticTokensResponse(csharpResponse.ResultId, csharpResponse.Tokens ?? Array.Empty<int>(), csharpResponse.IsFinalized);
-        }
-
-        private async Task<SemanticTokensResponse?> GetMatchingCSharpEditsResponseAsync(
-            TextDocumentIdentifier textDocumentIdentifier,
-            long documentVersion,
-            string previousResultId,
-            IReadOnlyList<int> previousCSharpTokens,
-            CancellationToken cancellationToken)
-        {
-            var parameter = new ProvideSemanticTokensDeltaParams
-            {
-                TextDocument = textDocumentIdentifier,
-                PreviousResultId = previousResultId,
-                RequiredHostDocumentVersion = documentVersion,
-            };
-            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, parameter);
-            var csharpResponse = await request.Returning<ProvideSemanticTokensEditsResponse>(cancellationToken);
-
-            if (csharpResponse is null ||
-                (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion))
-            {
-                // No C# response or C# is out of sync with us. Unrecoverable, return null to indicate no change. It will retry in a bit.
-                return null;
-            }
-
-            if (csharpResponse.Edits is null)
-            {
-                Assumes.NotNull(csharpResponse.Tokens);
-
-                // C#'s edits handler returned to us a full token set, so we don't need to do any additional work.
-                // This may indicate that C# had trouble with cache retrieval or that the previous tokens were
-                // 0-length, since C# doesn't cache 0-length token sets.
-                return new SemanticTokensResponse(csharpResponse.ResultId, csharpResponse.Tokens.ToArray(), csharpResponse.IsFinalized);
-            }
-
-            Assumes.NotNull(csharpResponse.Edits);
-
-            if (!csharpResponse.Edits.Any())
-            {
-                // If there aren't any edits, return the previous tokens with updated resultId.
-                return new SemanticTokensResponse(csharpResponse.ResultId, previousCSharpTokens.ToArray(), csharpResponse.IsFinalized);
-            }
-
-            var updatedTokens = ApplyEditsToPreviousCSharpDoc(previousCSharpTokens, csharpResponse.Edits);
-            return new SemanticTokensResponse(csharpResponse.ResultId, updatedTokens.ToArray(), csharpResponse.IsFinalized);
-        }
-
-        // Internal for testing
-        internal static int[] ApplyEditsToPreviousCSharpDoc(
-            IReadOnlyList<int> previousCSharpTokens,
-            Models.RazorSemanticTokensEdit[] edits)
-        {
-            var updatedTokens = previousCSharpTokens.ToList();
-            var previousStartIndex = int.MaxValue;
-
-            // C# returns edits ordered from lowest -> highest start index. We need to
-            // apply these edits in reverse order since the returned C# start indices
-            // are absolute indices.
-            for (var i = edits.Length - 1; i >= 0; i--)
-            {
-                var edit = edits[i];
-                Debug.Assert(previousStartIndex > edit.Start);
-                previousStartIndex = edit.Start;
-
-                updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);
-                if (edit.Data != null)
-                {
-                    updatedTokens.InsertRange(edit.Start, edit.Data);
-                }
-            }
-
-            return updatedTokens.ToArray();
         }
 
         private static SemanticRange DataToSemanticRange(
