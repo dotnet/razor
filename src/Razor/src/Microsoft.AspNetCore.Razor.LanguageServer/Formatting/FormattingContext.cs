@@ -253,6 +253,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             bool isFormatOnType = false,
             bool automaticallyAddUsings = false)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (originalSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(originalSnapshot));
+            }
+
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             var syntaxTree = codeDocument.GetSyntaxTree();
             var formattingSpans = syntaxTree.GetFormattingSpans();
 
