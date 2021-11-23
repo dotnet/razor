@@ -262,6 +262,9 @@ $@"public class SomeRazorFile
 
                 return Task.FromResult(projectionResult);
             }
+
+            public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+                => GetProjectionAsync(documentSnapshot, position, cancellationToken);
         }
     }
 }

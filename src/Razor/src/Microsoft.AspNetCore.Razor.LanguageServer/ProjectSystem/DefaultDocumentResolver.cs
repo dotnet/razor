@@ -2,9 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 {
@@ -39,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _filePathNormalizer = filePathNormalizer;
         }
 
-        public override bool TryResolveDocument(string documentFilePath, out DocumentSnapshot document)
+        public override bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out DocumentSnapshot? document)
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 

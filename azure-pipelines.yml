@@ -275,7 +275,7 @@ stages:
 
       - job: macOS
         pool:
-          vmImage: macOS-10.14
+          vmImage: macOS-11
         strategy:
           matrix:
             debug:

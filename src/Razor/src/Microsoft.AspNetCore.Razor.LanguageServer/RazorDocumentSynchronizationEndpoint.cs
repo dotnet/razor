@@ -17,6 +17,8 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
+#nullable enable
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorDocumentSynchronizationEndpoint : ITextDocumentSyncHandler
@@ -62,12 +64,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
         {
+            var uri = notification.TextDocument.Uri.GetAbsoluteOrUNCPath();
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                _documentResolver.TryResolveDocument(uri, out var documentSnapshot);
 
                 return documentSnapshot;
             }, CancellationToken.None).ConfigureAwait(false);
+
+            if (document is null)
+            {
+                throw new InvalidOperationException(RazorLS.Resources.FormatDocument_Not_Found(uri));
+            }
 
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
@@ -155,7 +163,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             foreach (var change in contentChanges)
             {
-                var linePosition = new LinePosition((int)change.Range.Start.Line, (int)change.Range.Start.Character);
+                if (change.Range is null)
+                {
+                    throw new ArgumentNullException(nameof(change.Range), "Range of change should not be null.");
+                }
+
+                var linePosition = new LinePosition(change.Range.Start.Line, change.Range.Start.Character);
                 var position = sourceText.Lines.GetPosition(linePosition);
                 var textSpan = new TextSpan(position, change.RangeLength);
                 var textChange = new TextChange(textSpan, change.Text);

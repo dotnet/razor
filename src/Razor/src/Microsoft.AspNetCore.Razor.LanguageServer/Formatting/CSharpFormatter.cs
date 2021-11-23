@@ -107,16 +107,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
         {
-            var actualEdits = new List<TextEdit>();
-            foreach (var edit in csharpEdits)
-            {
-                if (_documentMappingService.TryMapFromProjectedDocumentEdit(codeDocument, edit, out var newEdit))
-                {
-                    actualEdits.Add(newEdit);
-                }
-            }
+            var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument, csharpEdits);
 
-            return actualEdits.ToArray();
+            return actualEdits;
         }
 
         private async Task<TextEdit[]> FormatOnClientAsync(

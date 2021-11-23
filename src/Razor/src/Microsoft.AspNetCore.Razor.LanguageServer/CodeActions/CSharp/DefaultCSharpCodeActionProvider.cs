@@ -51,13 +51,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            // Disable multi-line code actions in @functions block
-            // Will be removed once https://github.com/dotnet/aspnetcore/issues/26501 is unblocked.
-            if (InFunctionsBlock(context))
-            {
-                return EmptyResult;
-            }
-
             var results = new List<RazorCodeAction>();
 
             foreach (var codeAction in codeActions)

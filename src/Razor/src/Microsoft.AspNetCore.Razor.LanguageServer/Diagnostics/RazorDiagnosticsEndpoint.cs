@@ -22,6 +22,8 @@ using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnost
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
+#nullable enable
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     internal class RazorDiagnosticsEndpoint :
@@ -91,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             cancellationToken.ThrowIfCancellationRequested();
 
             int? documentVersion = null;
-            DocumentSnapshot documentSnapshot = null;
+            DocumentSnapshot? documentSnapshot = null;
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
@@ -317,7 +319,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
                 var taghelperNode = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
 
-                return !(taghelperNode is null);
+                return taghelperNode is not null;
             }
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,

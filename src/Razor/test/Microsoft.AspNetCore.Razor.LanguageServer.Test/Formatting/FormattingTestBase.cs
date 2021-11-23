@@ -117,22 +117,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             bool insertSpaces = true,
             string fileKind = null)
         {
-            var (razorSourceText, edits) = await GetOnTypeFormattingEditsAsync(input, triggerCharacter, tabSize, insertSpaces, fileKind);
-
-            // Assert
-            var edited = ApplyEdits(razorSourceText, edits);
-            var actual = edited.ToString();
-
-            new XUnitVerifier().EqualOrDiff(expected, actual);
-        }
-
-        protected async Task<(SourceText, TextEdit[])> GetOnTypeFormattingEditsAsync(
-            string input,
-            char triggerCharacter,
-            int tabSize = 4,
-            bool insertSpaces = true,
-            string fileKind = null)
-        {
             // Arrange
             fileKind ??= FileKinds.Component;
 
@@ -170,11 +154,80 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             // Act
-            var edits = await formattingService.ApplyFormattedEditsAsync(
-                uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
+            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
 
-            return (razorSourceText, edits);
+            // Assert
+            if (input.Equals(expected))
+            {
+                Assert.Empty(edits);
+            }
+            else
+            {
+                var edited = ApplyEdits(razorSourceText, edits);
+                var actual = edited.ToString();
+
+                new XUnitVerifier().EqualOrDiff(expected, actual);
+            }
         }
+
+        protected async Task RunCodeActionFormattingTestAsync(
+            string input,
+            TextEdit[] codeActionEdits,
+            string expected,
+            int tabSize = 4,
+            bool insertSpaces = true,
+            string fileKind = null)
+        {
+            if (codeActionEdits is null)
+            {
+                throw new NotImplementedException("Code action formatting must provide edits.");
+            }
+
+            // Arrange
+            fileKind ??= FileKinds.Component;
+
+            TestFileMarkupParser.GetPosition(input, out input, out var positionAfterTrigger);
+
+            var razorSourceText = SourceText.From(input);
+            var path = "file:///path/to/Document.razor";
+            var uri = new Uri(path);
+            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+
+            var mappingService = new DefaultRazorDocumentMappingService();
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+            if (languageKind == RazorLanguageKind.Html)
+            {
+                throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
+            }
+
+            if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var _))
+            {
+                throw new InvalidOperationException("Could not map from Razor document to generated document");
+            }
+
+            var formattingService = CreateFormattingService(codeDocument);
+            var options = new FormattingOptions()
+            {
+                TabSize = tabSize,
+                InsertSpaces = insertSpaces,
+            };
+
+            // Act
+            var edits = await formattingService.FormatCodeActionAsync(uri, documentSnapshot, languageKind, codeActionEdits, options, CancellationToken.None);
+
+            // Assert
+            var edited = ApplyEdits(razorSourceText, edits);
+            var actual = edited.ToString();
+
+            new XUnitVerifier().EqualOrDiff(expected, actual);
+        }
+
+        protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
+            => new TextEdit()
+            {
+                Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(startLine, startChar, endLine, endChar),
+                NewText = newText
+            };
 
         private static async Task<TextEdit[]> GetFormattedCSharpEditsAsync(
             RazorCodeDocument codeDocument,
