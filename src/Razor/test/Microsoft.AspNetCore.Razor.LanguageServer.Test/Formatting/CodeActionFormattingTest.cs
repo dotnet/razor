@@ -28,7 +28,7 @@ input: @"
 ",
 codeActionEdits: new []
 {
-    Edit(7, 17, 7, 17, "Diagnostics;\r\n    using System."),
+    Edit(7, 6, 7, 6, "System.Diagnostics;\r\nusing "),
     Edit(67, 0, 67, 8, ""),
     Edit(69, 34, 70, 7, "\r\n\r\n        [DebuggerDisplay($\"{{{nameof(GetDebuggerDisplay)}(),nq}}\")]"),
     Edit(71, 0, 71, 4, "        "),
@@ -36,9 +36,10 @@ codeActionEdits: new []
     Edit(73, 0, 73, 0, "                return ToString();\r\n            }\r\n"),
     Edit(73, 8, 74, 4, "")
 },
-expected: @"
+expected: @"@using System.Diagnostics;
+
 @functions {
-    [DebuggerDisplay($""{{{nameof(GetDebuggerDisplay)}(),nq}}"")] 
+    [DebuggerDisplay($""{{{nameof(GetDebuggerDisplay)}(),nq}}"")]  
     class Goo
     {
         private string GetDebuggerDisplay()
