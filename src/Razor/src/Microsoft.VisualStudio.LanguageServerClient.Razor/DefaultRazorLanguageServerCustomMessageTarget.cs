@@ -400,7 +400,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 newParams,
                 cancellationToken).ConfigureAwait(false);
 
-
             var result = csharpResults?.Response;
             if (result is null)
             {

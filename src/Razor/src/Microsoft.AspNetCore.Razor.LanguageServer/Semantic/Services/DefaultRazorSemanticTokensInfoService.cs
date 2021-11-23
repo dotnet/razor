@@ -333,7 +333,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (!TryGetMinimalCSharpRange(codeDocument, out var csharpRange))
             {
-                return new VersionedSemanticRange(razorRanges, null, IsFinalizedCSharp: true);
+                return new VersionedSemanticRange(razorRanges, ResultId: null, IsFinalizedCSharp: true);
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
@@ -348,7 +348,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // Indicates no C# code in Razor doc.
             if (csharpResponse.ResultId is null)
             {
-                return new VersionedSemanticRange(razorRanges, null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
+                return new VersionedSemanticRange(razorRanges, ResultId: null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
             }
 
             SemanticRange? previousSemanticRange = null;
@@ -392,12 +392,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // We only need to colorize the portions of the generated doc that correspond with a C# mapping.
             // To accomplish this while minimizing the amount of work we need to do, we'll only colorize the
             // range spanning from the first C# span to the last C# span.
+            SourceSpan? minSpan = null;
+            SourceSpan? maxSpan = null;
+
+            foreach (var mapping in csharpDoc.SourceMappings)
+            {
+                var generatedSpan = mapping.GeneratedSpan;
+                if (minSpan is null || generatedSpan.AbsoluteIndex < minSpan.Value.AbsoluteIndex)
+                {
+                    minSpan = generatedSpan;
+                }
+
+                if (maxSpan is null || generatedSpan.AbsoluteIndex + generatedSpan.Length > maxSpan.Value.AbsoluteIndex + maxSpan.Value.Length)
+                {
+                    maxSpan = generatedSpan;
+                }
+            }
+
             var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var start = csharpSourceText.Lines.GetLinePosition(csharpDoc.SourceMappings[0].GeneratedSpan.AbsoluteIndex);
+            var start = csharpSourceText.Lines.GetLinePosition(minSpan!.Value.AbsoluteIndex);
             var startPosition = new Position(start.Line, start.Character);
 
-            var lastCSharpSpan = csharpDoc.SourceMappings[csharpDoc.SourceMappings.Count - 1].GeneratedSpan;
-            var end = csharpSourceText.Lines.GetLinePosition(lastCSharpSpan.AbsoluteIndex + lastCSharpSpan.Length);
+            var end = csharpSourceText.Lines.GetLinePosition(maxSpan!.Value.AbsoluteIndex + maxSpan!.Value.Length);
             var endPosition = new Position(end.Line, end.Character);
 
             range = new Range(startPosition, endPosition);
@@ -410,12 +426,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range csharpRange,
             CancellationToken cancellationToken)
         {
-            var parameter = new ProvideSemanticTokensRangeParams
-            {
-                TextDocument = textDocumentIdentifier,
-                RequiredHostDocumentVersion = documentVersion,
-                Range = csharpRange,
-            };
+            var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
             var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
 

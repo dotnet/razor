@@ -7,10 +7,17 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public record ProvideSemanticTokensRangeParams : SemanticTokensParams
+    internal record ProvideSemanticTokensRangeParams : SemanticTokensParams
     {
-        public long RequiredHostDocumentVersion { get; set; }
+        public long RequiredHostDocumentVersion { get; }
 
-        public Range? Range { get; set; }
+        public Range Range { get; }
+
+        public ProvideSemanticTokensRangeParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range range)
+        {
+            TextDocument = textDocument;
+            RequiredHostDocumentVersion = requiredHostDocumentVersion;
+            Range = range;
+        }
     }
 }
