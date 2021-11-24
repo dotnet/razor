@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
 
-            if (!position.TryGetAbsoluteIndex(context.SourceText, out var absoluteIndex, logger))
+            if (!position.TryGetAbsoluteIndex(context.SourceText, logger, out var absoluteIndex))
             {
                 return false;
             }

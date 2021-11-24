@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            if (!position.TryGetAbsoluteIndex(context.SourceText, out var afterCloseAngleIndex, Logger))
+            if (!position.TryGetAbsoluteIndex(context.SourceText, Logger, out var afterCloseAngleIndex))
             {
                 format = default;
                 edit = default;

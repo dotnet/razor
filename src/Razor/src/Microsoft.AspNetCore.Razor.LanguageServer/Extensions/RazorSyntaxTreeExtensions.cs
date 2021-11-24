@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            if (!position.TryGetAbsoluteIndex(sourceText, out var absoluteIndex, logger))
+            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
             {
                 return default;
             }
@@ -118,8 +118,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(range));
             }
 
-            var startInSync = range.Start.TryGetAbsoluteIndex(sourceText, out var absoluteStartIndex, logger);
-            var endInSync = range.End.TryGetAbsoluteIndex(sourceText, out var absoluteEndIndex, logger);
+            var startInSync = range.Start.TryGetAbsoluteIndex(sourceText, logger, out var absoluteStartIndex);
+            var endInSync = range.End.TryGetAbsoluteIndex(sourceText, logger, out var absoluteEndIndex);
             if (startInSync is false || endInSync is false)
             {
                 return default;

@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (!request.Position.TryGetAbsoluteIndex(sourceText, out var hostDocumentIndex, _logger))
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
             {
                 return null;
             }

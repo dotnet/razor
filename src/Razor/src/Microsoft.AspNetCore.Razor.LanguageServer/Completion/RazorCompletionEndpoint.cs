@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            if(!request.Position.TryGetAbsoluteIndex(sourceText, out var hostDocumentIndex, _logger))
+            if(!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
             {
                 return new CompletionList(isIncomplete: false);
             }
