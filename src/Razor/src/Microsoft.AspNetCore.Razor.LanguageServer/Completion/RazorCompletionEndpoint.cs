@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            if(!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
             {
                 return new CompletionList(isIncomplete: false);
             }
@@ -335,7 +335,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         internal static bool TryConvert(
             RazorCompletionItem razorCompletionItem,
             IReadOnlyList<ExtendedCompletionItemKinds>? supportedItemKinds,
-            [NotNullWhen(true)]out CompletionItem? completionItem)
+            [NotNullWhen(true)] out CompletionItem? completionItem)
         {
             if (razorCompletionItem is null)
             {
