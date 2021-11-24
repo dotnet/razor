@@ -244,18 +244,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static bool ShouldIgnoreLineCompletely(SyntaxNode? parent, SourceText text)
         {
-            return parent?.AncestorsAndSelf().Any(n => n switch
+            return ShouldIgnoreLineCompletelyBecauseOfNode(parent, text)
+                || ShouldIgnoreLineCompletelyBecauseOfAncestors(parent, text);
+
+            static bool ShouldIgnoreLineCompletelyBecauseOfNode(SyntaxNode? node, SourceText text)
             {
-                // C# formatter doesn't touch array initializers
-                InitializerExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression } => true,
-                // C# formatter doesn't touch object and collection initializers if they're not empty
-                InitializerExpressionSyntax { Expressions: { Count: > 0 } } => true,
-                // We don't want to format lines that are part of multi-line string literals
-                LiteralExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression } => SpansMultipleLines(n, text),
-                // As above, but for mutli-line interpolated strings
-                InterpolatedStringExpressionSyntax => SpansMultipleLines(n, text),
-                _ => false
-            }) ?? false;
+                return node switch
+                {
+                    // We don't want to format lines that are part of multi-line string literals
+                    LiteralExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression } => SpansMultipleLines(node, text),
+                    // As above, but for mutli-line interpolated strings
+                    InterpolatedStringExpressionSyntax => SpansMultipleLines(node, text),
+                    InterpolatedStringTextSyntax => SpansMultipleLines(node, text),
+                    _ => false
+                };
+            }
+
+            static bool ShouldIgnoreLineCompletelyBecauseOfAncestors(SyntaxNode? parent, SourceText text)
+            {
+                return parent?.AncestorsAndSelf().Any(node => node switch
+                {
+                    // C# formatter doesn't touch array initializers
+                    InitializerExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression } => true,
+                    // C# formatter doesn't touch object and collection initializers if they're not empty
+                    InitializerExpressionSyntax { Expressions: { Count: > 0 } } => true,
+                    _ => false
+                }) ?? false;
+            }
 
             static bool SpansMultipleLines(SyntaxNode node, SourceText text)
             {
