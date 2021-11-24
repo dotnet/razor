@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
+        private const string LegacyRazorEditorCapability = "LegacyRazorEditor";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
         private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
@@ -108,6 +109,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 {
                     return false;
                 }
+            }
+
+            if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
+            {
+                // CPS project that requires the legacy editor
+                return false;
             }
 
             if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, DotNetCoreCSharpCapability))
