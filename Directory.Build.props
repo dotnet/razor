@@ -13,6 +13,8 @@
     <AnalysisMode>Default</AnalysisMode>
     <LangVersion>Latest</LangVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Disable XLIFF tasks -->
+    <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
   <!--
