@@ -113,9 +113,6 @@ stages:
           dependsOn:
           - Windows
           - Source_Build_Complete
-          - ${{ if ne(parameters.skipTests, 'true') }}:
-            - macOS
-            - Linux
           pool:
             vmImage: windows-latest
       jobs:
