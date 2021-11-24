@@ -111,6 +111,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
             }
 
+            // We alow projects to specifically opt-out of the legacy Razor editor because there are legacy scenarios which would rely on behind-the-scenes
+            // opt-out mechanics to enable the .NET Core editor in non-.NET Core scenarios. Therefore, we need a similar mechanic to continue supporting
+            // those types of scenarios for the new .NET Core Razor editor.
             if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
             {
                 // CPS project that requires the legacy editor
