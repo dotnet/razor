@@ -527,6 +527,58 @@ be indented.
 
         [Theory]
         [CombinatorialData]
+        public async Task Strings(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@functions{
+private string str1 = ""hello world"";
+private string str2 = $""hello world"";
+private string str3 = @""hello world"";
+private string str4 = $@""hello world"";
+private string str5 = @""
+    One
+        Two
+            Three
+"";
+private string str6 = $@""
+    One
+        Two
+            Three
+"";
+// This looks wrong, but matches what the C# formatter does. Try it and see!
+private string str7 = ""One"" +
+    ""Two"" +
+        ""Three"" +
+"""";
+}
+",
+expected: @"@functions {
+    private string str1 = ""hello world"";
+    private string str2 = $""hello world"";
+    private string str3 = @""hello world"";
+    private string str4 = $@""hello world"";
+    private string str5 = @""
+    One
+        Two
+            Three
+"";
+    private string str6 = $@""
+    One
+        Two
+            Three
+"";
+    // This looks wrong, but matches what the C# formatter does. Try it and see!
+    private string str7 = ""One"" +
+        ""Two"" +
+            ""Three"" +
+    """";
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task CodeBlockDirective_UseTabs(bool useSourceTextDiffer)
         {
             await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
