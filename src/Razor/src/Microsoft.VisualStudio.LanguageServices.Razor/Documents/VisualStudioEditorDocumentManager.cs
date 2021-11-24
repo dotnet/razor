@@ -53,11 +53,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
 
-            joinableTaskContext.Factory.Run(() =>
+            joinableTaskContext.Factory.Run(async () =>
             {
+                await joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
                 var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
                 Marshal.ThrowExceptionForHR(hr);
-                return Task.CompletedTask;
             });
 
             _documentsByCookie = new Dictionary<uint, List<DocumentKey>>();
