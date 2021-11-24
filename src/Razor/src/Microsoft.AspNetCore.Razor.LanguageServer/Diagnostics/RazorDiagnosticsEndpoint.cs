@@ -369,6 +369,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 {
                     return false;
                 }
+
                 return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag.Bang != null;
             }
         }
@@ -533,13 +534,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         remappedRange = null;
                         return false;
                     }
+
                     var startLine = sourceText.Lines[startLineIndex];
 
                     // Look for the first non-whitespace character so we're not squiggling random whitespace at the start of the diagnostic
                     var firstNonWhitespaceCharacterOffset = sourceText.GetFirstNonWhitespaceOffset(startLine.Span, out _);
                     var diagnosticStartCharacter = firstNonWhitespaceCharacterOffset ?? 0;
                     var startLinePosition = new Position(startLineIndex, diagnosticStartCharacter);
-
 
                     var endLineIndex = diagnosticRange.End.Line;
                     if (endLineIndex >= sourceText.Lines.Count)
@@ -548,6 +549,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         remappedRange = null;
                         return false;
                     }
+
                     var endLine = sourceText.Lines[endLineIndex];
 
                     // Look for the last non-whitespace character so we're not squiggling random whitespace at the end of the diagnostic

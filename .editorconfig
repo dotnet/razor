@@ -35,6 +35,7 @@ insert_final_newline = true
 
 # Dotnet code style settings:
 [*.cs]
+dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
 dotnet_style_allow_multiple_blank_lines_experimental = false:warning
 
 # Sort using and Import directives with System.* appearing first
@@ -82,7 +83,7 @@ dotnet_diagnostic.IDE2004.severity = warning
 # csharp_style_allow_embedded_statements_on_same_line_experimental
 dotnet_diagnostic.IDE2001.severity = none
 # dotnet_style_allow_statement_immediately_after_block_experimental
-dotnet_diagnostic.IDE2003.severity = suggestion
+dotnet_diagnostic.IDE2003.severity = warning
 
 # IDE0058
 csharp_style_unused_value_expression_statement_preference = discard_variable:none

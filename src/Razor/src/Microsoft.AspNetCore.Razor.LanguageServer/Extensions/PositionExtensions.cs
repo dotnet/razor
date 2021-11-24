@@ -36,6 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 absoluteIndex = -1;
                 return false;
             }
+
             var index = sourceText.Lines.GetPosition(linePosition);
             absoluteIndex = index;
             return true;
