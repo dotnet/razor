@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,8 +23,6 @@ using DiagnosticSeverity = OmniSharp.Extensions.LanguageServer.Protocol.Models.D
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-
-#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {

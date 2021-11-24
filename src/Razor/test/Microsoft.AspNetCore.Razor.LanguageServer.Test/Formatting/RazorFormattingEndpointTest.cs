@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -27,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public RazorFormattingEndpointTest()
         {
-            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
+            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot?>.IsAny) == false, MockBehavior.Strict);
         }
 
         private DocumentResolver EmptyDocumentResolver { get; }
@@ -344,7 +346,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Assert
             Assert.NotNull(result);
-            Assert.Collection(Iterate(result.GetEnumerator()),
+            Assert.Collection(Iterate(result!.GetEnumerator()),
                 edit => Assert.Equal(edit, new TextEdit { NewText = "   ", Range = new Range { Start = new Position { Line = 2, Character = 1 }, End = new Position { Line = 2, Character = 1 } } }),
                 edit => Assert.Equal(edit, new TextEdit { NewText = " ", Range = new Range { Start = new Position { Line = 2, Character = 3 }, End = new Position { Line = 2, Character = 3 } } }),
                 edit => Assert.Equal(edit, new TextEdit { NewText = " ", Range = new Range { Start = new Position { Line = 2, Character = 9 }, End = new Position { Line = 2, Character = 9 } } }),

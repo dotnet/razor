@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,8 +21,6 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public ExtractToCodeBehindCodeActionResolverTest()
         {
             _emptyDocumentResolver = new Mock<DocumentResolver>(MockBehavior.Strict).Object;
-            Mock.Get(_emptyDocumentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny)).Returns(false);
+            Mock.Get(_emptyDocumentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot?>.IsAny)).Returns(false);
 
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();

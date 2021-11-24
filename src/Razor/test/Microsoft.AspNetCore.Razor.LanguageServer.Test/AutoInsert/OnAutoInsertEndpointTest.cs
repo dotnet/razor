@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public OnAutoInsertEndpointTest()
         {
-            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
+            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot?>.IsAny) == false, MockBehavior.Strict);
         }
 
         private DocumentResolver EmptyDocumentResolver { get; }
@@ -256,14 +258,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             public bool Called { get; private set; }
 
-            public TextEdit ResolvedTextEdit { get; set; }
+            public TextEdit? ResolvedTextEdit { get; set; }
 
             public override string TriggerCharacter { get; }
 
             public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit edit, out InsertTextFormat format)
             {
                 Called = true;
-                edit = ResolvedTextEdit;
+                Assert.NotNull(ResolvedTextEdit);
+                edit = ResolvedTextEdit!;
                 format = default;
                 return _canResolve;
             }

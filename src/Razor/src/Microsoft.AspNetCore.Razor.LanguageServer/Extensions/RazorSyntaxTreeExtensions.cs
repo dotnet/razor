@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-
-#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            if(!position.TryGetAbsoluteIndex(sourceText, out var absoluteIndex, logger))
+            if (!position.TryGetAbsoluteIndex(sourceText, out var absoluteIndex, logger))
             {
                 return default;
             }

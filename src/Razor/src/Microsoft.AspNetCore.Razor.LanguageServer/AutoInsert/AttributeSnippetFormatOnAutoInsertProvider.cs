@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -14,8 +16,6 @@ using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class AttributeSnippetOnAutoInsertProvider : RazorOnAutoInsertProvider
@@ -24,9 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public override string TriggerCharacter => "=";
 
-        public AttributeSnippetOnAutoInsertProvider(
-            TagHelperFactsService tagHelperFactsService, ILoggerFactory loggerFactory) :
-            base(loggerFactory)
+        public AttributeSnippetOnAutoInsertProvider(TagHelperFactsService tagHelperFactsService, ILoggerFactory loggerFactory)
+            : base(loggerFactory)
         {
             if (tagHelperFactsService is null)
             {
@@ -36,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)]out TextEdit? edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
             if (position is null)
             {
@@ -70,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
 
-            if(!position.TryGetAbsoluteIndex(context.SourceText, out var absoluteIndex, Logger))
+            if (!position.TryGetAbsoluteIndex(context.SourceText, out var absoluteIndex, Logger))
             {
                 return false;
             }

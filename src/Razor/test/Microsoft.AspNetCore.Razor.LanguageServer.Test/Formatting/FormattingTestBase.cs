@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             LoggerFactory = new FormattingTestLoggerFactory(output);
         }
 
-        public static string TestProjectPath { get; private set; }
+        public static string? TestProjectPath { get; private set; }
 
         protected FilePathNormalizer FilePathNormalizer { get; }
 
@@ -61,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return s_fileName.Value; }
+            get { return s_fileName.Value!; }
             set { s_fileName.Value = value; }
         }
 
@@ -70,8 +72,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             string expected,
             int tabSize = 4,
             bool insertSpaces = true,
-            string fileKind = null,
-            IReadOnlyList<TagHelperDescriptor> tagHelpers = null,
+            string? fileKind = null,
+            IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
             bool useSourceTextDiffer = false)
         {
             // Arrange
@@ -115,7 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             char triggerCharacter,
             int tabSize = 4,
             bool insertSpaces = true,
-            string fileKind = null)
+            string? fileKind = null)
         {
             // Arrange
             fileKind ??= FileKinds.Component;
@@ -176,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             string expected,
             int tabSize = 4,
             bool insertSpaces = true,
-            string fileKind = null)
+            string? fileKind = null)
         {
             if (codeActionEdits is null)
             {
@@ -289,7 +291,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return source.WithChanges(changes);
         }
 
-        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string fileKind = default)
+        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default)
         {
             fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
@@ -349,12 +351,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var assemblyName = typeof(FormattingTestBase).Assembly.GetName().Name;
-            var projectDirectory = Path.Combine(repoRoot, "src", "Razor", "test", assemblyName);
+            var projectDirectory = Path.Combine(repoRoot, "src", "Razor", "test", assemblyName!);
 
             return projectDirectory;
         }
 
-        private static string SearchUp(string baseDirectory, string fileName)
+        private static string? SearchUp(string baseDirectory, string fileName)
         {
             var directoryInfo = new DirectoryInfo(baseDirectory);
             do
@@ -367,7 +369,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 directoryInfo = directoryInfo.Parent;
             }
-            while (directoryInfo.Parent != null);
+            while (directoryInfo?.Parent != null);
 
             return null;
         }
@@ -380,7 +382,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 current = current.Parent;
             }
-            var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
+            var tagHelperFilePath = Path.Combine(current!.FullName, testFileName);
             var buffer = File.ReadAllBytes(tagHelperFilePath);
             var serializer = new JsonSerializer();
             serializer.Converters.Add(new TagHelperDescriptorJsonConverter());

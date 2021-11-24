@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public DefaultRazorDocumentMappingServiceTest()
         {
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
         }
@@ -371,17 +373,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 });
 
             // Act
-            var result = service.TryMapToProjectedDocumentPosition(
+            if (service.TryMapToProjectedDocumentPosition(
                 codeDoc,
                 16,
                 out var projectedPosition,
-                out var projectedPositionIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, projectedPosition.Line);
-            Assert.Equal(0, projectedPosition.Character);
-            Assert.Equal(11, projectedPositionIndex);
+                out var projectedPositionIndex))
+            {
+                Assert.Equal(2, projectedPosition.Line);
+                Assert.Equal(0, projectedPosition.Character);
+                Assert.Equal(11, projectedPositionIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapToProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
@@ -397,18 +402,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapToProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapToProjectedDocumentPosition(
                 codeDoc,
                 28,
                 out var projectedPosition,
-                out var projectedPositionIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(3, projectedPosition.Line);
-            Assert.Equal(2, projectedPosition.Character);
-            Assert.Equal(23, projectedPositionIndex);
+                out var projectedPositionIndex))
+            {
+                Assert.Equal(3, projectedPosition.Line);
+                Assert.Equal(2, projectedPosition.Character);
+                Assert.Equal(23, projectedPositionIndex);
+            }
+            else
+            {
+                Assert.False(true, "TryMapToProjectedDocumentPosition should have been true");
+            }
         }
 
         [Fact]
@@ -424,18 +432,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapToProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapToProjectedDocumentPosition(
                 codeDoc,
                 35,
                 out var projectedPosition,
-                out var projectedPositionIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(3, projectedPosition.Line);
-            Assert.Equal(9, projectedPosition.Character);
-            Assert.Equal(30, projectedPositionIndex);
+                out var projectedPositionIndex))
+            {
+                Assert.Equal(3, projectedPosition.Line);
+                Assert.Equal(9, projectedPosition.Character);
+                Assert.Equal(30, projectedPositionIndex);
+            }
+            else
+            {
+                Assert.True(false, "TryMapToProjectedDocumentPosition should have returned true");
+            }
         }
 
         [Fact]
@@ -474,18 +485,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapFromProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapFromProjectedDocumentPosition(
                 codeDoc,
                 11, // @{|
                 out var hostDocumentPosition,
-                out var hostDocumentIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(1, hostDocumentPosition.Line);
-            Assert.Equal(9, hostDocumentPosition.Character);
-            Assert.Equal(16, hostDocumentIndex);
+                out var hostDocumentIndex))
+            {
+                Assert.Equal(1, hostDocumentPosition.Line);
+                Assert.Equal(9, hostDocumentPosition.Character);
+                Assert.Equal(16, hostDocumentIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
@@ -501,18 +515,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapFromProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapFromProjectedDocumentPosition(
                 codeDoc,
                 21, // |var def
                 out var hostDocumentPosition,
-                out var hostDocumentIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, hostDocumentPosition.Line);
-            Assert.Equal(0, hostDocumentPosition.Character);
-            Assert.Equal(26, hostDocumentIndex);
+                out var hostDocumentIndex))
+            {
+                Assert.Equal(2, hostDocumentPosition.Line);
+                Assert.Equal(0, hostDocumentPosition.Character);
+                Assert.Equal(26, hostDocumentIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
@@ -528,18 +545,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapFromProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapFromProjectedDocumentPosition(
                 codeDoc,
                 30, // def; |}
                 out var hostDocumentPosition,
-                out var hostDocumentIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, hostDocumentPosition.Line);
-            Assert.Equal(9, hostDocumentPosition.Character);
-            Assert.Equal(35, hostDocumentIndex);
+                out var hostDocumentIndex))
+            {
+                Assert.Equal(2, hostDocumentPosition.Line);
+                Assert.Equal(9, hostDocumentPosition.Character);
+                Assert.Equal(35, hostDocumentIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
@@ -556,18 +576,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 });
             var range = new Range(new Position(1, 10), new Position(1, 13));
 
-            // Act
-            var result = service.TryMapToProjectedDocumentRange(
+            // Act & Assert
+            if (service.TryMapToProjectedDocumentRange(
                 codeDoc,
                 range, // |var| abc
-                out var projectedRange);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, projectedRange.Start.Line);
-            Assert.Equal(1, projectedRange.Start.Character);
-            Assert.Equal(2, projectedRange.End.Line);
-            Assert.Equal(4, projectedRange.End.Character);
+                out var projectedRange))
+            {
+                Assert.Equal(2, projectedRange.Start.Line);
+                Assert.Equal(1, projectedRange.Start.Character);
+                Assert.Equal(2, projectedRange.End.Line);
+                Assert.Equal(4, projectedRange.End.Character);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapToProjectedDocumentRange} should have returned true");
+            }
         }
 
         [Fact]
@@ -874,7 +897,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(RazorLanguageKind.Html, languageKind);
         }
 
-        private static (IReadOnlyList<ClassifiedSpanInternal> classifiedSpans, IReadOnlyList<TagHelperSpanInternal> tagHelperSpans) GetClassifiedSpans(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static (IReadOnlyList<ClassifiedSpanInternal> classifiedSpans, IReadOnlyList<TagHelperSpanInternal> tagHelperSpans) GetClassifiedSpans(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             var codeDocument = CreateCodeDocument(text, tagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -883,7 +906,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return (classifiedSpans, tagHelperSpans);
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
