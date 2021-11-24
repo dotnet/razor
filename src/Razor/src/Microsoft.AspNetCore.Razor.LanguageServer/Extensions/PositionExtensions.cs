@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {
-        public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, out int absoluteIndex, ILogger? logger = null)
+        public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
         {
             if (position is null)
             {

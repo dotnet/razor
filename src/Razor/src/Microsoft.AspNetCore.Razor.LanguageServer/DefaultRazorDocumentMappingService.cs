@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
-        private readonly ILogger? _logger;
+        private readonly ILogger _logger;
 
         public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
         {
@@ -33,7 +33,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
         }
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("This only exists to prevent Moq from complaining, use the other constructor.")]
         public DefaultRazorDocumentMappingService() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         public override TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits)
         {
@@ -49,8 +52,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     continue;
                 }
 
-                var startSync = range.Start.TryGetAbsoluteIndex(csharpSourceText, out var startIndex, _logger);
-                var endSync = range.End.TryGetAbsoluteIndex(csharpSourceText, out var endIndex, _logger);
+                var startSync = range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex);
+                var endSync = range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex);
                 if (startSync is false || endSync is false)
                 {
                     break;
@@ -103,9 +106,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Debug.Assert(lastNewLine == 0 || edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
                     var proposedRange = new Range(range.End.Line, 0, range.End.Line, range.End.Character);
-                    startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, out startIndex);
-                    endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, out endIndex);
-                    if(startSync is false || endSync is false)
+                    startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
+                    endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out endIndex);
+                    if (startSync is false || endSync is false)
                     {
                         break;
                     }
@@ -252,13 +255,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            if (!range.Start.TryGetAbsoluteIndex(sourceText, out var startIndex, _logger) ||
+            if (!range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startIndex) ||
                 !TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
             {
                 return false;
             }
 
-            if (!range.End.TryGetAbsoluteIndex(sourceText, out var endIndex, _logger) ||
+            if (!range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endIndex) ||
                 !TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
             {
                 return false;
@@ -461,14 +464,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
 
-            if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, out var startIndex, _logger) ||
+            if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex) ||
                 !TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
 
 
-            if (!range.End.TryGetAbsoluteIndex(csharpSourceText, out var endIndex, _logger) ||
+            if (!range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex) ||
                 !TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
             {
                 return false;
