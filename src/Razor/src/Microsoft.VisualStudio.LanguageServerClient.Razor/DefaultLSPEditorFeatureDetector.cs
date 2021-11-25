@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
+        private const string LegacyRazorEditorCapability = "LegacyRazorEditor";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
         private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
@@ -108,6 +109,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 {
                     return false;
                 }
+            }
+
+            // We alow projects to specifically opt-out of the legacy Razor editor because there are legacy scenarios which would rely on behind-the-scenes
+            // opt-out mechanics to enable the .NET Core editor in non-.NET Core scenarios. Therefore, we need a similar mechanic to continue supporting
+            // those types of scenarios for the new .NET Core Razor editor.
+            if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
+            {
+                // CPS project that requires the legacy editor
+                return false;
             }
 
             if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, DotNetCoreCSharpCapability))

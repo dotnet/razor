@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -52,8 +53,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
 
-            var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
-            Marshal.ThrowExceptionForHR(hr);
+            // Need to grab running doc-table events but that requires the UI thread.
+            joinableTaskContext.Factory.Run(async () =>
+            {
+                await joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
+                Marshal.ThrowExceptionForHR(hr);
+            });
 
             _documentsByCookie = new Dictionary<uint, List<DocumentKey>>();
             _cookiesByDocument = new Dictionary<DocumentKey, uint>();
