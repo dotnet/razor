@@ -53,6 +53,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
 
+            // Need to grab running doc-table events but that requires the UI thread.
             joinableTaskContext.Factory.Run(async () =>
             {
                 await joinableTaskContext.Factory.SwitchToMainThreadAsync();
