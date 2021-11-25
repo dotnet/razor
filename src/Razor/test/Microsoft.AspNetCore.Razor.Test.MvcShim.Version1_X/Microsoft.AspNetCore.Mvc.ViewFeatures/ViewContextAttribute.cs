@@ -5,6 +5,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class ViewContextAttribute : Attribute
     {
     }

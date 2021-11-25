@@ -5,6 +5,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Mvc
 {
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public sealed class ViewComponentAttribute : Attribute
     {
     }
