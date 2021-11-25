@@ -262,7 +262,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             public override string TriggerCharacter { get; }
 
-            public override bool TryResolveInsertion(Position position, FormattingContext context, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+            // Disabling because [NotNullWhen] is available in two Assemblies and causes warnings
+#pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
+            public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit? edit, out InsertTextFormat format)
+#pragma warning restore CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             {
                 Called = true;
                 edit = ResolvedTextEdit!;
