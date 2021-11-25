@@ -262,10 +262,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             public override string TriggerCharacter { get; }
 
-            public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit edit, out InsertTextFormat format)
+            public override bool TryResolveInsertion(Position position, FormattingContext context, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
             {
                 Called = true;
-                Assert.NotNull(ResolvedTextEdit);
                 edit = ResolvedTextEdit!;
                 format = default;
                 return _canResolve;
