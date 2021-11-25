@@ -177,6 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         // less aggressive and do a delayed publish.
                         EnqueuePublish(args.Newer);
                     }
+
                     break;
                 case ProjectChangeKind.DocumentRemoved:
                 case ProjectChangeKind.DocumentAdded:
@@ -187,6 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         // we enqueue publishes and then publish the latest project after a delay.
                         EnqueuePublish(args.Newer);
                     }
+
                     break;
 
                 case ProjectChangeKind.ProjectAdded:
@@ -195,6 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     {
                         ImmediatePublish(args.Newer);
                     }
+
                     break;
 
                 case ProjectChangeKind.ProjectRemoved:
@@ -253,7 +256,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     // If we don't track the value in PublishFilePathMappings that means it's already been removed, do nothing.
                     return;
                 }
-
 
                 lock (_pendingProjectPublishesLock)
                 {
@@ -339,6 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     _documentsProcessed = true;
                 }
             }
+
             if (status is null)
             {
                 return true;

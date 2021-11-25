@@ -118,7 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _ = CompleteAfterDelayAsync(token, request.DelayAfterLastNotifyAsync, linkedCTS); // Fire and forget
 
-
             async Task CompleteAfterDelayAsync(string token, Func<CancellationToken, Task> delayAfterLastNotifyAsync, CancellationTokenSource cts)
             {
                 try
