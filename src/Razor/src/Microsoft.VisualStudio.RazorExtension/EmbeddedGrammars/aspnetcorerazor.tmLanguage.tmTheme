@@ -155,7 +155,7 @@
       <!-- End HTML specific colorization -->
 
       <!-- Begin C# specific colorization -->
-<!--
+
       <dict>
         <key>scope</key>
         <string>variable</string>
@@ -235,8 +235,6 @@
           <string>parameter name</string>
         </dict>
       </dict>
-      </dict>
--->
 
       <!-- End C# specific colorization -->
 
