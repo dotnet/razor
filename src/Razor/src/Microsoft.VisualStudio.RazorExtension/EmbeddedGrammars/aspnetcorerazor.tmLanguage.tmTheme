@@ -154,8 +154,9 @@
 
       <!-- End HTML specific colorization -->
 
-      <!-- Begin C# specific colorization -->
-<!--
+      <!-- Begin Generic colorization -->
+      <!-- These can apply to many different languages -->
+
       <dict>
         <key>scope</key>
         <string>variable</string>
@@ -163,46 +164,6 @@
         <dict>
           <key>vsclassificationtype</key>
           <string>Identifier</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>constant.language, variable.language, storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>Keyword</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>storage.type.cs, entity.name.type.class.cs</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>class name</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>entity.name.function.cs</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>method name</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>variable.other.object.cs, entity.name.variable.local.cs</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>local name</string>
         </dict>
       </dict>
 
@@ -235,8 +196,49 @@
           <string>parameter name</string>
         </dict>
       </dict>
+
+      <!-- End  Generic colorization -->
+
+      <!-- Begin C# specific colorization -->
+      <dict>
+        <key>scope</key>
+        <string>constant.language, variable.language, storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>Keyword</string>
+        </dict>
       </dict>
--->
+
+      <!-- <dict>
+        <key>scope</key>
+        <string>storage.type.cs, entity.name.type.class.cs</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>class name</string>
+        </dict>
+      </dict> -->
+
+      <dict>
+        <key>scope</key>
+        <string>entity.name.function.cs</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>method name</string>
+        </dict>
+      </dict>
+
+      <!-- <dict>
+        <key>scope</key>
+        <string>variable.other.object.cs, entity.name.variable.local.cs</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>local name</string>
+        </dict>
+      </dict> -->
 
       <!-- End C# specific colorization -->
 
