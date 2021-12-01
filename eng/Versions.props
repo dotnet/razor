@@ -2,10 +2,9 @@
   <!-- Versioning for assemblies/packages -->
   <PropertyGroup>
     <MajorVersion>6</MajorVersion>
-    <MinorVersion>1</MinorVersion>
-    <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
-    <PreReleaseVersionIteration>1</PreReleaseVersionIteration>
+    <MinorVersion>0</MinorVersion>
+    <PatchVersion>2</PatchVersion>
+    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <!--
         When StabilizePackageVersion is set to 'true', this branch will produce stable outputs for 'Shipping' packages
     -->
