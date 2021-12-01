@@ -29,6 +29,56 @@
         </dict>
       </dict>
 
+      <dict>
+        <key>scope</key>
+        <string>variable</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>Identifier</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>keyword.control.conditional, keyword.control.loop, keyword.control.flow</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>keyword - control</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>entity.name.label</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>parameter name</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>entity.name.variable.parameter</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>parameter name</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>constant.language, variable.language</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>Keyword</string>
+        </dict>
+      </dict>
+
       <!-- End General -->
 
       <!-- Begin Razor specific colorization -->
@@ -154,55 +204,10 @@
 
       <!-- End HTML specific colorization -->
 
-      <!-- Begin Generic colorization -->
-      <!-- These can apply to many different languages -->
-
-      <dict>
-        <key>scope</key>
-        <string>variable</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>Identifier</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>keyword.control.conditional, keyword.control.loop, keyword.control.flow</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>keyword - control</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>entity.name.label</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>parameter name</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>entity.name.variable.parameter</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>parameter name</string>
-        </dict>
-      </dict>
-
-      <!-- End  Generic colorization -->
-
       <!-- Begin C# specific colorization -->
       <dict>
         <key>scope</key>
-        <string>constant.language, variable.language, storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
+        <string>storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
