@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
@@ -121,7 +123,7 @@ tagHelpers: TagHelpers);
 
         internal override RazorOnAutoInsertProvider CreateProvider()
         {
-            var provider = new AttributeSnippetOnAutoInsertProvider(new DefaultTagHelperFactsService());
+            var provider = new AttributeSnippetOnAutoInsertProvider(new DefaultTagHelperFactsService(), LoggerFactory);
             return provider;
         }
 

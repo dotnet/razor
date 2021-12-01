@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,14 +14,30 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.Extensions.Logging;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-
-#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
+        private readonly ILogger _logger;
+
+        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
+        {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
+        }
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("This only exists to prevent Moq from complaining, use the other constructor.")]
+        public DefaultRazorDocumentMappingService() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
         public override TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits)
         {
             var projectedEdits = new List<TextEdit>();
@@ -34,8 +52,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     continue;
                 }
 
-                var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
-                var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
+                var startSync = range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex);
+                var endSync = range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex);
+                if (startSync is false || endSync is false)
+                {
+                    break;
+                }
                 var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
                 var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
@@ -84,8 +106,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Debug.Assert(lastNewLine == 0 || edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
                     var proposedRange = new Range(range.End.Line, 0, range.End.Line, range.End.Character);
-                    startIndex = proposedRange.Start.GetAbsoluteIndex(csharpSourceText);
-                    endIndex = proposedRange.End.GetAbsoluteIndex(csharpSourceText);
+                    startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
+                    endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out endIndex);
+                    if (startSync is false || endSync is false)
+                    {
+                        break;
+                    }
                     mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
                     mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
 
@@ -229,14 +255,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var startIndex = range.Start.GetAbsoluteIndex(sourceText);
-            if (!TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
+            if (!range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startIndex) ||
+                !TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
             {
                 return false;
             }
 
-            var endIndex = range.End.GetAbsoluteIndex(sourceText);
-            if (!TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
+            if (!range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endIndex) ||
+                !TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
             {
                 return false;
             }
@@ -437,14 +463,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
-            if (!TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
+
+            if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex) ||
+                !TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
 
-            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
-            if (!TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
+
+            if (!range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex) ||
+                !TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
             {
                 return false;
             }

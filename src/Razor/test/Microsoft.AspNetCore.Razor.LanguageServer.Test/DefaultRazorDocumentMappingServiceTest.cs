@@ -1,12 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.Extensions.Logging;
+using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -15,11 +19,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DefaultRazorDocumentMappingServiceTest
     {
+        private ILoggerFactory LoggerFactory { get; }
+
+        public DefaultRazorDocumentMappingServiceTest()
+        {
+            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
+            LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
+        }
+
         [Fact]
         public void TryMapFromProjectedDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -46,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Strict_EndOnlyMaps_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -73,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Strict_StartAndEndMap_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -105,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_DirectlyMaps_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -137,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_StartSinglyIntersects_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -169,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_EndSinglyIntersects_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -201,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_StartDoublyIntersects_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -232,7 +246,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_EndDoublyIntersects_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -263,7 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsSingleMapping_ReturnsTrue()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -295,7 +309,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsTwoMappings_ReturnsFalse()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "__o = DateTime.Now;",
@@ -326,7 +340,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentPosition_NotMatchingAnyMapping()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "test razor source",
                 "test C# source",
@@ -349,7 +363,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentPosition_CSharp_OnLeadingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -359,24 +373,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 });
 
             // Act
-            var result = service.TryMapToProjectedDocumentPosition(
+            if (service.TryMapToProjectedDocumentPosition(
                 codeDoc,
                 16,
                 out var projectedPosition,
-                out var projectedPositionIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, projectedPosition.Line);
-            Assert.Equal(0, projectedPosition.Character);
-            Assert.Equal(11, projectedPositionIndex);
+                out var projectedPositionIndex))
+            {
+                Assert.Equal(2, projectedPosition.Line);
+                Assert.Equal(0, projectedPosition.Character);
+                Assert.Equal(11, projectedPositionIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapToProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
         public void TryMapToProjectedDocumentPosition_CSharp_InMiddle()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -385,25 +402,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapToProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapToProjectedDocumentPosition(
                 codeDoc,
                 28,
                 out var projectedPosition,
-                out var projectedPositionIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(3, projectedPosition.Line);
-            Assert.Equal(2, projectedPosition.Character);
-            Assert.Equal(23, projectedPositionIndex);
+                out var projectedPositionIndex))
+            {
+                Assert.Equal(3, projectedPosition.Line);
+                Assert.Equal(2, projectedPosition.Character);
+                Assert.Equal(23, projectedPositionIndex);
+            }
+            else
+            {
+                Assert.False(true, "TryMapToProjectedDocumentPosition should have been true");
+            }
         }
 
         [Fact]
         public void TryMapToProjectedDocumentPosition_CSharp_OnTrailingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -412,25 +432,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapToProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapToProjectedDocumentPosition(
                 codeDoc,
                 35,
                 out var projectedPosition,
-                out var projectedPositionIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(3, projectedPosition.Line);
-            Assert.Equal(9, projectedPosition.Character);
-            Assert.Equal(30, projectedPositionIndex);
+                out var projectedPositionIndex))
+            {
+                Assert.Equal(3, projectedPosition.Line);
+                Assert.Equal(9, projectedPosition.Character);
+                Assert.Equal(30, projectedPositionIndex);
+            }
+            else
+            {
+                Assert.True(false, "TryMapToProjectedDocumentPosition should have returned true");
+            }
         }
 
         [Fact]
         public void TryMapFromProjectedDocumentPosition_NotMatchingAnyMapping()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "test razor source",
                 projectedCSharpSource: "projectedCSharpSource: test C# source",
@@ -453,7 +476,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapFromProjectedDocumentPosition_CSharp_OnLeadingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -462,25 +485,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapFromProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapFromProjectedDocumentPosition(
                 codeDoc,
                 11, // @{|
                 out var hostDocumentPosition,
-                out var hostDocumentIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(1, hostDocumentPosition.Line);
-            Assert.Equal(9, hostDocumentPosition.Character);
-            Assert.Equal(16, hostDocumentIndex);
+                out var hostDocumentIndex))
+            {
+                Assert.Equal(1, hostDocumentPosition.Line);
+                Assert.Equal(9, hostDocumentPosition.Character);
+                Assert.Equal(16, hostDocumentIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
         public void TryMapFromProjectedDocumentPosition_CSharp_InMiddle()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -489,25 +515,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapFromProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapFromProjectedDocumentPosition(
                 codeDoc,
                 21, // |var def
                 out var hostDocumentPosition,
-                out var hostDocumentIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, hostDocumentPosition.Line);
-            Assert.Equal(0, hostDocumentPosition.Character);
-            Assert.Equal(26, hostDocumentIndex);
+                out var hostDocumentIndex))
+            {
+                Assert.Equal(2, hostDocumentPosition.Line);
+                Assert.Equal(0, hostDocumentPosition.Character);
+                Assert.Equal(26, hostDocumentIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
         public void TryMapFromProjectedDocumentPosition_CSharp_OnTrailingEdge()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -516,25 +545,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
 
-            // Act
-            var result = service.TryMapFromProjectedDocumentPosition(
+            // Act & Assert
+            if (service.TryMapFromProjectedDocumentPosition(
                 codeDoc,
                 30, // def; |}
                 out var hostDocumentPosition,
-                out var hostDocumentIndex);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, hostDocumentPosition.Line);
-            Assert.Equal(9, hostDocumentPosition.Character);
-            Assert.Equal(35, hostDocumentIndex);
+                out var hostDocumentIndex))
+            {
+                Assert.Equal(2, hostDocumentPosition.Line);
+                Assert.Equal(9, hostDocumentPosition.Character);
+                Assert.Equal(35, hostDocumentIndex);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+            }
         }
 
         [Fact]
         public void TryMapToProjectedDocumentRange_CSharp()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -544,25 +576,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 });
             var range = new Range(new Position(1, 10), new Position(1, 13));
 
-            // Act
-            var result = service.TryMapToProjectedDocumentRange(
+            // Act & Assert
+            if (service.TryMapToProjectedDocumentRange(
                 codeDoc,
                 range, // |var| abc
-                out var projectedRange);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(2, projectedRange.Start.Line);
-            Assert.Equal(1, projectedRange.Start.Character);
-            Assert.Equal(2, projectedRange.End.Line);
-            Assert.Equal(4, projectedRange.End.Character);
+                out var projectedRange))
+            {
+                Assert.Equal(2, projectedRange.Start.Line);
+                Assert.Equal(1, projectedRange.Start.Character);
+                Assert.Equal(2, projectedRange.End.Line);
+                Assert.Equal(4, projectedRange.End.Character);
+            }
+            else
+            {
+                Assert.False(true, $"{service.TryMapToProjectedDocumentRange} should have returned true");
+            }
         }
 
         [Fact]
         public void TryMapToProjectedDocumentRange_CSharp_MissingSourceMappings()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -586,7 +621,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryMapToProjectedDocumentRange_CSharp_End_LessThan_Start()
         {
             // Arrange
-            var service = new DefaultRazorDocumentMappingService();
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
             var codeDoc = CreateCodeDocumentWithCSharpProjection(
                 razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
                 projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -862,7 +897,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(RazorLanguageKind.Html, languageKind);
         }
 
-        private static (IReadOnlyList<ClassifiedSpanInternal> classifiedSpans, IReadOnlyList<TagHelperSpanInternal> tagHelperSpans) GetClassifiedSpans(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static (IReadOnlyList<ClassifiedSpanInternal> classifiedSpans, IReadOnlyList<TagHelperSpanInternal> tagHelperSpans) GetClassifiedSpans(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             var codeDocument = CreateCodeDocument(text, tagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -871,7 +906,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return (classifiedSpans, tagHelperSpans);
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
