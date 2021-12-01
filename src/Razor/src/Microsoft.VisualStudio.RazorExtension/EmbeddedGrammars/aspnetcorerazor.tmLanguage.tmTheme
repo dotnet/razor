@@ -170,6 +170,7 @@
         </dict>
       </dict>
 
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
       <!-- <a> [href]="Hello"> -->
       <!-- <dict>
         <key>scope</key>
@@ -181,6 +182,7 @@
         </dict>
       </dict> -->
 
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
       <!-- <a> href=["Hello"]> -->
       <!-- <dict>
         <key>scope</key>
@@ -215,6 +217,7 @@
         </dict>
       </dict>
 
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
       <!-- <dict>
         <key>scope</key>
         <string>storage.type.cs, entity.name.type.class.cs</string>
@@ -234,7 +237,7 @@
           <string>method name</string>
         </dict>
       </dict>
-
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
       <!-- <dict>
         <key>scope</key>
         <string>variable.other.object.cs, entity.name.variable.local.cs</string>
