@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,15 +13,17 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
     {
         // From http://dev.w3.org/html5/spec/Overview.html#elements-0
-        private static readonly IReadOnlyList<string> VoidElements = new[]
+        private static readonly IReadOnlyList<string> s_voidElements = new[]
         {
             "area",
             "base",
@@ -42,7 +46,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+            : base(loggerFactory)
         {
             if (optionsMonitor is null)
             {
@@ -54,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public override string TriggerCharacter => ">";
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
             if (position is null)
             {
@@ -73,7 +78,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText);
+            if (!position.TryGetAbsoluteIndex(context.SourceText, Logger, out var afterCloseAngleIndex))
+            {
+                format = default;
+                edit = default;
+                return false;
+            }
+
             if (!TryResolveAutoClosingBehavior(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
             {
                 format = default;
@@ -113,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static bool TryResolveAutoClosingBehavior(FormattingContext context, int afterCloseAngleIndex, out string name, out AutoClosingBehavior autoClosingBehavior)
+        private static bool TryResolveAutoClosingBehavior(FormattingContext context, int afterCloseAngleIndex, [NotNullWhen(true)] out string? name, out AutoClosingBehavior autoClosingBehavior)
         {
             var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
@@ -173,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return false;
         }
 
-        private static bool TryEnsureOwner_WorkaroundCompilerQuirks(int afterCloseAngleIndex, RazorSyntaxTree syntaxTree, SyntaxNode currentOwner, out SyntaxNode newOwner)
+        private static bool TryEnsureOwner_WorkaroundCompilerQuirks(int afterCloseAngleIndex, RazorSyntaxTree syntaxTree, SyntaxNode currentOwner, [NotNullWhen(true)] out SyntaxNode? newOwner)
         {
             // All of these owner modifications are to account for https://github.com/dotnet/aspnetcore/issues/33919
 
@@ -303,11 +314,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static AutoClosingBehavior InferAutoClosingBehavior(string name, StringComparer tagNameComparer = null)
+        private static AutoClosingBehavior InferAutoClosingBehavior(string name, StringComparer? tagNameComparer = null)
         {
             tagNameComparer ??= StringComparer.OrdinalIgnoreCase;
 
-            if (VoidElements.Contains(name, tagNameComparer))
+            if (s_voidElements.Contains(name, tagNameComparer))
             {
                 return AutoClosingBehavior.SelfClosing;
             }
@@ -354,8 +365,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             do
             {
-                string potentialStartTagName = null;
-                RazorSyntaxNode endTag = null;
+                string? potentialStartTagName = null;
+                RazorSyntaxNode? endTag = null;
                 if (node is MarkupTagHelperElementSyntax parentTagHelper)
                 {
                     potentialStartTagName = parentTagHelper.StartTag.Name.Content;

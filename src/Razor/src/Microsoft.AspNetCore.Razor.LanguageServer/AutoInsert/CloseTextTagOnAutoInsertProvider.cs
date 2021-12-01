@@ -1,13 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -18,7 +22,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public CloseTextTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        public CloseTextTagOnAutoInsertProvider(
+            IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+            ILoggerFactory loggerFactory)
+            : base(loggerFactory)
         {
             if (optionsMonitor is null)
             {
@@ -30,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public override string TriggerCharacter => ">";
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
             if (position is null)
             {
@@ -50,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            if (!IsAtTextTag(context, position))
+            if (!IsAtTextTag(context, position, Logger))
             {
                 format = default;
                 edit = default;
@@ -68,11 +75,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static bool IsAtTextTag(FormattingContext context, Position position)
+        private static bool IsAtTextTag(FormattingContext context, Position position, ILogger logger)
         {
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
 
-            var absoluteIndex = position.GetAbsoluteIndex(context.SourceText) - 1;
+            if (!position.TryGetAbsoluteIndex(context.SourceText, logger, out var absoluteIndex))
+            {
+                return false;
+            }
+            absoluteIndex -= 1;
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner?.Parent != null &&

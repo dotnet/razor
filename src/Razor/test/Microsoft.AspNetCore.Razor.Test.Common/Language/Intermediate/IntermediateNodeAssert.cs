@@ -300,6 +300,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                     Assert.Equal(TokenKind.CSharp, token.Kind);
                     content.Append(token.Content);
                 }
+
                 Assert.Equal("EndContext();", content.ToString());
             }
             catch (XunitException e)

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -71,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static Range Overlap(this Range range, Range other)
+        public static Range? Overlap(this Range range, Range other)
         {
             if (range is null)
             {
@@ -131,9 +133,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            var start = sourceText.Lines[(int)range.Start.Line].Start + (int)range.Start.Character;
-            var end = sourceText.Lines[(int)range.End.Line].Start + (int)range.End.Character;
-            return new TextSpan(start, end - start);
+            var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
+            var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
+
+            var length = end - start;
+            if (length < 0)
+            {
+                throw new ArgumentOutOfRangeException($"{range} resolved to a negative length.");
+            }
+
+            return new TextSpan(start, length);
         }
 
         public static bool IsUndefined(this Range range)
