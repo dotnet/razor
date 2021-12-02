@@ -15,16 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv
         /// Gets or sets the range of the wrapping tag.
         /// </summary>
         [JsonProperty("_vs_tagRange")]
-        public Range TagRange { get; }
+        public Range TagRange { get; set; }
 
         /// <summary>
         /// Gets or sets the text edits.
         /// </summary>
         [JsonProperty("_vs_textEdits")]
-        public TextEdit[] TextEdits
-        {
-            get;
-            set;
-        }
+        public TextEdit[] TextEdits { get; set; }
     }
 }
