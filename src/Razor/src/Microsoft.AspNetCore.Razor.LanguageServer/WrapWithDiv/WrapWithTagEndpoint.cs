@@ -84,7 +84,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            var hostDocumentIndex = request.Range.Start.GetAbsoluteIndex(sourceText);
+            if (!request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            {
+                return null;
+            }
+
             var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
             if (languageKind is not RazorLanguageKind.Html)
             {
