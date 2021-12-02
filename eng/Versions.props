@@ -4,11 +4,11 @@
     <MajorVersion>6</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>2</PatchVersion>
-    <PreReleaseVersionLabel>servicing</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <!--
         When StabilizePackageVersion is set to 'true', this branch will produce stable outputs for 'Shipping' packages
     -->
-    <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">true</StabilizePackageVersion>
+    <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <DotNetFinalVersionKind Condition="'$(StabilizePackageVersion)' == 'true'">release</DotNetFinalVersionKind>
     <DefaultNetCoreTargetFramework>net5.0</DefaultNetCoreTargetFramework>
   </PropertyGroup>
