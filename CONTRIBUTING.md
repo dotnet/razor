@@ -12,7 +12,8 @@ Security issues and bugs should be reported privately, via email, to the Microso
 ## Other issues
 For non-Razor tooling related bugs, please log a new issue in the appropriate GitHub repo. Here are some of the most common repos:
 
-* [ASP.NET Core (runtime and Razor compiler)](https://github.com/dotnet/aspnetcore)
+* [Razor compiler](https://github.com/dotnet/razor-compiler)
+* [ASP.NET Core (runtime)](https://github.com/dotnet/aspnetcore)
 * [Docs](https://github.com/aspnet/Docs)
 * [Entity Framework Core](https://github.com/dotnet/efcore)
 * [Extensions](https://github.com/dotnet/extensions)
