@@ -130,6 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
                     .WithHandler<LinkedEditingRangeEndpoint>()
+                    .WithHandler<WrapWithTagEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder

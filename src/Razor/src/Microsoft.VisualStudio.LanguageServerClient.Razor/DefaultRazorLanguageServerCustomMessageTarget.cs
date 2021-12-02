@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
@@ -474,6 +475,53 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             return Task.FromResult(result.ToArray());
+        }
+
+        public override async Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken)
+        {
+            const string HtmlWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
+
+            var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
+
+            var hostDocumentUri = wrapWithParams.TextDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return response;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            if (documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlDocument.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return response;
+            }
+
+            var request = new VSInternalWrapWithTagParams(
+                wrapWithParams.Range,
+                wrapWithParams.TagName,
+                wrapWithParams.Options,
+                new TextDocumentIdentifier() { Uri = projectedUri });
+
+            var textBuffer = htmlDocument.Snapshot.TextBuffer;
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(
+                textBuffer,
+                HtmlWrapWithTagEndpoint,
+                languageServerName,
+                request,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result?.Response is not null)
+            {
+                response = result.Response;
+            }
+
+            return response;
         }
     }
 }

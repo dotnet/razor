@@ -46,6 +46,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorServerReadyEndpoint = "razor/serverReady";
 
+        public const string RazorWrapWithTagEndpoint = "razor/wrapWithTag";
+
         public static class CodeActions
         {
             public const string EditBasedCodeActionCommand = "EditBasedCodeActionCommand";
