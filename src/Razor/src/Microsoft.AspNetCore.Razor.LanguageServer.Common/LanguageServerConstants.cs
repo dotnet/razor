@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorServerReadyEndpoint = "razor/serverReady";
 
-        public const string RazorWrapWithTagEndpoint = "razor/wrapWithTag";
+        public const string RazorWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
 
         public static class CodeActions
         {
