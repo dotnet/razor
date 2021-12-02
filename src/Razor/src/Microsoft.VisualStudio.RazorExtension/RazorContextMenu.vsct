@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="RazorPackage">
+
+    <Buttons>
+      <Button guid="guidRazorGroup" id="cmdidRazorWrapWithDiv" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_SNIPPETS" />
+        <!-- This tells VS we want to control visibility at runtime -->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <!-- This prevents the menu item showing up where QueryStatus doesn't tell it to -->
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <!-- This prevents the menu item showing up in the main menu -->
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Wrap With &lt;div&gt;</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+  </Commands>
+
+  <KeyBindings>
+    <KeyBinding guid="guidRazorGroup" id="cmdidRazorWrapWithDiv" mod1="ALT SHIFT" key1="W" editor="guidVSStd97" />
+  </KeyBindings>
+
+  <Symbols>
+    <GuidSymbol name="RazorPackage" value="{13b72f58-279e-49e0-a56d-296be02f0805}" />
+
+    <GuidSymbol name="guidRazorGroup" value ="{a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec}">
+      <IDSymbol name="cmdidRazorWrapWithDiv" value="0x0101"/>
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
