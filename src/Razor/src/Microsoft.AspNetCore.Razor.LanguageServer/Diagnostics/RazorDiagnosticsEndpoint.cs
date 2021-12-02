@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,8 +23,6 @@ using DiagnosticSeverity = OmniSharp.Extensions.LanguageServer.Protocol.Models.D
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-
-#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var unmappedDiagnostics = request.Diagnostics;
             var filteredDiagnostics = request.Kind == RazorLanguageKind.CSharp ?
                 FilterCSharpDiagnostics(unmappedDiagnostics, codeDocument, sourceText) :
-                FilterHTMLDiagnostics(unmappedDiagnostics, codeDocument, sourceText);
+                FilterHTMLDiagnostics(unmappedDiagnostics, codeDocument, sourceText, _logger);
             if (!filteredDiagnostics.Any())
             {
                 _logger.LogInformation("No diagnostics remaining after filtering.");
@@ -165,7 +165,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         private static OmniSharpVSDiagnostic[] FilterHTMLDiagnostics(
             OmniSharpVSDiagnostic[] unmappedDiagnostics,
             RazorCodeDocument codeDocument,
-            SourceText sourceText)
+            SourceText sourceText,
+            ILogger logger)
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
 
@@ -173,23 +174,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             var filteredDiagnostics = unmappedDiagnostics
                 .Where(d =>
-                    !InCSharpLiteral(d, sourceText, syntaxTree) &&
-                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
-                    !AppliesToTagHelperTagName(d, sourceText, syntaxTree) &&
-                    !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree))
+                    !InCSharpLiteral(d, sourceText, syntaxTree, logger) &&
+                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes, logger) &&
+                    !AppliesToTagHelperTagName(d, sourceText, syntaxTree, logger) &&
+                    !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree, logger))
                 .ToArray();
 
             return filteredDiagnostics;
         }
 
-        private static bool InCSharpLiteral(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        private static bool InCSharpLiteral(
+            OmniSharpVSDiagnostic d,
+            SourceText sourceText,
+            RazorSyntaxTree syntaxTree,
+            ILogger logger)
         {
             if (d.Range is null)
             {
                 return false;
             }
 
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.End);
+            var owner = syntaxTree.GetOwner(sourceText, d.Range.End, logger);
             if (owner is null)
             {
                 return false;
@@ -200,7 +205,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             return isCSharp;
         }
 
-        private static bool AppliesToTagHelperTagName(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        private static bool AppliesToTagHelperTagName(
+            OmniSharpVSDiagnostic diagnostic,
+            SourceText sourceText,
+            RazorSyntaxTree syntaxTree,
+            ILogger logger)
         {
             // Goal of this method is to filter diagnostics that touch TagHelper tag names. Reason being is TagHelpers can output anything. Meaning
             // If you have a TagHelper like:
@@ -216,9 +225,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return false;
             }
 
-            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End);
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End, logger);
 
-            var startOrEndTag = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
+            var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
             if (startOrEndTag == null)
             {
                 return false;
@@ -238,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         }
 
 #nullable enable
-        private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
             if (!diagnostic.Code.HasValue)
             {
@@ -247,20 +256,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             return diagnostic.Code.Value.String switch
             {
-                CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
-                CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
-                CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
-                HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
-                HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree),
+                CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree, logger),
+                CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree, logger),
+                CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree, logger),
+                HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree, logger),
+                HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree, logger),
                 HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
-                HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree),
+                HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree, logger),
                 _ => false,
             };
 
-            static bool IsCSharpInStyleBlock(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsCSharpInStyleBlock(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
                 // C# in a style block causes diagnostics because the HTML background document replaces C# with "~"
-                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
 
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(
                     n => n.StartTag.Name.Content.Equals("style", StringComparison.Ordinal));
@@ -271,9 +284,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
             // but we don't currently have a system to accomplish that
-            static bool IsAnyFilteredTooFewElementsError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsAnyFilteredTooFewElementsError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
-                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
+
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
                 if (!element.StartTag.Name.Content.Equals("html", StringComparison.Ordinal))
@@ -287,9 +305,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
             // but we don't currently have a system to accomplish that
-            static bool IsHtmlWithBangAndMatchingTags(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsHtmlWithBangAndMatchingTags(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
-                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
 
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
                 var startNode = element.StartTag;
@@ -307,15 +329,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return haveBang && namesEquivilant;
             }
 
-            static bool IsAnyFilteredInvalidNestingError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsAnyFilteredInvalidNestingError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
-                return IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree) ||
-                    IsInvalidNestingFromBody(d, sourceText, syntaxTree);
+                return IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree, logger) ||
+                    IsInvalidNestingFromBody(d, sourceText, syntaxTree, logger);
             }
 
-            static bool IsInvalidNestingWarningWithinComponent(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsInvalidNestingWarningWithinComponent(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
-                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
 
                 var taghelperNode = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
 
@@ -324,9 +350,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
             // but we don't currently have a system to accomplish that
-            static bool IsInvalidNestingFromBody(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsInvalidNestingFromBody(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
             {
-                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+                if (owner is null)
+                {
+                    return false;
+                }
+
                 var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag.Name.Content.Equals("body", StringComparison.Ordinal));
 
                 if (ReferenceEquals(body, owner))
@@ -338,6 +369,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 {
                     return false;
                 }
+
                 return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag.Bang != null;
             }
         }
@@ -347,7 +379,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 OmniSharpVSDiagnostic d,
                 SourceText sourceText,
                 RazorSyntaxTree syntaxTree,
-                Dictionary<TextSpan, bool> processedAttributes)
+                Dictionary<TextSpan, bool> processedAttributes,
+                ILogger logger)
         {
             // Examine the _end_ of the diagnostic to see if we're at the
             // start of an (im/ex)plicit expression. Looking at the start
@@ -357,7 +390,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return false;
             }
 
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.End);
+            var owner = syntaxTree.GetOwner(sourceText, d.Range.End, logger);
 
             var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
                 n is MarkupAttributeBlockSyntax ||
@@ -478,7 +511,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             // semi-intelligent way.
 
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var owner = syntaxTree.GetOwner(sourceText, diagnosticRange);
+            var owner = syntaxTree.GetOwner(sourceText, diagnosticRange, _logger);
 
             switch (owner?.Kind)
             {
@@ -501,13 +534,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         remappedRange = null;
                         return false;
                     }
+
                     var startLine = sourceText.Lines[startLineIndex];
 
                     // Look for the first non-whitespace character so we're not squiggling random whitespace at the start of the diagnostic
                     var firstNonWhitespaceCharacterOffset = sourceText.GetFirstNonWhitespaceOffset(startLine.Span, out _);
                     var diagnosticStartCharacter = firstNonWhitespaceCharacterOffset ?? 0;
                     var startLinePosition = new Position(startLineIndex, diagnosticStartCharacter);
-
 
                     var endLineIndex = diagnosticRange.End.Line;
                     if (endLineIndex >= sourceText.Lines.Count)
@@ -516,6 +549,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         remappedRange = null;
                         return false;
                     }
+
                     var endLine = sourceText.Lines[endLineIndex];
 
                     // Look for the last non-whitespace character so we're not squiggling random whitespace at the end of the diagnostic

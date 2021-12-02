@@ -950,6 +950,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         break;
                     }
                 }
+
                 var nonTabIndentation = wordStart - firstNonTab;
                 var leadingIndentation = leadingTabs * formattingOptions.TabSize;
                 var baseIndentation = leadingIndentation + nonTabIndentation;

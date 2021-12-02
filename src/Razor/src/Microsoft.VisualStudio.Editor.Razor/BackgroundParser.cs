@@ -236,6 +236,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         return;
                     }
                 }
+
                 ResultsReady?.Invoke(this, args);
             }
 
@@ -263,6 +264,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                             _currentParcelCancelSource.Dispose();
                             _currentParcelCancelSource = null;
                         }
+
                         _cancelSource.Dispose();
                         _hasParcel.Dispose();
                         _hasParcel = null;
@@ -354,6 +356,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                                         }
                                     }
                                 }
+
                                 if (args != null)
                                 {
                                     _main.ReturnParcel(args);

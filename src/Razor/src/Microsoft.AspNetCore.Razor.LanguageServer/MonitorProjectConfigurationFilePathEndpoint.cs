@@ -106,19 +106,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 _logger.LogInformation("Project configuration output path has changed. Stopping existing monitor for project '{0}' so we can restart it with a new directory.", request.ProjectFilePath);
-                entry.Detector.Stop();
+                RemoveMonitor(request.ProjectFilePath);
             }
-            else
-            {
-                var detector = CreateFileChangeDetector();
-                entry = (configurationDirectory, detector);
 
-                if (!_outputPathMonitors.TryAdd(request.ProjectFilePath, entry))
-                {
-                    // There's a concurrent request going on for this specific project. To avoid calling "StartAsync" twice we return early.
-                    // Note: This is an extremely edge case race condition that should in practice never happen due to how long it takes to calculate project state changes
-                    return Unit.Value;
-                }
+            var detector = CreateFileChangeDetector();
+            entry = (configurationDirectory, detector);
+
+            if (!_outputPathMonitors.TryAdd(request.ProjectFilePath, entry))
+            {
+                // There's a concurrent request going on for this specific project. To avoid calling "StartAsync" twice we return early.
+                // Note: This is an extremely edge case race condition that should in practice never happen due to how long it takes to calculate project state changes
+                return Unit.Value;
             }
 
             _logger.LogInformation("Starting new configuration monitor for project '{0}' for directory '{1}'.", request.ProjectFilePath, configurationDirectory);
