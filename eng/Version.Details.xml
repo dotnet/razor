@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.CodeAnalysis.Razor" Version="6.0.1">
+    <Dependency Name="Microsoft.AspNetCore.Razor.Internal.Transport" Version="6.0.2-dev">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Razor.Internal.Transport" Version="6.0.1-servicing.21565.21">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Razor.Language" Version="6.0.1">
+    <Dependency Name="Microsoft.CodeAnalysis.Razor.Internal.Transport" Version="6.0.2-dev">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
     </Dependency>
@@ -17,15 +13,15 @@
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions" Version="6.0.1">
+    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Internal.Transport" Version="6.0.2-dev">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X" Version="6.0.1-servicing.21565.21">
+    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X" Version="6.0.2-dev">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X" Version="6.0.1-servicing.21565.21">
+    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X" Version="6.0.2-dev">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>717740e203a1cfb544d6e10e2aa4fd5f0a5f328d</Sha>
     </Dependency>
