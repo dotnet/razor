@@ -51,7 +51,7 @@
   -->
   <PropertyGroup Label="Automated">
     <MicrosoftCodeAnalysisRazorPackageVersion>6.0.1</MicrosoftCodeAnalysisRazorPackageVersion>
-    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.1-servicing.21565.21</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.2-1.21602.2</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
     <MicrosoftAspNetCoreRazorLanguagePackageVersion>6.0.1</MicrosoftAspNetCoreRazorLanguagePackageVersion>
     <MicrosoftAspNetCoreTestingPackageVersion>6.0.1-servicing.21565.21</MicrosoftAspNetCoreTestingPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>6.0.1</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
