@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly FileUriProvider _fileUriProvider;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
-        private readonly CodeAnalysis.Workspace _workspace;
+        private readonly CodeAnalysis.Workspace? _workspace;
         private readonly MemoryCache<CacheKey, IReadOnlyList<string>> _cache;
 
         [ImportingConstructor]
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            CodeAnalysis.Workspace workspace)
+            CodeAnalysis.Workspace? workspace)
         {
             if (fileUriProvider is null)
             {

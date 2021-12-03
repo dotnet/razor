@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 return false;
             }
-            else if (x.Runs.Count() != y.Runs.Count())
+            else if (x!.Runs.Count() != y!.Runs.Count())
             {
                 return false;
             }

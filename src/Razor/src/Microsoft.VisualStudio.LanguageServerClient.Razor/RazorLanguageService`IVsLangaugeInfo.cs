@@ -16,19 +16,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return VSConstants.S_OK;
         }
 
-        public int GetFileExtensions(out string pbstrExtensions)
+        public int GetFileExtensions(out string? pbstrExtensions)
         {
             pbstrExtensions = default;
             return VSConstants.E_NOTIMPL;
         }
 
-        public int GetColorizer(IVsTextLines pBuffer, out IVsColorizer ppColorizer)
+        public int GetColorizer(IVsTextLines pBuffer, out IVsColorizer? ppColorizer)
         {
             ppColorizer = default;
             return VSConstants.E_NOTIMPL;
         }
 
-        public int GetCodeWindowManager(IVsCodeWindow pCodeWin, out IVsCodeWindowManager ppCodeWinMgr)
+        public int GetCodeWindowManager(IVsCodeWindow pCodeWin, out IVsCodeWindowManager? ppCodeWinMgr)
         {
             ppCodeWinMgr = default;
             return VSConstants.E_NOTIMPL;

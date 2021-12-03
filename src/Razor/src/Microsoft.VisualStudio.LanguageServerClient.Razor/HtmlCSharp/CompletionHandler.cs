@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation("Returning completion list.");
             return completionList;
 
-            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, [NotNullWhen(true)]out CompletionList? completionList)
+            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, [NotNullWhen(true)] out CompletionList? completionList)
             {
                 if (!original.HasValue)
                 {
@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return false;
         }
 
-        private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, out TextExtent? wordExtent)
+        private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out TextExtent? wordExtent)
         {
             var wordCharacterPosition = request.Position.Character;
             var invokeKind = (request.Context as VSInternalCompletionContext)?.InvokeKind;
@@ -351,6 +351,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, wordCharacterPosition, _textStructureNavigator);
+
+            if (wordExtent is null)
+            {
+                return false;
+            }
 
             return true;
         }

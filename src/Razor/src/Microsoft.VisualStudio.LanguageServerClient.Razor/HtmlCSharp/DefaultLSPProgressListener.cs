@@ -78,14 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            var token = parameterToken[Methods.ProgressNotificationTokenName].ToObject<string>(); // IProgress<object>>();
+            var token = parameterToken[Methods.ProgressNotificationTokenName]?.ToObject<string>(); // IProgress<object>>();
 
-            if (string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
+            if (token is null || string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
             {
                 return;
             }
 
-            var value = parameterToken[ProgressNotificationValueName];
+            var value = parameterToken[ProgressNotificationValueName]!;
 
             try
             {

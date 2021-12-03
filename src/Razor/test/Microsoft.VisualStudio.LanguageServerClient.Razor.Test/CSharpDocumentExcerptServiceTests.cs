@@ -27,7 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (generatedDocument, razorSourceText, primarySpan, generatedSpan) = await InitializeAsync(razorSource);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var excerptService = new CSharpDocumentExcerptService();
+#pragma warning restore CS0618 // Type or member is obsolete
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
@@ -111,7 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (generatedDocument, razorSourceText, primarySpan, generatedSpan) = await InitializeAsync(razorSource);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var excerptService = new CSharpDocumentExcerptService();
+#pragma warning restore CS0618 // Type or member is obsolete
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
@@ -153,7 +157,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (generatedDocument, razorSourceText, primarySpan, generatedSpan) = await InitializeAsync(razorSource);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var excerptService = new CSharpDocumentExcerptService();
+#pragma warning restore CS0618 // Type or member is obsolete
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
@@ -196,7 +202,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (generatedDocument, razorSourceText, primarySpan, generatedSpan) = await InitializeAsync(razorSource);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var excerptService = new CSharpDocumentExcerptService();
+#pragma warning restore CS0618 // Type or member is obsolete
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
@@ -238,7 +246,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (generatedDocument, razorSourceText, primarySpan, generatedSpan) = await InitializeAsync(razorSource);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var excerptService = new CSharpDocumentExcerptService();
+#pragma warning restore CS0618 // Type or member is obsolete
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act

@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Without this, we would have double indentation in places where
                 // CSharpCodeBlock is used as a wrapper block in the syntax tree.
 
-                if (!(node.Parent is RazorDirectiveBodySyntax))
+                if (node.Parent is not RazorDirectiveBodySyntax)
                 {
                     _currentRazorIndentationLevel++;
                 }

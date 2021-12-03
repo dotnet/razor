@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return;
             }
 
-            var textBuffer = textDocument?.TextBuffer;
+            var textBuffer = textDocument.TextBuffer;
 
             if (textBuffer is null)
             {

@@ -43,6 +43,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
         private bool _documentsProcessed = false;
 
+        private ProjectSnapshotManagerBase ProjectSnapshotManager
+        {
+            get
+            {
+                return _projectSnapshotManager ?? throw new InvalidOperationException($"{nameof(ProjectSnapshotManager)} called before {nameof(Initialize)}.");
+            }
+            set
+            {
+                _projectSnapshotManager = value;
+            }
+        }
+
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
             LSPEditorFeatureDetector lSPEditorFeatureDetector,
@@ -95,8 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            _projectSnapshotManager = projectManager;
-            _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+            ProjectSnapshotManager = projectManager;
+            ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
         // Internal for testing
@@ -134,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // Not currently active, we need to decide if we should become active or if we should no-op.
 
-                if (_projectSnapshotManager.OpenDocuments.Count > 0)
+                if (ProjectSnapshotManager.OpenDocuments.Count > 0)
                 {
                     // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
                     _active = true;
