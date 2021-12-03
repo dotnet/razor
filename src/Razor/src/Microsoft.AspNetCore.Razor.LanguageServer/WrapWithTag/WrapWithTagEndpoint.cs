@@ -12,9 +12,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
     internal class WrapWithTagEndpoint : IWrapWithTagHandler
     {

@@ -5,7 +5,7 @@ using MediatR;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
     /// <summary>
     /// Class representing the parameters sent for a textDocument/_vsweb_wrapWithTag request.

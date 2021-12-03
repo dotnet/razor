@@ -4,7 +4,7 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag
 {
     /// <summary>
     /// Class representing the parameters sent for a textDocument/_vsweb_wrapWithTag request.

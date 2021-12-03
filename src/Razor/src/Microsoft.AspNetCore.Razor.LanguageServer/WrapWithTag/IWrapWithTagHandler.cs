@@ -4,10 +4,9 @@
 #nullable enable
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv;
 using OmniSharp.Extensions.JsonRpc;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
     [Parallel, Method(LanguageServerConstants.RazorWrapWithTagEndpoint)]
     internal interface IWrapWithTagHandler : IJsonRpcRequestHandler<WrapWithTagParams, WrapWithTagResponse?>
