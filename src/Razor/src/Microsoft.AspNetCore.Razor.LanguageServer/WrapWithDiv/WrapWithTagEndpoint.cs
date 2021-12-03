@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _logger = loggerFactory.CreateLogger<WrapWithTagEndpoint>();
         }
 
-        public async Task<WrapWithTagResponse> Handle(WrapWithTagParams request, CancellationToken cancellationToken)
+        public async Task<WrapWithTagResponse?> Handle(WrapWithTagParams request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
