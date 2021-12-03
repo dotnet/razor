@@ -8,6 +8,7 @@
     <Dependency Name="Microsoft.AspNetCore.Razor.Internal.Transport" Version="6.0.2-1.21602.2">
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>26952d8f2777013afb993ae80f90e759ccfe574d</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.Razor.Internal.Transport" Version="6.0.2-1.21602.2">
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>26952d8f2777013afb993ae80f90e759ccfe574d</Sha>
