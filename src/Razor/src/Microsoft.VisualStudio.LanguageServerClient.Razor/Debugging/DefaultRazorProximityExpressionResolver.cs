@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly CodeAnalysis.Workspace? _workspace;
-        private readonly MemoryCache<CacheKey, IReadOnlyList<string>> _cache;
+        private readonly MemoryCache<CacheKey, IReadOnlyList<string>?> _cache;
 
         [ImportingConstructor]
         public DefaultRazorProximityExpressionResolver(
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             // 10 is a magic number where this effectively represents our ability to cache the last 10 "hit" breakpoint locations
             // corresponding proximity expressions which enables us not to go "async" in those re-hit scenarios.
-            _cache = new MemoryCache<CacheKey, IReadOnlyList<string>>(sizeLimit: 10);
+            _cache = new MemoryCache<CacheKey, IReadOnlyList<string>?>(sizeLimit: 10);
         }
 
         public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             }
 
             var syntaxTree = await virtualDocument.GetCSharpSyntaxTreeAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            var proximityExpressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectionResult.PositionIndex, cancellationToken).ToList();
+            var proximityExpressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectionResult.PositionIndex, cancellationToken)?.ToList();
 
             // Cache range so if we're asked again for this document/line/character we don't have to go async.
             _cache.Set(cacheKey, proximityExpressions);
