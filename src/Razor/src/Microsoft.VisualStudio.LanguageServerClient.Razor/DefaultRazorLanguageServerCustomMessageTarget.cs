@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithDiv;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
@@ -479,6 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken)
         {
+            // Same as in LanguageServerConstants, and in Web Tools
             const string HtmlWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
 
             var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
@@ -502,6 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return response;
             }
 
+            // We call the Html language server to do the actual work here, now that we have the vitrual document that they know about
             var request = new VSInternalWrapWithTagParams(
                 wrapWithParams.Range,
                 wrapWithParams.TagName,

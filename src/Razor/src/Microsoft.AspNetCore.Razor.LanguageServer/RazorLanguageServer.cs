@@ -36,6 +36,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
+using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
