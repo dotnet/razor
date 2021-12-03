@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-        private void RazorOptions_OptionChanged(object? sender, EditorOptionChangedEventArgs? e)
+        private void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
         {
             Assumes.NotNull(_textBuffer);
 
@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
             }
 
-            private IOleCommandTarget? _next;
+            private IOleCommandTarget _next;
 
             private IOleCommandTarget Next
             {
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public int GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan) => VSConstants.E_NOTIMPL;
 
-            public int GetDataTipText(TextSpan[] pSpan, out string? pbstrText)
+            public int GetDataTipText(TextSpan[] pSpan, out string pbstrText)
             {
                 pbstrText = null;
                 return VSConstants.E_NOTIMPL;

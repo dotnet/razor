@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Threading.Tasks;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return Task.CompletedTask;
         }
 
-        public override Task<JToken> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken>> sendRequest)
+        public override Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
         {
             throw new NotImplementedException();
         }

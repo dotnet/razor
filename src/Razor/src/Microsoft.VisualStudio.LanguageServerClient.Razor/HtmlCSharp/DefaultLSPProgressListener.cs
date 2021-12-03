@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
@@ -64,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        private Task ClientNotifyAsyncListenerAsync(object sender, LanguageClientNotifyEventArgs args)
+        private Task ClientNotifyAsyncListenerAsync(object? sender, LanguageClientNotifyEventArgs args)
             => ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken);
 
         // Internal for testing
@@ -144,9 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private static void CancelAndDisposeToken(CancellationTokenSource cts)
+        private static void CancelAndDisposeToken(CancellationTokenSource? cts)
         {
-            if (cts != null &&
+            if (cts is not null &&
                 cts.Token.CanBeCanceled &&
                 !cts.Token.IsCancellationRequested)
             {
@@ -213,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             internal CancellationToken HandlerCancellationToken { get; }
 
             internal Func<CancellationToken, Task> DelayAfterLastNotifyAsync { get; }
-            internal CancellationTokenSource TimeoutCancellationTokenSource { get; set; }
+            internal CancellationTokenSource? TimeoutCancellationTokenSource { get; set; }
             internal object RequestLock { get; } = new object();
         }
     }

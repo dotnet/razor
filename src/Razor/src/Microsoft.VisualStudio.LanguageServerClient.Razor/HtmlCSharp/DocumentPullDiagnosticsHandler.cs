@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -202,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     cancellationToken
                 ).ConfigureAwait(false);
 
-                if (!_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot) ||
+                if (processedDiagnostics is null || !_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot) ||
                     documentSnapshot.Version != processedDiagnostics.HostDocumentVersion)
                 {
                     _logger.LogInformation($"Document version mismatch, discarding {diagnosticReport.Diagnostics.Length} diagnostics.");

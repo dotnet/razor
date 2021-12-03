@@ -25,8 +25,6 @@ using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protoco
 using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(RazorLanguageServerCustomMessageTarget))]

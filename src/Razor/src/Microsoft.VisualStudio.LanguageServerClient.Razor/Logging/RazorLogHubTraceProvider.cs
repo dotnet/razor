@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 logName: $"{logIdentifier}.{logHubSessionId}",
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
-            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
+            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker!, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
 
             return traceSource;

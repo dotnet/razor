@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public LanguageServerMappingBehavior MappingBehavior { get; set; }
 
-        public bool Equals(RazorMapToDocumentRangesParams? other)
+        public bool Equals(RazorMapToDocumentRangesParams other)
         {
             return
                 other is not null &&

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -233,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Task OnServerInitializedAsync()
         {
-            _serverShutdownDisposable = _server.OnShutdown.Subscribe((_) => ServerShutdown());
+            _serverShutdownDisposable = _server!.OnShutdown.Subscribe((_) => ServerShutdown());
 
             ServerStarted();
 

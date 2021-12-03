@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Shared]
     [ExportLspMethod(Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler :
-        LSPProgressListenerHandlerBase<ReferenceParams, VSInternalReferenceItem[]?>,
-        IRequestHandler<ReferenceParams, VSInternalReferenceItem[]?>
+        LSPProgressListenerHandlerBase<ReferenceParams, VSInternalReferenceItem[]>,
+        IRequestHandler<ReferenceParams, VSInternalReferenceItem[]>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal async override Task<VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: (value, ct) => ProcessReferenceItemsAsync(value, request.PartialResultToken, ct),
+                onProgressNotifyAsync: (value, ct) => ProcessReferenceItemsAsync(value, request.PartialResultToken!, ct),
                 DelayAfterLastNotifyAsync,
                 cancellationToken,
                 out var onCompleted))

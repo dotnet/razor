@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -142,7 +144,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            if (!TryGetWordExtent(request, documentSnapshot, out var wordExtent))
+            if (request.Context is null)
+            {
+                _logger.LogWarning($"No Context available when document was found.");
+                return null;
+            }
+
+            if (TryGetWordExtent(request, documentSnapshot, out var wordExtent) is false)
             {
                 return null;
             }
@@ -153,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent))
+                if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent.Value))
                 {
                     var csharpPolyfilledCompletionList = new CompletionList()
                     {
@@ -234,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (serverKind == LanguageServerKind.CSharp)
                 {
-                    completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent, completionList);
+                    completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent.Value, completionList);
                 }
 
                 completionList = TranslateTextEdits(request.Position, projectedPosition, wordExtent, completionList);
@@ -280,14 +288,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal static bool IsRazorCompilerBugWithCSharpKeywords(CompletionParams request, TextExtent? wordExtent)
+        internal static bool IsRazorCompilerBugWithCSharpKeywords(CompletionParams request, TextExtent wordExtent)
         {
             // This was originally found when users would attempt to type out `@using` in an _Imports.razor file and get 0 completion items at the `g` of `using`.
             // After lots of investigation it turns out that the Razor compiler will generate 0 C# source for an incomplete using directive. This in turn results
             // in 0 C# information at `@using|`. This is tracked here: https://github.com/dotnet/aspnetcore/issues/37568
             //
             // The entire purpose of this method is to encapsulate this compiler bug and try and make users experiences a little better in a low-risk fashion.
-            return request.Context.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions &&
+            return request.Context!.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions &&
                 WordSpanMatchesCSharpPolyfills(wordExtent);
         }
 
@@ -376,23 +384,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private CompletionList PostProcessCSharpCompletionList(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
-            TextExtent? wordExtent,
+            TextExtent wordExtent,
             CompletionList completionList)
         {
             var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            if (formattingOptions is null)
+            {
+                _logger.LogWarning($"{nameof(formattingOptions)} is not available for completion on {documentSnapshot.Uri}.");
+            }
+
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
                 completionList = RemovePreselection(completionList);
                 completionList = IncludeCSharpKeywords(completionList);
 
                 // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
-                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent.Value, formattingOptions) - 1, 0);
-                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
+                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions!) - 1, 0);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions!);
             }
             else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
             {
-                var baseIndentation = GetBaseIndentation(wordExtent.Value, formattingOptions);
-                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
+                var baseIndentation = GetBaseIndentation(wordExtent, formattingOptions!);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions!);
             }
 
             completionList = RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);
@@ -463,6 +476,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
         {
+            if (request.Context is null)
+            {
+                return false;
+            }
+
             if (string.Equals(request.Context.TriggerCharacter, "@", StringComparison.Ordinal))
             {
                 // Completion was triggered with `@` this is always a simple implicit expression
@@ -739,7 +757,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             return completionList;
 
-            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range wordRange, CompletionItem item)
+            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range? wordRange, CompletionItem item)
             {
                 if (item.TextEdit != null)
                 {
@@ -816,7 +834,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     var data = new CompletionResolveData()
                     {
                         ResultId = resultId,
-                        OriginalData = item.Data,
+                        OriginalData = item.Data!,
                     };
                     item.Data = data;
                 }
@@ -855,7 +873,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return false;
         }
 
-        private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
+        private static bool IsApplicableTriggerCharacter(string? triggerCharacter, RazorLanguageKind languageKind)
         {
             if (s_razorTriggerCharacters.Contains(triggerCharacter))
             {
