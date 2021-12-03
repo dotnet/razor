@@ -52,8 +52,8 @@
 
   <ItemGroup>
     <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version1_X_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version2_X_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
+    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version1_X_Internal_Transport)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
+    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version2_X_Internal_Transport)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
     <MPackFile Include="$(PkgMicrosoft_CodeAnalysis_Razor_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll" />
     <MPackFile Include="$(PkgMicrosoft_CodeAnalysis_Razor_Tooling_Internal)\lib\netstandard2.0\Microsoft.CodeAnalysis.Razor.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
