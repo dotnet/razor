@@ -499,7 +499,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
             else
             {
-                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't happen in a real scenario.");
                 return response;
             }
 

@@ -71,13 +71,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 return documentSnapshot;
             }, cancellationToken).ConfigureAwait(false);
 
-            if (documentSnapshot is null || cancellationToken.IsCancellationRequested)
+            if (documentSnapshot is null)
             {
                 _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
@@ -85,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (!request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
             {
                 return null;
             }
@@ -97,9 +99,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 return null;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var parameter = request;
-            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, parameter);
-            var htmlResponse = await response.Returning<WrapWithTagResponse>(cancellationToken);
+            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, parameter).ConfigureAwait(false);
+            var htmlResponse = await response.Returning<WrapWithTagResponse>(cancellationToken).ConfigureAwait(false);
 
             return htmlResponse;
         }

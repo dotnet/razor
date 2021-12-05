@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,10 +49,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams()
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
             {
                 Range = new(0, 0, 0, 2),
-                TextDocument = new TextDocumentIdentifier(uri)
             };
 
             // Act
@@ -87,10 +88,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams()
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
             {
                 Range = new(0, 0, 0, 2),
-                TextDocument = new TextDocumentIdentifier(uri)
             };
 
             // Act
@@ -108,15 +108,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WrapWithTagResponse>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new WrapWithTagResponse());
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-            languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -128,10 +121,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 LoggerFactory);
 
             uri = new Uri("file://path/nottest.razor");
-            var wrapWithDivParams = new WrapWithTagParams()
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
             {
                 Range = new(0, 0, 0, 2),
-                TextDocument = new TextDocumentIdentifier(uri)
             };
 
             // Act
@@ -149,15 +141,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WrapWithTagResponse>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new WrapWithTagResponse());
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-            languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -168,10 +153,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams()
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
             {
                 Range = new(0, 0, 0, 2),
-                TextDocument = new TextDocumentIdentifier(uri)
             };
 
             // Act
@@ -193,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
                 .Returns(true);
 
-            DocumentSnapshot nullDocumentSnapshot = null;
+            DocumentSnapshot? nullDocumentSnapshot = null;
             documentResolver.Setup(resolver => resolver.TryResolveDocument(It.IsNotIn(documentPath), out nullDocumentSnapshot))
                 .Returns(false);
             return documentResolver.Object;
