@@ -241,7 +241,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         [Conditional("DEBUG")]
         private static void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
         {
-            if (SkipValidateComponents) return;
+            if (SkipValidateComponents)
+            {
+                return;
+            }
 
             var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
             var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
