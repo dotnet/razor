@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 if (context.Indentations[i].StartsInCSharpContext)
                 {
-                    // Normal we don't do HTML things in C# contexts but there is one
+                    // Normally we don't do HTML things in C# contexts but there is one
                     // edge case when including render fragments in a C# code block, eg:
                     //
                     // @code {
