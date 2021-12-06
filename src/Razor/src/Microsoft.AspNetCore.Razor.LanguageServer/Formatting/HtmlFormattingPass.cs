@@ -125,6 +125,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 if (context.Indentations[i].StartsInCSharpContext)
                 {
+                    // Normal we don't do HTML things in C# contexts but there is one
+                    // edge case when including render fragments in a C# code block, eg:
+                    //
+                    // @code {
+                    //      void Foo()
+                    //      {
+                    //          Render(@<SurveyPrompt />);
+                    //      {
+                    // }
+                    //
+                    // This is popular in the bUnit unit testing library. The issue here is that
+                    // the HTML formatter sees ~~~~~<SurveyPrompt /> and puts a newline before
+                    // the tag, but obviously that breaks things.
+                    //
+                    // It's straight forward enough to just check for this situation and special case
+                    // it by removing the newline again.
+
+                    // There needs to be at least one more line, and the current line needs to end with
+                    // an @ sign, and have an open angle bracket at the start of the next line.
+                    if (sourceText.Lines.Count >= i + 1 &&
+                        line.Text?.Length > 1 &&
+                        line.Text?[line.End - 1] == '@')
+                    {
+                        var nextLine = sourceText.Lines[i + 1];
+                        var firstChar = nextLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
+
+                        // When the HTML formatter inserts the newline in this scenario, it doesn't
+                        // indent the component tag, so we use that as another signal that this is
+                        // the scenario we think it is.
+                        if (firstChar == 0 &&
+                            nextLine.Text?[nextLine.Start] == '<')
+                        {
+                            var lineBreakLength = line.EndIncludingLineBreak - line.End;
+                            var spanToReplace = new TextSpan(line.End, lineBreakLength);
+                            var change = new TextChange(spanToReplace, string.Empty);
+                            editsToApply.Add(change);
+
+                            // Skip the next line because we've essentially just removed it.
+                            i++;
+                        }
+                    }
+
                     continue;
                 }
 
