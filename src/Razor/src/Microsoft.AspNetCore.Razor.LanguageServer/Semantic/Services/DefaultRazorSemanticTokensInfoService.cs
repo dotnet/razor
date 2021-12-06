@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             try
             {
-                (csharpSemanticRanges, newResultId, isFinalizedCSharp) = await GetCSharpSemanticRangesAsync(
+                (csharpSemanticRanges, isFinalizedCSharp) = await GetCSharpSemanticRangesAsync(
                     codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken);
             }
             catch (Exception ex)
@@ -218,11 +218,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     throw new ArgumentNullException(nameof(codeDocument));
                 }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument);
 
-                var (csharpSemanticRanges, newResultId, isFinalizedCSharp) = await GetCSharpSemanticRangesAsync(
+                var (csharpSemanticRanges, isFinalizedCSharp) = await GetCSharpSemanticRangesAsync(
                     codeDocument,
                     textDocumentIdentifier,
                     range: null,
@@ -240,13 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return null;
                 }
 
-                if (newResultId is null)
-                {
-                    // If there's no C# in the Razor doc, we won't have a resultId returned to us.
-                    // Just use a GUID instead.
-                    newResultId = Guid.NewGuid().ToString();
-                }
-
+                var newResultId = Guid.NewGuid().ToString();
                 var newTokens = ConvertSemanticRangesToSemanticTokens(
                     combinedSemanticRanges, codeDocument, newResultId, isFinalizedCSharp);
                 UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, newTokens);
@@ -337,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (!TryGetMinimalCSharpRange(codeDocument, out var csharpRange))
             {
-                return new VersionedSemanticRange(razorRanges, ResultId: null, IsFinalizedCSharp: true);
+                return new VersionedSemanticRange(razorRanges, IsFinalizedCSharp: true);
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
@@ -347,12 +342,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpResponse is null)
             {
                 return VersionedSemanticRange.Default;
-            }
-
-            // Indicates no C# code in Razor doc.
-            if (csharpResponse.ResultId is null)
-            {
-                return new VersionedSemanticRange(razorRanges, ResultId: null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
             }
 
             SemanticRange? previousSemanticRange = null;
@@ -374,11 +363,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         razorRanges.Add(razorRange);
                     }
                 }
+
                 previousSemanticRange = semanticRange;
             }
 
             var result = razorRanges.ToImmutableList();
-            return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsFinalizedCSharp);
+            return new VersionedSemanticRange(result, csharpResponse.IsFinalizedCSharp);
         }
 
         // Internal for testing only
@@ -445,7 +435,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            return new SemanticTokensResponse(csharpResponse.ResultId, csharpResponse.Tokens ?? Array.Empty<int>(), csharpResponse.IsFinalized);
+            // C# doesn't return resultIds so we can return null here.
+            return new SemanticTokensResponse(ResultId: null, csharpResponse.Tokens ?? Array.Empty<int>(), csharpResponse.IsFinalized);
         }
 
         private static SemanticRange DataToSemanticRange(
@@ -566,9 +557,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal for testing
-        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId, bool IsFinalizedCSharp)
+        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, bool IsFinalizedCSharp)
         {
-            public static VersionedSemanticRange Default => new(null, null, false);
+            public static VersionedSemanticRange Default => new(null, false);
         }
 
         private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens, bool IsFinalizedCSharp);
