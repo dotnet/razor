@@ -1,4 +1,4 @@
-﻿ // Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
@@ -139,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return Task.CompletedTask;
         }
 
-        [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization =  true)]
+        [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
         public Task<SumType<CompletionItem[], CompletionList>?> ProvideCompletionsAsync(CompletionParams completionParams, CancellationToken cancellationToken)
         {
             if (completionParams is null)
@@ -291,6 +293,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public static Task<VSInternalWorkspaceDiagnosticReport?> WorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
         {
             return Task.FromResult<VSInternalWorkspaceDiagnosticReport?>(null);
+        }
+
+        // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1445500
+        // The Web Tools WrapWithTag handler sends messages to all of the LSP servers attached to the buffer
+        // and we respond correctly from the RazorLanguageServer, but unless we implement a handler here, the
+        // platform will get a "Request Method Not Found" exception, and throw away the real result from the Razor
+        // server entirely.
+        [JsonRpcMethod(LanguageServerConstants.RazorWrapWithTagEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public static Task<WrapWithTagResponse?> WrapWithTagAsync(WrapWithTagParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<WrapWithTagResponse?>(null);
         }
 
         // Internal for testing
