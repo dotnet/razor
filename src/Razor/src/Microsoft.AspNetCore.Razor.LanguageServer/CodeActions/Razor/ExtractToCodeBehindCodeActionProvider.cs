@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.RazorDirective);
-            if (node is null || !(node is RazorDirectiveSyntax directiveNode))
+            if (node is not RazorDirectiveSyntax directiveNode)
             {
                 return s_emptyResult;
             }

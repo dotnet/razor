@@ -24,10 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
         private RazorHtmlCSharpLanguageServer? _languageServer;
 
-        private RazorHtmlCSharpLanguageServer LanguageServer {
+        private RazorHtmlCSharpLanguageServer LanguageServer
+        {
             get
             {
-                if(_languageServer is null)
+                if (_languageServer is null)
                 {
                     throw new InvalidOperationException($"{nameof(LanguageServer)} called before it's initialized");
                 }
@@ -37,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             set
             {
                 _languageServer = value;
-            } }
+            }
+        }
 
         [ImportingConstructor]
         public RazorHtmlCSharpLanguageServerClient(

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             if ((CommitCharacters is null ^ other.CommitCharacters is null) ||
-                (CommitCharacters != null && other.CommitCharacters != null &&
+                (CommitCharacters is not null && other.CommitCharacters is not null &&
                     !CommitCharacters.SequenceEqual(other.CommitCharacters)))
             {
                 return false;

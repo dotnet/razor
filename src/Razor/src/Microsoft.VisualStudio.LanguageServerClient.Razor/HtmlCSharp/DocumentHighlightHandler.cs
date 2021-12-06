@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 rangesToMap,
                 cancellationToken).ConfigureAwait(false);
 
-            if (mappingResult is null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
+            if (mappingResult?.HostDocumentVersion != documentSnapshot.Version)
             {
                 // Couldn't remap the range or the document changed in the meantime. Discard this highlight.
                 _logger.LogInformation($"Mapping failed. Versions: {documentSnapshot.Version} -> {mappingResult?.HostDocumentVersion}.");

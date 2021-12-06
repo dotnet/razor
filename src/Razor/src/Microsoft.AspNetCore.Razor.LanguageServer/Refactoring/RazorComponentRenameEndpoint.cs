@@ -311,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
-            if (node is null || !(node is MarkupTagHelperStartTagSyntax tagHelperStartTag))
+            if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
             {
                 return null;
             }

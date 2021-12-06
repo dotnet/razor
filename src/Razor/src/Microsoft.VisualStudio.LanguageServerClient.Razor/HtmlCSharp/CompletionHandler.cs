@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            if (TryGetWordExtent(request, documentSnapshot, out var wordExtent) is false)
+            if (!TryGetWordExtent(request, documentSnapshot, out var wordExtent))
             {
                 return null;
             }

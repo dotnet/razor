@@ -344,7 +344,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // `@using |System;
                 //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor is null);
+                    n => n is RazorDirectiveSyntax { DirectiveDescriptor: null });
             }
 
             bool IsAttributeDirective()

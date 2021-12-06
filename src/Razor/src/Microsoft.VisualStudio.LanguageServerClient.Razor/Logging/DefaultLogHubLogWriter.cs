@@ -12,7 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     {
         private TraceSource? _traceSource;
 
-        private TraceSource TraceSource { get
+        private TraceSource TraceSource
+        {
+            get
             {
                 if (_traceSource is null)
                 {
@@ -20,7 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 }
 
                 return _traceSource;
-            } }
+            }
+        }
 
         public DefaultLogHubLogWriter(TraceSource? traceSource)
         {

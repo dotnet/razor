@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             var descriptors = documentContext.TagHelpers;
-            if (descriptors is null || descriptors.Count == 0)
+            if (descriptors is null or { Count: 0 })
             {
                 return null;
             }

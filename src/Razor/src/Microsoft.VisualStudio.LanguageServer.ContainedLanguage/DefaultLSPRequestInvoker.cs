@@ -181,16 +181,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var serializedParams = JToken.FromObject(parameters);
-            JToken ParameterFactory(ITextSnapshot _)
-            {
-                return serializedParams;
-            }
+            Func<ITextSnapshot, JToken> parameterFactory = (_) => serializedParams;
 
             var requests = _languageServiceBroker.RequestMultipleAsync(
                 textBuffer,
                 capabilitiesFilter,
                 method,
-                ParameterFactory,
+                parameterFactory,
                 cancellationToken);
 
             await foreach (var response in requests)

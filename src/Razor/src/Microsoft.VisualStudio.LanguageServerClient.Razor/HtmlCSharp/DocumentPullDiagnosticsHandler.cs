@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // Internal for testing
         public async Task<IReadOnlyList<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            if (request is null || request.TextDocument is null)
+            if (request.TextDocument is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }

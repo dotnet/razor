@@ -173,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Internal for testing
-        internal async Task PublishDiagnosticsAsync(DocumentSnapshot document, CancellationToken? _ = null)
+        internal async Task PublishDiagnosticsAsync(DocumentSnapshot document)
         {
             var result = await document.GetGeneratedOutputAsync();
 
@@ -226,7 +226,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 for (var i = 0; i < documents.Length; i++)
                 {
                     var document = documents[i];
-                    await PublishDiagnosticsAsync(document, cancellationToken);
+                    await PublishDiagnosticsAsync(document);
                 }
 
                 OnCompletingBackgroundWork();

@@ -5,6 +5,7 @@
 
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public async Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
         {
-            if (!await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false))
+            if ((await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false)) is false)
             {
                 return null;
             }
@@ -46,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             return traceSource;
         }
 
+        [MemberNotNullWhen(returnValue: true, member: $"{nameof(_serviceBroker)}")]
         public async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)
         {
             await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);

@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var result = await response.Returning<JObject[]>(cancellationToken);
 
                 // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
-                if (result is null || result.Length != request.Items.Count() || result[0] is null)
+                if (result?.Length != request.Items.Count() || result[0] is null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
