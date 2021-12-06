@@ -21,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             IEnumerable<ILanguageService> razorLanguageServices,
             HostServices fallbackHostServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (razorLanguageServices == null)
+            if (razorLanguageServices is null)
             {
                 throw new ArgumentNullException(nameof(razorLanguageServices));
             }
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
         {
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }

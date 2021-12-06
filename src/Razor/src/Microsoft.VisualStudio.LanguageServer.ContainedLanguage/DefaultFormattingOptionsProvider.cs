@@ -36,19 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _indentationManagerService = indentationManagerService;
         }
 
-        public override FormattingOptions? GetOptions(Uri lspDocumentUri)
+        public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot)
         {
-            if (lspDocumentUri is null)
-            {
-                throw new ArgumentNullException(nameof(lspDocumentUri));
-            }
-
-            if (!_documentManager.TryGetDocument(lspDocumentUri, out var documentSnapshot))
-            {
-                // Couldn't resolve document and therefore can't resolve the corresponding formatting options.
-                return null;
-            }
-
             _indentationManagerService.GetIndentation(documentSnapshot.Snapshot.TextBuffer, explicitFormat: false, out var insertSpaces, out var tabSize, out _);
             var formattingOptions = new FormattingOptions()
             {

@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
         {
-            if (documentTracker == null)
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }

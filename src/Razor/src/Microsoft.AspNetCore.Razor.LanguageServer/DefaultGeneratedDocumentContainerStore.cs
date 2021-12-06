@@ -22,12 +22,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentVersionCache == null)
+            if (documentVersionCache is null)
             {
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override ReferenceOutputCapturingContainer Get(string physicalFilePath)
         {
-            if (physicalFilePath == null)
+            if (physicalFilePath is null)
             {
                 throw new ArgumentNullException(nameof(physicalFilePath));
             }
@@ -87,6 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             _store.TryRemove(args.DocumentFilePath, out var _);
                         }
                     }
+
                     break;
             }
         }
@@ -113,6 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Cache entry doesn't exist, document most likely was evicted from the cache/too old.
                         return;
                     }
+
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishCSharp(filePath, args.NewText, hostDocumentVersion);
@@ -138,6 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Cache entry doesn't exist, document most likely was evicted from the cache/too old.
                         return;
                     }
+
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishHtml(filePath, args.NewText, hostDocumentVersion);

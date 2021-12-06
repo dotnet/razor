@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         protected virtual async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, RazorProjectEngine engine, CancellationToken cancellationToken)
         {
-            if (workspaceProject == null)
+            if (workspaceProject is null)
             {
                 throw new ArgumentNullException(nameof(workspaceProject));
             }
 
-            if (engine == null)
+            if (engine is null)
             {
                 throw new ArgumentNullException(nameof(engine));
             }

@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult?> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             if (input is null)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public Task ShutdownAsync(CancellationToken cancellationToken)
+        public Task ShutdownAsync(CancellationToken _)
         {
             // Nothing to detatch to yet.
 
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.ExitName)]
-        public Task ExitAsync(CancellationToken cancellationToken)
+        public Task ExitAsync(CancellationToken _)
         {
             Dispose();
 
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentHoverName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Hover> ProvideHoverAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
+        public Task<Hover?> ProvideHoverAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
             if (positionParams is null)
             {
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<CompletionItem> ResolveCompletionAsync(CompletionItem request, CancellationToken cancellationToken)
+        public Task<CompletionItem?> ResolveCompletionAsync(CompletionItem request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
-        public Task<TextEdit[]> OnTypeFormattingAsync(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+        public Task<TextEdit[]?> OnTypeFormattingAsync(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<LinkedEditingRanges> OnLinkedEditingRangeAsync(LinkedEditingRangeParams request, CancellationToken cancellationToken)
+        public Task<LinkedEditingRanges?> OnLinkedEditingRangeAsync(LinkedEditingRangeParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Location[]> GoToDefinitionAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
+        public Task<Location[]?> GoToDefinitionAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
             if (positionParams is null)
             {
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalReferenceItem[]> FindAllReferencesAsync(VSInternalReferenceParams referenceParams, CancellationToken cancellationToken)
+        public Task<VSInternalReferenceItem[]?> FindAllReferencesAsync(VSInternalReferenceParams referenceParams, CancellationToken cancellationToken)
         {
             if (referenceParams is null)
             {
@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SignatureHelp> SignatureHelpAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
+        public Task<SignatureHelp?> SignatureHelpAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
             if (positionParams is null)
             {
@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentHighlight[]> HighlightDocumentAsync(DocumentHighlightParams documentHighlightParams, CancellationToken cancellationToken)
+        public Task<DocumentHighlight[]?> HighlightDocumentAsync(DocumentHighlightParams documentHighlightParams, CancellationToken cancellationToken)
         {
             if (documentHighlightParams is null)
             {
@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Location[]> GoToImplementationAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
+        public Task<Location[]?> GoToImplementationAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
             if (positionParams is null)
             {
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<IReadOnlyList<VSInternalDiagnosticReport>> DocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<VSInternalDiagnosticReport>?> DocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
         {
             if (documentDiagnosticsParams is null)
             {
@@ -294,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
+        internal Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
             RequestType request,
             ClientCapabilities clientCapabilities,

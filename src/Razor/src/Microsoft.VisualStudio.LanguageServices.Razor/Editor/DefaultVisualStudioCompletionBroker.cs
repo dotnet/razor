@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public DefaultVisualStudioCompletionBroker(ICompletionBroker completionBroker)
         {
-            if (completionBroker == null)
+            if (completionBroker is null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public override bool IsCompletionActive(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }

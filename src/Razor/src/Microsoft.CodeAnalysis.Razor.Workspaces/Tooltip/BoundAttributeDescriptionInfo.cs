@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
 
             var returnTypeName = indexer ? boundAttribute.IndexerTypeName : boundAttribute.TypeName;
             var propertyName = boundAttribute.GetPropertyName();
-            if (parentTagHelperTypeName == null)
+            if (parentTagHelperTypeName is null)
             {
 
                 // The BoundAttributeDescriptor does not directly have the TagHelperTypeName information available. Because of this we need to resolve it from other parts of it.

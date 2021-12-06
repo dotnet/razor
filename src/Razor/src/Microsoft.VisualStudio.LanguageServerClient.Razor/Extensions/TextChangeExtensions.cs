@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
 
             return new TextEdit()
             {
-                NewText = textChange.NewText,
+                NewText = textChange.NewText!,
                 Range = range
             };
         }

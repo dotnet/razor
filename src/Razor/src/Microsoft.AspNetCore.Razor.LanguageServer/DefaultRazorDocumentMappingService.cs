@@ -58,6 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     break;
                 }
+
                 var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
                 var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
@@ -112,6 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         break;
                     }
+
                     mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
                     mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
 
@@ -190,6 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                                 Range = new Range(hostDocumentIndex, hostDocumentIndex)
                             });
                         }
+
                         continue;
                     }
                 }
@@ -463,13 +466,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-
             if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex) ||
                 !TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
-
 
             if (!range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex) ||
                 !TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))

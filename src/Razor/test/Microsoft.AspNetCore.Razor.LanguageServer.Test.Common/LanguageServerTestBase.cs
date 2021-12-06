@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             public TestProjectSnapshotManagerDispatcher()
             {
-                DispatcherScheduler = SynchronizationContext.Current == null
+                DispatcherScheduler = SynchronizationContext.Current is null
                     ? new ThrowingTaskScheduler()
                     : TaskScheduler.FromCurrentSynchronizationContext();
             }

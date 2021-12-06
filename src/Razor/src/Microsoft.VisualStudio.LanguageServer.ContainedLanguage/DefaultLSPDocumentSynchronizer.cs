@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         // Internal for testing
         internal TimeSpan _synchronizationTimeout = TimeSpan.FromSeconds(2);
         private readonly Dictionary<Uri, DocumentContext> _virtualDocumentContexts;
-        private readonly object _documentContextLock = new object();
+        private readonly object _documentContextLock = new();
         private readonly FileUriProvider _fileUriProvider;
 
         [ImportingConstructor]

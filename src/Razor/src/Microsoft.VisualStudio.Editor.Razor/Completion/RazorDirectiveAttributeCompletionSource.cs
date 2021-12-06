@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
-                if (codeDocument == null)
+                if (codeDocument is null)
                 {
                     // Code document not available yet.
                     return CompletionContext.Empty;

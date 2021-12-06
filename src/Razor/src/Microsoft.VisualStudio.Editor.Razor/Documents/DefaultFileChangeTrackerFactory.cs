@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     {
         public override FileChangeTracker Create(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }

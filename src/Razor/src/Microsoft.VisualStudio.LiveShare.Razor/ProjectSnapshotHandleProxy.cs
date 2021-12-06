@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
             string rootNamespace,
             ProjectWorkspaceState projectWorkspaceState)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (configuration == null)
+            if (configuration is null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }

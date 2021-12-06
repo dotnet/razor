@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         [ImportingConstructor]
         public VisualStudioMacFileChangeTrackerFactoryFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

@@ -150,12 +150,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected void DocumentOpened(string filePath, ITextBuffer textBuffer)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected void DocumentClosed(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override void RemoveDocument(EditorDocument document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
 {
     internal class RazorProjectExtension : ProjectExtension
     {
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
 
         protected override void OnBoundToSolution()
         {
-            if (!(Project is DotNetProject dotNetProject))
+            if (Project is not DotNetProject dotNetProject)
             {
                 return;
             }

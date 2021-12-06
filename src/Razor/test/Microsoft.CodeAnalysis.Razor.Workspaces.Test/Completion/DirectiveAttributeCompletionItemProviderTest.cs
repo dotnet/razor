@@ -272,7 +272,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
 
-
             // Act
             var completions = Provider.GetAttributeCompletions("@", "input", EmptyAttributes, DefaultTagHelperDocumentContext);
 

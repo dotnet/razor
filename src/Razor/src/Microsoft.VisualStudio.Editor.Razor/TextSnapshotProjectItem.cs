@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public TextSnapshotProjectItem(ITextSnapshot snapshot, string projectDirectory, string relativeFilePath, string filePath, string fileKind)
         {
-            if (snapshot == null)
+            if (snapshot is null)
             {
                 throw new ArgumentNullException(nameof(snapshot));
             }
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            if (fileKind == null)
+            if (fileKind is null)
             {
                 throw new ArgumentNullException(nameof(fileKind));
             }

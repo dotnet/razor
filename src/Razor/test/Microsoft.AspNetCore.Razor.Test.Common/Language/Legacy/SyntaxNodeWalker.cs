@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 {
     internal class SyntaxNodeWalker : SyntaxRewriter
     {
-        private readonly List<SyntaxNode> _ancestors = new List<SyntaxNode>();
+        private readonly List<SyntaxNode> _ancestors = new();
 
         protected IReadOnlyList<SyntaxNode> Ancestors => _ancestors;
 

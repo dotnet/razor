@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

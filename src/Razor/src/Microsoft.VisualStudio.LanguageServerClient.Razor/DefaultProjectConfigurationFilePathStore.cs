@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -16,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly Dictionary<string, string> _mappings;
         private readonly object _mappingsLock;
 
-        public override event EventHandler<ProjectConfigurationFilePathChangedEventArgs> Changed;
+        public override event EventHandler<ProjectConfigurationFilePathChangedEventArgs>? Changed;
 
         [ImportingConstructor]
         public DefaultProjectConfigurationFilePathStore()

@@ -49,27 +49,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (documentVersionCache == null)
+            if (documentVersionCache is null)
             {
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
-            if (documentMappingService == null)
+            if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -228,7 +228,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End, logger);
 
             var startOrEndTag = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
-            if (startOrEndTag == null)
+            if (startOrEndTag is null)
             {
                 return false;
             }

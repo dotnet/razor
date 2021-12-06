@@ -27,22 +27,22 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             ProxyAccessor proxyAccessor,
             LiveShareSessionAccessor liveShareSessionAccessor)
         {
-            if (joinableTaskContext == null)
+            if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (textDocumentFactory == null)
+            if (textDocumentFactory is null)
             {
                 throw new ArgumentNullException(nameof(textDocumentFactory));
             }
 
-            if (proxyAccessor == null)
+            if (proxyAccessor is null)
             {
                 throw new ArgumentNullException(nameof(proxyAccessor));
             }
 
-            if (liveShareSessionAccessor == null)
+            if (liveShareSessionAccessor is null)
             {
                 throw new ArgumentNullException(nameof(liveShareSessionAccessor));
             }
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             }
 
             var hostProjectPath = GetHostProjectPath(textDocument);
-            if (hostProjectPath == null)
+            if (hostProjectPath is null)
             {
                 filePath = null;
                 return false;

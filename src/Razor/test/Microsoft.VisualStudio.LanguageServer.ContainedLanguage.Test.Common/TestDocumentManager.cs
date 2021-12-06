@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal class TestDocumentManager : TrackingLSPDocumentManager
     {
-        private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new Dictionary<Uri, LSPDocumentSnapshot>();
+        private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new();
 
         public int UpdateVirtualDocumentCallCount { get; private set; }
 

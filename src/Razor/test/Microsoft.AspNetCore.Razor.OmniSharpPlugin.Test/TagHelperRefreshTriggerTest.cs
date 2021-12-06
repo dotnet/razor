@@ -63,7 +63,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public object Project1Instance { get; }
 
-
         [Fact]
         public async Task IsComponentFile_UnknownProject_ReturnsFalse()
         {

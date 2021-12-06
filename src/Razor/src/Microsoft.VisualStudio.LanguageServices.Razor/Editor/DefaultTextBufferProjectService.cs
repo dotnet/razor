@@ -28,12 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             [Import(typeof(SVsServiceProvider))] IServiceProvider services,
             ITextDocumentFactoryService documentFactory)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (documentFactory == null)
+            if (documentFactory is null)
             {
                 throw new ArgumentNullException(nameof(documentFactory));
             }
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public override object GetHostProject(ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public override string GetProjectPath(object project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public override bool IsSupportedProject(object project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public override string GetProjectName(object project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }

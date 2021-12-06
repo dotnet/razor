@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
-            if (loggerProvider == null)
+            if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
             }
@@ -141,7 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);
-
 
             static InterceptionResult CreateDefaultResponse(JToken token)
             {

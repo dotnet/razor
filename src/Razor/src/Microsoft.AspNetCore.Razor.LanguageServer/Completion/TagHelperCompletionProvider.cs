@@ -53,7 +53,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-
         public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
             if (context is null)
@@ -64,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
                 return Array.Empty<RazorCompletionItem>();
@@ -95,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     out var selectedAttributeName,
                     out var selectedAttributeNameLocation,
                     out attributes) &&
-                (selectedAttributeName == null ||
+                (selectedAttributeName is null ||
                 selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true ||
                 (prefixLocation?.IntersectsWith(location.AbsoluteIndex) ?? false)))
             {

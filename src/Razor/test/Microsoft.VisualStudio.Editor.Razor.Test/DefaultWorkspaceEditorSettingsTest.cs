@@ -61,7 +61,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var manager = new TestEditorSettingsManagerInternal(Dispatcher);
             static void Listener1(object caller, EditorSettingsChangedEventArgs args) { }
+
             static void Listener2(object caller, EditorSettingsChangedEventArgs args) { }
+
             manager.Changed += Listener1;
             manager.Changed += Listener2;
 

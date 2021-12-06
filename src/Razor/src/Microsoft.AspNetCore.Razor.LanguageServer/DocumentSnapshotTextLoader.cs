@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public DocumentSnapshotTextLoader(DocumentSnapshot documentSnapshot)
         {
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }

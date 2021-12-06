@@ -525,7 +525,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             public bool IsImported => throw new NotImplementedException();
 
-
             public string UnevaluatedInclude => throw new NotImplementedException();
 
             public MSBuildItem SourceItem => throw new NotImplementedException();

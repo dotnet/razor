@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
     {
         public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
         public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }

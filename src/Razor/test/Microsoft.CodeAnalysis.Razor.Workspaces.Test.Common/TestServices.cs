@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private TestServices(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (razorLanguageServices == null)
+            if (razorLanguageServices is null)
             {
                 throw new ArgumentNullException(nameof(razorLanguageServices));
             }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
         {
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }

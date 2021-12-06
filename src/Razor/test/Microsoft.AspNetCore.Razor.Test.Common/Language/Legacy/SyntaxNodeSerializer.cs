@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (node == null)
+                if (node is null)
                 {
                     return node;
                 }

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             {
                 serializer.Serialize(writer, item);
             }
+
             writer.WriteEndArray();
         }
     }

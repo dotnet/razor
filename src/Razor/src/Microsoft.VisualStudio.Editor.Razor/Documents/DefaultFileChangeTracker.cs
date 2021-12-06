@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public DefaultFileChangeTracker(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }

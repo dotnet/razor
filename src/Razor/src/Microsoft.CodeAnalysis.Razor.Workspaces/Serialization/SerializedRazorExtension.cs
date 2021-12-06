@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     {
         public SerializedRazorExtension(string extensionName)
         {
-            if (extensionName == null)
+            if (extensionName is null)
             {
                 throw new ArgumentNullException(nameof(extensionName));
             }

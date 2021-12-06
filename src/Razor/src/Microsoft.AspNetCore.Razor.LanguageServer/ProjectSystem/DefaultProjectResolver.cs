@@ -23,17 +23,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             FilePathNormalizer filePathNormalizer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
-            if (projectSnapshotManagerAccessor == null)
+            if (projectSnapshotManagerAccessor is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
             }
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
         {
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
-            if (miscellaneousProject == null)
+            if (miscellaneousProject is null)
             {
                 _projectSnapshotManagerAccessor.Instance.ProjectAdded(MiscellaneousHostProject);
                 miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);

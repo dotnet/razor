@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     {
         public override void ReportError(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 Debug.Fail("Null exceptions should not be reported.");
                 return;
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override void ReportError(Exception exception, Project project)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 Debug.Fail("Null exceptions should not be reported.");
                 return;
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override void ReportError(Exception exception, ProjectSnapshot project)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 Debug.Fail("Null exceptions should not be reported.");
                 return;

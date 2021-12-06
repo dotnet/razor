@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public static TagHelperDescriptorBuilder TypeName(this TagHelperDescriptorBuilder builder, string typeName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder DisplayName(this TagHelperDescriptorBuilder builder, string displayName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder AllowChildTag(this TagHelperDescriptorBuilder builder, string allowedChild)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder TagOutputHint(this TagHelperDescriptorBuilder builder, string hint)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder SetCaseSensitive(this TagHelperDescriptorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder Documentation(this TagHelperDescriptorBuilder builder, string documentation)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder AddMetadata(this TagHelperDescriptorBuilder builder, string key, string value)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagHelperDescriptorBuilder AddDiagnostic(this TagHelperDescriptorBuilder builder, RazorDiagnostic diagnostic)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             this TagHelperDescriptorBuilder builder,
             Action<BoundAttributeDescriptorBuilder> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             this TagHelperDescriptorBuilder builder,
             Action<TagMatchingRuleDescriptorBuilder> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

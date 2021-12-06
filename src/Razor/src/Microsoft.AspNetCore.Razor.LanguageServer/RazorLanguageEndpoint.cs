@@ -41,32 +41,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             RazorFormattingService razorFormattingService,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (documentVersionCache == null)
+            if (documentVersionCache is null)
             {
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
-            if (documentMappingService == null)
+            if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
             }
 
-            if (razorFormattingService == null)
+            if (razorFormattingService is null)
             {
                 throw new ArgumentNullException(nameof(razorFormattingService));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }

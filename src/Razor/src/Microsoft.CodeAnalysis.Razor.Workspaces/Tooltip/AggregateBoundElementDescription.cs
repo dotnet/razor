@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
 
         public AggregateBoundElementDescription(IReadOnlyList<BoundElementDescriptionInfo> associatedTagHelperDescriptions)
         {
-            if (associatedTagHelperDescriptions == null)
+            if (associatedTagHelperDescriptions is null)
             {
                 throw new ArgumentNullException(nameof(associatedTagHelperDescriptions));
             }

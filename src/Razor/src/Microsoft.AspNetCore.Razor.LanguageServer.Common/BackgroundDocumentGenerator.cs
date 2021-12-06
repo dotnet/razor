@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -151,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private void StartWorker()
         {
             // Access to the timer is protected by the lock in Synchronize and in Timer_Tick
-            if (_timer == null)
+            if (_timer is null)
             {
                 // Timer will fire after a fixed delay, but only once.
                 _timer = new Timer(Timer_Tick, null, Delay, Timeout.InfiniteTimeSpan);
@@ -247,6 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 _solutionIsClosing = true;
                 return;
             }
+
             _solutionIsClosing = false;
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
@@ -314,6 +315,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                             var newerRelatedDocument = args.Newer.GetDocument(relatedDocument.FilePath);
                             Enqueue(newerRelatedDocument);
                         }
+
                         break;
                     }
                 case ProjectChangeKind.ProjectRemoved:

@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
         {
-            if (_codeDocument == null)
+            if (_codeDocument is null)
             {
                 throw new InvalidOperationException("You must call " + nameof(With) + " to set the code document for this document snapshot.");
             }
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public TestDocumentSnapshot With(RazorCodeDocument codeDocument)
         {
-            if (codeDocument == null)
+            if (codeDocument is null)
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }

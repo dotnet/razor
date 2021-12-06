@@ -29,17 +29,17 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="identifier">The identifier associated with this thumbprint.</param>
         public RazorSourceChecksumAttribute(string checksumAlgorithm, string checksum, string identifier)
         {
-            if (checksumAlgorithm == null)
+            if (checksumAlgorithm is null)
             {
                 throw new ArgumentNullException(nameof(checksumAlgorithm));
             }
 
-            if (checksum == null)
+            if (checksum is null)
             {
                 throw new ArgumentNullException(nameof(checksum));
             }
 
-            if (identifier == null)
+            if (identifier is null)
             {
                 throw new ArgumentNullException(nameof(identifier));
             }

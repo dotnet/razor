@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     writer.WriteStartArray();
                     foreach (var completionItem in completionList.Items)
                     {
-                        if (completionItem == null)
+                        if (completionItem is null)
                         {
                             continue;
                         }
@@ -65,6 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         var suppressData = (completionList as VSCompletionList)?.Data != null;
                         WriteCompletionItem(writer, completionItem, serializer, suppressData);
                     }
+
                     writer.WriteEndArray();
                 }
 

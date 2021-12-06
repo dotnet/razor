@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         [ImportingConstructor]
         public RazorGuestInitializationService([Import(typeof(LiveShareSessionAccessor))] DefaultLiveShareSessionAccessor sessionAccessor)
         {
-            if (sessionAccessor == null)
+            if (sessionAccessor is null)
             {
                 throw new ArgumentNullException(nameof(sessionAccessor));
             }
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
         {
-            if (sessionContext == null)
+            if (sessionContext is null)
             {
                 throw new ArgumentNullException(nameof(sessionContext));
             }
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         public SessionActiveDetector(Action onDispose)
         {
-            if (onDispose == null)
+            if (onDispose is null)
             {
                 throw new ArgumentNullException(nameof(onDispose));
             }

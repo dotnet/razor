@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override bool TryGetFromBuffer(ITextBuffer textBuffer, out RazorCodeDocument codeDocument)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }

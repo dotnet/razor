@@ -11,12 +11,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         public ProjectConfiguration(RazorConfiguration configuration, IReadOnlyList<OmniSharpHostDocument> documents, string rootNamespace)
         {
-            if (configuration == null)
+            if (configuration is null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            if (documents == null)
+            if (documents is null)
             {
                 throw new ArgumentNullException(nameof(documents));
             }

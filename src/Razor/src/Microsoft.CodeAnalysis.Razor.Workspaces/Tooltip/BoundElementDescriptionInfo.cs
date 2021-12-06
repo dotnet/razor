@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
     {
         public BoundElementDescriptionInfo(string tagHelperTypeName, string documentation)
         {
-            if (tagHelperTypeName == null)
+            if (tagHelperTypeName is null)
             {
                 throw new ArgumentNullException(nameof(tagHelperTypeName));
             }

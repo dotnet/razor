@@ -66,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var bufferGraphService = new Mock<IBufferGraphFactoryService>(MockBehavior.Strict);
             bufferGraphService.Setup(service => service.CreateBufferGraph(It.IsAny<ITextBuffer>()))
                 .Returns(bufferGraph.Object);
-            var workspaceAccessor = new DefaultVisualStudioWorkspaceAccessor(bufferGraphService.Object, Mock.Of<TextBufferProjectService>(MockBehavior.Strict), TestWorkspace.Create());
+            using var testWorkspace = TestWorkspace.Create();
+            var workspaceAccessor = new DefaultVisualStudioWorkspaceAccessor(bufferGraphService.Object, Mock.Of<TextBufferProjectService>(MockBehavior.Strict), testWorkspace);
             var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
 
             // Act

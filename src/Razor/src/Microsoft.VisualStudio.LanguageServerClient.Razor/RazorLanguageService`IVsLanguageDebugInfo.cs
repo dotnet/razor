@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
@@ -60,10 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _joinableTaskFactory = joinableTaskFactory;
         }
 
-        public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR ppEnum)
+        public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR? ppEnum)
         {
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(pBuffer);
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 // Can't resolve the text buffer, let someone else deal with this breakpoint.
                 ppEnum = null;
@@ -135,20 +137,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return VSConstants.S_OK;
         }
 
-        public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string pbstrName, out int piLineOffset)
+        public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string? pbstrName, out int piLineOffset)
         {
             pbstrName = default;
             piLineOffset = default;
             return VSConstants.E_NOTIMPL;
         }
 
-        public int GetLocationOfName(string pszName, out string pbstrMkDoc, TextSpan[] pspanLocation)
+        public int GetLocationOfName(string pszName, out string? pbstrMkDoc, TextSpan[] pspanLocation)
         {
             pbstrMkDoc = default;
             return VSConstants.E_NOTIMPL;
         }
 
-        public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName ppNames)
+        public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
         {
             ppNames = default;
             return VSConstants.E_NOTIMPL;

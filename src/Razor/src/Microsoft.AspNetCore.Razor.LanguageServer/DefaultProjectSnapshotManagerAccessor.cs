@@ -27,17 +27,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
             AdhocWorkspaceFactory workspaceFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (changeTriggers == null)
+            if (changeTriggers is null)
             {
                 throw new ArgumentNullException(nameof(changeTriggers));
             }
 
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     var workspace = _workspaceFactory.Create(
                         workspaceServices: new[]

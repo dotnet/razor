@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 .Projects
                 .FirstOrDefault(project => FilePathComparer.Instance.Equals(project.FilePath, projectSnapshot.FilePath));
 
-            if (workspaceProject == null)
+            if (workspaceProject is null)
             {
                 return TagHelperResolutionResult.Empty;
             }

@@ -174,6 +174,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                         {
                             flattenedList.Add(run.Text);
                         }
+
                         break;
                 }
             }

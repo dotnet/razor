@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectChangeEventArgs(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing)
         {
-            if (older == null && newer == null)
+            if (older is null && newer is null)
             {
                 throw new ArgumentException("Both projects cannot be null.");
             }

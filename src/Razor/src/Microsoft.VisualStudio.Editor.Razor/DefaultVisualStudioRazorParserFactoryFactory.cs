@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }

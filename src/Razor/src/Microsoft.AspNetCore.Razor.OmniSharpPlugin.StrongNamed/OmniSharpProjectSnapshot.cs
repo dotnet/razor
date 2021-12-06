@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public OmniSharpDocumentSnapshot GetDocument(string filePath)
         {
             var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 return null;
             }
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
         {
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 return null;
             }

@@ -10,12 +10,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public static bool IsTagHelperSpan(this RazorSyntaxFactsService syntaxFactsService, RazorSyntaxTree syntaxTree, SourceSpan span)
         {
-            if (syntaxFactsService == null)
+            if (syntaxFactsService is null)
             {
                 throw new ArgumentNullException(nameof(syntaxFactsService));
             }
 
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 // Extra hardening for the case that tooling hasn't retrieved a SyntaxTree yet.
                 return false;

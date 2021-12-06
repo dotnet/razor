@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void DotNetProject_Modified(object sender, SolutionItemModifiedEventArgs args)
         {
-            if (args == null)
+            if (args is null)
             {
                 throw new ArgumentNullException(nameof(args));
             }
@@ -145,15 +145,15 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             var newHostProject = (HostProject)state;
 
-            if (HostProject == null && newHostProject == null)
+            if (HostProject is null && newHostProject is null)
             {
                 // This is a no-op. This project isn't using Razor.
             }
-            else if (HostProject == null && newHostProject != null)
+            else if (HostProject is null && newHostProject != null)
             {
                 _projectSnapshotManager.ProjectAdded(newHostProject);
             }
-            else if (HostProject != null && newHostProject == null)
+            else if (HostProject != null && newHostProject is null)
             {
                 _projectSnapshotManager.ProjectRemoved(HostProject);
             }

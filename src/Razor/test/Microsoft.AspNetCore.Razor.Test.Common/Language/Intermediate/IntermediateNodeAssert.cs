@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 }
                 catch (XunitException e)
                 {
-                    throw new IntermediateNodeAssertException(node, node.Children, $"Failed while validating node {node.Children[i]} at {i}.", e);
+                    throw new IntermediateNodeAssertException(node.Children, $"Failed while validating node {node.Children[i]} at {i}.", e);
                 }
             }
 
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
 
             Children(node, childValidators);
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -195,7 +195,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(attribute, attribute.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(attribute.Children, e.Message, e);
             }
         }
 
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(attributeValue, attributeValue.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(attributeValue.Children, e.Message, e);
             }
         }
 
@@ -263,7 +263,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -284,7 +284,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -305,7 +305,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(node, node.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(node.Children, e.Message, e);
             }
         }
 
@@ -377,7 +377,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(tagHelperHtmlAttribute, tagHelperHtmlAttribute.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(tagHelperHtmlAttribute.Children, e.Message, e);
             }
         }
 
@@ -414,7 +414,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
             catch (XunitException e)
             {
-                throw new IntermediateNodeAssertException(propertyNode, propertyNode.Children, e.Message, e);
+                throw new IntermediateNodeAssertException(propertyNode.Children, e.Message, e);
             }
         }
 
@@ -434,7 +434,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
 
             public IntermediateNodeAssertException(
-                IntermediateNode node,
                 IEnumerable<IntermediateNode> nodes,
                 string userMessage,
                 Exception innerException)
@@ -443,7 +442,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             }
 
             public IntermediateNodeAssertException(
-                IntermediateNode node,
                 IntermediateNode[] ancestors,
                 IEnumerable<IntermediateNode> nodes,
                 string userMessage,
@@ -473,7 +471,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
 
                     builder.AppendLine();
                 }
-
 
                 builder.AppendLine("Path:");
 

@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     internal class HostDocumentComparer : IEqualityComparer<HostDocument>
     {
-        public static readonly HostDocumentComparer Instance = new HostDocumentComparer();
+        public static readonly HostDocumentComparer Instance = new();
 
         private HostDocumentComparer()
         {

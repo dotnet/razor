@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         {
                             configurationName = (string)reader.Value;
                         }
+
                         break;
                     case nameof(RazorConfiguration.LanguageVersion):
                         if (reader.Read())
@@ -48,12 +49,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                     existingValue: null,
                                     serializer) as string;
                         }
+
                         break;
                     case nameof(RazorConfiguration.Extensions):
                         if (reader.Read())
                         {
                             extensions = serializer.Deserialize<RazorExtension[]>(reader);
                         }
+
                         break;
                 }
             });
@@ -119,12 +122,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             {
                                 major = reader.Value.ToString();
                             }
+
                             break;
                         case "Minor":
                             if (reader.Read())
                             {
                                 minor = reader.Value.ToString();
                             }
+
                             break;
                     }
                 });

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -33,15 +35,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private const string TempFileExt = ".temp";
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-        private readonly IVsOperationProgressStatusService _operationProgressStatusService = null;
+        private readonly IVsOperationProgressStatusService? _operationProgressStatusService = null;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
 
         private readonly JsonSerializer _serializer = new();
-        private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private ProjectSnapshotManagerBase? _projectSnapshotManager;
         private bool _documentsProcessed = false;
+
+        private ProjectSnapshotManagerBase ProjectSnapshotManager
+        {
+            get
+            {
+                return _projectSnapshotManager ?? throw new InvalidOperationException($"{nameof(ProjectSnapshotManager)} called before {nameof(Initialize)}.");
+            }
+            set
+            {
+                _projectSnapshotManager = value;
+            }
+        }
 
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
@@ -95,8 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            _projectSnapshotManager = projectManager;
-            _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+            ProjectSnapshotManager = projectManager;
+            ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
         // Internal for testing
@@ -134,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // Not currently active, we need to decide if we should become active or if we should no-op.
 
-                if (_projectSnapshotManager.OpenDocuments.Count > 0)
+                if (ProjectSnapshotManager.OpenDocuments.Count > 0)
                 {
                     // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
                     _active = true;
@@ -221,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             lock (_publishLock)
             {
-                string configurationFilePath = null;
+                string? configurationFilePath = null;
                 try
                 {
                     if (!_projectConfigurationFilePathStore.TryGet(projectSnapshot.FilePath, out configurationFilePath))

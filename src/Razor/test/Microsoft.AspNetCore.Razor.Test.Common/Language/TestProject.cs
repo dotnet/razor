@@ -38,6 +38,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     return fileInfo.DirectoryName;
                 }
+
                 directoryInfo = directoryInfo.Parent;
             }
             while (directoryInfo.Parent != null);

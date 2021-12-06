@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
             ProjectWorkspaceState projectWorkspaceState,
             IReadOnlyList<DocumentSnapshotHandle> documents)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (documents == null)
+            if (documents is null)
             {
                 throw new ArgumentNullException(nameof(documents));
             }

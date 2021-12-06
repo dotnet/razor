@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -61,14 +63,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             });
         }
 
-        // Test constructor
+        [Obsolete("Test constructor")]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal DefaultLSPEditorFeatureDetector()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
         public override bool IsLSPEditorAvailable(string documentMoniker, object hierarchy)
         {
-            if (documentMoniker == null)
+            if (documentMoniker is null)
             {
                 return false;
             }
@@ -99,13 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Private protected virtual for testing
-        private protected virtual bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy)
+        private protected virtual bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy? hierarchy)
         {
-            if (hierarchy == null)
+            if (hierarchy is null)
             {
                 var hr = _vsUIShellOpenDocument.Value.IsDocumentInAProject(documentMoniker, out var uiHierarchy, out _, out _, out _);
                 hierarchy = uiHierarchy;
-                if (!ErrorHandler.Succeeded(hr) || hierarchy == null)
+                if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
                 {
                     return false;
                 }

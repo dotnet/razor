@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             private readonly BlockingCollection<Task> _tasks = new();
             private readonly Action<Exception> _logException;
             private bool _disposed;
-            private object _disposalLock = new();
+            private readonly object _disposalLock = new();
 
             public ProjectSnapshotManagerTaskScheduler(string threadName, Action<Exception> logException)
             {

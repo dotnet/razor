@@ -38,8 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentSnapshot = documentSnapshot;
         }
 
-        // For testing use only
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("For testing use only")]
         internal CSharpDocumentExcerptService()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 

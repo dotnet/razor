@@ -256,6 +256,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         {
                             OnContextChanged(ContextChangeKind.TagHelpersChanged);
                         }
+
                         break;
 
                     case ProjectChangeKind.ProjectRemoved:

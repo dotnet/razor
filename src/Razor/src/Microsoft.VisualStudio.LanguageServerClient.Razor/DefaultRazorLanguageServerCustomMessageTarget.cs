@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }

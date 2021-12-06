@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             { LanguageClientConstants.ClientNamePropertyKey, CSharpClientName }
         };
 
-        private static IContentType s_csharpContentType;
+        private static IContentType? s_csharpContentType;
 
         [ImportingConstructor]
         public CSharpVirtualDocumentFactory(
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             get
             {
-                if (s_csharpContentType == null)
+                if (s_csharpContentType is null)
                 {
                     var contentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.CSharpContentTypeName);
                     s_csharpContentType = new RemoteContentDefinitionType(contentType);

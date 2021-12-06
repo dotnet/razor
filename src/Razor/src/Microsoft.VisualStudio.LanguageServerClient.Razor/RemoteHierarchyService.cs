@@ -47,14 +47,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var hostPathOfFileInProject = _session.ConvertSharedUriToLocalPath(pathOfFileInProject);
-            var vsUIShellOpenDocument = ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
-            if (vsUIShellOpenDocument == null)
+            if (ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) is not IVsUIShellOpenDocument vsUIShellOpenDocument)
             {
                 return false;
             }
 
             var hr = vsUIShellOpenDocument.IsDocumentInAProject(hostPathOfFileInProject, out var hierarchy, out _, out _, out _);
-            if (!ErrorHandler.Succeeded(hr) || hierarchy == null)
+            if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
             {
                 return false;
             }

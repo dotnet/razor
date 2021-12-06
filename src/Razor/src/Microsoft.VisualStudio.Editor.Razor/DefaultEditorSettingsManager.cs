@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override void Update(EditorSettings updatedSettings)
         {
-            if (updatedSettings == null)
+            if (updatedSettings is null)
             {
                 throw new ArgumentNullException(nameof(updatedSettings));
             }

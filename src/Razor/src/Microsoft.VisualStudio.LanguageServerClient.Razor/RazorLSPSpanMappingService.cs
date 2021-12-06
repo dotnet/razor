@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
             }
 
-            if (textSnapshot == null)
+            if (textSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(textSnapshot));
             }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             SourceText sourceTextRazor,
             CancellationToken cancellationToken)
         {
-            if (spans == null)
+            if (spans is null)
             {
                 throw new ArgumentNullException(nameof(spans));
             }

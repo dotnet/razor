@@ -23,7 +23,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private static RazorCompletionItem TransitionCompletionItem => DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
-
         [Fact]
         public void IsValidCompletionPoint_AtPrefixLeadingEdge_ReturnsFalse()
         {

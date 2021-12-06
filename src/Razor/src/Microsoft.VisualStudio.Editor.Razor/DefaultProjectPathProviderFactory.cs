@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             TextBufferProjectService projectService,
             [Import(AllowDefault = true)] LiveShareProjectPathProvider liveShareProjectPathProvider)
         {
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

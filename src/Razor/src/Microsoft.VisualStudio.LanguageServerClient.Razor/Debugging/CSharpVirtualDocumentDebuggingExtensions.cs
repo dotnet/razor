@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             SyntaxTree? syntaxTree = null;
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 // No workspace means we have to fallback to C# syntax tree resoltuion from snapshot.
                 syntaxTree = CreateSyntaxTreeFromSnapshot(virtualDocument.Snapshot, cancellationToken);
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 syntaxTree = await document!.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 // Couldn't find the document in the workspace OR the version in the workspace couldn't have its syntax tree computed.
                 syntaxTree = CreateSyntaxTreeFromSnapshot(virtualDocument.Snapshot, cancellationToken);

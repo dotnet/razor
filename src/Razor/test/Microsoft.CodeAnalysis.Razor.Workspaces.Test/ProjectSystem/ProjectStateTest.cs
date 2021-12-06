@@ -996,7 +996,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(2, callCount);
         }
 
-
         [Fact]
         public void ProjectState_WhenImportDocumentRemoved_CallsImportsChanged()
         {

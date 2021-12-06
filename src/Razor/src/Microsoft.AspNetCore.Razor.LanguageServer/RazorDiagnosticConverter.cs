@@ -14,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static Diagnostic Convert(RazorDiagnostic razorDiagnostic, SourceText sourceText)
         {
-            if (razorDiagnostic == null)
+            if (razorDiagnostic is null)
             {
                 throw new ArgumentNullException(nameof(razorDiagnostic));
             }
 
-            if (sourceText == null)
+            if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }

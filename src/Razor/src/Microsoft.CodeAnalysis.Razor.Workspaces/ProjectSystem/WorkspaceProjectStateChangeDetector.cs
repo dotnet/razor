@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 lock (_workQueueAccessLock)
                 {
-                    if (_projectManager == null || _disposed)
+                    if (_projectManager is null || _disposed)
                     {
                         return;
                     }
 
-                    if (_workQueue == null)
+                    if (_workQueue is null)
                     {
                         var errorReporter = _projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
                         _workQueue = new BatchingWorkQueue(
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 var project = state.OldSolution.GetRequiredProject(state.ProjectId);
                                 var document = project.GetRequiredDocument(state.DocumentId);
 
-                                if (document.FilePath == null)
+                                if (document.FilePath is null)
                                 {
                                     return;
                                 }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             var icomponentType = semanticModel.Compilation.GetTypeByMetadataName(ComponentsApi.IComponent.MetadataName);
-            if (icomponentType == null)
+            if (icomponentType is null)
             {
                 // IComponent is not available in the compilation.
                 return false;
@@ -387,6 +387,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         var projectSnapshot = args.Newer;
                         EnqueueUpdateOnProjectAndDependencies(associatedWorkspaceProject.Id, associatedWorkspaceProject, associatedWorkspaceProject.Solution, projectSnapshot);
                     }
+
                     break;
             }
         }

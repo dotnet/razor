@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
 
         public bool Equals(EditorSettings other)
         {
-            if (other == null)
+            if (other is null)
             {
                 return false;
             }

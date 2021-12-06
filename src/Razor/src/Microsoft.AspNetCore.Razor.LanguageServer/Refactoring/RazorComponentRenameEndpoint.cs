@@ -155,6 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                         documentPaths.Add(documentPath);
                     }
                 }
+
                 return documentSnapshots;
             }, cancellationToken).ConfigureAwait(false);
         }
@@ -281,6 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                     NewText = newName,
                 });
             }
+
             return edits;
         }
 
@@ -302,14 +304,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             var owner = syntaxTree.Root.LocateOwner(change);
-            if (owner == null)
+            if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
                 return null;
             }
 
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
-            if (node == null || !(node is MarkupTagHelperStartTagSyntax tagHelperStartTag))
+            if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
             {
                 return null;
             }
@@ -331,14 +333,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             // Can only have 1 component TagHelper belonging to an element at a time
             var primaryTagHelper = tagHelperElement.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(descriptor => descriptor.IsComponentTagHelper());
-            if (primaryTagHelper == null)
+            if (primaryTagHelper is null)
             {
                 return null;
             }
 
             var originTagHelpers = new List<TagHelperDescriptor>() { primaryTagHelper };
             var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentSnapshot.Project.TagHelpers);
-            if (associatedTagHelper == null)
+            if (associatedTagHelper is null)
             {
                 Debug.Fail("Components should always have an associated TagHelper.");
                 return null;

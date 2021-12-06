@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // This ensures that LiveShare does not serialize this virtual document to disk in LiveShare & Codespaces scenarios.
             languageBuffer.Properties.AddProperty(ContainedLanguageMarker, true);
 
-            if (!(LanguageBufferProperties is null))
+            if (LanguageBufferProperties is not null)
             {
                 foreach (var keyValuePair in LanguageBufferProperties)
                 {

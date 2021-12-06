@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         [ImportingConstructor]
         public DefaultProjectChangePublisher(ILoggerFactory loggerFactory)
         {
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         // Internal for testing
         internal void Publish(OmniSharpProjectSnapshot projectSnapshot)
         {
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
@@ -159,6 +159,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                     {
                         EnqueuePublish(args.Newer);
                     }
+
                     break;
                 case OmniSharpProjectChangeKind.ProjectRemoved:
                     RemovePublishingData(args.Older);

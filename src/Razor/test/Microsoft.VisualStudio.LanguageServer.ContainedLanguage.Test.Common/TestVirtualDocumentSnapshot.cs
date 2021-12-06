@@ -30,6 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public object State { get; }
 
-        public TestVirtualDocumentSnapshot Fork(int hostDocumentVersion) => new TestVirtualDocumentSnapshot(Uri, hostDocumentVersion);
+        public TestVirtualDocumentSnapshot Fork(int hostDocumentVersion) => new(Uri, hostDocumentVersion);
     }
 }

@@ -13,12 +13,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             IReadOnlyList<string> projectCapabilities,
             ProjectInstance projectInstance)
         {
-            if (projectCapabilities == null)
+            if (projectCapabilities is null)
             {
                 throw new ArgumentNullException(nameof(projectCapabilities));
             }
 
-            if (projectInstance == null)
+            if (projectInstance is null)
             {
                 throw new ArgumentNullException(nameof(projectInstance));
             }

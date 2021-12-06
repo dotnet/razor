@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingTestLoggerFactory : ILoggerFactory
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public FormattingTestLoggerFactory(ITestOutputHelper output)
         {

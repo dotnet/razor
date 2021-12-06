@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
 {
     internal static class IUIThreadOperationExecutorExtensions
     {
-        public static T Execute<T>(
+        public static T? Execute<T>(
             this IUIThreadOperationExecutor iUIThreadOperationExecutor,
             string title,
             string description,
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
             Func<CancellationToken, Task<T>> func,
             JoinableTaskFactory jtf)
         {
-            T obj = default;
+            T? obj = default;
             var result = iUIThreadOperationExecutor.Execute(title, description, allowCancellation, showProgress,
                 (context) => jtf.Run(async () => obj = await func(context.UserCancellationToken)));
 

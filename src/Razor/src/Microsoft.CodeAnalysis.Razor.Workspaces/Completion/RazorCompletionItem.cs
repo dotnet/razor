@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             string sortText = null,
             IReadOnlyCollection<string> commitCharacters = null)
         {
-            if (displayText == null)
+            if (displayText is null)
             {
                 throw new ArgumentNullException(nameof(displayText));
             }
 
-            if (insertText == null)
+            if (insertText is null)
             {
                 throw new ArgumentNullException(nameof(insertText));
             }
@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             get
             {
-                if (_items == null)
+                if (_items is null)
                 {
                     lock (this)
                     {
-                        if (_items == null)
+                        if (_items is null)
                         {
                             _items = new ItemCollection();
                         }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         public bool Equals(RazorCompletionItem other)
         {
-            if (other == null)
+            if (other is null)
             {
                 return false;
             }
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return false;
             }
 
-            if ((CommitCharacters == null ^ other.CommitCharacters == null) ||
-                (CommitCharacters != null && other.CommitCharacters != null &&
+            if ((CommitCharacters is null ^ other.CommitCharacters is null) ||
+                (CommitCharacters is not null && other.CommitCharacters is not null &&
                     !CommitCharacters.SequenceEqual(other.CommitCharacters)))
             {
                 return false;

@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public DocumentInfo GetDynamicDocumentInfo(ProjectId projectId, string projectFilePath, string filePath)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public void RemoveDynamicDocumentInfo(ProjectId projectId, string projectFilePath, string filePath)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public Entry(DocumentInfo current)
             {
-                if (current == null)
+                if (current is null)
                 {
                     throw new ArgumentNullException(nameof(current));
                 }
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 get => _current;
                 set
                 {
-                    if (value == null)
+                    if (value is null)
                     {
                         throw new ArgumentNullException(nameof(value));
                     }
