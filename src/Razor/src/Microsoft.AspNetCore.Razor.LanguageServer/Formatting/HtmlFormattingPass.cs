@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     //      {
                     // }
                     //
-                    // This is popular in the bUnit unit testing library. The issue here is that
+                    // This is popular in some libraries, like bUnit. The issue here is that
                     // the HTML formatter sees ~~~~~<SurveyPrompt /> and puts a newline before
                     // the tag, but obviously that breaks things.
                     //
