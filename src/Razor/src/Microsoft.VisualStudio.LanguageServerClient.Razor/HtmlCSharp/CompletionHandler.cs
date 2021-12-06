@@ -387,11 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             TextExtent wordExtent,
             CompletionList completionList)
         {
-            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
-            if (formattingOptions is null)
-            {
-                _logger.LogWarning($"{nameof(formattingOptions)} is not available for completion on {documentSnapshot.Uri}.");
-            }
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
 
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
@@ -399,13 +395,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 completionList = IncludeCSharpKeywords(completionList);
 
                 // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
-                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions!) - 1, 0);
-                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions!);
+                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions) - 1, 0);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
             else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
             {
-                var baseIndentation = GetBaseIndentation(wordExtent, formattingOptions!);
-                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions!);
+                var baseIndentation = GetBaseIndentation(wordExtent, formattingOptions);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
 
             completionList = RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);

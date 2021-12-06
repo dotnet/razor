@@ -267,7 +267,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class TestFormattingOptionsProvider : FormattingOptionsProvider
         {
-            public override FormattingOptions GetOptions(Uri lspDocumentUri) => null;
+            public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot)
+            {
+                return new FormattingOptions();
+            }
         }
 
         private class TestDocumentMappingProvider : LSPDocumentMappingProvider

@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Received result, post-processing.");
 
-            var postProcessedResult = await PostProcessCompletionItemAsync(request, result, requestContext, cancellationToken).ConfigureAwait(false);
+            var postProcessedResult = await PostProcessCompletionItemAsync(request, result, requestContext, documentSnapshot, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Returning resolved completion.");
             return postProcessedResult;
         }
@@ -134,6 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             CompletionItem preResolveCompletionItem,
             CompletionItem resolvedCompletionItem,
             CompletionRequestContext requestContext,
+            LSPDocumentSnapshot documentSnapshot,
             CancellationToken cancellationToken)
         {
             // This is a special contract between the Visual Studio LSP platform and language servers where if insert text and text edit's are not present
@@ -149,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Start formatting text edit.");
 
-            var formattingOptions = _formattingOptionsProvider.GetOptions(requestContext.HostDocumentUri);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
             if (resolvedCompletionItem.TextEdit != null)
             {
                 var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;

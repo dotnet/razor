@@ -286,7 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var languageKind = RazorLanguageKind.CSharp;
             var called = false;
-            var expectedItem = new CompletionItem() { Label="Sampel", InsertText = "Sample" };
+            var expectedItem = new CompletionItem() { Label = "Sampel", InsertText = "Sample" };
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -1921,7 +1921,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 _options = options;
             }
-            public override FormattingOptions GetOptions(Uri lspDocumentUri) => _options;
+
+            public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot) => _options;
         }
     }
 }
