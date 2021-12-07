@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     internal record OmniSharpVSDiagnostic : Diagnostic

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Text.Adornments;

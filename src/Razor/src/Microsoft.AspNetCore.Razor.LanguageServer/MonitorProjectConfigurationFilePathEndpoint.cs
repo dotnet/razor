@@ -12,8 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class MonitorProjectConfigurationFilePathEndpoint : IMonitorProjectConfigurationFilePathHandler, IDisposable

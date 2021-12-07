@@ -3,8 +3,6 @@
 
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
 {
     internal interface IInterceptMethodMetadata

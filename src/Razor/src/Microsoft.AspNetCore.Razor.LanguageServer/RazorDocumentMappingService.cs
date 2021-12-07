@@ -7,8 +7,6 @@ using Position = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
 using TextEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit;
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class RazorDocumentMappingService

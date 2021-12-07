@@ -14,8 +14,6 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal class RazorHtmlCSharpLanguageServer : IDisposable

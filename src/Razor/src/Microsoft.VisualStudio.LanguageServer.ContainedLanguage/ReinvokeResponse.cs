@@ -3,8 +3,6 @@
 
 using Microsoft.VisualStudio.LanguageServer.Client;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal struct ReinvokeResponse<TOut>

@@ -4,8 +4,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 {
     internal abstract class DocumentResolver
