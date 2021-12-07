@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (_fileChangeAdviseTask == null || _fileChangeUnadviseTask?.IsCompleted == false)
+            if (_fileChangeAdviseTask is null || _fileChangeUnadviseTask?.IsCompleted == false)
             {
                 // Already not listening or trying to stop listening
                 return;
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             _joinableTaskContext.AssertUIThread();
 
-            if (Changed == null)
+            if (Changed is null)
             {
                 return;
             }

@@ -314,10 +314,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             _writer.Write(")");
         }
 
-
         protected void WriteContent(string content)
         {
-            if (content == null)
+            if (content is null)
             {
                 return;
             }

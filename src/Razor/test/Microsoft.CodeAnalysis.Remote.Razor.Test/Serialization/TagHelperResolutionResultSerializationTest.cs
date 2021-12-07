@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
             {
                 current = current.Parent;
             }
+
             var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
             var buffer = File.ReadAllBytes(tagHelperFilePath);
             var serializer = new JsonSerializer();

@@ -661,7 +661,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                     Interlocked.Increment(ref _parseCount);
 
-                    if (args.SourceChange == null)
+                    if (args.SourceChange is null)
                     {
                         // Reparse occurred
                         _reparseComplete.Set();

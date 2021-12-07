@@ -74,6 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                                 DeleteCount = 1,
                             });
                         }
+
                         break;
                     case DiffEdit.Type.Insert:
                         if (current != null &&
@@ -96,6 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                             };
                             razorResults.Add(semanticTokensEdit);
                         }
+
                         break;
                 }
             }

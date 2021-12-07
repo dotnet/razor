@@ -51,11 +51,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             return testProject;
         }
 
-
         private TestProjectSnapshot(ProjectState projectState)
             : base(projectState)
         {
-            if (projectState == null)
+            if (projectState is null)
             {
                 throw new ArgumentNullException(nameof(projectState));
             }
@@ -67,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             var document = base.GetDocument(filePath);
 
-            if (document == null)
+            if (document is null)
             {
                 throw new InvalidOperationException("Test was not setup correctly. Could not locate document '" + filePath + "'.");
             }

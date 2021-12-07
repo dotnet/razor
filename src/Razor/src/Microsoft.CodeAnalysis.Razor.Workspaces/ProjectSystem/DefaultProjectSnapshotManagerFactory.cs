@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (triggers == null)
+            if (triggers is null)
             {
                 throw new ArgumentNullException(nameof(triggers));
             }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }

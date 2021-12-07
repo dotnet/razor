@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void StartTracking(ITextBuffer buffer)
         {
             // buffer has changed. stop tracking old buffer
-            if (_textBuffer != null && buffer != _textBuffer)
+            if (_textBuffer is not null && buffer != _textBuffer)
             {
                 _textBuffer.ChangedHighPriority -= OnTextBufferChanged;
 
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             // start tracking new buffer
-            if (buffer != null && _snapshot == null)
+            if (buffer is not null && _snapshot is null)
             {
                 _snapshot = buffer.CurrentSnapshot;
                 _textBuffer = buffer;
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void StopTracking(ITextBuffer buffer)
         {
-            if (_textBuffer == buffer && buffer != null && _snapshot != null)
+            if (_textBuffer == buffer && buffer is not null && _snapshot is not null)
             {
                 buffer.ChangedHighPriority -= OnTextBufferChanged;
 
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             if (sender is ITextBuffer)
             {
                 var snapshot = _snapshot;
-                if (snapshot != null && snapshot.Version != null && e.AfterVersion != null &&
+                if (snapshot is not null && snapshot.Version is not null && e.AfterVersion is not null &&
                     snapshot.Version.ReiteratedVersionNumber < e.AfterVersion.ReiteratedVersionNumber)
                 {
                     _snapshot = e.After;

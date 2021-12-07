@@ -100,12 +100,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 var backgroundVirtualFilePath = document.FilePath + BackgroundVirtualDocumentSuffix;
                 var currentDocument = _workspace.GetDocument(backgroundVirtualFilePath);
-                if (currentDocument == null)
+                if (currentDocument is null)
                 {
                     // Background document doesn't exist, we need to create it
 
                     var roslynProject = GetRoslynProject(document.Project);
-                    if (roslynProject == null)
+                    if (roslynProject is null)
                     {
                         // There's no Roslyn project associated with the Razor document.
                         _logger.LogTrace($"Could not find a Roslyn project for Razor virtual document '{backgroundVirtualFilePath}'.");
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                             var project = args.NewSolution.GetProject(args.ProjectId);
                             var document = project.GetDocument(args.DocumentId);
 
-                            if (document.FilePath == null)
+                            if (document.FilePath is null)
                             {
                                 break;
                             }
@@ -173,6 +173,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                                     _workspace.RemoveDocument(backgroundDocument.Id);
                                 }
                             }
+
                             break;
                         }
                     case WorkspaceChangeKind.DocumentRemoved:
@@ -180,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                             var project = args.OldSolution.GetProject(args.ProjectId);
                             var document = project.GetDocument(args.DocumentId);
 
-                            if (document.FilePath == null)
+                            if (document.FilePath is null)
                             {
                                 break;
                             }
@@ -200,6 +201,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                                 }
                             }
                         }
+
                         break;
                 }
             }
@@ -213,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             {
                 case OmniSharpProjectChangeKind.DocumentRemoved:
                     var roslynProject = GetRoslynProject(args.Older);
-                    if (roslynProject == null)
+                    if (roslynProject is null)
                     {
                         // Project no longer exists
                         return;
@@ -221,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                     var backgroundVirtualFilePath = GetBackgroundVirtualDocumentFilePath(args.DocumentFilePath);
                     var backgroundDocument = GetRoslynDocument(roslynProject, backgroundVirtualFilePath);
-                    if (backgroundDocument == null)
+                    if (backgroundDocument is null)
                     {
                         // No background document associated
                         return;

@@ -119,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.False(result);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private class TestLSPEditorFeatureDetector : DefaultLSPEditorFeatureDetector
         {
             public bool UseLegacyEditor { get; set; }
@@ -141,5 +142,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy) => ProjectSupportsLSPEditorValue;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

@@ -244,7 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 {
                 }
 
-                public CancellationToken UserCancellationToken => new CancellationToken();
+                public CancellationToken UserCancellationToken => new();
 
                 public bool AllowCancellation => throw new NotImplementedException();
 

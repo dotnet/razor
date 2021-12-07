@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
     {
         public ProjectSnapshotManagerProxyState(IReadOnlyList<ProjectSnapshotHandleProxy> projectHandles)
         {
-            if (projectHandles == null)
+            if (projectHandles is null)
             {
                 throw new ArgumentNullException(nameof(projectHandles));
             }

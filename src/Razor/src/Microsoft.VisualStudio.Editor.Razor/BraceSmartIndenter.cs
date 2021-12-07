@@ -175,6 +175,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     break;
                 }
+
                 _indentBuilder.Append(ch);
             }
 
@@ -295,9 +296,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal static bool IsUnlinkedSpan(SyntaxNode owner)
         {
-            return owner == null ||
-                owner.NextSpan() == null ||
-                owner.PreviousSpan() == null;
+            return owner is null ||
+                owner.NextSpan() is null ||
+                owner.PreviousSpan() is null;
         }
 
         // Internal for testing

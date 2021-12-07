@@ -160,7 +160,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
 
-
             // Act
             var completions = Provider.GetAttributeParameterCompletions("@bind", string.Empty, "input", EmptyAttributes, DefaultTagHelperDocumentContext);
 

@@ -27,42 +27,42 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ActiveConfiguredProject<IPackageReferencesService> activeConfiguredProjectPackageReferences,
             ActiveConfiguredProject<Rules.RazorProjectProperties> activeConfiguredProjectRazorProperties)
         {
-            if (tasksService == null)
+            if (tasksService is null)
             {
                 throw new ArgumentNullException(nameof(tasksService));
             }
 
-            if (threadingService == null)
+            if (threadingService is null)
             {
                 throw new ArgumentNullException(nameof(threadingService));
             }
 
-            if (unconfiguredProject == null)
+            if (unconfiguredProject is null)
             {
                 throw new ArgumentNullException(nameof(unconfiguredProject));
             }
 
-            if (activeConfiguredProjectSubscription == null)
+            if (activeConfiguredProjectSubscription is null)
             {
                 throw new ArgumentNullException(nameof(activeConfiguredProjectSubscription));
             }
 
-            if (activeConfiguredProject == null)
+            if (activeConfiguredProject is null)
             {
                 throw new ArgumentNullException(nameof(activeConfiguredProject));
             }
 
-            if (activeConfiguredProjectAssemblyReferences == null)
+            if (activeConfiguredProjectAssemblyReferences is null)
             {
                 throw new ArgumentNullException(nameof(activeConfiguredProjectAssemblyReferences));
             }
 
-            if (activeConfiguredProjectPackageReferences == null)
+            if (activeConfiguredProjectPackageReferences is null)
             {
                 throw new ArgumentNullException(nameof(activeConfiguredProjectPackageReferences));
             }
 
-            if (activeConfiguredProjectRazorProperties == null)
+            if (activeConfiguredProjectRazorProperties is null)
             {
                 throw new ArgumentNullException(nameof(activeConfiguredProjectRazorProperties));
             }

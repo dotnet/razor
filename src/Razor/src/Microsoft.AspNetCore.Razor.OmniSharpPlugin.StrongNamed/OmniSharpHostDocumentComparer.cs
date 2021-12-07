@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public sealed class OmniSharpHostDocumentComparer : IEqualityComparer<OmniSharpHostDocument>
     {
-        public static readonly OmniSharpHostDocumentComparer Instance = new OmniSharpHostDocumentComparer();
+        public static readonly OmniSharpHostDocumentComparer Instance = new();
 
         private OmniSharpHostDocumentComparer()
         {

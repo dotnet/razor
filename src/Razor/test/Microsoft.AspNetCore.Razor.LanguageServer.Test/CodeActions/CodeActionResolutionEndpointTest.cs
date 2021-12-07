@@ -370,7 +370,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.NotNull(resolvedCodeAction.Edit);
         }
 
-
         [Fact]
         public async Task Handle_ResolveEditBasedCodeActionCommand()
         {

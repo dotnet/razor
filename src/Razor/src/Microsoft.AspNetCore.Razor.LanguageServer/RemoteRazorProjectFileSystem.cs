@@ -20,12 +20,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             string root,
             FilePathNormalizer filePathNormalizer)
         {
-            if (root == null)
+            if (root is null)
             {
                 throw new ArgumentNullException(nameof(root));
             }
 
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override RazorProjectItem GetItem(string path, string fileKind)
         {
-            if (path == null)
+            if (path is null)
             {
                 throw new ArgumentNullException(nameof(path));
             }

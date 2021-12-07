@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     [Collection("RazorBaselineIntegrationTestSerialRuns")]
     public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBase
     {
-        private static readonly AsyncLocal<string> s_directoryPath = new AsyncLocal<string>();
+        private static readonly AsyncLocal<string> s_directoryPath = new();
 
         protected RazorBaselineIntegrationTestBase(bool? generateBaselines = null)
         {
@@ -225,12 +225,12 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         private string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension)
         {
-            if (codeDocument == null)
+            if (codeDocument is null)
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            if (extension == null)
+            if (extension is null)
             {
                 throw new ArgumentNullException(nameof(extension));
             }
@@ -243,7 +243,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 throw new InvalidOperationException(message);
             }
 
-            if (DirectoryPath == null)
+            if (DirectoryPath is null)
             {
                 var message = $"{nameof(AssertDocumentNodeMatchesBaseline)} should only be called from an integration test..";
                 throw new InvalidOperationException(message);

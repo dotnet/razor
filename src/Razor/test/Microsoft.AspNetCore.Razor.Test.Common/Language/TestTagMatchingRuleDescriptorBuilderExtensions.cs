@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public static TagMatchingRuleDescriptorBuilder RequireTagName(this TagMatchingRuleDescriptorBuilder builder, string tagName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagMatchingRuleDescriptorBuilder RequireParentTag(this TagMatchingRuleDescriptorBuilder builder, string parentTag)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagMatchingRuleDescriptorBuilder RequireTagStructure(this TagMatchingRuleDescriptorBuilder builder, TagStructure tagStructure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static TagMatchingRuleDescriptorBuilder AddDiagnostic(this TagMatchingRuleDescriptorBuilder builder, RazorDiagnostic diagnostic)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             this TagMatchingRuleDescriptorBuilder builder,
             Action<RequiredAttributeDescriptorBuilder> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

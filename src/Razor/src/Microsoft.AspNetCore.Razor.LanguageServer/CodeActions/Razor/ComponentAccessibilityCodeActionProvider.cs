@@ -253,6 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     }
                 }
             }
+
             return false;
         }
 

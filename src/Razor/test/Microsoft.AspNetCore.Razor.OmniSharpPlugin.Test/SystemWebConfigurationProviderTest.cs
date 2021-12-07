@@ -69,6 +69,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             {
                 projectInstance.AddItem(SystemWebConfigurationProvider.ReferencePathWithRefAssembliesItemType, path);
             }
+
             var context = new ProjectConfigurationProviderContext(Array.Empty<string>(), projectInstance);
             return context;
         }

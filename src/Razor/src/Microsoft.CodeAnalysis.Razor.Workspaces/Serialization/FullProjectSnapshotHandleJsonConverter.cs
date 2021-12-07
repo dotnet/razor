@@ -42,36 +42,42 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
                         {
                             serializationFormat = (string)reader.Value;
                         }
+
                         break;
                     case nameof(FullProjectSnapshotHandle.FilePath):
                         if (reader.Read())
                         {
                             filePath = (string)reader.Value;
                         }
+
                         break;
                     case nameof(FullProjectSnapshotHandle.Configuration):
                         if (reader.Read())
                         {
                             configuration = RazorConfigurationJsonConverter.Instance.ReadJson(reader, objectType, existingValue, serializer) as RazorConfiguration;
                         }
+
                         break;
                     case nameof(FullProjectSnapshotHandle.RootNamespace):
                         if (reader.Read())
                         {
                             rootNamespace = (string)reader.Value;
                         }
+
                         break;
                     case nameof(FullProjectSnapshotHandle.ProjectWorkspaceState):
                         if (reader.Read())
                         {
                             projectWorkspaceState = serializer.Deserialize<ProjectWorkspaceState>(reader);
                         }
+
                         break;
                     case nameof(FullProjectSnapshotHandle.Documents):
                         if (reader.Read())
                         {
                             documents = serializer.Deserialize<DocumentSnapshotHandle[]>(reader);
                         }
+
                         break;
                 }
             });
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
             writer.WritePropertyName(nameof(FullProjectSnapshotHandle.FilePath));
             writer.WriteValue(handle.FilePath);
 
-            if (handle.Configuration == null)
+            if (handle.Configuration is null)
             {
                 writer.WritePropertyName(nameof(FullProjectSnapshotHandle.Configuration));
                 writer.WriteNull();
@@ -108,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
                 serializer.Serialize(writer, handle.Configuration);
             }
 
-            if (handle.ProjectWorkspaceState == null)
+            if (handle.ProjectWorkspaceState is null)
             {
                 writer.WritePropertyName(nameof(FullProjectSnapshotHandle.ProjectWorkspaceState));
                 writer.WriteNull();

@@ -8,20 +8,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
 {
     internal static class RazorCodeDocumentExtensions
     {
-        private static readonly object s_unsupportedKey = new object();
-        private static readonly object s_sourceTextKey = new object();
-        private static readonly object s_csharpSourceTextKey = new object();
-        private static readonly object s_htmlSourceTextKey = new object();
+        private static readonly object s_unsupportedKey = new();
 
         public static bool IsUnsupported(this RazorCodeDocument document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
             var unsupportedObj = document.Items[s_unsupportedKey];
-            if (unsupportedObj == null)
+            if (unsupportedObj is null)
             {
                 return false;
             }
@@ -31,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
 
         public static void SetUnsupported(this RazorCodeDocument document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }

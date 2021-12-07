@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public Stream OpenRead()
         {
             var stream = Assembly.GetManifestResourceStream(ResourceName);
-            if (stream == null)
+            if (stream is null)
             {
                 Assert.True(false, string.Format(CultureInfo.InvariantCulture, "Manifest resource: {0} not found", ResourceName));
             }

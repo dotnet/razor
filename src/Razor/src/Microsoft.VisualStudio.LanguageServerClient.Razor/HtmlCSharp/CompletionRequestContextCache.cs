@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        public bool TryGet(long resultId, out CompletionRequestContext? requestContext)
+        public bool TryGet(long resultId, [NotNullWhen(true)] out CompletionRequestContext? requestContext)
         {
             lock (_accessLock)
             {

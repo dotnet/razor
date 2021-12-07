@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             Assert.Null(lspDocument);
         }
 
-        private Lazy<LSPDocumentChangeListener, IContentTypeMetadata> CreateChangeListenerForContentTypes(IEnumerable<string> contentTypes)
+        private static Lazy<LSPDocumentChangeListener, IContentTypeMetadata> CreateChangeListenerForContentTypes(IEnumerable<string> contentTypes)
         {
             var changeListenerObj = Mock.Of<LSPDocumentChangeListener>(MockBehavior.Strict);
 

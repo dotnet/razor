@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class DefaultFallbackCapabilitiesFilterResolverTest
     {
-        private static DefaultFallbackCapabilitiesFilterResolver Resolver => new DefaultFallbackCapabilitiesFilterResolver();
+        private static DefaultFallbackCapabilitiesFilterResolver Resolver => new();
 
         [Fact]
         public void Resolve_Implementation_ReturnsTrue()

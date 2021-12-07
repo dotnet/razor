@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
@@ -143,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }
@@ -171,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }
@@ -474,6 +475,55 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             return Task.FromResult(result.ToArray());
+        }
+
+        public override async Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken)
+        {
+            // Same as in LanguageServerConstants, and in Web Tools
+            const string HtmlWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
+
+            var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
+
+            var hostDocumentUri = wrapWithParams.TextDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return response;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            if (documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlDocument.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't happen in a real scenario.");
+                return response;
+            }
+
+            // We call the Html language server to do the actual work here, now that we have the vitrual document that they know about
+            var request = new VSInternalWrapWithTagParams(
+                wrapWithParams.Range,
+                wrapWithParams.TagName,
+                wrapWithParams.Options,
+                new TextDocumentIdentifier() { Uri = projectedUri });
+
+            var textBuffer = htmlDocument.Snapshot.TextBuffer;
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(
+                textBuffer,
+                HtmlWrapWithTagEndpoint,
+                languageServerName,
+                request,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result?.Response is not null)
+            {
+                response = result.Response;
+            }
+
+            return response;
         }
     }
 }

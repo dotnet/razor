@@ -33,6 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
 
-        public TestLSPDocumentSnapshot Fork(int version, params VirtualDocumentSnapshot[] virtualDocuments) => new TestLSPDocumentSnapshot(Uri, version, virtualDocuments);
+        public TestLSPDocumentSnapshot Fork(int version, params VirtualDocumentSnapshot[] virtualDocuments) => new(Uri, version, virtualDocuments);
     }
 }

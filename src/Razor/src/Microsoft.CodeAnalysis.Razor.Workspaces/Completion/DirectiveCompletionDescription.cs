@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         public DirectiveCompletionDescription(string description)
         {
-            if (description == null)
+            if (description is null)
             {
                 throw new ArgumentNullException(nameof(description));
             }

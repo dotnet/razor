@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
 {
     internal class ProjectSnapshotHandleProxyJsonConverter : JsonConverter
     {
-        public static readonly ProjectSnapshotHandleProxyJsonConverter Instance = new ProjectSnapshotHandleProxyJsonConverter();
+        public static readonly ProjectSnapshotHandleProxyJsonConverter Instance = new();
 
         public override bool CanConvert(Type objectType)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
             writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.FilePath));
             writer.WriteValue(handle.FilePath);
 
-            if (handle.RootNamespace == null)
+            if (handle.RootNamespace is null)
             {
                 writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.RootNamespace));
                 writer.WriteNull();
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
                 writer.WriteValue(handle.RootNamespace);
             }
 
-            if (handle.ProjectWorkspaceState == null)
+            if (handle.ProjectWorkspaceState is null)
             {
                 writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState));
                 writer.WriteNull();

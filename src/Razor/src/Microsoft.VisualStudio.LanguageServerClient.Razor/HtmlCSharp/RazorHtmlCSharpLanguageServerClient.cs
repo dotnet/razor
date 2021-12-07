@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -20,7 +22,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
-        private RazorHtmlCSharpLanguageServer _languageServer;
+        private RazorHtmlCSharpLanguageServer? _languageServer;
+
+        private RazorHtmlCSharpLanguageServer LanguageServer
+        {
+            get
+            {
+                if (_languageServer is null)
+                {
+                    throw new InvalidOperationException($"{nameof(LanguageServer)} called before it's initialized");
+                }
+
+                return _languageServer;
+            }
+            set
+            {
+                _languageServer = value;
+            }
+        }
 
         [ImportingConstructor]
         public RazorHtmlCSharpLanguageServerClient(
@@ -43,27 +62,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public string Name => "Razor Html & CSharp Language Server Client";
 
-        public IEnumerable<string> ConfigurationSections => null;
+        public IEnumerable<string>? ConfigurationSections => null;
 
-        public object InitializationOptions => null;
+        public object? InitializationOptions => null;
 
-        public IEnumerable<string> FilesToWatch => null;
+        public IEnumerable<string>? FilesToWatch => null;
 
         public bool ShowNotificationOnInitializeFailed => true;
 
-        public event AsyncEventHandler<EventArgs> StartAsync;
+        public event AsyncEventHandler<EventArgs>? StartAsync;
 
-        public event AsyncEventHandler<EventArgs> StopAsync
+        public event AsyncEventHandler<EventArgs>? StopAsync
         {
             add { }
             remove { }
         }
 
-        public async Task<Connection> ActivateAsync(CancellationToken token)
+        public async Task<Connection?> ActivateAsync(CancellationToken token)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = await RazorHtmlCSharpLanguageServer.CreateAsync(serverStream, serverStream, _requestHandlers, _loggerProvider, token);
+            LanguageServer = await RazorHtmlCSharpLanguageServer.CreateAsync(serverStream, serverStream, _requestHandlers, _loggerProvider, token);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
@@ -81,15 +100,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public void Dispose()
         {
-            _languageServer?.Dispose();
+            LanguageServer.Dispose();
         }
 
-        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+        public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
         {
-            var initializationFailureContext = new InitializationFailureContext();
-            initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
-                Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
-            return Task.FromResult<InitializationFailureContext>(initializationFailureContext);
+            var initializationFailureContext = new InitializationFailureContext
+            {
+                FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
+                    Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString())
+            };
+            return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
     }
 }

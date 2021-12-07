@@ -29,6 +29,56 @@
         </dict>
       </dict>
 
+      <dict>
+        <key>scope</key>
+        <string>variable</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>Identifier</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>keyword.control.conditional, keyword.control.loop, keyword.control.flow</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>keyword - control</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>entity.name.label</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>parameter name</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>entity.name.variable.parameter</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>parameter name</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>constant.language, variable.language</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>Keyword</string>
+        </dict>
+      </dict>
+
       <!-- End General -->
 
       <!-- Begin Razor specific colorization -->
@@ -120,6 +170,7 @@
         </dict>
       </dict>
 
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
       <!-- <a> [href]="Hello"> -->
       <!-- <dict>
         <key>scope</key>
@@ -131,6 +182,7 @@
         </dict>
       </dict> -->
 
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
       <!-- <a> href=["Hello"]> -->
       <!-- <dict>
         <key>scope</key>
@@ -155,20 +207,9 @@
       <!-- End HTML specific colorization -->
 
       <!-- Begin C# specific colorization -->
-
       <dict>
         <key>scope</key>
-        <string>variable</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>Identifier</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>constant.language, variable.language, storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
+        <string>storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
@@ -176,7 +217,8 @@
         </dict>
       </dict>
 
-      <dict>
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
+      <!-- <dict>
         <key>scope</key>
         <string>storage.type.cs, entity.name.type.class.cs</string>
         <key>settings</key>
@@ -184,7 +226,7 @@
           <key>vsclassificationtype</key>
           <string>class name</string>
         </dict>
-      </dict>
+      </dict> -->
 
       <dict>
         <key>scope</key>
@@ -195,8 +237,8 @@
           <string>method name</string>
         </dict>
       </dict>
-
-      <dict>
+      <!-- Classification removed temporarily due to https://github.com/dotnet/razor-tooling/issues/5614 -->
+      <!-- <dict>
         <key>scope</key>
         <string>variable.other.object.cs, entity.name.variable.local.cs</string>
         <key>settings</key>
@@ -204,37 +246,7 @@
           <key>vsclassificationtype</key>
           <string>local name</string>
         </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>keyword.control.conditional, keyword.control.loop, keyword.control.flow</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>keyword - control</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>entity.name.label</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>parameter name</string>
-        </dict>
-      </dict>
-
-      <dict>
-        <key>scope</key>
-        <string>entity.name.variable.parameter</string>
-        <key>settings</key>
-        <dict>
-          <key>vsclassificationtype</key>
-          <string>parameter name</string>
-        </dict>
-      </dict>
+      </dict> -->
 
       <!-- End C# specific colorization -->
 

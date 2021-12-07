@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -84,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 // GetDocumentData requires the UI thread
                 var documentData = _runningDocumentTable.GetDocumentData(cookie);
 
-                var textBuffer = !(documentData is VsTextBuffer vsTextBuffer)
+                var textBuffer = documentData is not VsTextBuffer vsTextBuffer
                     ? null
                     : _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
                 return textBuffer;
@@ -132,7 +131,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     }
 
                     var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
-                    if (textBuffer == null)
+                    if (textBuffer is null)
                     {
                         // The text buffer has not been created yet, register to be notified when it is.
                         VsTextBufferDataEventsSink.Subscribe(vsTextBuffer, () => BufferLoaded(vsTextBuffer, filePath));

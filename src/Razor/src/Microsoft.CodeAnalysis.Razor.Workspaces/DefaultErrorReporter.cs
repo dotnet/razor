@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public override void ReportError(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override void ReportError(Exception exception, ProjectSnapshot project)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override void ReportError(Exception exception, Project workspaceProject)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }

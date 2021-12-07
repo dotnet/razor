@@ -22,17 +22,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             ProjectResolver projectResolver,
             FilePathNormalizer filePathNormalizer)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (projectResolver == null)
+            if (projectResolver is null)
             {
                 throw new ArgumentNullException(nameof(projectResolver));
             }
 
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }

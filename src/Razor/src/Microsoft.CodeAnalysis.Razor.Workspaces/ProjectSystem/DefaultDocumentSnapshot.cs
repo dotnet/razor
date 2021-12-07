@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public DefaultDocumentSnapshot(DefaultProjectSnapshot project, DocumentState state)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (state == null)
+            if (state is null)
             {
                 throw new ArgumentNullException(nameof(state));
             }

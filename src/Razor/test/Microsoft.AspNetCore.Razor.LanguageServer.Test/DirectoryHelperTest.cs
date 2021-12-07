@@ -77,6 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                     {
                         throw new PathTooLongException();
                     }
+
                     return results;
                 }
                 else
@@ -99,6 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                     {
                         throw new PathTooLongException();
                     }
+
                     return results;
                 }
                 else

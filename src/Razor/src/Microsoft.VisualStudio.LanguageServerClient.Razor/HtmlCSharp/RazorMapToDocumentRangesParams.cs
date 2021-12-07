@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public bool Equals(RazorMapToDocumentRangesParams other)
         {
             return
-                other != null &&
+                other is not null &&
                 Kind == other.Kind &&
                 RazorDocumentUri == other.RazorDocumentUri &&
                 MappingBehavior == other.MappingBehavior &&

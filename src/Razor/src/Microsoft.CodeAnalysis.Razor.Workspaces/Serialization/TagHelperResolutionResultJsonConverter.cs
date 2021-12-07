@@ -41,12 +41,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         {
                             descriptors = _serializer.Deserialize<TagHelperDescriptor[]>(reader);
                         }
+
                         break;
                     case nameof(TagHelperResolutionResult.Diagnostics):
                         if (reader.Read())
                         {
                             diagnostics = _serializer.Deserialize<RazorDiagnostic[]>(reader);
                         }
+
                         break;
                 }
             });

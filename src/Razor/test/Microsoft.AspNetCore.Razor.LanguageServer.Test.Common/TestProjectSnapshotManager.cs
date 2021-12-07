@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher)
         {
-            if (dispatcher == null)
+            if (dispatcher is null)
             {
                 throw new ArgumentNullException(nameof(dispatcher));
             }

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         [ImportingConstructor]
         public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor)
         {
-            if (workspaceAccessor == null)
+            if (workspaceAccessor is null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }

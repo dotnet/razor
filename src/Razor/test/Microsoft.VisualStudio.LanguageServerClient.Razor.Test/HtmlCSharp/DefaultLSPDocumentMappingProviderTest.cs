@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -31,18 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             DocumentManager = new Lazy<LSPDocumentManager>(() => documentManager);
         }
 
-        private Uri RazorFile => new Uri("file:///some/folder/to/file.razor");
+        private static Uri RazorFile => new("file:///some/folder/to/file.razor");
 
-        private Uri RazorVirtualCSharpFile => new Uri("file:///some/folder/to/file.razor.g.cs");
+        private static Uri RazorVirtualCSharpFile => new("file:///some/folder/to/file.razor.g.cs");
 
-        private Uri AnotherRazorFile => new Uri("file:///some/folder/to/anotherfile.razor");
+        private static Uri AnotherRazorFile => new("file:///some/folder/to/anotherfile.razor");
 
-        private Uri AnotherRazorVirtualCSharpFile => new Uri("file:///some/folder/to/anotherfile.razor.g.cs");
+        private static Uri AnotherRazorVirtualCSharpFile => new("file:///some/folder/to/anotherfile.razor.g.cs");
 
-        private Uri CSharpFile => new Uri("file:///some/folder/to/csharpfile.cs");
+        private static Uri CSharpFile => new("file:///some/folder/to/csharpfile.cs");
 
         private Lazy<LSPDocumentManager> DocumentManager { get; }
-
 
         [Fact]
         public async Task RazorMapToDocumentRangeAsync_InvokesLanguageServer()
@@ -222,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static LSPRequestInvoker GetRequestInvoker(((RazorLanguageKind, Uri, TestTextEdit[]), (TestTextEdit[], int))[] mappingPairs)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            if (mappingPairs == null)
+            if (mappingPairs is null)
             {
                 return requestInvoker.Object;
             }

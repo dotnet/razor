@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     currentNotification.ChangeKind = kind;
                 }
 
-                if (currentNotification.NotifyTask == null)
+                if (currentNotification.NotifyTask is null)
                 {
                     // The notify task is only ever null when it's the first time we're being notified about a change to the corresponding file.
                     currentNotification.NotifyTask = NotifyAfterDelayAsync(physicalFilePath);
@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 PendingNotifications.Remove(physicalFilePath);
 
-                if (notification.ChangeKind == null)
+                if (notification.ChangeKind is null)
                 {
                     // The file to be notified has been brought back to its original state.
                     // Aka Add -> Remove is equivalent to the file never having been added.

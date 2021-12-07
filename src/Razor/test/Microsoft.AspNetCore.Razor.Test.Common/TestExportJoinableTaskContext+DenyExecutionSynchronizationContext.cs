@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             /// </summary>
             internal void ThrowIfSwitchOccurred()
             {
-                if (_failedTransfer.Value == null)
+                if (_failedTransfer.Value is null)
                 {
                     return;
                 }
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             {
                 try
                 {
-                    if (_failedTransfer.Value == null)
+                    if (_failedTransfer.Value is null)
                     {
                         ThrowFailedTransferExceptionForCapture();
                     }
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             {
                 try
                 {
-                    if (_failedTransfer.Value == null)
+                    if (_failedTransfer.Value is null)
                     {
                         ThrowFailedTransferExceptionForCapture();
                     }

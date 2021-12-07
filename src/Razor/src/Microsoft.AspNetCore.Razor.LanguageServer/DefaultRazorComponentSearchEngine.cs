@@ -114,6 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return false;
             }
+
             var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
             return new StringSegment(fileName).Equals(path, FilePathComparison.Instance);
         }

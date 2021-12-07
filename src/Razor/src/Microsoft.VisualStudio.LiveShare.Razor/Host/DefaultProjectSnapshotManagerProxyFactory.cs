@@ -32,17 +32,17 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             JoinableTaskContext joinableTaskContext,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (joinableTaskContext == null)
+            if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
         {
-            if (session == null)
+            if (session is null)
             {
                 throw new ArgumentNullException(nameof(session));
             }

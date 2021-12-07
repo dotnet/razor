@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public static void Subscribe(IVsTextBuffer vsTextBuffer, Action action)
         {
-            if (vsTextBuffer == null)
+            if (vsTextBuffer is null)
             {
                 throw new ArgumentNullException(nameof(vsTextBuffer));
             }
 
-            if (action == null)
+            if (action is null)
             {
                 throw new ArgumentNullException(nameof(action));
             }

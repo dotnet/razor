@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             get
             {
-                if (_csharpWorkspaceDocument == null)
+                if (_csharpWorkspaceDocument is null)
                 {
                     var workspace = CSharpWorkspace;
                     var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             get
             {
-                if (_csharpWorkspace == null)
+                if (_csharpWorkspace is null)
                 {
                     var adhocWorkspace = _workspaceFactory.Create();
                     var csharpOptions = adhocWorkspace.Options
@@ -308,7 +308,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var existingIndentationSize = sourceText.Lines[i].GetIndentationSize(options.TabSize);
 
                 var emptyOrWhitespaceLine = false;
-                if (nonWsPos == null)
+                if (nonWsPos is null)
                 {
                     emptyOrWhitespaceLine = true;
                     nonWsPos = sourceText.Lines[i].Start;

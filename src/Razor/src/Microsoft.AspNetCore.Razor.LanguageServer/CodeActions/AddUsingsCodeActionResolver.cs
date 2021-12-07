@@ -237,6 +237,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     }
                 }
             }
+
             return directives;
         }
 
@@ -248,6 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     directiveNode.DirectiveDescriptor == NamespaceDirective.Directive ||
                     directiveNode.DirectiveDescriptor == PageDirective.Directive;
             }
+
             return false;
         }
 

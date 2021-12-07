@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             if (owner.Parent is MarkupStartTagSyntax startTag &&
-                startTag.ForwardSlash == null &&
+                startTag.ForwardSlash is null &&
                 startTag.Parent is MarkupElementSyntax htmlElement)
             {
                 var unescapedTagName = startTag.Name.Content;
@@ -158,7 +158,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             if (owner.Parent is MarkupTagHelperStartTagSyntax startTagHelper &&
-                startTagHelper.ForwardSlash == null &&
+                startTagHelper.ForwardSlash is null &&
                 startTagHelper.Parent is MarkupTagHelperElementSyntax tagHelperElement)
             {
                 name = startTagHelper.Name.Content;
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             // All of these owner modifications are to account for https://github.com/dotnet/aspnetcore/issues/33919
 
-            if (currentOwner?.Parent == null)
+            if (currentOwner?.Parent is null)
             {
                 newOwner = null;
                 return false;
@@ -304,7 +304,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 }
             }
 
-            if (currentOwner?.Parent == null)
+            if (currentOwner?.Parent is null)
             {
                 newOwner = null;
                 return false;
@@ -378,7 +378,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                     endTag = parentElement.EndTag;
                 }
 
-                var isNonTagStructure = potentialStartTagName == null;
+                var isNonTagStructure = potentialStartTagName is null;
                 if (isNonTagStructure)
                 {
                     // We don't want to look outside of our immediate parent for potential parents that we could auto-close because
@@ -399,7 +399,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 {
                     // Tag names equal, if the parent is missing an end-tag it could apply to that
                     // i.e. <div><div>|</div>
-                    if (endTag == null)
+                    if (endTag is null)
                     {
                         return true;
                     }

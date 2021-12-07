@@ -28,17 +28,17 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             JoinableTaskContext joinableTaskContext,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
         {
-            if (proxyAccessor == null)
+            if (proxyAccessor is null)
             {
                 throw new ArgumentNullException(nameof(proxyAccessor));
             }
 
-            if (joinableTaskContext == null)
+            if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }

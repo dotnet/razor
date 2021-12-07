@@ -209,7 +209,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
             TimeSpan? requestTimeout = null,
             TestRequestRouter requestRouter = null)
         {
-            var options = requestTimeout == null ? Options : new RequestInvokerOptions(requestTimeout.Value, supportContentModified: false, concurrency: int.MaxValue);
+            var options = requestTimeout is null ? Options : new RequestInvokerOptions(requestTimeout.Value, supportContentModified: false, concurrency: int.MaxValue);
             requestRouter ??= RequestRouter;
             var requestInvoker = new RazorOmniSharpRequestInvoker(
                 options,

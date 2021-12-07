@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="languageVersion">The language version of Razor</param>
         public RazorLanguageVersionAttribute(string languageVersion)
         {
-            if (languageVersion == null)
+            if (languageVersion is null)
             {
                 throw new ArgumentNullException(nameof(languageVersion));
             }

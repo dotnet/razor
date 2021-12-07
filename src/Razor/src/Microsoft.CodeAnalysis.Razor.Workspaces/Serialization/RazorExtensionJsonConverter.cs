@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         {
                             extensionName = (string)reader.Value;
                         }
+
                         break;
                 }
             });

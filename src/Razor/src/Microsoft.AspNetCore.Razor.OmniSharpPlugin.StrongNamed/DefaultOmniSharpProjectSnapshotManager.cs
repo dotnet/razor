@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             ProjectSnapshotManagerBase projectSnapshotManager,
             RemoteTextLoaderFactory remoteTextLoaderFactory)
         {
-            if (projectSnapshotManager == null)
+            if (projectSnapshotManager is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManager));
             }

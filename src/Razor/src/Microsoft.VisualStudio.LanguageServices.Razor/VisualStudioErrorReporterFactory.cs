@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         [ImportingConstructor]
         public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
+            if (serviceProvider is null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }

@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             foreach (var completionItem in completionList.Items)
             {
                 var commitCharacters = completionItem.CommitCharacters;
-                if (commitCharacters == null)
+                if (commitCharacters is null)
                 {
                     continue;
                 }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IReadOnlyList<TagHelperDescriptor> tagHelpers,
             LanguageVersion csharpLanguageVersion)
         {
-            if (tagHelpers == null)
+            if (tagHelpers is null)
             {
                 throw new ArgumentNullException(nameof(tagHelpers));
             }

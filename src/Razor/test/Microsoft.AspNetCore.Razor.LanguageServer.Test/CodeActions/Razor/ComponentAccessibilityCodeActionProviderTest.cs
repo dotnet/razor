@@ -185,7 +185,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Empty(commandOrCodeActionContainer);
         }
 
-
         [Fact]
         public async Task Handle_ExistingComponent_SupportsFileCreationFalse_ReturnsResults()
         {

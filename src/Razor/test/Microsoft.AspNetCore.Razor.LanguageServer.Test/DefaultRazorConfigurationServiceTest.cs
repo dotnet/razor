@@ -186,6 +186,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .Setup(l => l.SendRequestAsync("workspace/configuration", It.IsAny<ConfigurationParams>()))
                     .Returns(Task.FromResult(result));
             }
+
             return languageServer.Object;
         }
 

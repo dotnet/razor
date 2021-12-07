@@ -31,22 +31,22 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             ProjectSnapshotManager projectSnapshotManager,
             JoinableTaskFactory joinableTaskFactory)
         {
-            if (session == null)
+            if (session is null)
             {
                 throw new ArgumentNullException(nameof(session));
             }
 
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (projectSnapshotManager == null)
+            if (projectSnapshotManager is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManager));
             }
 
-            if (joinableTaskFactory == null)
+            if (joinableTaskFactory is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskFactory));
             }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         private ProjectSnapshotHandleProxy ConvertToProxy(ProjectSnapshot project)
         {
-            if (project == null)
+            if (project is null)
             {
                 return null;
             }

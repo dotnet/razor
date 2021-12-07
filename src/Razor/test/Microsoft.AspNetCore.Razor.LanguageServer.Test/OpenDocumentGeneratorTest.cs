@@ -183,7 +183,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var newWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp7_3);
 
-
             // Act & Assert
             projectManager.ProjectWorkspaceStateChanged(HostProject1.FilePath, newWorkspaceState);
 

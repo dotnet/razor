@@ -22,7 +22,7 @@
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable>false</IsPackable>
 
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
 
     <SetupProductArch>neutral</SetupProductArch>
     <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
@@ -40,6 +40,12 @@
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\Rules\</VSIXSubPath>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSCTCompile Include="RazorContextMenu.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
   </ItemGroup>
 
   <!-- Misc other content -->

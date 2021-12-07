@@ -83,6 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             {
                 return false;
             }
+
             absoluteIndex -= 1;
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
@@ -90,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 owner.Parent is MarkupStartTagSyntax startTag &&
                 startTag.IsMarkupTransition &&
                 startTag.Parent is MarkupElementSyntax element &&
-                element.EndTag == null) // Make sure the end </text> tag doesn't already exist
+                element.EndTag is null) // Make sure the end </text> tag doesn't already exist
             {
                 Debug.Assert(string.Equals(startTag.Name.Content, SyntaxConstants.TextTagName, StringComparison.Ordinal), "MarkupTransition that is not a <text> tag.");
 

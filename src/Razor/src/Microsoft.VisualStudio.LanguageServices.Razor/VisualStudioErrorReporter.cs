@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         [ImportingConstructor]
         public VisualStudioErrorReporter(SVsServiceProvider services)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return;
             }
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception, ProjectSnapshot project)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return;
             }
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception, Project workspaceProject)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return;
             }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         protected virtual Task<ProjectSnapshot> GetProjectSnapshotAsync(ProjectSnapshotHandle projectHandle, CancellationToken cancellationToken)
         {
-            if (projectHandle == null)
+            if (projectHandle is null)
             {
                 throw new ArgumentNullException(nameof(projectHandle));
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
             public override DocumentSnapshot? GetDocument(string filePath)
             {
-                if (filePath == null)
+                if (filePath is null)
                 {
                     throw new ArgumentNullException(nameof(filePath));
                 }

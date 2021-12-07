@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public TService? GetService<TService>() where TService : class
         {
-            if (_documentContainer == null)
+            if (_documentContainer is null)
             {
                 return this as TService;
             }
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             if (serviceType == typeof(IRazorSpanMappingService))
             {
-                if (_spanMappingService == null)
+                if (_spanMappingService is null)
                 {
                     lock (_lock)
                     {
-                        if (_spanMappingService == null)
+                        if (_spanMappingService is null)
                         {
                             _spanMappingService = _documentContainer.GetMappingService();
                         }
@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             if (serviceType == typeof(IRazorDocumentExcerptService))
             {
-                if (_documentExcerptService == null)
+                if (_documentExcerptService is null)
                 {
                     lock (_lock)
                     {
-                        if (_documentExcerptService == null)
+                        if (_documentExcerptService is null)
                         {
                             _documentExcerptService = _documentContainer.GetExcerptService();
                         }
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             if (serviceType == typeof(IRazorDocumentPropertiesService))
             {
-                if (_documentPropertiesService == null)
+                if (_documentPropertiesService is null)
                 {
                     lock (_lock)
                     {
-                        if (_documentPropertiesService == null)
+                        if (_documentPropertiesService is null)
                         {
                             _documentPropertiesService = _documentContainer.GetDocumentPropertiesService();
                         }

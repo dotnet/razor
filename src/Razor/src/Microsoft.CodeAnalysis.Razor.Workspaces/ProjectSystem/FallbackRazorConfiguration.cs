@@ -80,17 +80,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             RazorExtension[] extensions,
             bool useConsolidatedMvcViews = false)
         {
-            if (languageVersion == null)
+            if (languageVersion is null)
             {
                 throw new ArgumentNullException(nameof(languageVersion));
             }
 
-            if (configurationName == null)
+            if (configurationName is null)
             {
                 throw new ArgumentNullException(nameof(configurationName));
             }
 
-            if (extensions == null)
+            if (extensions is null)
             {
                 throw new ArgumentNullException(nameof(extensions));
             }

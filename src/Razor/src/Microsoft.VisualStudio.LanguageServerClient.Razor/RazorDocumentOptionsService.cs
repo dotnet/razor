@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -57,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 _indentationSizeOptionKey = new OptionKey(FormattingOptions.IndentationSize, document.Project.Language);
             }
 
-            public bool TryGetDocumentOption(OptionKey option, out object value)
+            public bool TryGetDocumentOption(OptionKey option, [NotNullWhen(true)] out object? value)
             {
                 if (option == _useTabsOptionKey)
                 {

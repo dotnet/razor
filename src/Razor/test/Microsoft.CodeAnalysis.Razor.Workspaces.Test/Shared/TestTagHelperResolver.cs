@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
         {
-            if (CompletionSource == null)
+            if (CompletionSource is null)
             {
                 return Task.FromResult(new TagHelperResolutionResult(TagHelpers.ToArray(), Array.Empty<RazorDiagnostic>()));
             }

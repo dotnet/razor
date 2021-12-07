@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     return;
                 }
 
-                if (expected == null)
+                if (expected is null)
                 {
                     var message = "The span is missing from baseline.";
                     throw new TagHelperSpanBaselineException(span, expected, actual, message);

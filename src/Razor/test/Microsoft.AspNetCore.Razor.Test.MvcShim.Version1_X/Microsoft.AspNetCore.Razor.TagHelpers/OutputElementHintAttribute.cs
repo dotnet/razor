@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// </param>
         public OutputElementHintAttribute(string outputElement)
         {
-            if (outputElement == null)
+            if (outputElement is null)
             {
                 throw new ArgumentNullException(nameof(outputElement));
             }

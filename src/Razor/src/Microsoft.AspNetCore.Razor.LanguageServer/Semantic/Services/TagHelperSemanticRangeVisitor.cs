@@ -89,6 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
                 }
+
                 AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
             }
         }
@@ -224,6 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
             }
+
             AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
         }
 
@@ -273,6 +275,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
             }
+
             Visit(node.NameSuffix);
 
             AddSemanticRange(node.EqualsToken, RazorSemanticTokensLegend.MarkupOperator);

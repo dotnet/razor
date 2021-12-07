@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         [ImportingConstructor]
         public PrecompiledRazorPageSuppressor(OmniSharpWorkspace workspace)
         {
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                     var project = args.NewSolution.GetProject(args.ProjectId);
                     var document = project.GetDocument(args.DocumentId);
 
-                    if (document.FilePath == null)
+                    if (document.FilePath is null)
                     {
                         break;
                     }

@@ -105,6 +105,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             {
                 projectInstance.AddItem(FallbackConfigurationProvider.ReferencePathWithRefAssembliesItemType, path);
             }
+
             var context = new ProjectConfigurationProviderContext(projectCapabilities, projectInstance);
             return context;
         }

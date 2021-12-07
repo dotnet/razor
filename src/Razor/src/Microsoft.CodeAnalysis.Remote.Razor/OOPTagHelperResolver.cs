@@ -19,17 +19,17 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
         {
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -43,17 +43,17 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
         {
-            if (workspaceProject == null)
+            if (workspaceProject is null)
             {
                 throw new ArgumentNullException(nameof(workspaceProject));
             }
 
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            if (projectSnapshot.Configuration == null)
+            if (projectSnapshot.Configuration is null)
             {
                 return TagHelperResolutionResult.Empty;
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                     result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (result == null)
+                if (result is null)
                 {
                     // Was unable to get tag helpers OOP, fallback to default behavior.
                     result = await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
                 return result;
             }
-            catch (Exception exception) when (!(exception is TaskCanceledException) && !(exception is OperationCanceledException))
+            catch (Exception exception) when (exception is not TaskCanceledException && exception is not OperationCanceledException)
             {
                 throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(DefaultTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
             }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             // This will change in the future to an easier to consume API but for VS RTM this is what we have.
             var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(_workspace.Services, RazorServiceDescriptors.TagHelperProviderServiceDescriptors, RazorRemoteServiceCallbackDispatcherRegistry.Empty, cancellationToken);
 
-            if (remoteClient == null)
+            if (remoteClient is null)
             {
                 // Could not resolve
                 return null;

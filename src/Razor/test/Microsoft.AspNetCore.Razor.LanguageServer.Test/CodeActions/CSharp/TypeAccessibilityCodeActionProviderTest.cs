@@ -146,7 +146,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Empty(results);
         }
 
-
         [Theory]
         [InlineData("CS0246")]
         [InlineData("CS0103")]

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -63,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static Range Overlap(this Range range, Range other)
+        public static Range? Overlap(this Range range, Range other)
         {
             if (range is null)
             {
