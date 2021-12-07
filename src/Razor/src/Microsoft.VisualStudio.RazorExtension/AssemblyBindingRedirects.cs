@@ -8,36 +8,36 @@ using Microsoft.VisualStudio.Shell;
     GenerateCodeBase = true,
     PublicKeyToken = "adb9793829ddae60",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "6.0.2.0",
-    NewVersion = "6.0.2.0")]
+    OldVersionUpperBound = "6.0.1.0",
+    NewVersion = "6.0.1.0")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X",
     GenerateCodeBase = true,
     PublicKeyToken = "adb9793829ddae60",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "6.0.2.0",
-    NewVersion = "6.0.2.0")]
+    OldVersionUpperBound = "6.0.1.0",
+    NewVersion = "6.0.1.0")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X",
     GenerateCodeBase = true,
     PublicKeyToken = "adb9793829ddae60",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "6.0.2.0",
-    NewVersion = "6.0.2.0")]
+    OldVersionUpperBound = "6.0.1.0",
+    NewVersion = "6.0.1.0")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.AspNetCore.Razor.Language",
     GenerateCodeBase = true,
     PublicKeyToken = "adb9793829ddae60",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "6.0.2.0",
-    NewVersion = "6.0.2.0")]
+    OldVersionUpperBound = "6.0.1.0",
+    NewVersion = "6.0.1.0")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.Razor",
     GenerateCodeBase = true,
     PublicKeyToken = "adb9793829ddae60",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "6.0.2.0",
-    NewVersion = "6.0.2.0")]
+    OldVersionUpperBound = "6.0.1.0",
+    NewVersion = "6.0.1.0")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.Extensions.Configuration.Abstractions",
     GenerateCodeBase = true,
