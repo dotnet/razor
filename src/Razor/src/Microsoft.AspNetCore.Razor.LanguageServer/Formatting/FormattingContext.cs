@@ -32,6 +32,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _workspaceFactory = workspaceFactory;
         }
 
+        public static bool SkipValidateComponents { get; set; }
+
         public DocumentUri Uri { get; private set; } = null!;
 
         public DocumentSnapshot OriginalSnapshot { get; private set; } = null!;
@@ -239,6 +241,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         [Conditional("DEBUG")]
         private static void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
         {
+            if (SkipValidateComponents)
+            {
+                return;
+            }
+
             var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
             var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
             Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
