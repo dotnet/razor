@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     /// <summary>

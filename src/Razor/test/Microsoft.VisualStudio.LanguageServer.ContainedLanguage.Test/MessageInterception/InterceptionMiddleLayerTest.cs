@@ -9,8 +9,6 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-#nullable enable
-
 namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayerProviders
 {
     public class InterceptionMiddleLayerTest

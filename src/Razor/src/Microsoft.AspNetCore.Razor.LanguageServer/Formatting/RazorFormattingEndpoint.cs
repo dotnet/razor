@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editContainer = new TextEditContainer(edits);
             return editContainer;
         }
-#nullable enable
+#nullable restore
 
         public async Task<TextEditContainer?> Handle(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {

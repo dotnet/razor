@@ -5,8 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     internal static class ReinvocationResponseHelper

@@ -17,8 +17,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorDocumentSynchronizationEndpoint : ITextDocumentSyncHandler

@@ -7,8 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultDocumentVersionCache : DocumentVersionCache
