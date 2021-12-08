@@ -17,8 +17,6 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorLanguageEndpoint :

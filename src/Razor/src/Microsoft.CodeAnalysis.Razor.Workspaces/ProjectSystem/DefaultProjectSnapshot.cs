@@ -7,8 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class DefaultProjectSnapshot : ProjectSnapshot

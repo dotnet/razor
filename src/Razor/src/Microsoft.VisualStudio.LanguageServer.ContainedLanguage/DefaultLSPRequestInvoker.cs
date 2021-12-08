@@ -14,8 +14,6 @@ using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     [Shared]

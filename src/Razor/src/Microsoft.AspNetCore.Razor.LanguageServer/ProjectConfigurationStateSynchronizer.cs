@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Microsoft.Extensions.Logging;
 
-#nullable enable
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener

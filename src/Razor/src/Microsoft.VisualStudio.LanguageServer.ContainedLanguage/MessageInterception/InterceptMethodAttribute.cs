@@ -4,8 +4,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Utilities;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
 {
     /// <summary>

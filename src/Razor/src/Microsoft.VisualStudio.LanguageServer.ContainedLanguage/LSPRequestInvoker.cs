@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal abstract class LSPRequestInvoker

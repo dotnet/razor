@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
 {
     [Export(typeof(InterceptorManager))]
