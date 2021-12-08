@@ -252,7 +252,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var newContext = context.Request.Context;
             if (context.Request.Context is OmniSharpVSCodeActionContext omniSharpContext &&
                 omniSharpContext.SelectionRange is not null &&
-                 _documentMappingService.TryMapToProjectedDocumentRange(
+                _documentMappingService.TryMapToProjectedDocumentRange(
                     context.CodeDocument,
                     omniSharpContext.SelectionRange,
                     out var selectionRange))
