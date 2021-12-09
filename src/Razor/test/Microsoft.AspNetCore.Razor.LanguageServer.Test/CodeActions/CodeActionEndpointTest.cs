@@ -678,7 +678,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static ClientNotifierServiceBase CreateLanguageServer()
         {
-            return new MockLanguageServer();
+            return new TestLanguageServer();
         }
 
         private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
@@ -758,7 +758,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         }
 
-        private class MockLanguageServer : ClientNotifierServiceBase
+        private class TestLanguageServer : ClientNotifierServiceBase
         {
             public override InitializeParams ClientSettings => throw new NotImplementedException();
 
@@ -771,7 +771,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     throw new InvalidOperationException($"Unexpected method {method}");
                 }
 
-                return Task.FromResult<IResponseRouterReturns>(new MockResponseRouterReturns(null));
+                return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(null));
             }
 
             public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
@@ -811,14 +811,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     }
                 };
 
-                return Task.FromResult<IResponseRouterReturns>(new MockResponseRouterReturns(result));
+                return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(result));
             }
 
-            private class MockResponseRouterReturns : IResponseRouterReturns
+            private class TestResponseRouterReturns : IResponseRouterReturns
             {
                 private readonly object _result;
 
-                public MockResponseRouterReturns(object result)
+                public TestResponseRouterReturns(object result)
                 {
                     _result = result;
                 }
