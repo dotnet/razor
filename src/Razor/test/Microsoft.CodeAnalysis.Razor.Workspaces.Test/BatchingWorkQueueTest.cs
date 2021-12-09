@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             public override ValueTask ProcessAsync(CancellationToken cancellationToken)
             {
-                base.ProcessAsync(cancellationToken);
+                _ = base.ProcessAsync(cancellationToken);
                 throw new InvalidOperationException();
             }
         }
