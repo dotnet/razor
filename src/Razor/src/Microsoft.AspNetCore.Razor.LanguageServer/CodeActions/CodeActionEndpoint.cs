@@ -251,7 +251,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return Array.Empty<RazorCodeAction>();
             }
 
-            var newRequest = context.Request with { Range = projectedRange };
+            var newContext = context.Request.Context;
+            if (context.Request.Context is OmniSharpVSCodeActionContext omniSharpContext &&
+                omniSharpContext.SelectionRange is not null &&
+                _documentMappingService.TryMapToProjectedDocumentRange(
+                    context.CodeDocument,
+                    omniSharpContext.SelectionRange,
+                    out var selectionRange))
+            {
+                newContext = omniSharpContext with
+                {
+                    SelectionRange = selectionRange
+                };
+            }
+
+            var newRequest = context.Request with { Range = projectedRange, Context = newContext };
 
             cancellationToken.ThrowIfCancellationRequested();
 
