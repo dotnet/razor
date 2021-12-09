@@ -23,6 +23,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -643,6 +644,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = initialRange,
                 Context = new OmniSharpVSCodeActionContext()
+                {
+                    SelectionRange = initialRange
+                }
             };
 
             var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
@@ -652,6 +656,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.Single(results);
+            var diagnostics = results.Single().Diagnostics.ToArray();
+            Assert.Equal(2, diagnostics.Length);
+
+            // Diagnostic ranges contain the projected range for
+            // 1. Range
+            // 2. SelectionRange
+            //
+            // This helps verify that the CodeActionEndpoint is mapping the
+            // ranges correctly using the mapping service
+            Assert.Equal(projectedRange, diagnostics[0].Range);
+            Assert.Equal(projectedRange, diagnostics[1].Range);
         }
 
         private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range projectedRange = null)
@@ -665,16 +680,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static ClientNotifierServiceBase CreateLanguageServer()
         {
-            var response = Mock.Of<IResponseRouterReturns>(
-                r => r.Returning<RazorCodeAction[]>(It.IsAny<CancellationToken>()) == Task.FromResult(new[]
-                {
-                    new RazorCodeAction() { Data = JToken.FromObject(new { CustomTags = new[] { "CodeActionName" } }) }
-                })
-            , MockBehavior.Strict);
-            var languageServer = Mock.Of<ClientNotifierServiceBase>(
-                l => l.SendRequestAsync(LanguageServerConstants.RazorProvideCodeActionsEndpoint, It.IsAny<CodeActionParams>()) == Task.FromResult(response)
-            , MockBehavior.Strict);
-            return languageServer;
+            return new TestLanguageServer();
         }
 
         private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
@@ -751,6 +757,83 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
                 return Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+            }
+        }
+
+        private class TestLanguageServer : ClientNotifierServiceBase
+        {
+            public override InitializeParams ClientSettings => throw new NotImplementedException();
+
+            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            {
+                if (method != LanguageServerConstants.RazorProvideCodeActionsEndpoint)
+                {
+                    throw new InvalidOperationException($"Unexpected method {method}");
+                }
+
+                return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(null));
+            }
+
+            public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+            {
+                if (method != LanguageServerConstants.RazorProvideCodeActionsEndpoint)
+                {
+                    throw new InvalidOperationException($"Unexpected method {method}");
+                }
+
+                if (@params is not CodeActionParams codeActionParams || codeActionParams.Context is not OmniSharpVSCodeActionContext codeActionContext)
+                {
+                    throw new InvalidOperationException(@params.GetType().FullName);
+                }
+
+                // Create a code action specifically with diagnostics that
+                // contain the contextual information for it's creation. This is
+                // a hacky way to verify that data transmitted to the language server
+                // is correct rather than providing specific test hooks in the CodeActionEndpoint
+                var result = new[]
+                {
+                    new RazorCodeAction()
+                    {
+                        Data = JToken.FromObject(new { CustomTags = new object[] { "CodeActionName" } }),
+                        Diagnostics = new[]
+                        {
+                            new Diagnostic()
+                            {
+                                Range = codeActionParams.Range,
+                                Message = "Range"
+                            },
+                            new Diagnostic()
+                            {
+                                Range = codeActionContext.SelectionRange,
+                                Message = "Selection Range"
+                            }
+                        }
+                    }
+                };
+
+                return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(result));
+            }
+
+            private class TestResponseRouterReturns : IResponseRouterReturns
+            {
+                private readonly object _result;
+
+                public TestResponseRouterReturns(object result)
+                {
+                    _result = result;
+                }
+
+                public Task<Response> Returning<Response>(CancellationToken cancellationToken)
+                {
+                    return Task.FromResult((Response)_result);
+                }
+
+                public Task ReturningVoid(CancellationToken cancellationToken)
+                {
+                    return Task.CompletedTask;
+                }
             }
         }
     }
