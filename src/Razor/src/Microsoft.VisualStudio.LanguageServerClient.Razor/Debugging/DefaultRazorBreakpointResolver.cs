@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -157,7 +158,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                     End = new Position(endLineIndex, endCharacterIndex),
                 },
             };
-            var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, cancellationToken).ConfigureAwait(false);
+
+            var mappingBehavior = GetMappingBehavior(documentSnapshot.Uri);
+            var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, mappingBehavior, cancellationToken).ConfigureAwait(false);
             if (hostDocumentMapping is null)
             {
                 return null;
@@ -171,6 +174,43 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _cache.Set(cacheKey, hostDocumentRange);
 
             return hostDocumentRange;
+        }
+
+        // Internal for testing
+        internal static LanguageServerMappingBehavior GetMappingBehavior(Uri hostDocumentUri)
+        {
+            if (hostDocumentUri.AbsolutePath.EndsWith(".cshtml", FilePathComparison.Instance))
+            {
+                // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a cshtml file:
+                //
+                //      @DateTime.Now
+                //
+                // This would render as:
+                //
+                //      #line 123 "C:/path/to/abc.cshtml"
+                //      __o = DateTime.Now;
+                //
+                //      #line default
+                //
+                // This in turn results in a breakpoint span encompassing `|__o = DateTime.Now;|`. Problem is that if we're doing "strict" mapping
+                // Razor only maps `DateTime.Now` so mapping would fail. Therefore in cshtml scenarios we fall back to inclusive mapping which allows
+                // C# mappings that intersect to be acceptable mapping locations
+                //
+                // In Blazor this isn't an issue because the above renders as:
+                //
+                //      __o =
+                //      #line 123 "C:/path/to/abc.razor"
+                //      DateTime.Now
+                //
+                //      #line default
+                //      ;
+                //
+                // Which results in a proper mapping
+
+                return LanguageServerMappingBehavior.Inclusive;
+            }
+
+            return LanguageServerMappingBehavior.Strict;
         }
 
         public static DefaultRazorBreakpointResolver CreateTestInstance(
