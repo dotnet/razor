@@ -27,12 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                 return null;
             }
 
-            string filePath = null;
-            RazorConfiguration configuration = null;
-            string rootNamespace = null;
-
-            reader.ReadProperties(propertyName =>
+            var (_, _, _, _, filePath, configuration, rootNamespace) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace) = (arg.reader, arg.objectType, arg.existingValue, arg.serializer, arg.filePath, arg.configuration, arg.rootNamespace);
                 switch (propertyName)
                 {
                     case nameof(ProjectSnapshotHandle.FilePath):
@@ -57,7 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 
                         break;
                 }
-            });
+
+                return (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace);
+            }, (reader, objectType, existingValue, serializer, filePath: (string)null, configuration: (RazorConfiguration)null, rootNamespace: (string)null));
 
             return new ProjectSnapshotHandle(filePath, configuration, rootNamespace);
         }
