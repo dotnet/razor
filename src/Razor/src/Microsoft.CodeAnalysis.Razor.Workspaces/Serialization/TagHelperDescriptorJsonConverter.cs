@@ -61,8 +61,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             var builder = TagHelperDescriptorBuilder.Create(Cached(descriptorKind), Cached(typeName), Cached(assemblyName));
 
-            reader.ReadProperties(propertyName =>
+            reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, builder) = (arg.reader, arg.builder);
                 switch (propertyName)
                 {
                     case nameof(TagHelperDescriptor.Documentation):
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         ReadMetadata(reader, builder.Metadata);
                         break;
                 }
-            });
+            }, (reader, builder));
 
             descriptor = builder.Build();
             if (!DisableCachingForTesting && hashWasRead)
@@ -434,8 +435,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            builder.BindAttribute(attribute => reader.ReadProperties(propertyName =>
+            builder.BindAttribute(attribute => reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, attribute) = (arg.reader, arg.attribute);
                 switch (propertyName)
                 {
                     case nameof(BoundAttributeDescriptor.Name):
@@ -511,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
                         break;
                 }
-            }));
+            }, (reader, attribute)));
         }
 
         private static void ReadBoundAttributeParameters(JsonReader reader, BoundAttributeDescriptorBuilder builder)
@@ -544,8 +546,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            builder.BindAttributeParameter(parameter => reader.ReadProperties(propertyName =>
+            builder.BindAttributeParameter(parameter => reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, parameter) = (arg.reader, arg.parameter);
                 switch (propertyName)
                 {
                     case nameof(BoundAttributeParameterDescriptor.Name):
@@ -587,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         ReadDiagnostics(reader, parameter.Diagnostics);
                         break;
                 }
-            }));
+            }, (reader, parameter)));
         }
 
         private static void ReadTagMatchingRules(JsonReader reader, TagHelperDescriptorBuilder builder)
@@ -620,8 +623,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            builder.TagMatchingRule(rule => reader.ReadProperties(propertyName =>
+            builder.TagMatchingRule(rule => reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, rule) = (arg.reader, arg.rule);
                 switch (propertyName)
                 {
                     case nameof(TagMatchingRuleDescriptor.TagName):
@@ -650,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         ReadDiagnostics(reader, rule.Diagnostics);
                         break;
                 }
-            }));
+            }, (reader, rule)));
         }
 
         private static void ReadRequiredAttributeValues(JsonReader reader, TagMatchingRuleDescriptorBuilder builder)
@@ -683,8 +687,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            builder.Attribute(attribute => reader.ReadProperties(propertyName =>
+            builder.Attribute(attribute => reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, attribute) = (arg.reader, arg.attribute);
                 switch (propertyName)
                 {
                     case nameof(RequiredAttributeDescriptor.Name):
@@ -718,7 +723,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         ReadMetadata(reader, attribute.Metadata);
                         break;
                 }
-            }));
+            }, (reader, attribute)));
         }
 
         private static void ReadAllowedChildTags(JsonReader reader, TagHelperDescriptorBuilder builder)
@@ -751,8 +756,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            builder.AllowChildTag(childTag => reader.ReadProperties(propertyName =>
+            builder.AllowChildTag(childTag => reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, childTag) = (arg.reader, arg.childTag);
                 switch (propertyName)
                 {
                     case nameof(AllowedChildTagDescriptor.Name):
@@ -775,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         ReadDiagnostics(reader, childTag.Diagnostics);
                         break;
                 }
-            }));
+            }, (reader, childTag)));
         }
 
         private static void ReadMetadata(JsonReader reader, IDictionary<string, string> metadata)
@@ -790,14 +796,15 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            reader.ReadProperties(propertyName =>
+            reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, metadata) = (arg.reader, arg.metadata);
                 if (reader.Read())
                 {
                     var value = (string)reader.Value;
                     metadata[Cached(propertyName)] = Cached(value);
                 }
-            });
+            }, (reader, metadata));
         }
 
         private static void ReadDiagnostics(JsonReader reader, RazorDiagnosticCollection diagnostics)
@@ -830,13 +837,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return;
             }
 
-            string id = default;
-            int severity = default;
-            string message = default;
-            SourceSpan sourceSpan = default;
-
-            reader.ReadProperties(propertyName =>
+            var (_, id, severity, message, sourceSpan) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, id, severity, message, sourceSpan) = (arg.reader, arg.id, arg.severity, arg.message, arg.sourceSpan);
                 switch (propertyName)
                 {
                     case nameof(RazorDiagnostic.Id):
@@ -860,7 +863,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         sourceSpan = ReadSourceSpan(reader);
                         break;
                 }
-            });
+
+                return (reader, id, severity, message, sourceSpan);
+            }, (reader, id: (string)null, severity: 0, message: (string)null, sourceSpan: default(SourceSpan)));
 
             var cachedMsg = Cached(message);
             var cachedId = Cached(id);
@@ -923,14 +928,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return SourceSpan.Undefined;
             }
 
-            string filePath = default;
-            int absoluteIndex = default;
-            int lineIndex = default;
-            int characterIndex = default;
-            int length = default;
-
-            reader.ReadProperties(propertyName =>
+            var (_, filePath, absoluteIndex, lineIndex, characterIndex, length) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, filePath, absoluteIndex, lineIndex, characterIndex, length) = (arg.reader, arg.filePath, arg.absoluteIndex, arg.lineIndex, arg.characterIndex, arg.length);
                 switch (propertyName)
                 {
                     case nameof(SourceSpan.FilePath):
@@ -953,7 +953,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         length = reader.ReadAsInt32().Value;
                         break;
                 }
-            });
+
+                return (reader, filePath, absoluteIndex, lineIndex, characterIndex, length);
+            }, (reader, filePath: (string)null, absoluteIndex: 0, lineIndex: 0, characterIndex: 0, length: 0));
 
             var sourceSpan = new SourceSpan(filePath, absoluteIndex, lineIndex, characterIndex, length);
             return sourceSpan;

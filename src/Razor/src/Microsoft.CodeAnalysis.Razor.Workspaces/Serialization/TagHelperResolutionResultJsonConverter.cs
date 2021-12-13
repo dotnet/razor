@@ -31,29 +31,29 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            var descriptors = Array.Empty<TagHelperDescriptor>();
-            var diagnostics = Array.Empty<RazorDiagnostic>();
-
-            reader.ReadProperties(propertyName =>
+            var (_, _, descriptors, diagnostics) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, serializer, descriptors, diagnostics) = (arg.reader, arg.serializer, arg.descriptors, arg.diagnostics);
                 switch (propertyName)
                 {
                     case nameof(TagHelperResolutionResult.Descriptors):
                         if (reader.Read())
                         {
-                            descriptors = _serializer.Deserialize<TagHelperDescriptor[]>(reader);
+                            descriptors = serializer.Deserialize<TagHelperDescriptor[]>(reader);
                         }
 
                         break;
                     case nameof(TagHelperResolutionResult.Diagnostics):
                         if (reader.Read())
                         {
-                            diagnostics = _serializer.Deserialize<RazorDiagnostic[]>(reader);
+                            diagnostics = serializer.Deserialize<RazorDiagnostic[]>(reader);
                         }
 
                         break;
                 }
-            });
+
+                return (reader, serializer, descriptors, diagnostics);
+            }, (reader, serializer: _serializer, descriptors: Array.Empty<TagHelperDescriptor>(), diagnostics: Array.Empty<RazorDiagnostic>()));
 
             reader.ReadTokenAndAdvance(JsonToken.EndObject, out _);
 
