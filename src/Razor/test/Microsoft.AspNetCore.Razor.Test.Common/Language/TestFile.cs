@@ -7,6 +7,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language
@@ -59,14 +61,31 @@ namespace Microsoft.AspNetCore.Razor.Language
             return false;
         }
 
+        public async Task<string> ReadAllTextAsync(CancellationToken cancellationToken)
+        {
+            using (var reader = new StreamReader(OpenRead()))
+            {
+                var contents = await reader.ReadToEndAsync();
+
+                return NormalizeContents(contents);
+            }
+        }
+
         public string ReadAllText()
         {
             using (var reader = new StreamReader(OpenRead()))
             {
-                // The .Replace() calls normalize line endings, in case you get \n instead of \r\n
-                // since all the unit tests rely on the assumption that the files will have \r\n endings.
-                return reader.ReadToEnd().Replace("\r", "").Replace("\n", "\r\n");
+                var contents = reader.ReadToEnd();
+
+                return NormalizeContents(contents);
             }
+        }
+
+        private static string NormalizeContents(string contents)
+        {
+            // The .Replace() calls normalize line endings, in case you get \n instead of \r\n
+            // since all the unit tests rely on the assumption that the files will have \r\n endings.
+            return contents.Replace("\r", "").Replace("\n", "\r\n");
         }
 
         /// <summary>

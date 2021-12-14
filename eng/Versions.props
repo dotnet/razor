@@ -90,7 +90,7 @@
     <!-- Several packages share the MS.CA.Testing version -->
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.21103.2</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.0.31723.112</MicrosoftVisualStudioShellPackagesVersion>
-    <MicrosoftVisualStudioPackagesVersion>17.0.448</MicrosoftVisualStudioPackagesVersion>
+    <MicrosoftVisualStudioPackagesVersion>17.0.487</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.1.0-1.21471.13</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.1.2</VisualStudioLanguageServerProtocolVersion>
   </PropertyGroup>
@@ -105,6 +105,7 @@
     <MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>
     <OmniSharpMicrosoftExtensionsLoggingPackageVersion>2.0.0</OmniSharpMicrosoftExtensionsLoggingPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioEditorPackageVersion>
+    <MicrosoftVisualStudioExtensibilityTestingXunitVersion>0.1.90-beta</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
     <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>17.1.11</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
@@ -130,6 +131,7 @@
     <MonoDevelopSdkPackageVersion>1.0.15</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.16.0</MoqPackageVersion>
     <NerdbankStreamsPackageVersion>2.7.74</NerdbankStreamsPackageVersion>
+    <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <OmniSharpExtensionsLanguageServerPackageVersion>0.19.5</OmniSharpExtensionsLanguageServerPackageVersion>
     <OmniSharpExtensionsLanguageProtocolPackageVersion>$(OmniSharpExtensionsLanguageServerPackageVersion)</OmniSharpExtensionsLanguageProtocolPackageVersion>
     <OmniSharpMSBuildPackageVersion>1.37.13</OmniSharpMSBuildPackageVersion>

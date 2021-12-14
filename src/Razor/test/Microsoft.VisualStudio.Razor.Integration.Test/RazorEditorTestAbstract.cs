@@ -1,0 +1,28 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System.IO;
+using System.Threading.Tasks;
+
+namespace Microsoft.VisualStudio.Razor.Integration.Test
+{
+    public abstract class RazorEditorTestAbstract : AbstractEditorTest
+    {
+        internal const string BlazorProjectName = "ComponentApp";
+
+        private static readonly string s_pagesDir = Path.Combine("Components", "Pages");
+        internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
+        internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
+
+        protected override string LanguageName => LanguageNames.Razor;
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
+            await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync(WellKnownProjectTemplates.BlazorProject, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
+        }
+    }
+}
