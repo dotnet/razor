@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly RazorCodeDocument _razorCodeDocument;
         private readonly Range? _range;
 
-        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range? range)
+        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range? range, TextSpan? rangeAsTextSpan) : base(rangeAsTextSpan)
         {
             _semanticRanges = new List<SemanticRange>();
             _razorCodeDocument = razorCodeDocument;
@@ -28,6 +28,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public static IReadOnlyList<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range = null)
         {
+            TextSpan? rangeAsTextSpan = null;
+            if (range is not null)
+            {
+                rangeAsTextSpan = range.AsTextSpan();
+            }
+
             var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range);
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);

@@ -9,11 +9,10 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class RazorSemanticTokensEndpoint : ISemanticTokensFullHandler, ISemanticTokensRangeHandler, ISemanticTokensDeltaHandler
+    internal class RazorSemanticTokensEndpoint : ISemanticTokensRangeHandler
     {
         private readonly ILogger _logger;
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
@@ -36,16 +35,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
-        public async Task<SemanticTokens?> Handle(SemanticTokensParams request, CancellationToken cancellationToken)
-        {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return await HandleAsync(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken, range: null);
-        }
-
         public async Task<SemanticTokens?> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
         {
             if (request is null)
@@ -61,29 +50,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticTokens;
         }
 
-        public async Task<SemanticTokensFullOrDelta?> Handle(SemanticTokensDeltaParams request, CancellationToken cancellationToken)
-        {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(request.TextDocument, request.PreviousResultId, cancellationToken);
-
-            return edits;
-        }
-
         public SemanticTokensRegistrationOptions GetRegistrationOptions(SemanticTokensCapability capability, ClientCapabilities clientCapabilities)
         {
             return new SemanticTokensRegistrationOptions
             {
                 DocumentSelector = RazorDefaults.Selector,
-                Full = new SemanticTokensCapabilityRequestFull
-                {
-                    Delta = true,
-                },
+                Full = false,
                 Legend = RazorSemanticTokensLegend.Instance,
-                Range = false,
+                Range = true,
             };
         }
 

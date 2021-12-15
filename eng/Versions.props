@@ -50,12 +50,12 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>6.0.2-1.21602.2</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.2-servicing.21607.18</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
+    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>6.0.2-dev</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.2-dev</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
     <MicrosoftAspNetCoreTestingPackageVersion>6.0.2-servicing.21607.18</MicrosoftAspNetCoreTestingPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>6.0.2-1.21602.2</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>6.0.2-1.21602.2</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>6.0.2-1.21602.2</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>6.0.2-dev</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>6.0.2-dev</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>6.0.2-dev</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>6.0.0</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>6.0.0</MicrosoftExtensionsConfigurationPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>6.0.0</MicrosoftExtensionsLoggingPackageVersion>
