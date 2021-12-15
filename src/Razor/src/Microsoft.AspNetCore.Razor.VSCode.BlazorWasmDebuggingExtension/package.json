@@ -12,8 +12,8 @@
     "vscode": "^1.52.0"
   },
   "icon": "images/blazorIcon.png",
-  "dotnetRuntimeVersion": "5.0",
-  "debugProxyVersion": "5.0.2",
+  "dotnetRuntimeVersion": "6.0",
+  "debugProxyVersion": "6.0.0",
   "categories": [
     "Other"
   ],
