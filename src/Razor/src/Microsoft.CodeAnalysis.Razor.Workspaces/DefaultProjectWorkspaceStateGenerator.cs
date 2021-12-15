@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 lcts.Token,
                 TaskCreationOptions.None,
                 TaskScheduler.Default).Unwrap();
-            updateTask.ConfigureAwait(false);
             updateItem = new UpdateItem(updateTask, lcts);
             Updates[projectSnapshot.FilePath] = updateItem;
         }

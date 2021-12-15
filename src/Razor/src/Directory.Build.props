@@ -11,4 +11,8 @@
     <PublishWindowsPdb Condition="'$(DotNetSymbolServerTokenMsdl)'!='' and '$(DotNetSymbolServerTokenSymWeb)'!=''">true</PublishWindowsPdb>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingPackageVersion)" />
+  </ItemGroup>
+
 </Project>
