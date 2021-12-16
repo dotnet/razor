@@ -57,7 +57,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{82951915-80D6-4F7B-A1DE-A5EE7D828C76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Razor.Internal.Transport", "src\tools\Microsoft.AspNetCore.Razor.Internal.Transport\Microsoft.AspNetCore.Razor.Internal.Transport.csproj", "{231E592E-58A6-4E98-85ED-EB86AEC44061}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Razor.Symbols.Transport", "src\tools\Microsoft.AspNetCore.Razor.Symbols.Transport\Microsoft.AspNetCore.Razor.Symbols.Transport.csproj", "{231E592E-58A6-4E98-85ED-EB86AEC44061}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorSyntaxGenerator", "src\tools\RazorSyntaxGenerator\RazorSyntaxGenerator.csproj", "{0E92C770-1FC3-4A6D-8871-15795AADA7BC}"
 EndProject
