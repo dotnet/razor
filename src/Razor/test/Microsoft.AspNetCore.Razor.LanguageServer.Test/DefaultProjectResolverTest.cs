@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Testing;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
@@ -158,8 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Same(ownerProject, project);
         }
 
-        [ConditionalFact]
-        [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX, SkipReason = "Linux/Mac have case sensitive file comparers.")]
+        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
         public void TryResolveProject_OwnerProjectDifferentCasing_ReturnsTrue()
         {
             // Arrange
