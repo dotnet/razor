@@ -3,16 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-const fetch = require('node-fetch');
-const stream = require('stream');
-const extract = require('extract-zip');
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const { spawn } = require("child_process");
-const os = require('os');
+import fetch from 'node-fetch';
+import { finished as _finished } from 'stream';
+import extract from 'extract-zip';
+import { existsSync, mkdirSync, createWriteStream, readdirSync, copyFileSync } from 'fs';
+import { promisify } from 'util';
+import { join } from 'path';
+import { tmpdir } from 'os';
 
-var finished = util.promisify(stream.finished);
+var finished = promisify(_finished);
 
 const log = (text) => console.log(`[${new Date()}] ${text}`)
 
@@ -20,16 +19,16 @@ async function downloadProxyPackage(version) {
     var nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
     var packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer';
 
-    const tmpDirectory = path.join(os.tmpdir(), 'blazorwasm-companion-tmp');
-    if (!fs.existsSync(tmpDirectory)){
-        fs.mkdirSync(tmpDirectory);
+    const tmpDirectory = join(tmpdir(), 'blazorwasm-companion-tmp');
+    if (!existsSync(tmpDirectory)){
+        mkdirSync(tmpDirectory);
     }
-    const extractTarget = path.join(tmpDirectory, `extracted-${packageName}.${version}`);
+    const extractTarget = join(tmpDirectory, `extracted-${packageName}.${version}`);
 
     const versionedPackageName = `${packageName.toLowerCase()}.${version}.nupkg`;
     // nuget.org requires the package name be lower-case
     const downloadUrl = `${nugetUrl}/${packageName.toLowerCase()}/${version}/${versionedPackageName}`;
-    const downloadPath = path.join(tmpDirectory, versionedPackageName);
+    const downloadPath = join(tmpDirectory, versionedPackageName);
 
     // Download and save nupkg to disk
     log(`Fetching package from ${downloadUrl}...`)
@@ -39,7 +38,7 @@ async function downloadProxyPackage(version) {
     {
         log(`Failed to download ${downloadUrl}`)
     }
-    const outputStream = fs.createWriteStream(downloadPath);
+    const outputStream = createWriteStream(downloadPath);
     response.body.pipe(outputStream);
 
     // Extract nupkg to extraction directory
@@ -51,19 +50,19 @@ async function downloadProxyPackage(version) {
 
 async function copyDebugProxyAssets(version) {
     var extracted = await downloadProxyPackage(version);
-    var srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
+    var srcDirectory = join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
-    var targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
+    var targetDirectory = join(__dirname, '..', 'BlazorDebugProxy');
     log(`Using ${targetDirectory} as targetDirectory...`);
-    var exists = fs.existsSync(srcDirectory);
+    var exists = existsSync(srcDirectory);
     if (exists) {
         log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
-        fs.readdirSync(srcDirectory).forEach(function(file) {
+        readdirSync(srcDirectory).forEach(function(file) {
             log(`Copying ${file} to target directory...`);
-            fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
+            copyFileSync(join(srcDirectory, file), join(targetDirectory, file));
         });
     }
 }
 
-const debugProxyVersion = require('../package.json').debugProxyVersion;
+import { debugProxyVersion } from '../package.json';
 copyDebugProxyAssets(debugProxyVersion);
