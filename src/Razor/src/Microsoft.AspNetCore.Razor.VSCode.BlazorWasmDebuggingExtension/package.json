@@ -5,7 +5,7 @@
   "version": "1.1.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dotnet/aspnetcore-tooling.git"
+    "url": "https://github.com/dotnet/razor-tooling.git"
   },
   "license": "MIT",
   "engines": {
@@ -55,12 +55,12 @@
     "@types/vscode": "^1.52.0",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",
-    "tslint": "^5.11.0",
     "extract-zip": "^2.0.1",
     "glob": "^7.1.6",
     "mocha": "^8.1.3",
     "node-fetch": "^2.6.1",
     "rimraf": "2.6.3",
+    "tslint": "^5.11.0",
     "typescript": "^4.1.2",
     "vscode-test": "^1.4.1"
   }
