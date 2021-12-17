@@ -13,14 +13,16 @@ import { tmpdir } from 'os';
 
 var finished = promisify(_finished);
 
-const log = (text) => console.log(`[${new Date()}] ${text}`)
+const formatLog = (text) => `[${new Date()}] ${text}`;
+const log = (text) => console.log(formatLog(text));
+const logError = (text) => console.error(formatLog(text));
 
 async function downloadProxyPackage(version) {
     var nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
     var packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer';
 
     const tmpDirectory = join(tmpdir(), 'blazorwasm-companion-tmp');
-    if (!existsSync(tmpDirectory)){
+    if (!existsSync(tmpDirectory)) {
         mkdirSync(tmpDirectory);
     }
     const extractTarget = join(tmpDirectory, `extracted-${packageName}.${version}`);
@@ -31,12 +33,12 @@ async function downloadProxyPackage(version) {
     const downloadPath = join(tmpDirectory, versionedPackageName);
 
     // Download and save nupkg to disk
-    log(`Fetching package from ${downloadUrl}...`)
-    const response = await fetch(downloadUrl)
+    log(`Fetching package from ${downloadUrl}...`);
+    const response = await fetch(downloadUrl);
 
-    if (!response.ok)
-    {
-        log(`Failed to download ${downloadUrl}`)
+    if (!response.ok) {
+        logError(`Failed to download ${downloadUrl}`);
+        return null;
     }
     const outputStream = createWriteStream(downloadPath);
     response.body.pipe(outputStream);
@@ -50,6 +52,10 @@ async function downloadProxyPackage(version) {
 
 async function copyDebugProxyAssets(version) {
     var extracted = await downloadProxyPackage(version);
+    if (!extracted) {
+        return;
+    }
+
     var srcDirectory = join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
     var targetDirectory = join(__dirname, '..', 'BlazorDebugProxy');
