@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { OutputChannel, extensions, commands } from 'vscode';
+import { commands, extensions, OutputChannel } from 'vscode';
 
 interface IDotnetAcquireResult {
     dotnetPath: string;
