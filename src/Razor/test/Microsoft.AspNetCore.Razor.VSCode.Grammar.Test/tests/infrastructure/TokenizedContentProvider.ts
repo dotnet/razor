@@ -4,10 +4,20 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as fs from 'fs';
+import * as path from 'path';
+import * as oniguruma from 'vscode-oniguruma';
 import { IGrammar, INITIAL, IRawGrammar, ITokenizeLineResult, parseRawGrammar, Registry } from 'vscode-textmate';
 import { ITokenizedContent } from './ITokenizedContent';
 
 let razorGrammarCache: IGrammar | undefined;
+
+const wasmBin = fs.readFileSync(path.join(__dirname, './node_modules/vscode-oniguruma/release/onig.wasm')).buffer;
+const vscodeOnigurumaLib = oniguruma.loadWASM(wasmBin).then(() => {
+    return {
+        createOnigScanner: (patterns: string[]) => new oniguruma.OnigScanner(patterns),
+        createOnigString: (s: string) => new oniguruma.OnigString(s),
+    };
+});
 
 export async function tokenize(source: string) {
     const lines = source.split('\n');
@@ -32,6 +42,7 @@ export async function tokenize(source: string) {
 async function loadRazorGrammar() {
     if (!razorGrammarCache) {
         const registry = new Registry({
+            onigLib: vscodeOnigurumaLib,
             loadGrammar: loadRawGrammarFromScope,
         });
 
