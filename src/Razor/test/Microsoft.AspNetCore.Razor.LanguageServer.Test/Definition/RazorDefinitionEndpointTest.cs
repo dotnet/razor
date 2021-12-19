@@ -256,6 +256,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         }
 
         [Fact]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttribute()
+        {
+
+            // Arrange
+            var content = @"@addTagHelper *, TestAssembly
+<Component1 bool-val></Component1>
+@code {
+    public void Increment()
+    {
+    }
+}";
+            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            var position = new Position(1, 14);
+
+            // Act
+            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(attributeDescriptor);
+            Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
+        }
+
+        [Fact]
         public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange1()
         {
             // Arrange

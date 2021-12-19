@@ -256,8 +256,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             // If we're on an attribute then just validate against the attribute name
             if (owner.Parent is MarkupTagHelperAttributeSyntax attribute)
             {
+                // Normal attribute, ie <Component attribute=value />
                 name = attribute.Name;
                 propertyName = attribute.TagHelperAttributeInfo.Name;
+            }
+            else if (owner.Parent is MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute)
+            {
+                // Minimized attribute, ie <Component attribute />
+                name = minimizedAttribute.Name;
+                propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
             }
 
             if (!name.Span.Contains(location.AbsoluteIndex))
