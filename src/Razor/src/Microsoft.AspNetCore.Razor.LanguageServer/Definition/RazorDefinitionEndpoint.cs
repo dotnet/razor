@@ -154,8 +154,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
         internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, RazorDocumentMappingService documentMappingService, CancellationToken cancellationToken)
         {
-            // Parse the C# file and find the property that matches the name, and that has a [Parameter] attribute
-
+            // Parse the C# file and find the property that matches the name.
+            // We don't worry about parameter attributes here for two main reasons:
+            //   1. We don't have symbolic information, so the best we could do would be checking for any
+            //      attribute named Parameter, regardless of which namespace. It also means we would have
+            //      to do more checks for all of the various ways that the attribute could be specified
+            //      (eg fully qualified, aliased, etc.)
+            //   2. Since C# doesn't allow multiple properties with the same name, and we're doing a case
+            //      sensitive search, we know the property we find is the one the user is trying to encode in a
+            //      tag helper attribute. If they don't have the [Parameter] attribute then the Razor compiler
+            //      will error, but allowing them to Go To Def on that property regardless, actually helps
+            //      them fix the error.
             var csharpText = codeDocument.GetCSharpSourceText();
             var syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -166,39 +175,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 .FirstOrDefault();
 
             // Did we find a property at all?
-            if (property is null)
+            if (property is not null)
             {
-                return null;
-            }
-
-            // We might have found a property, but is it a parameter?
-            foreach (var attributeList in property.AttributeLists)
-            {
-                foreach (var attribute in attributeList.Attributes)
+                var range = property.Identifier.Span.AsRange(csharpText);
+                if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
                 {
-                    // Attributes could be simple like [Parameter] or qualified like [Blah.Parameter]
-                    // but we don't care about that distinction, so lets just avoid dealing with the complexities
-                    // of the roslyn tree.
-                    var name = attribute.ToString();
-
-                    // Sadly we don't have symbolic information here, so we have to just hope for the best
-                    // Since we're only navigating its not a big deal, plus its not possible to have multiple
-                    // properties with the same name defined, so its not like one could be a real parameter, and
-                    // another could be a fake one
-                    if (name.Equals("ParameterAttribute", StringComparison.Ordinal) ||
-                        name.Equals("Parameter", StringComparison.Ordinal) ||
-                        name.EndsWith(".ParameterAttribute", StringComparison.Ordinal) ||
-                        name.EndsWith(".Parameter", StringComparison.Ordinal))
-                    {
-                        var range = property.Identifier.Span.AsRange(csharpText);
-                        if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
-                        {
-                            return originalRange;
-                        }
-
-                        // if we found the property we wanted, but couldn't map, there is no point doing any more work
-                        return null;
-                    }
+                    return originalRange;
                 }
             }
 
