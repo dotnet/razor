@@ -140,8 +140,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         {
             if (attributeDescriptor is not null)
             {
+                _logger.LogInformation("Attempting to get definition from an attribute directly.");
+
                 var originCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-                var range = await TryGetPropertyRangeAsync(originCodeDocument, attributeDescriptor.GetPropertyName(), _documentMappingService, cancellationToken).ConfigureAwait(false);
+                var range = await TryGetPropertyRangeAsync(originCodeDocument, attributeDescriptor.GetPropertyName(), _documentMappingService, _logger, cancellationToken).ConfigureAwait(false);
 
                 if (range is not null)
                 {
@@ -149,10 +151,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
             }
 
+            // When navigating from a start or end tag, we just take the user to the top of the file.
+            // If we were trying to navigate to a property, and we couldn't find it, we can at least take
+            // them to the file for the component. If the property was defined in a partial class they can
+            // at least then press F7 to go there.
             return new Range(new Position(0, 0), new Position(0, 0));
         }
 
-        internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, RazorDocumentMappingService documentMappingService, CancellationToken cancellationToken)
+        internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, RazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
         {
             // Parse the C# file and find the property that matches the name.
             // We don't worry about parameter attributes here for two main reasons:
@@ -182,16 +188,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                     .Where(p => p.Identifier.ValueText.Equals(propertyName, StringComparison.Ordinal))
                     .FirstOrDefault();
 
-                // Did we find a property at all?
-                if (property is not null)
+                if (property is null)
                 {
-                    var range = property.Identifier.Span.AsRange(csharpText);
-                    if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
-                    {
-                        return originalRange;
-                    }
+                    // The property probably exists in a partial class
+                    logger.LogInformation("Could not find property in the generated source. Comes from partial?");
+                    return null;
                 }
+
+                var range = property.Identifier.Span.AsRange(csharpText);
+                if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
+                {
+                    return originalRange;
+                }
+
+                logger.LogInformation("Property found but couldn't map its location.");
             }
+
+            logger.LogInformation("Generated C# was not in expected shape (CompilationUnit -> Namespace -> Class)");
 
             return null;
         }

@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, CancellationToken.None).ConfigureAwait(false);
+            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
             Assert.NotNull(range);
             Assert.Equal(expectedRange, range);
         }
@@ -307,7 +307,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, CancellationToken.None).ConfigureAwait(false);
+            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
             Assert.NotNull(range);
             Assert.Equal(expectedRange, range);
         }
@@ -334,7 +334,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, CancellationToken.None).ConfigureAwait(false);
+            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
             Assert.NotNull(range);
             Assert.Equal(expectedRange, range);
         }
@@ -365,11 +365,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, CancellationToken.None).ConfigureAwait(false);
+            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
             Assert.NotNull(range);
             Assert.Equal(expectedRange, range);
         }
-
 
         private void SetupDocument(out Language.RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content = DefaultContent)
         {
