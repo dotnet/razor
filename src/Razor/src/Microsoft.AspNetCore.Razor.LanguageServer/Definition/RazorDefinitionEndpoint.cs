@@ -169,18 +169,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var property = root.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax or ClassDeclarationSyntax)
-                .OfType<PropertyDeclarationSyntax>()
-                .Where(p => p.Identifier.ValueText.Equals(propertyName, StringComparison.Ordinal))
-                .FirstOrDefault();
-
-            // Did we find a property at all?
-            if (property is not null)
+            // Since we know how the compiler generates the C# source we can be a little specific here, and avoid
+            // long tree walks. If the compiler ever changes how they generate their code, the tests for this will break
+            // so we'll know about it.
+            if (root is CompilationUnitSyntax compilationUnit &&
+                compilationUnit.Members[0] is NamespaceDeclarationSyntax namespaceDeclaration &&
+                namespaceDeclaration.Members[0] is ClassDeclarationSyntax classDeclaration)
             {
-                var range = property.Identifier.Span.AsRange(csharpText);
-                if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
+                var property = classDeclaration
+                    .Members
+                    .OfType<PropertyDeclarationSyntax>()
+                    .Where(p => p.Identifier.ValueText.Equals(propertyName, StringComparison.Ordinal))
+                    .FirstOrDefault();
+
+                // Did we find a property at all?
+                if (property is not null)
                 {
-                    return originalRange;
+                    var range = property.Identifier.Span.AsRange(csharpText);
+                    if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
+                    {
+                        return originalRange;
+                    }
                 }
             }
 

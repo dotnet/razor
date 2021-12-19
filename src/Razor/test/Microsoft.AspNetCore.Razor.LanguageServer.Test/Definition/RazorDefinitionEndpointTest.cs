@@ -339,6 +339,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             Assert.Equal(expectedRange, range);
         }
 
+        [Fact]
+        public async Task GetNavigatePositionAsync_TagHelperProperty_IgnoreInnerProperty()
+        {
+            // Arrange
+            var content = @"
+
+<div>@Title</div>
+
+@code
+{
+    private class NotTheDroidsYoureLookingFor
+    {
+        public string Title { get; set; }
+    }
+
+    public string [|Title|] { get; set; }
+}
+";
+            TestFileMarkupParser.GetSpan(content, out content, out var selection);
+
+            SetupDocument(out var codeDocument, out _, content);
+            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+
+            // Act II
+            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, CancellationToken.None).ConfigureAwait(false);
+            Assert.NotNull(range);
+            Assert.Equal(expectedRange, range);
+        }
+
+
         private void SetupDocument(out Language.RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content = DefaultContent)
         {
             var sourceText = SourceText.From(content);
