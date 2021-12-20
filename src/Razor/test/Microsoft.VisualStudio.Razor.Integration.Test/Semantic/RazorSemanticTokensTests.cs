@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Xunit;
@@ -31,14 +32,21 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             set { s_fileName.Value = value; }
         }
 
-        //[IdeFact]
-        //public async Task Components_AreColored()
-        //{
-        //    await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, SemanticTokensFile, HangMitigatingCancellationToken);
-        //    var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
+        }
 
-        //    await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
-        //}
+        [IdeFact(Skip = "Awaitables not yet ready")]
+        public async Task Components_AreColored()
+        {
+            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
+            Thread.Sleep(5000);
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
+
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
+        }
 
         [IdeFact]
         public async Task Directives_AreColored()

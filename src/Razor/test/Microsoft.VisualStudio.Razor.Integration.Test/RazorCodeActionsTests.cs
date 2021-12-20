@@ -21,18 +21,20 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
     public class RazorCodeActionsTests : RazorEditorTestAbstract
     {
         [IdeFact]
-        public async Task AddUsingCodeAction_Works()
+        public async Task CodeActions_Show()
         {
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("</button>", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", HangMitigatingCancellationToken);
+            await TestServices.Editor.MoveCaretAsync(3, HangMitigatingCancellationToken);
 
+            // Act
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            //await TestServices.Editor.VerifyCodeActionAsync("@using OtherNamespace", applyFix: true);
 
-            //await TestServices.Editor.VerifyTextPresentAsync("@using OtherNamespace", HangMitigatingCancellationToken);
+            // Assert
+            await TestServices.Editor.IsLightBulbSessionExpandedAsync(HangMitigatingCancellationToken);
         }
     }
 }

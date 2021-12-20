@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
@@ -11,8 +12,10 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         internal const string BlazorProjectName = "ComponentApp";
 
         private static readonly string s_pagesDir = Path.Combine("Components", "Pages");
+        private static readonly string s_sharedDir = Path.Combine("Components", "Shared");
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
+        internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
 
         protected override string LanguageName => LanguageNames.Razor;
 
@@ -23,6 +26,9 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectAsync(WellKnownProjectTemplates.BlazorProject, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
         }
     }
 }
