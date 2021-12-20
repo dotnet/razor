@@ -11,8 +11,12 @@ interface IDotnetAcquireResult {
 
 export async function acquireDotnetInstall(outputChannel: OutputChannel): Promise<string> {
     const extension = extensions.getExtension('ms-dotnettools.blazorwasm-companion');
-    const version = extension && extension.packageJSON ? extension.packageJSON.dotnetRuntimeVersion : '6.0';
     const requestingExtensionId = 'blazorwasm-companion';
+
+    const version: string = extension && extension.packageJSON ? extension.packageJSON.dotnetRuntimeVersion : '6.0';
+    if (version.split('.').length !== 2) {
+        throw new Error('Version should be a valid major.minor version (the latest patch will automatically be selected).');
+    }
 
     try {
         const dotnetResult = await commands.executeCommand<IDotnetAcquireResult>('dotnet.acquire', { version, requestingExtensionId });
