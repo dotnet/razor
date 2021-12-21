@@ -96,18 +96,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// </remarks>
         public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; } = null!;
 
-        public IReadOnlyList<FormattingSpan> FormattingSpans
+        private IReadOnlyList<FormattingSpan> GetFormattingSpans()
         {
-            get
+            if (_formattingSpans is null)
             {
-                if (_formattingSpans is null)
-                {
-                    var syntaxTree = CodeDocument.GetSyntaxTree();
-                    _formattingSpans = syntaxTree.GetFormattingSpans();
-                }
-
-                return _formattingSpans;
+                var syntaxTree = CodeDocument.GetSyntaxTree();
+                _formattingSpans = syntaxTree.GetFormattingSpans();
             }
+
+            return _formattingSpans;
         }
 
         /// <summary>
@@ -186,9 +183,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public bool TryGetFormattingSpan(int absoluteIndex, [NotNullWhen(true)] out FormattingSpan? result)
         {
             result = null;
-            for (var i = 0; i < FormattingSpans.Count; i++)
+            var formattingspans = GetFormattingSpans();
+            for (var i = 0; i < formattingspans.Count; i++)
             {
-                var formattingspan = FormattingSpans[i];
+                var formattingspan = formattingspans[i];
                 var span = formattingspan.Span;
 
                 if (span.Start <= absoluteIndex && span.End >= absoluteIndex)
