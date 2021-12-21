@@ -27,22 +27,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private IReadOnlyList<FormattingSpan>? _formattingSpans;
         private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
-        private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
+        private FormattingContext(AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
         {
             _workspaceFactory = workspaceFactory;
+            Uri = uri;
+            OriginalSnapshot = originalSnapshot;
+            CodeDocument = codeDocument;
+            Options = options;
+            IsFormatOnType = isFormatOnType;
+            AutomaticallyAddUsings = automaticallyAddUsings;
         }
 
         public static bool SkipValidateComponents { get; set; }
 
-        public DocumentUri Uri { get; private set; } = null!;
-
-        public DocumentSnapshot OriginalSnapshot { get; private set; } = null!;
-
-        public RazorCodeDocument CodeDocument { get; private set; } = null!;
+        public DocumentUri Uri { get; }
+        public DocumentSnapshot OriginalSnapshot { get; }
+        public RazorCodeDocument CodeDocument { get; }
+        public FormattingOptions Options { get; }
+        public bool IsFormatOnType { get; }
+        public bool AutomaticallyAddUsings { get; }
 
         public SourceText SourceText => CodeDocument.GetSourceText();
 
         public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
+
+        public string NewLineString => Environment.NewLine;
 
         public Document CSharpWorkspaceDocument
         {
@@ -78,14 +87,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return _csharpWorkspace;
             }
         }
-
-        public FormattingOptions Options { get; private set; } = null!;
-
-        public string NewLineString => Environment.NewLine;
-
-        public bool IsFormatOnType { get; private set; }
-
-        public bool AutomaticallyAddUsings { get; private set; }
 
         /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
         /// <remarks>
@@ -350,15 +351,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            var result = new FormattingContext(workspaceFactory)
-            {
-                Uri = uri,
-                OriginalSnapshot = originalSnapshot,
-                CodeDocument = codeDocument,
-                Options = options,
-                IsFormatOnType = isFormatOnType,
-                AutomaticallyAddUsings = automaticallyAddUsings
-            };
+            var result = new FormattingContext(
+                workspaceFactory,
+                uri,
+                originalSnapshot,
+                codeDocument,
+                options,
+                isFormatOnType,
+                automaticallyAddUsings
+            );
 
             return result;
         }
