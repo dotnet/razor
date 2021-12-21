@@ -55,9 +55,8 @@ export function activate(context: vscode.ExtensionContext) {
 
                 for await (const error of spawnedProxy.stderr) {
                     outputChannel.appendLine(`ERROR: ${error}`);
-                    return {
-                        inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
-                    };
+                    process.kill(spawnedProxy.pid);
+                    return undefined;
                 }
 
                 return;
@@ -70,9 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         } catch (error: any) {
             outputChannel.appendLine(`ERROR: ${error}`);
-            return {
-                inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
-            };
+            return undefined;
         }
     });
 

@@ -28,9 +28,12 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             inspectUri: string,
             debuggingPort: number,
         } | undefined>('blazorwasm-companion.launchDebugProxy');
-        if (result) {
-            await this.launchBrowser(folder, configuration, result.inspectUri, result.debuggingPort);
-        }
+
+        await this.launchBrowser(
+            folder,
+            configuration,
+            result ? result.inspectUri : '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
+            result ? result.debuggingPort : undefined);
 
         const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
             if (isValidEvent(event.name)) {
@@ -78,10 +81,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
                 const terminate = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
                     const blazorDevServer = 'blazor-devserver\\.dll';
                     const dir = folder && folder.uri && folder.uri.fsPath;
-
-                    // Sanitize path seperators to be REGEX compliant
                     const regexEscapedDir = dir?.toLowerCase()?.replace(/\//g, '\\/');
-
                     const launchedApp = configuration.hosted ? app.program : `${regexEscapedDir}.*${blazorDevServer}|${blazorDevServer}.*${regexEscapedDir}`;
                     await onDidTerminateDebugSession(event, this.logger, launchedApp);
                     terminate.dispose();
