@@ -26,6 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private AdhocWorkspace? _csharpWorkspace;
 
         private IReadOnlyList<FormattingSpan>? _formattingSpans;
+        private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
         private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
         {
@@ -94,7 +95,82 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// Don't use this to discover the indentation level you should have, use
         /// <see cref="TryGetIndentationLevel(int, out int)"/> which operates on the position rather than just the line.
         /// </remarks>
-        public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; } = null!;
+        public IReadOnlyDictionary<int, IndentationContext> Indentations
+        {
+            get
+            {
+                if (_indentations is null)
+                {
+                    var sourceText = this.SourceText;
+                    var indentations = new Dictionary<int, IndentationContext>();
+
+                    var previousIndentationLevel = 0;
+                    for (var i = 0; i < sourceText.Lines.Count; i++)
+                    {
+                        // Get first non-whitespace character position
+                        var nonWsPos = sourceText.Lines[i].GetFirstNonWhitespacePosition();
+                        var existingIndentation = (nonWsPos ?? sourceText.Lines[i].End) - sourceText.Lines[i].Start;
+
+                        // The existingIndentation above is measured in characters, and is used to create text edits
+                        // The below is measured in columns, so takes into account tab size. This is useful for creating
+                        // new indentation strings
+                        var existingIndentationSize = sourceText.Lines[i].GetIndentationSize(this.Options.TabSize);
+
+                        var emptyOrWhitespaceLine = false;
+                        if (nonWsPos is null)
+                        {
+                            emptyOrWhitespaceLine = true;
+                            nonWsPos = sourceText.Lines[i].Start;
+                        }
+
+                        // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
+                        if (TryGetFormattingSpan(nonWsPos.Value, out var span))
+                        {
+                            indentations[i] = new IndentationContext(firstSpan: span)
+                            {
+                                Line = i,
+                                RazorIndentationLevel = span.RazorIndentationLevel,
+                                HtmlIndentationLevel = span.HtmlIndentationLevel,
+                                RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
+                                ExistingIndentation = existingIndentation,
+                                ExistingIndentationSize = existingIndentationSize,
+                                EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
+                            };
+                            previousIndentationLevel = span.IndentationLevel;
+                        }
+                        else
+                        {
+                            // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
+                            // Let's create a 0 length span to represent this and default it to HTML.
+                            var placeholderSpan = new FormattingSpan(
+                                new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                                new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                                FormattingSpanKind.Markup,
+                                FormattingBlockKind.Markup,
+                                razorIndentationLevel: 0,
+                                htmlIndentationLevel: 0,
+                                isInClassBody: false,
+                                componentLambdaNestingLevel: 0);
+
+                            indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
+                            {
+                                Line = i,
+                                RazorIndentationLevel = 0,
+                                HtmlIndentationLevel = 0,
+                                RelativeIndentationLevel = previousIndentationLevel,
+                                ExistingIndentation = existingIndentation,
+                                ExistingIndentationSize = existingIndentation,
+                                EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
+                            };
+                        }
+                    }
+
+                    _indentations = Indentations;
+                }
+
+                return _indentations;
+            }
+        }
 
         private IReadOnlyList<FormattingSpan> GetFormattingSpans()
         {
@@ -304,72 +380,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 IsFormatOnType = isFormatOnType,
                 AutomaticallyAddUsings = automaticallyAddUsings
             };
-
-            var sourceText = codeDocument.GetSourceText();
-            var indentations = new Dictionary<int, IndentationContext>();
-
-            var previousIndentationLevel = 0;
-            for (var i = 0; i < sourceText.Lines.Count; i++)
-            {
-                // Get first non-whitespace character position
-                var nonWsPos = sourceText.Lines[i].GetFirstNonWhitespacePosition();
-                var existingIndentation = (nonWsPos ?? sourceText.Lines[i].End) - sourceText.Lines[i].Start;
-
-                // The existingIndentation above is measured in characters, and is used to create text edits
-                // The below is measured in columns, so takes into account tab size. This is useful for creating
-                // new indentation strings
-                var existingIndentationSize = sourceText.Lines[i].GetIndentationSize(options.TabSize);
-
-                var emptyOrWhitespaceLine = false;
-                if (nonWsPos is null)
-                {
-                    emptyOrWhitespaceLine = true;
-                    nonWsPos = sourceText.Lines[i].Start;
-                }
-
-                // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
-                if (result.TryGetFormattingSpan(nonWsPos.Value, out var span))
-                {
-                    indentations[i] = new IndentationContext(firstSpan: span)
-                    {
-                        Line = i,
-                        RazorIndentationLevel = span.RazorIndentationLevel,
-                        HtmlIndentationLevel = span.HtmlIndentationLevel,
-                        RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentationSize,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
-                    previousIndentationLevel = span.IndentationLevel;
-                }
-                else
-                {
-                    // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
-                    // Let's create a 0 length span to represent this and default it to HTML.
-                    var placeholderSpan = new FormattingSpan(
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
-                        FormattingSpanKind.Markup,
-                        FormattingBlockKind.Markup,
-                        razorIndentationLevel: 0,
-                        htmlIndentationLevel: 0,
-                        isInClassBody: false,
-                        componentLambdaNestingLevel: 0);
-
-                    indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
-                    {
-                        Line = i,
-                        RazorIndentationLevel = 0,
-                        HtmlIndentationLevel = 0,
-                        RelativeIndentationLevel = previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentation,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
-                }
-            }
-
-            result.Indentations = indentations;
 
             return result;
         }
