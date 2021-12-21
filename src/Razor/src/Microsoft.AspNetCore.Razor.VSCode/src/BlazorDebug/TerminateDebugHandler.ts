@@ -79,6 +79,6 @@ async function terminateByProcessName(
     (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.toLowerCase().match(targetProcess)));
 
   if (devserver) {
-    killProcess(devserver.pid, logger)
+    killProcess(devserver.pid, logger);
   }
 }
