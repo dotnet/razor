@@ -26,6 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private IReadOnlyList<FormattingSpan>? _formattingSpans;
         private IReadOnlyDictionary<int, IndentationContext>? _indentations;
+        private RazorProjectEngine? _engine;
+        private IReadOnlyList<RazorSourceDocument>? _importSources;
 
         private FormattingContext(AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
         {
@@ -36,6 +38,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Options = options;
             IsFormatOnType = isFormatOnType;
             AutomaticallyAddUsings = automaticallyAddUsings;
+        }
+
+        private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
+            : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings)
+        {
+            _engine = engine;
+            _importSources = importSources;
         }
 
         public static bool SkipValidateComponents { get; set; }
@@ -278,25 +287,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(changedText));
             }
 
+            if (_engine is null)
+            {
+                await InitializeProjectEngineAsync().ConfigureAwait(false);
+            }
+
+            var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
+
+            var codeDocument = _engine!.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
+
+            ValidateComponents(CodeDocument, codeDocument);
+
+            var newContext = new FormattingContext(
+                _engine,
+                _importSources!,
+                _workspaceFactory,
+                Uri,
+                OriginalSnapshot,
+                codeDocument,
+                Options,
+                IsFormatOnType,
+                AutomaticallyAddUsings);
+
+            return newContext;
+        }
+
+        private async Task InitializeProjectEngineAsync()
+        {
             var engine = OriginalSnapshot.Project.GetProjectEngine();
             var importSources = new List<RazorSourceDocument>();
 
             var imports = OriginalSnapshot.GetImports();
             foreach (var import in imports)
             {
-                var sourceText = await import.GetTextAsync();
+                var sourceText = await import.GetTextAsync().ConfigureAwait(false);
                 var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
                 importSources.Add(source);
             }
 
-            var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
-
-            var codeDocument = engine.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, importSources, OriginalSnapshot.Project.TagHelpers);
-
-            ValidateComponents(CodeDocument, codeDocument);
-
-            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, IsFormatOnType, AutomaticallyAddUsings);
-            return newContext;
+            _engine = engine;
+            _importSources = importSources;
         }
 
         /// <summary>
