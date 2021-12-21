@@ -25,6 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private Document? _csharpWorkspaceDocument;
         private AdhocWorkspace? _csharpWorkspace;
 
+        private IReadOnlyList<FormattingSpan>? _formattingSpans;
+
         private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
         {
             _workspaceFactory = workspaceFactory;
@@ -94,7 +96,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// </remarks>
         public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; } = null!;
 
-        public IReadOnlyList<FormattingSpan> FormattingSpans { get; private set; } = null!;
+        public IReadOnlyList<FormattingSpan> FormattingSpans
+        {
+            get
+            {
+                if (_formattingSpans is null)
+                {
+                    var syntaxTree = CodeDocument.GetSyntaxTree();
+                    _formattingSpans = syntaxTree.GetFormattingSpans();
+                }
+
+                return _formattingSpans;
+            }
+        }
 
         /// <summary>
         /// Generates a string of indentation based on a specific indentation level. For instance, inside of a C# method represents 1 indentation level. A method within a class would have indentaiton level of 2 by default etc.
@@ -283,9 +297,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var formattingSpans = syntaxTree.GetFormattingSpans();
-
             var result = new FormattingContext(workspaceFactory)
             {
                 Uri = uri,
@@ -293,8 +304,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 CodeDocument = codeDocument,
                 Options = options,
                 IsFormatOnType = isFormatOnType,
-                AutomaticallyAddUsings = automaticallyAddUsings,
-                FormattingSpans = formattingSpans
+                AutomaticallyAddUsings = automaticallyAddUsings
             };
 
             var sourceText = codeDocument.GetSourceText();
