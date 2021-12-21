@@ -4,4 +4,4 @@ This is a companion extension to the [C# extension](https://marketplace.visualst
 
 For more information on Blazor, visit the [Blazor homepage](https://blazor.net).
 
-For more information on debugging Blazor WebAssembly applications, vist our official documentation page on [debugging Blazor WASM](https://docs.microsoft.com/en-us/aspnet/core/blazor/debug).
+For more information on debugging Blazor WebAssembly applications, vist our official documentation page on [debugging Blazor WASM](https://docs.microsoft.com/aspnet/core/blazor/debug).

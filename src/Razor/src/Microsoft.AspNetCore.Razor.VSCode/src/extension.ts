@@ -203,8 +203,8 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
         context.subscriptions.push(languageServerClient, onStopRegistration, logger);
     } catch (error) {
-        logger.logError('Failed when activating Razor VSCode.', error);
-        telemetryReporter.reportErrorOnActivation(error);
+        logger.logError('Failed when activating Razor VSCode.', error as Error);
+        telemetryReporter.reportErrorOnActivation(error as Error);
     }
 }
 

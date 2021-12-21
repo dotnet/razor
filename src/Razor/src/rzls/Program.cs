@@ -46,8 +46,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            var input = Console.OpenStandardInput();
-            var server = await RazorLanguageServer.CreateAsync(input, Console.OpenStandardOutput(), trace);
+            var server = await RazorLanguageServer.CreateAsync(
+                Console.OpenStandardInput(),
+                Console.OpenStandardOutput(),
+                trace);
             await server.InitializedAsync(CancellationToken.None);
             await server.WaitForExit;
         }
