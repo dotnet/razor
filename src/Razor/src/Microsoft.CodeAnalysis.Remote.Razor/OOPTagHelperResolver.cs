@@ -4,8 +4,10 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 {
     internal class OOPTagHelperResolver : TagHelperResolver
     {
+        private readonly TagHelperResultCache _resultCache;
         private readonly DefaultTagHelperResolver _defaultResolver;
         private readonly ProjectSnapshotProjectEngineFactory _factory;
         private readonly ErrorReporter _errorReporter;
@@ -41,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             _workspace = workspace;
 
             _defaultResolver = new DefaultTagHelperResolver();
+            _resultCache = new TagHelperResultCache();
         }
 
         public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
@@ -105,14 +109,58 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 return null;
             }
 
+            if (!_resultCache.TryGetId(projectSnapshot.FilePath, out var lastResultId))
+            {
+                lastResultId = -1;
+            }
+
             var projectHandle = new ProjectSnapshotHandle(projectSnapshot.FilePath, projectSnapshot.Configuration, projectSnapshot.RootNamespace);
-            var result = await remoteClient.TryInvokeAsync<IRemoteTagHelperProviderService, TagHelperResolutionResult>(
+            var result = await remoteClient.TryInvokeAsync<IRemoteTagHelperProviderService, TagHelperDeltaResult>(
                 workspaceProject.Solution,
-                (service, solutionInfo, innerCancellationToken) => service.GetTagHelpersAsync(solutionInfo, projectHandle, factory?.GetType().AssemblyQualifiedName, innerCancellationToken),
+                (service, solutionInfo, innerCancellationToken) => service.GetTagHelpersDeltaAsync(solutionInfo, projectHandle, factory?.GetType().AssemblyQualifiedName, lastResultId, innerCancellationToken),
                 cancellationToken
             );
 
-            return result.HasValue ? result.Value : null;
+            if (!result.HasValue)
+            {
+                return null;
+            }
+
+            var tagHelpers = ConsumeTagHelpersFromDelta(projectSnapshot.FilePath, lastResultId, result.Value);
+
+            var resolutionResult = new TagHelperResolutionResult(tagHelpers, diagnostics: Array.Empty<RazorDiagnostic>());
+            return resolutionResult;
+        }
+
+        // Protected virtual for testing
+        protected virtual IReadOnlyList<TagHelperDescriptor> ConsumeTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+        {
+            if (!_resultCache.TryGet(projectFilePath, lastResultId, out var tagHelpers))
+            {
+                // We most likely haven't made a request to the server yet so there's no "delta" to apply
+                tagHelpers = Array.Empty<TagHelperDescriptor>();
+
+                if (deltaResult.Delta)
+                {
+                    // We somehow failed to retrieve a cached object yet the server was able to apply a delta. This
+                    // is entirely unexpected and means the server & client are catastrophically de-synchronized.
+                    throw new InvalidOperationException("This should never happen. Razor server & client are de-synchronized. Tearing down");
+                }
+            }
+            else if (!deltaResult.Delta)
+            {
+                // Not a delta based response, we should treat it as a "refresH"
+                tagHelpers = Array.Empty<TagHelperDescriptor>();
+            }
+
+            if (deltaResult.ResultId != lastResultId)
+            {
+                // New results, lets build a coherent TagHelper collection and then cache it
+                tagHelpers = deltaResult.Apply(tagHelpers);
+                _resultCache.Set(projectFilePath, deltaResult.ResultId, tagHelpers);
+            }
+
+            return tagHelpers;
         }
 
         protected virtual Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
