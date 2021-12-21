@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         public async Task Directives_AreColored()
         {
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            Thread.Sleep(5000);
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
 
             await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);

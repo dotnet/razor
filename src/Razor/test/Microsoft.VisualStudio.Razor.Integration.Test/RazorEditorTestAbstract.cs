@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
     public abstract class RazorEditorTestAbstract : AbstractEditorTest
     {
-        internal const string BlazorProjectName = "ComponentApp";
+        internal const string BlazorProjectName = "BlazorProject";
 
-        private static readonly string s_pagesDir = Path.Combine("Components", "Pages");
+        private static readonly string s_pagesDir = Path.Combine("Pages");
         private static readonly string s_sharedDir = Path.Combine("Components", "Shared");
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await base.InitializeAsync().ConfigureAwait(true);
 
             await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync(WellKnownProjectTemplates.BlazorProject, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, LanguageName, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 

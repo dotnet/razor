@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -52,22 +53,37 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
         }
 
-        public async Task AddProjectAsync(string projectTemplate, CancellationToken cancellationToken)
+        public async Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
+            var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken);
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
-            var fullPath = GetExistingProject(projectTemplate);
-            Assert.True(File.Exists(fullPath), fullPath);
-            solution.AddExistingProject(fullPath, pParent: null, out _);
+            // TODO: How do we deal with the button
+            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
+        }
 
-            static string GetExistingProject(string projectName)
+        private async Task<string> GetProjectTemplatePathAsync(string projectTemplate, string languageName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var solution = (EnvDTE80.Solution2)dte.Solution;
+
+            if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
+                && GetCSharpProjectTemplates().TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
-                return projectName switch
-                {
-                    WellKnownProjectTemplates.BlazorProject => Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Razor", "ComponentApp", "ComponentApp.csproj"),
-                    _ => throw new NotImplementedException(),
-                };
+                return solution.GetProjectTemplate(csharpProjectTemplate, languageName);
+            }
+
+            throw new NotImplementedException();
+
+            static ImmutableDictionary<string, string> GetCSharpProjectTemplates()
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                builder[WellKnownProjectTemplates.BlazorProject] = "BlazorTemplate";
+                return builder.ToImmutable();
             }
         }
 
@@ -182,7 +198,11 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             var solution = dte.Solution;
             Assumes.Present(solution);
 
-            var project = solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
+            var project = solution.Projects.Cast<EnvDTE.Project>().FirstOrDefault(x => x.Name == projectName);
+            if(project is null)
+            {
+                Assert.True(false, $"{projectName} doesn't exist, had {string.Join(",", solution.Projects.Cast<EnvDTE.Project>().Select(p => p.Name))}");
+            }
             Assert.NotNull(project);
             var projectPath = Path.GetDirectoryName(project.FullName);
             return Path.Combine(projectPath, relativeFilePath);
