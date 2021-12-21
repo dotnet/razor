@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 },
                 e =>
                 {
-                    Assert.Equal("Create component from tag", e.Title);
+                    Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, e.Title);
                     Assert.NotNull(e.Data);
                     Assert.Null(e.Edit);
                 });
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             var command = Assert.Single(commandOrCodeActionContainer);
-            Assert.Equal("Create component from tag", command.Title);
+            Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, command.Title);
             Assert.NotNull(command.Data);
         }
 
