@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -87,8 +86,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public bool IsFormatOnType { get; private set; }
 
         public bool AutomaticallyAddUsings { get; private set; }
-
-        public Range Range { get; private set; } = null!;
 
         /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
         /// <remarks>
@@ -206,29 +203,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             else
             {
                 var tabs = indentation / Options.TabSize;
-                var tabPrefix = new string('\t', (int)tabs);
+                var tabPrefix = new string('\t', tabs);
 
                 var spaces = indentation % Options.TabSize;
-                var spaceSuffix = new string(' ', (int)spaces);
+                var spaceSuffix = new string(' ', spaces);
 
                 var combined = string.Concat(tabPrefix, spaceSuffix);
                 return combined;
             }
-        }
-
-        /// <summary>
-        /// Given an offset return the corresponding indent level.
-        /// </summary>
-        /// <param name="offset">A value represents the number of spaces/tabs at the start of a line.</param>
-        /// <returns>The corresponding indent level.</returns>
-        public int GetIndentationLevelForOffset(int offset)
-        {
-            if (Options.InsertSpaces)
-            {
-                offset /= (int)Options.TabSize;
-            }
-
-            return offset;
         }
 
         /// <summary>
@@ -238,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// <returns></returns>
         public int GetIndentationOffsetForLevel(int level)
         {
-            return level * (int)Options.TabSize;
+            return level * Options.TabSize;
         }
 
         public bool TryGetIndentationLevel(int position, out int indentationLevel)
