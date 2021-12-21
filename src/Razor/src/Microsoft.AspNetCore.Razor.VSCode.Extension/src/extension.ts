@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as fs from 'fs';
-import * as razorExtensionPackage from 'microsoft.aspnetcore.razor.vscode';
+import * as razorExtensionPackage from 'microsoft.aspnetcore.razor.vscode/src/extension';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ensureWorkspaceIsConfigured, registerRazorDevModeHelpers } from './RazorDevModeHelpers';
