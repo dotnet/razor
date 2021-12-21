@@ -514,6 +514,6 @@
   },
   "dependencies": {
     "diff": ">=3.5.0",
-    "microsoft.aspnetcore.razor.vscode": "link:../Microsoft.AspNetCore.Razor.VSCode"
+    "microsoft.aspnetcore.razor.vscode": "file:../Microsoft.AspNetCore.Razor.VSCode"
   }
 }
