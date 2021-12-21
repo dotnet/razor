@@ -111,6 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Our goal here is to indent each line according to the surrounding Razor blocks.
             var sourceText = context.SourceText;
             var editsToApply = new List<TextChange>();
+            var indentations = context.GetIndentations();
 
             for (var i = 0; i < sourceText.Lines.Count; i++)
             {
@@ -121,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                if (context.Indentations[i].StartsInCSharpContext)
+                if (indentations[i].StartsInCSharpContext)
                 {
                     // Normally we don't do HTML things in C# contexts but there is one
                     // edge case when including render fragments in a C# code block, eg:
@@ -168,15 +169,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                var razorDesiredIndentationLevel = context.Indentations[i].RazorIndentationLevel;
+                var razorDesiredIndentationLevel = indentations[i].RazorIndentationLevel;
                 if (razorDesiredIndentationLevel == 0)
                 {
                     // This line isn't under any Razor specific constructs. Trust the HTML formatter.
                     continue;
                 }
 
-                var htmlDesiredIndentationLevel = context.Indentations[i].HtmlIndentationLevel;
-                if (htmlDesiredIndentationLevel == 0 && !IsPartOfHtmlTag(context, context.Indentations[i].FirstSpan.Span.Start))
+                var htmlDesiredIndentationLevel = indentations[i].HtmlIndentationLevel;
+                if (htmlDesiredIndentationLevel == 0 && !IsPartOfHtmlTag(context, indentations[i].FirstSpan.Span.Start))
                 {
                     // This line is under some Razor specific constructs but not under any HTML tag.
                     // E.g,
@@ -189,9 +190,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // Note: This case doesn't apply for HTML tags (HTML formatter will touch it even if it is in the root).
                     // Hence the second part of the if condition.
                     //
-                    var desiredIndentationLevel = context.Indentations[i].IndentationLevel;
+                    var desiredIndentationLevel = indentations[i].IndentationLevel;
                     var desiredIndentationString = context.GetIndentationLevelString(desiredIndentationLevel);
-                    var spanToReplace = new TextSpan(line.Start, context.Indentations[i].ExistingIndentation);
+                    var spanToReplace = new TextSpan(line.Start, indentations[i].ExistingIndentation);
                     var change = new TextChange(spanToReplace, desiredIndentationString);
                     editsToApply.Add(change);
                 }
@@ -209,9 +210,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // Instead, we should just add to the existing indentation.
                     //
                     var razorDesiredIndentationString = context.GetIndentationLevelString(razorDesiredIndentationLevel);
-                    var existingIndentationString = context.GetIndentationString(context.Indentations[i].ExistingIndentationSize);
+                    var existingIndentationString = context.GetIndentationString(indentations[i].ExistingIndentationSize);
                     var desiredIndentationString = existingIndentationString + razorDesiredIndentationString;
-                    var spanToReplace = new TextSpan(line.Start, context.Indentations[i].ExistingIndentation);
+                    var spanToReplace = new TextSpan(line.Start, indentations[i].ExistingIndentation);
                     var change = new TextChange(spanToReplace, desiredIndentationString);
                     editsToApply.Add(change);
                 }

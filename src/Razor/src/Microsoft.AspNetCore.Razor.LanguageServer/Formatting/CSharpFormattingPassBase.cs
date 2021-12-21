@@ -74,10 +74,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             // Next, collect all the line starts that start in C# context
+            var indentations = context.GetIndentations();
             var lineStartMap = new Dictionary<int, int>();
             for (var i = range.Start.Line; i <= range.End.Line; i++)
             {
-                if (context.Indentations[i].EmptyOrWhitespaceLine)
+                if (indentations[i].EmptyOrWhitespaceLine)
                 {
                     // We should remove whitespace on empty lines.
                     continue;
@@ -137,14 +138,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var newIndentations = new Dictionary<int, int>();
             for (var i = range.Start.Line; i <= range.End.Line; i++)
             {
-                if (context.Indentations[i].EmptyOrWhitespaceLine)
+                if (indentations[i].EmptyOrWhitespaceLine)
                 {
                     // We should remove whitespace on empty lines.
                     newIndentations[i] = 0;
                     continue;
                 }
 
-                var minCSharpIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].MinCSharpIndentLevel);
+                var minCSharpIndentation = context.GetIndentationOffsetForLevel(indentations[i].MinCSharpIndentLevel);
                 var line = context.SourceText.Lines[i];
                 var lineStart = line.GetFirstNonWhitespacePosition() ?? line.Start;
                 var lineStartSpan = new TextSpan(lineStart, 0);
@@ -211,8 +212,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 var effectiveCSharpDesiredIndentation = csharpDesiredIndentation - minCSharpIndentation;
-                var razorDesiredIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].IndentationLevel);
-                if (context.Indentations[i].StartsInHtmlContext)
+                var razorDesiredIndentation = context.GetIndentationOffsetForLevel(indentations[i].IndentationLevel);
+                if (indentations[i].StartsInHtmlContext)
                 {
                     // This is a non-C# line.
                     if (context.IsFormatOnType)
@@ -226,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // HTML is already correctly formatted. So we can use the existing indentation as is.
                         // We need to make sure to use the indentation size, as this will get passed to
                         // GetIndentationString eventually.
-                        razorDesiredIndentation = context.Indentations[i].ExistingIndentationSize;
+                        razorDesiredIndentation = indentations[i].ExistingIndentationSize;
                     }
                 }
 
@@ -244,7 +245,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var indentation = item.Value;
                 Debug.Assert(indentation >= 0, "Negative indentation. This is unexpected.");
 
-                var existingIndentationLength = context.Indentations[line].ExistingIndentation;
+                var existingIndentationLength = indentations[line].ExistingIndentation;
                 var spanToReplace = new TextSpan(context.SourceText.Lines[line].Start, existingIndentationLength);
                 var effectiveDesiredIndentation = context.GetIndentationString(indentation);
                 changes.Add(new TextChange(spanToReplace, effectiveDesiredIndentation));
