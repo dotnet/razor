@@ -27,20 +27,22 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             url: string,
             inspectUri: string,
             debuggingPort: number,
-        } | undefined>('blazorwasm-companion.launchDebugProxy');
+        }>('blazorwasm-companion.launchDebugProxy');
 
         await this.launchBrowser(
             folder,
             configuration,
-            result ? result.inspectUri : '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
+            result ? result.inspectUri : undefined,
             result ? result.debuggingPort : undefined);
 
-        const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
-            if (isValidEvent(event.name)) {
-                await vscode.commands.executeCommand('blazorwasm-companion.killDebugProxy', result ? result.url : null);
-                terminateDebugProxy.dispose();
-            }
-        });
+        if (result && result.url) {
+            const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
+                if (isValidEvent(event.name)) {
+                    await vscode.commands.executeCommand('blazorwasm-companion.killDebugProxy', result.url);
+                    terminateDebugProxy.dispose();
+                }
+            });
+        }
 
         /**
          * If `resolveDebugConfiguration` returns undefined, then the debugger

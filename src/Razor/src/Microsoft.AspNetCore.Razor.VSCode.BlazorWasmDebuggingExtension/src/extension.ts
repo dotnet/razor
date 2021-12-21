@@ -55,33 +55,32 @@ export function activate(context: vscode.ExtensionContext) {
 
                 for await (const error of spawnedProxy.stderr) {
                     outputChannel.appendLine(`ERROR: ${error}`);
-                    process.kill(spawnedProxy.pid);
-                    return undefined;
                 }
-
-                return;
             } catch (error: any) {
                 if (spawnedProxy.pid) {
-                    outputChannel.appendLine(`Error occured while spawning debug proxy. Terminating debug proxy server running with PID ${spawnedProxy.pid}`);
+                    outputChannel.appendLine(`Error occured while spawning debug proxy. Terminating debug proxy server.`);
                     process.kill(spawnedProxy.pid);
                 }
                 throw error;
             }
         } catch (error: any) {
             outputChannel.appendLine(`ERROR: ${error}`);
-            return undefined;
         }
+
+        return {
+            inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
+        };
     });
 
     const killDebugProxy = vscode.commands.registerCommand('blazorwasm-companion.killDebugProxy', (url: string) => {
         const pid = pidsByUrl.get(url);
 
         if (!pid) {
-            outputChannel.appendLine(`Unable to find PID for server running at ${url}...`);
+            outputChannel.appendLine(`Unable to find PID for server running at ${url}.`);
             return;
         }
 
-        outputChannel.appendLine(`Terminating debug proxy server running at ${url} with PID ${pid}`);
+        outputChannel.appendLine(`Terminating debug proxy server running at ${url} with PID ${pid}.`);
         process.kill(pid);
     });
 

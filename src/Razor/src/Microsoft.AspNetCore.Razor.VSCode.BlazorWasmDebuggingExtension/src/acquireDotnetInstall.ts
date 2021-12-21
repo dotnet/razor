@@ -26,10 +26,9 @@ export async function acquireDotnetInstall(outputChannel: OutputChannel): Promis
         }
         await commands.executeCommand('dotnet.ensureDotnetDependencies', { command: dotnetPath, arguments: ['--info'] });
         return dotnetPath;
-    } catch (err: any) {
-        const message = err.msg;
+    } catch (error) {
         outputChannel.appendLine(`This extension requires .NET Core to run but we were unable to install it due to the following error:`);
-        outputChannel.appendLine(message);
-        throw err;
+        outputChannel.appendLine((error as Error).message);
+        throw error;
     }
 }
