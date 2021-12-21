@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 
 import { RazorLogger } from '../RazorLogger';
 import { JS_DEBUG_NAME, SERVER_APP_NAME } from './Constants';
-import { onDidTerminateDebugSession } from './TerminateDebugHandler';
+import { isValidEvent, onDidTerminateDebugSession } from './TerminateDebugHandler';
 
 export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -33,7 +33,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         }
 
         const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
-            if (event.name === JS_DEBUG_NAME || event.name === SERVER_APP_NAME) {
+            if (isValidEvent(event.name)) {
                 await vscode.commands.executeCommand('blazorwasm-companion.killDebugProxy', result ? result.url : null);
                 terminateDebugProxy.dispose();
             }
@@ -76,9 +76,13 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             await this.vscodeType.debug.startDebugging(folder, app);
             if (process.platform !== 'win32') {
                 const terminate = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
-                    const blazorDevServer = 'blazor-devserver.dll';
+                    const blazorDevServer = 'blazor-devserver\\.dll';
                     const dir = folder && folder.uri && folder.uri.fsPath;
-                    const launchedApp = configuration.hosted ? app.program : `${dir}.*${blazorDevServer}|${blazorDevServer}.*${dir}`;
+
+                    // Sanitize path seperators to be REGEX compliant
+                    const regexEscapedDir = dir?.toLowerCase()?.replace(/\//g, '\\/');
+
+                    const launchedApp = configuration.hosted ? app.program : `${regexEscapedDir}.*${blazorDevServer}|${blazorDevServer}.*${regexEscapedDir}`;
                     await onDidTerminateDebugSession(event, this.logger, launchedApp);
                     terminate.dispose();
                 });
