@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             ValidateComponents(CodeDocument, codeDocument);
 
-            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, IsFormatOnType);
+            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, IsFormatOnType, AutomaticallyAddUsings);
             return newContext;
         }
 
@@ -255,8 +255,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            bool isFormatOnType = false,
-            bool automaticallyAddUsings = false)
+            bool isFormatOnType,
+            bool automaticallyAddUsings)
         {
             if (uri is null)
             {
