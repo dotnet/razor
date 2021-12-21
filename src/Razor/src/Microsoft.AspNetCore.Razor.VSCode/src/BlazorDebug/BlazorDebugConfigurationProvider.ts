@@ -81,7 +81,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
                 const terminate = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
                     const blazorDevServer = 'blazor-devserver\\.dll';
                     const dir = folder && folder.uri && folder.uri.fsPath;
-                    const regexEscapedDir = dir?.toLowerCase()?.replace(/\//g, '\\/');
+                    const regexEscapedDir = dir!.toLowerCase()!.replace(/\//g, '\\/');
                     const launchedApp = configuration.hosted ? app.program : `${regexEscapedDir}.*${blazorDevServer}|${blazorDevServer}.*${regexEscapedDir}`;
                     await onDidTerminateDebugSession(event, this.logger, launchedApp);
                     terminate.dispose();
