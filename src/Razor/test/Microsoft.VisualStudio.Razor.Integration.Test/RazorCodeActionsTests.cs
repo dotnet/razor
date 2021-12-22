@@ -18,23 +18,26 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         public const string VisualBasic = "VB";
     }
 
-    public class RazorCodeActionsTests : RazorEditorTestAbstract
+    public class RazorCodeActionsTests : AbstractRazorEditorTest
     {
         [IdeFact]
         public async Task CodeActions_Show()
         {
+            // Create Warnings by removing usings
+            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ImportsRazorFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync("", HangMitigatingCancellationToken);
+
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync("</button>", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", HangMitigatingCancellationToken);
             await TestServices.Editor.MoveCaretAsync(3, HangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
-            // Assert
-            await TestServices.Editor.IsLightBulbSessionExpandedAsync(HangMitigatingCancellationToken);
+            var codeActionSet = Assert.Single(codeActions);
+            Assert.Contains(codeActionSet.Actions, a => a.DisplayText.Equals($"@using {BlazorProjectName}.Shared"));
         }
     }
 }

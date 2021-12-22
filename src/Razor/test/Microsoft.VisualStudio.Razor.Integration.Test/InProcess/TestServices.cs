@@ -17,11 +17,14 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             Editor = new EditorInProcess(this);
             SolutionExplorer = new SolutionExplorerInProcess(this);
             Workspace = new WorkspaceInProcess(this);
+            ErrorList = new ErrorListInProcess(this);
         }
 
         public JoinableTaskFactory JoinableTaskFactory { get; }
 
         public EditorInProcess Editor { get; }
+
+        public ErrorListInProcess ErrorList { get; }
 
         public SolutionExplorerInProcess SolutionExplorer { get; }
 

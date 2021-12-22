@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -22,31 +23,14 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             broker.DismissSession(view);
         }
 
-        public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<SuggestedActionSet>> InvokeCodeActionListAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler, cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
 
-            await ShowLightBulbAsync(cancellationToken);
+            var lightbulbs = await ShowLightBulbAsync(cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
-        }
-
-        private async Task ShowLightBulbAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var shell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);
-            var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
-            var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
-
-            var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
-            object? obj = null;
-            shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-
-            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken);
+            return lightbulbs;
         }
 
         public async Task<bool> IsLightBulbSessionExpandedAsync(CancellationToken cancellationToken)
@@ -68,6 +52,25 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             }
 
             return true;
+        }
+
+        private async Task<IEnumerable<SuggestedActionSet>> ShowLightBulbAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);
+            var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
+            var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+
+            var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
+            object? obj = null;
+            shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
+
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken);
+            return await LightBulbHelper.WaitForItemsAsync(broker, view, cancellationToken);
         }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -17,7 +18,7 @@ using Xunit;
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
     [IntializeTestFile]
-    public class RazorSemanticTokensTests : RazorEditorTestAbstract
+    public class RazorSemanticTokensTests : AbstractRazorEditorTest
     {
         private static readonly AsyncLocal<string?> s_fileName = new();
 
@@ -38,13 +39,17 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "Awaitables not yet ready")]
+        [IdeFact]
         public async Task Components_AreColored()
         {
+            // Arrange
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
-            Thread.Sleep(5000);
-            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
 
+            // Act
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement");
+
+            // Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
             await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
         }
 
@@ -52,7 +57,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         public async Task Directives_AreColored()
         {
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
-            Thread.Sleep(5000);
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
 
             await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
@@ -89,12 +93,12 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
                 var strArray = semanticStr.Split(new[] { Separator, Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 for (var i = 0; i < strArray.Length; i += 3)
                 {
-                    if(!int.TryParse(strArray[i], out var position))
+                    if (!int.TryParse(strArray[i], out var position))
                     {
                         throw new InvalidOperationException($"{strArray[i]} was not an int {i}");
                     }
 
-                    if(!int.TryParse(strArray[i + 1], out var length))
+                    if (!int.TryParse(strArray[i + 1], out var length))
                     {
                         throw new InvalidOperationException($"{strArray[i + 1]} was not an int {i}");
                     }
@@ -119,7 +123,32 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             {
                 builder.Append(baseline.Span.Start.Position).Append(Separator);
                 builder.Append(baseline.Span.Length).Append(Separator);
-                builder.Append(baseline.ClassificationType.Classification).Append(Separator);
+
+                var classification = baseline.ClassificationType;
+                string? classificationStr = null;
+                if (classification.BaseTypes.Count() > 1)
+                {
+                    foreach (ILayeredClassificationType baseType in classification.BaseTypes)
+                    {
+                        if (baseType.Layer == ClassificationLayer.Semantic)
+                        {
+                            classificationStr = baseType.Classification;
+                            break;
+                        }
+                    }
+
+                    if (classificationStr is null)
+                    {
+                        Assert.True(false, "Tried to write layered classifications without Semantic layer");
+                        throw new Exception();
+                    }
+                }
+                else
+                {
+                    classificationStr = classification.Classification;
+                }
+
+                builder.Append(classificationStr).Append(Separator);
                 builder.AppendLine();
             }
 

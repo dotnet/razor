@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                     }
                     catch (COMException)
                     {
-                            // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-                            return default;
+                        // Devenv can throw COMExceptions if it's busy when we make DTE calls.
+                        return default;
                     }
                 },
                 delay,
@@ -43,13 +43,13 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
         {
             while (true)
             {
-                var retval = await action(cancellationToken).ConfigureAwait(true);
+                var retval = await action(cancellationToken);
                 if (!Equals(default(T), retval))
                 {
                     return retval;
                 }
 
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(true);
+                await Task.Delay(delay, cancellationToken);
             }
         }
     }

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
-    public class ProjectTests : RazorEditorTestAbstract
+    public class ProjectTests : AbstractRazorEditorTest
     {
         [IdeFact]
         public async Task CreateFromTemplateAsync()

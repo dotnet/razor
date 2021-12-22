@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
-    public abstract class RazorEditorTestAbstract : AbstractEditorTest
+    public abstract class AbstractRazorEditorTest : AbstractEditorTest
     {
         internal const string BlazorProjectName = "BlazorProject";
 
@@ -16,12 +16,13 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
         internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
+        internal static readonly string ImportsRazorFile = "_Imports.razor";
 
         protected override string LanguageName => LanguageNames.Razor;
 
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            await base.InitializeAsync();
 
             await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, LanguageName, HangMitigatingCancellationToken);

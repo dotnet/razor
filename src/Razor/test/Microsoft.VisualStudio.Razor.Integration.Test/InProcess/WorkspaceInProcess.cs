@@ -20,18 +20,13 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 
         public async Task WaitForAsyncOperationsAsync(string featuresToWaitFor, bool waitForWorkspaceFirst, CancellationToken cancellationToken)
         {
-            await WaitForProjectSystemAsync(cancellationToken);
+            if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
+            {
+                await WaitForProjectSystemAsync(cancellationToken);
+            }
 
-            //var listenerProvider = await GetComponentModelServiceAsync<IRazorAsynchronousOperationListenerProviderAccessor>(cancellationToken);
-
-            //if (waitForWorkspaceFirst)
-            //{
-            //    var workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            //    await workspaceWaiter.ExpeditedWaitAsync().WithCancellation(cancellationToken);
-            //}
-
-            //var featureWaiter = listenerProvider.GetWaiter(featuresToWaitFor);
-            //await featureWaiter.ExpeditedWaitAsync().WithCancellation(cancellationToken);
+            // TODO: This currently no-ops on the FeaturesToWaitFor portion
+            // because we lack any system to wait on it with
         }
 
         public async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)

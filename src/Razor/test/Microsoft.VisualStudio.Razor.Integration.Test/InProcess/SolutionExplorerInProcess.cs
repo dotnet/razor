@@ -33,26 +33,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
         }
 
-        private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            await CloseSolutionAsync(cancellationToken);
-
-            var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
-            Directory.CreateDirectory(solutionPath);
-
-            // Make sure the shell debugger package is loaded so it doesn't try to load during the synchronous portion
-            // of IVsSolution.CreateSolution.
-            //
-            // TODO: Identify the correct tracking bug
-            _ = await GetRequiredGlobalServiceAsync<SVsShellDebugger, IVsDebugger>(cancellationToken);
-
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
-            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
-        }
-
         public async Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -62,29 +42,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
             // TODO: How do we deal with the button
             ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
-        }
-
-        private async Task<string> GetProjectTemplatePathAsync(string projectTemplate, string languageName, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-            var solution = (EnvDTE80.Solution2)dte.Solution;
-
-            if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
-                && GetCSharpProjectTemplates().TryGetValue(projectTemplate, out var csharpProjectTemplate))
-            {
-                return solution.GetProjectTemplate(csharpProjectTemplate, languageName);
-            }
-
-            throw new NotImplementedException();
-
-            static ImmutableDictionary<string, string> GetCSharpProjectTemplates()
-            {
-                var builder = ImmutableDictionary.CreateBuilder<string, string>();
-                builder[WellKnownProjectTemplates.BlazorProject] = "BlazorTemplate";
-                return builder.ToImmutable();
-            }
         }
 
         public async Task RestoreNuGetPackagesAsync(CancellationToken cancellationToken)
@@ -179,44 +136,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             }
         }
 
-        private static string ConvertLanguageName(string languageName)
-        {
-            return languageName switch
-            {
-                LanguageNames.CSharp => "CSharp",
-                LanguageNames.VisualBasic => "VisualBasic",
-                LanguageNames.Razor => "CSharp",
-                _ => throw new ArgumentException($"'{languageName}' is not supported.", nameof(languageName)),
-            };
-        }
-
-        private async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-            var solution = dte.Solution;
-            Assumes.Present(solution);
-
-            var project = solution.Projects.Cast<EnvDTE.Project>().FirstOrDefault(x => x.Name == projectName);
-            if(project is null)
-            {
-                Assert.True(false, $"{projectName} doesn't exist, had {string.Join(",", solution.Projects.Cast<EnvDTE.Project>().Select(p => p.Name))}");
-            }
-            Assert.NotNull(project);
-            var projectPath = Path.GetDirectoryName(project.FullName);
-            return Path.Combine(projectPath, relativeFilePath);
-        }
-
-        private async Task<bool> IsSolutionOpenAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
-            return (bool)isOpen;
-        }
-
         /// <summary>
         /// Close the currently open solution without saving.
         /// </summary>
@@ -248,6 +167,88 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             {
                 solutionEvents.AfterCloseSolution -= HandleAfterCloseSolution;
             }
+        }
+
+        private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await CloseSolutionAsync(cancellationToken);
+
+            var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
+            Directory.CreateDirectory(solutionPath);
+
+            // Make sure the shell debugger package is loaded so it doesn't try to load during the synchronous portion
+            // of IVsSolution.CreateSolution.
+            //
+            // TODO: Identify the correct tracking bug
+            _ = await GetRequiredGlobalServiceAsync<SVsShellDebugger, IVsDebugger>(cancellationToken);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
+            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
+        }
+
+        private async Task<string> GetProjectTemplatePathAsync(string projectTemplate, string languageName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var solution = (EnvDTE80.Solution2)dte.Solution;
+
+            if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
+                && GetCSharpProjectTemplates().TryGetValue(projectTemplate, out var csharpProjectTemplate))
+            {
+                return solution.GetProjectTemplate(csharpProjectTemplate, languageName);
+            }
+
+            throw new NotImplementedException();
+
+            static ImmutableDictionary<string, string> GetCSharpProjectTemplates()
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                builder[WellKnownProjectTemplates.BlazorProject] = "BlazorTemplate";
+                return builder.ToImmutable();
+            }
+        }
+
+        private static string ConvertLanguageName(string languageName)
+        {
+            return languageName switch
+            {
+                LanguageNames.CSharp => "CSharp",
+                LanguageNames.Razor => "CSharp",
+                _ => throw new ArgumentException($"'{languageName}' is not supported.", nameof(languageName)),
+            };
+        }
+
+        private async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var solution = dte.Solution;
+            Assumes.Present(solution);
+
+            var project = solution.Projects.Cast<EnvDTE.Project>().FirstOrDefault(x => x.Name == projectName);
+            if (project is null)
+            {
+                Assert.True(false, $"{projectName} doesn't exist, had {string.Join(",", solution.Projects.Cast<EnvDTE.Project>().Select(p => p.Name))}");
+                throw new NotImplementedException("Prevent null fallthrough");
+            }
+
+            Assert.NotNull(project);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            return Path.Combine(projectPath, relativeFilePath);
+        }
+
+        private async Task<bool> IsSolutionOpenAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
+            return (bool)isOpen;
         }
 
         private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)

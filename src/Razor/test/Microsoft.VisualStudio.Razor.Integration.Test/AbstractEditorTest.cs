@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            await base.InitializeAsync();
 
             if (_solutionName != null)
             {

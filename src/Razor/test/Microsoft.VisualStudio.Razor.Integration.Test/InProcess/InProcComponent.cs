@@ -47,6 +47,14 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             return componentModel.GetService<TService>();
         }
 
+        protected async Task ExecuteCommandAsync(string commandName, CancellationToken cancellationToken, string args = "")
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            dte.ExecuteCommand(commandName, args);
+        }
+
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
