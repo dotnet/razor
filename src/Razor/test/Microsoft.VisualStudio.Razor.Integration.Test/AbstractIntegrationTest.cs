@@ -16,6 +16,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
+    // TODO: Start collecting LogFiles on failure
+
     /// <remarks>
     /// The following is the xunit execution order:
     ///

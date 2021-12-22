@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
         public async Task WaitForClassificationAsync(CancellationToken cancellationToken, string? expectedClassification = null)
         {
             var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var classifier = GetClassifier(textView, cancellationToken);
+            var classifier = await GetClassifierAsync(textView, cancellationToken);
 
             using var semaphore = new SemaphoreSlim(1);
             await semaphore.WaitAsync(cancellationToken);
@@ -118,14 +118,14 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                 selectionSpan = new SnapshotSpan(textView.TextSnapshot, new Span(0, textView.TextSnapshot.Length));
             }
 
-            var classifier = GetClassifier(textView, cancellationToken);
+            var classifier = await GetClassifierAsync(textView, cancellationToken);
             var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
             return classifiedSpans;
         }
 
-        private IClassifier GetClassifier(IWpfTextView textView, CancellationToken cancellationToken)
+        private async Task<IClassifier> GetClassifierAsync(IWpfTextView textView, CancellationToken cancellationToken)
         {
-            var classifierService = GetComponentModelService<IViewClassifierAggregatorService>(cancellationToken);
+            var classifierService = await GetComponentModelServiceAsync<IViewClassifierAggregatorService>(cancellationToken);
 
             return classifierService.GetClassifier(textView);
         }

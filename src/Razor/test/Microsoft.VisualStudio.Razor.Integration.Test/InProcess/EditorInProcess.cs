@@ -66,7 +66,9 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             return options.GetOptionValue(optionKey);
 
             static bool IsDebuggerTextView(IWpfTextView textView)
-                => textView.Roles.Contains("DEBUGVIEW");
+            {
+                return textView.Roles.Contains("DEBUGVIEW");
+            }
         }
 
         public async Task SetUseSuggestionModeAsync(bool value, CancellationToken cancellationToken)

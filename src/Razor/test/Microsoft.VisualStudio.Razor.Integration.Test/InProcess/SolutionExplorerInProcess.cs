@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -163,7 +162,9 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             await semaphore.WaitAsync(cancellationToken);
 
             void HandleAfterCloseSolution(object sender, EventArgs e)
-                => semaphore.Release();
+            {
+                semaphore.Release();
+            }
 
             solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
             try

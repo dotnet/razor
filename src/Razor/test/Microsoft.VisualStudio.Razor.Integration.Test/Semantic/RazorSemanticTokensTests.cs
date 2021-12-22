@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             static IEnumerable<ClassificationSpan> ParseSemanticBaseline(string semanticStr, ITextSnapshot snapshot)
             {
                 var result = new List<ClassificationSpan>();
-                var strArray = semanticStr.Split(new[] { Separator, Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                var strArray = semanticStr.Split(new[] { Separator.ToString(), Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 for (var i = 0; i < strArray.Length; i += 3)
                 {
                     if (!int.TryParse(strArray[i], out var position))
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
                 return result;
             }
         }
-        private const string Separator = ",";
+        private const char Separator = ',';
 
         private static void GenerateSemanticBaseline(IEnumerable<ClassificationSpan> actual, string baselineFileName)
         {

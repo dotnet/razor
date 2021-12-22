@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
@@ -24,12 +25,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisensePackageVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(MicrosoftInternalVisualStudioShellFrameworkPackageVersion)" />
-  </ItemGroup>
-
-  <ItemGroup Label="Assets">
-    <Content Include="..\testapps\**" CopyToOutputDirectory="PreserveNewest">
-      <Link>Assets\Razor\%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
