@@ -2,11 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -33,15 +35,21 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
         }
 
-        public async Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
+        public async Task AddProjectAsync(string projectName, string projectTemplate, string? groupId, string? templateId, string languageName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
             var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken);
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
-            // TODO: How do we deal with the button
-            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
+
+            var args = new List<object>();
+            if (groupId is not null)
+                args.Add($"$groupid$={groupId}");
+            if (groupId is not null)
+                args.Add($"$templateid$={templateId}");
+
+            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, args.Any() ? args.ToArray() : null, null, projectPath, projectName, null, out _));
         }
 
         public async Task RestoreNuGetPackagesAsync(CancellationToken cancellationToken)

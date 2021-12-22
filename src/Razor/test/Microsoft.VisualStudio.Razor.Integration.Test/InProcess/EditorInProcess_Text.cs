@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 
@@ -26,17 +25,5 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
         }
-
-        protected TService GetComponentModelService<TService>(CancellationToken cancellationToken)
-            where TService : class
-        => TestServices.InvokeOnUIThread(cancellationToken => GetComponentModel(cancellationToken).GetService<TService>(), cancellationToken);
-
-        protected IComponentModel GetComponentModel(CancellationToken cancellationToken)
-            => GetGlobalService<SComponentModel, IComponentModel>(cancellationToken);
-
-        protected TInterface GetGlobalService<TService, TInterface>(CancellationToken cancellationToken)
-            where TService : class
-            where TInterface : class
-        => TestServices.InvokeOnUIThread(cancellationToken => (TInterface)ServiceProvider.GlobalProvider.GetService(typeof(TService)), cancellationToken);
     }
 }

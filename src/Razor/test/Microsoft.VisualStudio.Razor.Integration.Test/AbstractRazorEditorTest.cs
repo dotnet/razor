@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await base.InitializeAsync();
 
             await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, LanguageName, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 
