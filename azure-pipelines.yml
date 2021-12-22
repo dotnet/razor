@@ -45,7 +45,7 @@ variables:
 - name: _PublishUsingPipelines
   value: true
 - name: PostBuildSign
-  value: true
+  value: false
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - name: _SignType
     value: ''
@@ -117,6 +117,7 @@ stages:
             vmImage: windows-latest
       jobs:
       - job: Windows
+        enableMicrobuild: true
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Public
@@ -215,7 +216,6 @@ stages:
     parameters:
       publishingInfraVersion: 3
       enableSymbolValidation: false
-      enableSigningValidation: false
       enableNugetValidation: false
       pool:
         vmImage: windows-latest
