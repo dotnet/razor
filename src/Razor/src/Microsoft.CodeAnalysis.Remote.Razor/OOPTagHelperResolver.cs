@@ -126,18 +126,18 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 return null;
             }
 
-            var tagHelpers = ConsumeTagHelpersFromDelta(projectSnapshot.FilePath, lastResultId, result.Value);
+            var tagHelpers = ProduceTagHelpersFromDelta(projectSnapshot.FilePath, lastResultId, result.Value);
 
             var resolutionResult = new TagHelperResolutionResult(tagHelpers, diagnostics: Array.Empty<RazorDiagnostic>());
             return resolutionResult;
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyList<TagHelperDescriptor> ConsumeTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+        protected virtual IReadOnlyList<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
         {
             if (!_resultCache.TryGet(projectFilePath, lastResultId, out var tagHelpers))
             {
-                // We most likely haven't made a request to the server yet so there's no "delta" to apply
+                // We most likely haven't made a request to the server yet so there's no delta to apply
                 tagHelpers = Array.Empty<TagHelperDescriptor>();
 
                 if (deltaResult.Delta)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             }
             else if (!deltaResult.Delta)
             {
-                // Not a delta based response, we should treat it as a "refresH"
+                // Not a delta based response, we should treat it as a "refresh"
                 tagHelpers = Array.Empty<TagHelperDescriptor>();
             }
 

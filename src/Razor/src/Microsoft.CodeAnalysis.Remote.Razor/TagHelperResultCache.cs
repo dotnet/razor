@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         {
             if (!_projectResultCache.TryGetValue(projectFilePath, out var cachedResult))
             {
-                // Don't know about this project, miss!
                 cachedTagHelpers = null;
                 return false;
             }
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         {
             if (!_projectResultCache.TryGetValue(projectFilePath, out var cachedResult))
             {
-                // Don't know about this project, miss!
                 resultId = -1;
                 return false;
             }
