@@ -398,7 +398,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
                 {
                     // If for some reason we don't match a particular span use the indentation for the whole line
-                    var indentation = context.Indentations[range.Start.Line];
+                    var indentations = context.GetIndentations();
+                    var indentation = indentations[range.Start.Line];
                     desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
                 }
 
