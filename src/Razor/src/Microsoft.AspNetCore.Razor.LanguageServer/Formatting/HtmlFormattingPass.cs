@@ -70,13 +70,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 normalizedEdits = NormalizeTextEdits(originalText, htmlEdits);
             }
 
-            var mappedEdits = RemapTextEdits(context.CodeDocument, normalizedEdits, RazorLanguageKind.Html);
-            var changes = mappedEdits.Select(e => e.AsTextChange(originalText));
-
             var changedText = originalText;
             var changedContext = context;
-            if (changes.Any())
+
+            if (normalizedEdits.Length > 0)
             {
+                var changes = normalizedEdits.Select(e => e.AsTextChange(originalText));
                 changedText = originalText.WithChanges(changes);
                 // Create a new formatting context for the changed razor document.
                 changedContext = await context.WithTextAsync(changedText);
