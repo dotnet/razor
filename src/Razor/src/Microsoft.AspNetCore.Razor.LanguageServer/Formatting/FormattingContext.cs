@@ -296,7 +296,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var codeDocument = _engine!.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
 
-            ValidateComponents(CodeDocument, codeDocument);
+            DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
             var newContext = new FormattingContext(
                 _engine,
@@ -335,7 +335,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// Without this guarantee its hard to reason about test behaviour/failures.
         /// </summary>
         [Conditional("DEBUG")]
-        private static void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
+        private static void DEBUG_ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
         {
             if (SkipValidateComponents)
             {
