@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             var asyncSession = (IAsyncLightBulbSession)activeSession;
             var tcs = new TaskCompletionSource<List<SuggestedActionSet>>();
 
-            void handler(object s, SuggestedActionsUpdatedArgs e)
+            void Handler(object s, SuggestedActionsUpdatedArgs e)
             {
                 // ignore these.  we care about when the lightbulb items are all completed.
                 if (e.Status == QuerySuggestedActionCompletionStatus.InProgress)
@@ -67,10 +67,10 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                 else
                     tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
-                asyncSession.SuggestedActionsUpdated -= handler;
+                asyncSession.SuggestedActionsUpdated -= Handler;
             }
 
-            asyncSession.SuggestedActionsUpdated += handler;
+            asyncSession.SuggestedActionsUpdated += Handler;
 
             asyncSession.Dismissed += (_, _) => tcs.TrySetCanceled(new CancellationToken(true));
 

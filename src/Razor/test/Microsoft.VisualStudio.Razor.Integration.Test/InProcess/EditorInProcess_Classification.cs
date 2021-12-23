@@ -82,14 +82,19 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 
                 if (actualClassification.ClassificationType.BaseTypes.Count() > 1)
                 {
-                    foreach (var baseType in actualClassification.ClassificationType.BaseTypes)
+                    Assert.Equal(expectedClassification.Span, actualClassification.Span);
+                    var semanticBaseTypes = actualClassification.ClassificationType.BaseTypes.Where(t => t is ILayeredClassificationType layered && layered.Layer == ClassificationLayer.Semantic);
+                    if (semanticBaseTypes.Count() == 1)
                     {
-                        if (baseType is ILayeredClassificationType layeredClassification &&
-                            layeredClassification.Layer == ClassificationLayer.Semantic)
-                        {
-                            Assert.Equal(expectedClassification.Span, actualClassification.Span);
-                            Assert.Equal(expectedClassification.ClassificationType.Classification, layeredClassification.Classification);
-                        }
+                        Assert.Equal(expectedClassification.ClassificationType.Classification, semanticBaseTypes.First().Classification);
+                    }
+                    else if (semanticBaseTypes.Count() > 1)
+                    {
+                        Assert.Contains(expectedClassification.ClassificationType.Classification, semanticBaseTypes.Select(s => s.Classification));
+                    }
+                    else
+                    {
+                        Assert.True(false, "Did not have semantic basetype");
                     }
                 }
                 else if (!expectedClassification.Span.Span.Equals(actualClassification.Span.Span)
