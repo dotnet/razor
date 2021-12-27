@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Razor
 
             if (obj.Descriptors != null)
             {
-                for (var i = 0; i < obj.Descriptors.Count; i++)
+                foreach (var descriptor in obj.Descriptors)
                 {
-                    hash.Add(obj.Descriptors[i]);
+                    hash.Add(descriptor);
                 }
             }
 

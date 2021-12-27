@@ -231,10 +231,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 return OnResolveInProcess(projectSnapshot);
             }
 
-            public IReadOnlyList<TagHelperDescriptor> PublicProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+            public IReadOnlyCollection<TagHelperDescriptor> PublicProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
                 => ProduceTagHelpersFromDelta(projectFilePath, lastResultId, deltaResult);
 
-            protected override IReadOnlyList<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+            protected override IReadOnlyCollection<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
                 => base.ProduceTagHelpersFromDelta(projectFilePath, lastResultId, deltaResult);
         }
 

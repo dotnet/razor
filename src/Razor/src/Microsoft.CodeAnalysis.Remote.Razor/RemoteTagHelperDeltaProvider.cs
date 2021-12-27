@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public TagHelperDeltaResult GetTagHelpersDelta(
             string projectFilePath,
             int lastResultId,
-            IReadOnlyList<TagHelperDescriptor> currentTagHelpers)
+            IReadOnlyCollection<TagHelperDescriptor> currentTagHelpers)
         {
             var deltaApplied = true;
             if (!_resultCache.TryGet(projectFilePath, lastResultId, out var cachedTagHelpers))
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             }
         }
 
-        private static IReadOnlyList<TagHelperDescriptor> GetAddedTagHelpers(IReadOnlyList<TagHelperDescriptor> current, IReadOnlyList<TagHelperDescriptor> old)
+        private static IReadOnlyCollection<TagHelperDescriptor> GetAddedTagHelpers(IReadOnlyCollection<TagHelperDescriptor> current, IReadOnlyCollection<TagHelperDescriptor> old)
         {
             if (old.Count == 0)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             return added;
         }
 
-        private static IReadOnlyList<TagHelperDescriptor> GetRemovedTagHelpers(IReadOnlyList<TagHelperDescriptor> current, IReadOnlyList<TagHelperDescriptor> old)
+        private static IReadOnlyCollection<TagHelperDescriptor> GetRemovedTagHelpers(IReadOnlyCollection<TagHelperDescriptor> current, IReadOnlyCollection<TagHelperDescriptor> old)
         {
             if (old.Count == 0)
             {

@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
@@ -16,6 +17,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public static readonly ProjectWorkspaceState Default = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
 
+        public ProjectWorkspaceState(
+            IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
+            LanguageVersion csharpLanguageVersion)
+            : this (tagHelpers.ToList(), csharpLanguageVersion)
+        {
+        }
+
+        [JsonConstructor]
         public ProjectWorkspaceState(
             IReadOnlyList<TagHelperDescriptor> tagHelpers,
             LanguageVersion csharpLanguageVersion)
