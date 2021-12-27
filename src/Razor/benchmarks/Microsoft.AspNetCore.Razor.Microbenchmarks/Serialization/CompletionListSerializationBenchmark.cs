@@ -15,7 +15,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using System.IO;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 {
     public class CompletionListSerializationBenchmark : TagHelperBenchmarkBase
     {

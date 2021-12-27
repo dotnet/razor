@@ -10,7 +10,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 {
     public class SourceTextDifferBenchmark
     {

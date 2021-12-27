@@ -32,7 +32,9 @@
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
 
-    <Compile Include="$(SharedSourceRoot)BenchmarkRunner\*.cs" />
+    <Compile Include="$(SharedSourceRoot)BenchmarkRunner\*.cs">
+      <Link>BenchmarkRunner\%(FileName)%(Extension)</Link>
+    </Compile>
 
     <None Include="MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
