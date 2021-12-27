@@ -40,6 +40,8 @@ namespace BenchmarkDotNet.Attributes
                 .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net5.0", null, ".NET Core 5.0")))
 #elif NET6_0
                 .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net6.0", null, ".NET 6.0")))
+#elif NET472
+                .WithToolchain(CsProjClassicNetToolchain.Net472)
 #else
 #error Target frameworks need to be updated.
 #endif
