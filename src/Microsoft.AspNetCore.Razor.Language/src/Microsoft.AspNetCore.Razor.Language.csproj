@@ -5,6 +5,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <!-- Need to build this project in source build -->
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

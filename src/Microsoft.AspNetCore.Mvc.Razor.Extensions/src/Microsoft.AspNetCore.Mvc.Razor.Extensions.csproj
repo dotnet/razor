@@ -6,6 +6,7 @@
     <PackageTags>$(PackageTags);aspnetcoremvc</PackageTags>
     <!-- Need to build this project in source build -->
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

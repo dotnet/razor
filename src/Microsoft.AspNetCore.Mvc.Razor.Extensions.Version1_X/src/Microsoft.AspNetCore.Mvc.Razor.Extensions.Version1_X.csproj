@@ -10,6 +10,7 @@
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <!-- No need to track public APIs of this design-time build infrastructure. -->
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
