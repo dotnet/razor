@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyList<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+        protected virtual IReadOnlyCollection<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
         {
             if (!_resultCache.TryGet(projectFilePath, lastResultId, out var tagHelpers))
             {
