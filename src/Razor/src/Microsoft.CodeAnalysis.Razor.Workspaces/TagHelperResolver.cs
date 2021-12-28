@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 return TagHelperResolutionResult.Empty;
             }
 
-            var results = new List<TagHelperDescriptor>();
+            var results = new HashSet<TagHelperDescriptor>();
             var context = TagHelperDescriptorProviderContext.Create(results);
             context.ExcludeHidden = true;
             context.IncludeDocumentation = true;

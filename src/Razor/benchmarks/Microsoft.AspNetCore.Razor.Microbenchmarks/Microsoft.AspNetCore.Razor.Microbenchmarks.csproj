@@ -11,14 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Serialization\*.cs">
-      <Link>Serialization\%(FileName)%(Extension)</Link>
-    </Compile>
     <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\TestServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>

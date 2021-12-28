@@ -10,16 +10,21 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
     internal record TagHelperDeltaResult(
         bool Delta,
         int ResultId,
-        IReadOnlyList<TagHelperDescriptor> Added,
-        IReadOnlyList<TagHelperDescriptor> Removed)
+        IReadOnlyCollection<TagHelperDescriptor> Added,
+        IReadOnlyCollection<TagHelperDescriptor> Removed)
     {
-        public IReadOnlyList<TagHelperDescriptor> Apply(IReadOnlyList<TagHelperDescriptor> baseTagHelpers)
+        public IReadOnlyCollection<TagHelperDescriptor> Apply(IReadOnlyCollection<TagHelperDescriptor> baseTagHelpers)
         {
             if (Added.Count == 0 && Removed.Count == 0)
             {
                 return baseTagHelpers;
             }
 
+            // We're specifically choosing to create a List here instead of an alternate type like HashSet because
+            // results that are produced from `Apply` are typically fed back into two different systems:
+            //
+            // 1. This TagHelperDeltaResult.Apply where we don't iterate / Contains check the "base" collection.
+            // 2. The rest of the Razor project system. Everything there is always indexed / iterated as a list.
             var newTagHelpers = new List<TagHelperDescriptor>(baseTagHelpers.Count + Added.Count - Removed.Count);
             newTagHelpers.AddRange(Added);
 

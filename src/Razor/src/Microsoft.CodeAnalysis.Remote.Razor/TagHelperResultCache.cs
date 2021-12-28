@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             _projectResultCache = new MemoryCache<string, ProjectResultCacheEntry>(sizeLimit: 50);
         }
 
-        public bool TryGet(string projectFilePath, int resultId, out IReadOnlyList<TagHelperDescriptor>? cachedTagHelpers)
+        public bool TryGet(string projectFilePath, int resultId, out IReadOnlyCollection<TagHelperDescriptor>? cachedTagHelpers)
         {
             if (!_projectResultCache.TryGetValue(projectFilePath, out var cachedResult))
             {
@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             return true;
         }
 
-        public void Set(string projectFilePath, int resultId, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+        public void Set(string projectFilePath, int resultId, IReadOnlyCollection<TagHelperDescriptor> tagHelpers)
         {
             var cacheEntry = new ProjectResultCacheEntry(resultId, tagHelpers);
             _projectResultCache.Set(projectFilePath, cacheEntry);
         }
 
-        private record ProjectResultCacheEntry(int ResultId, IReadOnlyList<TagHelperDescriptor> Descriptors);
+        private record ProjectResultCacheEntry(int ResultId, IReadOnlyCollection<TagHelperDescriptor> Descriptors);
     }
 }

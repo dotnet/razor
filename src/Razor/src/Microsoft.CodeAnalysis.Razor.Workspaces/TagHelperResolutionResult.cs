@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
@@ -16,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         internal static readonly TagHelperResolutionResult Empty = new TagHelperResolutionResult(Array.Empty<TagHelperDescriptor>(), Array.Empty<RazorDiagnostic>());
 
-        public TagHelperResolutionResult(IReadOnlyList<TagHelperDescriptor> descriptors, IReadOnlyList<RazorDiagnostic> diagnostics)
+        public TagHelperResolutionResult(IReadOnlyCollection<TagHelperDescriptor> descriptors, IReadOnlyList<RazorDiagnostic> diagnostics)
         {
             Descriptors = descriptors;
             Diagnostics = diagnostics;
         }
 
-        public IReadOnlyList<TagHelperDescriptor> Descriptors { get; }
+        public IReadOnlyCollection<TagHelperDescriptor> Descriptors { get; }
 
         public IReadOnlyList<RazorDiagnostic> Diagnostics { get; }
     }
