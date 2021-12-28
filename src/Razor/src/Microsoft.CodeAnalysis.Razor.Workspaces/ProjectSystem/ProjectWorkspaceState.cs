@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public ProjectWorkspaceState(
             IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
             LanguageVersion csharpLanguageVersion)
-            : this (tagHelpers.ToList(), csharpLanguageVersion)
+            : this ((tagHelpers as IReadOnlyList<TagHelperDescriptor>) ?? tagHelpers.ToList(), csharpLanguageVersion)
         {
         }
 

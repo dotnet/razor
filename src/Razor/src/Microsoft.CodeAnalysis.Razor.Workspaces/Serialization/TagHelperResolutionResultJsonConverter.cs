@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             writer.WriteStartObject();
 
-            writer.WritePropertyArray(nameof(TagHelperResolutionResult.Descriptors), result.Descriptors.ToList(), _serializer);
+            writer.WritePropertyArray(nameof(TagHelperResolutionResult.Descriptors), result.Descriptors, _serializer);
             writer.WritePropertyArray(nameof(TagHelperResolutionResult.Diagnostics), result.Diagnostics, _serializer);
 
             writer.WriteEndObject();
