@@ -66,7 +66,10 @@ stages:
               demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
             ${{ if ne(variables['System.TeamProject'], 'public') }}:
               name: NetCore1ESPool-Internal
-              demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre
+              demands:
+              - ImageOverride -equals Build.Windows.Amd64.VS2022.Main
+              - agent.os -equals Windows_NT
+              - agent.osArchitecture -equals x64
           steps:
           - task: NodeTool@0
             displayName: Install Node 10.x
