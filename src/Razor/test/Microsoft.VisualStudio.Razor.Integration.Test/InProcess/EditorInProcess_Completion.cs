@@ -3,7 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 {
@@ -13,12 +13,14 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            //await WaitForCompletionSetAsync(cancellationToken);
-
             var view = await GetActiveTextViewAsync(cancellationToken);
 
-            var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
-            broker.DismissAllSessions(view);
+            var asyncBroker = await GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
+            var session = asyncBroker.GetSession(view);
+            if (session is not null && !session.IsDismissed)
+            {
+                session.Dismiss();
+            }
         }
     }
 }

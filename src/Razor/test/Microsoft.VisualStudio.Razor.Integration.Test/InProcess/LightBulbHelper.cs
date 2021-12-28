@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
         public static async Task<IEnumerable<SuggestedActionSet>> WaitForItemsAsync(ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
         {
             var activeSession = broker.GetSession(view);
-            if (activeSession == null)
+            if (activeSession is null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
                 throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={bufferType}");

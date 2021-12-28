@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         {
             get
             {
-                return _testServices ?? throw new InvalidOperationException();
+                return _testServices ?? throw new InvalidOperationException($"{nameof(TestServices)} called before being set.");
             }
 
             private set
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         }
 
         protected JoinableTaskFactory JoinableTaskFactory
-            => _joinableTaskFactory ?? throw new InvalidOperationException();
+            => _joinableTaskFactory ?? throw new InvalidOperationException($"{nameof(JoinableTaskFactory)} called before {nameof(JoinableTaskContext)} was set.");
 
         protected CancellationToken HangMitigatingCancellationToken
             => _hangMitigatingCancellationTokenSource.Token;

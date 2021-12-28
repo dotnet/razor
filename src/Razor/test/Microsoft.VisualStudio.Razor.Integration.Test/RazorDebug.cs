@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
-    internal static class RoslynDebug
+    internal static class RazorDebug
     {
         /// <inheritdoc cref="Debug.Assert(bool)"/>
         [Conditional("DEBUG")]

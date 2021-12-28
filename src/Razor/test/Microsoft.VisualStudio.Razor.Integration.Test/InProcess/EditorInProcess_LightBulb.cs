@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             }
 
             var session = broker.GetSession(view);
-            if (session == null || !session.IsExpanded)
+            if (session is null || !session.IsExpanded)
             {
                 return false;
             }

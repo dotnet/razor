@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             var directoryPath = Path.GetDirectoryName(filePath);
             Directory.CreateDirectory(directoryPath);
 
-            if (contents != null)
+            if (contents is not null)
             {
                 File.WriteAllText(filePath, contents);
             }

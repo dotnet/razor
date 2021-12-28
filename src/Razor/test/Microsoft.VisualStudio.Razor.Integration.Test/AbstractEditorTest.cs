@@ -35,10 +35,10 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         {
             await base.InitializeAsync();
 
-            if (_solutionName != null)
+            if (_solutionName is not null)
             {
-                RoslynDebug.AssertNotNull(_projectTemplate);
-                RoslynDebug.AssertNotNull(_projectName);
+                RazorDebug.AssertNotNull(_projectTemplate);
+                RazorDebug.AssertNotNull(_projectName);
 
                 await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.AddProjectAsync(_projectName, _projectTemplate, LanguageName, HangMitigatingCancellationToken);
@@ -59,19 +59,9 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Editor.DismissCompletionSessionsAsync(cancellationToken);
             await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
 
-            //var originalValue = await TestServices.Workspace.IsPrettyListingOnAsync(LanguageName, cancellationToken);
-
-            //await TestServices.Workspace.SetPrettyListingAsync(LanguageName, false, cancellationToken);
-            try
-            {
-                await TestServices.Editor.SetTextAsync(code, cancellationToken);
-                await TestServices.Editor.MoveCaretAsync(caretPosition, cancellationToken);
-                await TestServices.Editor.ActivateAsync(cancellationToken);
-            }
-            finally
-            {
-                //await TestServices.Workspace.SetPrettyListingAsync(LanguageName, originalValue, cancellationToken);
-            }
+            await TestServices.Editor.SetTextAsync(code, cancellationToken);
+            await TestServices.Editor.MoveCaretAsync(caretPosition, cancellationToken);
+            await TestServices.Editor.ActivateAsync(cancellationToken);
         }
     }
 }
