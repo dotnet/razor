@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly Dictionary<string, string> _mappings;
         private readonly object _mappingsLock;
 
-        public override event EventHandler<ProjectConfigurationFilePathChangedEventArgs> Changed;
+        public override event EventHandler<ProjectConfigurationFilePathChangedEventArgs>? Changed;
 
         [ImportingConstructor]
         public DefaultProjectConfigurationFilePathStore()

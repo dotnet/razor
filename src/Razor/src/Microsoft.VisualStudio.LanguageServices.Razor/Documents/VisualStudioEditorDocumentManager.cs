@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +27,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private readonly Dictionary<uint, List<DocumentKey>> _documentsByCookie;
         private readonly Dictionary<DocumentKey, uint> _cookiesByDocument;
+        private bool _advised;
 
         public VisualStudioEditorDocumentManager(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -52,9 +55,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
 
-            var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
-            Marshal.ThrowExceptionForHR(hr);
-
             _documentsByCookie = new Dictionary<uint, List<DocumentKey>>();
             _cookiesByDocument = new Dictionary<DocumentKey, uint>();
         }
@@ -68,6 +68,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             JoinableTaskContext.AssertUIThread();
 
+            EnsureDocumentTableAdvised();
+
             // Check if the document is already open and initialized, and associate a buffer if possible.
             uint cookie;
             if (_runningDocumentTable.IsMonikerValid(filePath) &&
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 // GetDocumentData requires the UI thread
                 var documentData = _runningDocumentTable.GetDocumentData(cookie);
 
-                var textBuffer = !(documentData is VsTextBuffer vsTextBuffer)
+                var textBuffer = documentData is not VsTextBuffer vsTextBuffer
                     ? null
                     : _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
                 return textBuffer;
@@ -90,6 +92,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
+            EnsureDocumentTableAdvised();
+
             var cookie = _runningDocumentTable.GetDocumentCookie(document.DocumentFilePath);
             if (cookie != VSConstants.VSCOOKIE_NIL)
             {
@@ -101,6 +105,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
+            EnsureDocumentTableAdvised();
+
             var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
             if (_cookiesByDocument.TryGetValue(key, out var cookie))
             {
@@ -111,6 +117,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void DocumentOpened(uint cookie)
         {
             JoinableTaskContext.AssertUIThread();
+
+            EnsureDocumentTableAdvised();
 
             lock (Lock)
             {
@@ -125,7 +133,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     }
 
                     var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
-                    if (textBuffer == null)
+                    if (textBuffer is null)
                     {
                         // The text buffer has not been created yet, register to be notified when it is.
                         VsTextBufferDataEventsSink.Subscribe(vsTextBuffer, () => BufferLoaded(vsTextBuffer, filePath));
@@ -148,6 +156,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
+            EnsureDocumentTableAdvised();
+
             var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
             if (textBuffer != null)
             {
@@ -164,6 +174,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
+            EnsureDocumentTableAdvised();
+
             lock (Lock)
             {
                 for (var i = 0; i < documents.Length; i++)
@@ -176,6 +188,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void DocumentClosed(uint cookie, string exceptFilePath = null)
         {
             JoinableTaskContext.AssertUIThread();
+
+            EnsureDocumentTableAdvised();
 
             lock (Lock)
             {
@@ -201,6 +215,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
+            EnsureDocumentTableAdvised();
+
             // Ignore changes is casing
             if (FilePathComparer.Instance.Equals(fromFilePath, toFilePath))
             {
@@ -220,6 +236,18 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             if ((_runningDocumentTable.GetDocumentFlags(cookie) & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0)
             {
                 DocumentOpened(cookie);
+            }
+        }
+
+        private void EnsureDocumentTableAdvised()
+        {
+            JoinableTaskContext.AssertUIThread();
+
+            if (!_advised)
+            {
+                _advised = true;
+                var hr = ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
+                Marshal.ThrowExceptionForHR(hr);
             }
         }
 

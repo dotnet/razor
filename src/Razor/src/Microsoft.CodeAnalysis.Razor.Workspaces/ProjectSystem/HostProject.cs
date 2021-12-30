@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -10,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public HostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (razorConfiguration == null)
+            if (razorConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(razorConfiguration));
             }

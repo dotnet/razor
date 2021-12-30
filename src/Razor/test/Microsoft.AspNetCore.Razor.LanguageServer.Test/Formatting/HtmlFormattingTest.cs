@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -821,6 +823,49 @@ else
     </table>
 }
 ");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5749")]
+        public async Task FormatRenderFragmentInCSharpCodeBlock(bool useSourceTextDiffer)
+        {
+            // Sadly the first thing the HTML formatter does with this input
+            // is put a newline after the @, which means <SurveyPrompt /> won't be
+            // seen as a component any more, so we have to turn off our validation,
+            // or the test fails before we have a chance to fix the formatting.
+            FormattingContext.SkipValidateComponents = true;
+
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@code
+{
+    public void DoStuff(RenderFragment renderFragment)
+    {
+        renderFragment(@<SurveyPrompt Title=""Foo"" />);
+
+        @* comment *@
+<div></div>
+
+        @* comment *@<div></div>
+    }
+}
+",
+expected: @"@code
+{
+    public void DoStuff(RenderFragment renderFragment)
+    {
+        renderFragment(@<SurveyPrompt Title=""Foo"" />);
+
+        @* comment *@
+        <div></div>
+
+        @* comment *@
+        <div></div>
+    }
+}
+",
+tagHelpers: GetSurveyPrompt());
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()

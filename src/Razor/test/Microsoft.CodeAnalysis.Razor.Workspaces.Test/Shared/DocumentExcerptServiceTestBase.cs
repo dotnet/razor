@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Razor
             HostDocument = TestProjectData.SomeProjectFile1;
         }
 
-        public (SourceText sourceText, TextSpan span) CreateText(string text)
+        public static (SourceText sourceText, TextSpan span) CreateText(string text)
         {
             if (text is null)
             {
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         // Maps a span in the primary buffer to the secondary buffer. This is only valid for C# code
         // that appears in the primary buffer.
-        private async Task<TextSpan> GetSecondarySpanAsync(DocumentSnapshot primary, TextSpan primarySpan, Document secondary)
+        private static async Task<TextSpan> GetSecondarySpanAsync(DocumentSnapshot primary, TextSpan primarySpan, Document secondary)
         {
             var output = await primary.GetGeneratedOutputAsync();
 
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             var (razorSourceText, primarySpan) = CreateText(razorSource);
             var (primary, generatedDocument) = InitializeDocument(razorSourceText);
-            var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
+            var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
             return (generatedDocument, razorSourceText, primarySpan, generatedSpan);
         }
 
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             var (razorSourceText, primarySpan) = CreateText(razorSource);
             var (primary, generatedDocument) = InitializeDocument(razorSourceText);
-            var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
+            var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
             return (primary, generatedDocument, generatedSpan);
         }
     }

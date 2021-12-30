@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override IRazorDocumentExcerptService GetExcerptService()
         {
-            if (_excerptService == null)
+            if (_excerptService is null)
             {
                 var mappingService = GetMappingService();
                 _excerptService = new RazorDocumentExcerptService(_documentSnapshot, mappingService);
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override IRazorSpanMappingService GetMappingService()
         {
-            if (_mappingService == null)
+            if (_mappingService is null)
             {
                 _mappingService = new RazorSpanMappingService(_documentSnapshot);
             }

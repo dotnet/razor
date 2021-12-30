@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             HostDocument hostDocument,
             Func<Task<TextAndVersion>> loader)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (hostDocument == null)
+            if (hostDocument is null)
             {
                 throw new ArgumentNullException(nameof(hostDocument));
             }
@@ -77,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             get
             {
-                if (_computedState == null)
+                if (_computedState is null)
                 {
                     lock (_lock)
                     {
-                        if (_computedState == null)
+                        if (_computedState is null)
                         {
                             _computedState = new ComputedStateTracker(this);
                         }
@@ -221,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public virtual DocumentState WithText(SourceText sourceText, VersionStamp version)
         {
-            if (sourceText == null)
+            if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }
@@ -233,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public virtual DocumentState WithTextLoader(Func<Task<TextAndVersion>> loader)
         {
-            if (loader == null)
+            if (loader is null)
             {
                 throw new ArgumentNullException(nameof(loader));
             }
@@ -249,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
             var projectItem = projectEngine.FileSystem.GetItem(HostDocument.FilePath, HostDocument.FileKind);
             var importItems = importFeatures.SelectMany(f => f.GetImports(projectItem));
-            if (importItems == null)
+            if (importItems is null)
             {
                 return Array.Empty<DocumentSnapshot>();
             }
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var imports = new List<DocumentSnapshot>();
             foreach (var item in importItems)
             {
-                if (item.PhysicalPath == null)
+                if (item.PhysicalPath is null)
                 {
                     // This is a default import.
                     var defaultImport = new DefaultImportDocumentSnapshot(project, item);
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 else
                 {
                     var import = project.GetDocument(item.PhysicalPath);
-                    if (import == null)
+                    if (import is null)
                     {
                         // We are not tracking this document in this project. So do nothing.
                         continue;
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 get
                 {
-                    if (_taskUnsafeReference == null)
+                    if (_taskUnsafeReference is null)
                     {
                         return false;
                     }
@@ -316,24 +318,24 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
             {
-                if (project == null)
+                if (project is null)
                 {
                     throw new ArgumentNullException(nameof(project));
                 }
 
-                if (document == null)
+                if (document is null)
                 {
                     throw new ArgumentNullException(nameof(document));
                 }
 
-                if (_taskUnsafeReference == null ||
+                if (_taskUnsafeReference is null ||
                     !_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
                     TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs = null;
 
                     lock (_lock)
                     {
-                        if (_taskUnsafeReference == null ||
+                        if (_taskUnsafeReference is null ||
                             !_taskUnsafeReference.TryGetTarget(out taskUnsafe))
                         {
                             // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
@@ -347,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         }
                     }
 
-                    if (tcs == null)
+                    if (tcs is null)
                     {
                         // There's no task completion source created meaning a value was retrieved from cache, just return it.
                         return taskUnsafe;
@@ -472,14 +474,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 var projectEngine = project.GetProjectEngine();
                 foreach (var item in imports)
                 {
-                    var importProjectItem = item.FilePath == null ? null : projectEngine.FileSystem.GetItem(item.FilePath, item.FileKind);
+                    var importProjectItem = item.FilePath is null ? null : projectEngine.FileSystem.GetItem(item.FilePath, item.FileKind);
                     var sourceDocument = await GetRazorSourceDocumentAsync(item.Document, importProjectItem).ConfigureAwait(false);
                     importSources.Add(sourceDocument);
                 }
 
-                var projectItem = document.FilePath == null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
+                var projectItem = document.FilePath is null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
                 var documentSource = await GetRazorSourceDocumentAsync(document, projectItem).ConfigureAwait(false);
-
 
                 var codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
                 var csharpDocument = codeDocument.GetCSharpDocument();

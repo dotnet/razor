@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         [ImportingConstructor]
         public DefaultVisualStudioMacWorkspaceAccessor(TextBufferProjectService projectService)
         {
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
@@ -31,7 +33,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -42,7 +44,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             // Workspace using MonoDevelops TypeSystemService.
 
             var hostProject = (DotNetProject)_projectService.GetHostProject(textBuffer);
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 // Does not have a host project.
                 workspace = null;
@@ -50,7 +52,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             var hostSolution = hostProject.ParentSolution;
-            if (hostSolution == null)
+            if (hostSolution is null)
             {
                 // Project does not have a solution
                 workspace = null;
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override bool TryGetWorkspace(Solution solution, out Workspace workspace)
         {
-            if (solution == null)
+            if (solution is null)
             {
                 throw new ArgumentNullException(nameof(solution));
             }

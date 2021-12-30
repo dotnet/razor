@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Threading;
@@ -62,7 +64,7 @@ namespace Xunit
 
                     Dispatcher.PushFrame(frame);
 
-                    if (caught == null)
+                    if (caught is null)
                     {
                         tcs.SetResult(worker.Result);
                     }

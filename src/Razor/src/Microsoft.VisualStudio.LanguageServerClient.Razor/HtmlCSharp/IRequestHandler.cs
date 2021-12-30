@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
     }
 
-    internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
+    internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler where RequestType : class
     {
         /// <summary>
         /// Handles an LSP request.
@@ -23,6 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the LSP response.</returns>
-        Task<ResponseType> HandleRequestAsync(RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
+        Task<ResponseType?> HandleRequestAsync(RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
     }
 }

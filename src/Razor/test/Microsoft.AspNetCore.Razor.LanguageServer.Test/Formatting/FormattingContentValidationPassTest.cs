@@ -118,7 +118,7 @@ public class Foo { }
 
         private FormattingContentValidationPass GetPass()
         {
-            var mappingService = new DefaultRazorDocumentMappingService();
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
             var pass = new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory)
@@ -129,7 +129,7 @@ public class Foo { }
             return pass;
         }
 
-        private static FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string fileKind = null)
+        private static FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
         {
             var path = "file:///path/to/document.razor";
             var uri = new Uri(path);
@@ -140,11 +140,11 @@ public class Foo { }
                 InsertSpaces = insertSpaces,
             };
 
-            var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+            var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance, isFormatOnType: false, automaticallyAddUsings: false);
             return context;
         }
 
-        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string fileKind = default)
+        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default)
         {
             fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();

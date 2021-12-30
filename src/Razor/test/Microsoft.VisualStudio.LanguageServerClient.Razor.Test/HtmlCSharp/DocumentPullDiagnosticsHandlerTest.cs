@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DocumentPullDiagnosticsHandlerTest
     {
-        private static readonly Diagnostic s_validDiagnostic_UnknownName = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_UnknownName = new()
         {
             Range = new Range()
             {
@@ -34,13 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "The name 'saflkjklj' does not exist in the current context"
         };
 
-        private static readonly Range s_validDiagnostic_UnknownName_MappedRange = new Range()
+        private static readonly Range s_validDiagnostic_UnknownName_MappedRange = new()
         {
             Start = new Position(49, 19),
             End = new Position(49, 23)
         };
 
-        private static readonly Diagnostic s_validDiagnostic_InvalidExpression = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_InvalidExpression = new()
         {
             Range = new Range()
             {
@@ -52,13 +53,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "Invalid expression term 'bool'"
         };
 
-        private static readonly Range s_validDiagnostic_InvalidExpression_MappedRange = new Range()
+        private static readonly Range s_validDiagnostic_InvalidExpression_MappedRange = new()
         {
             Start = new Position(50, 19),
             End = new Position(50, 23)
         };
 
-        private static readonly Diagnostic s_unusedUsingsDiagnostic = new Diagnostic()
+        private static readonly Diagnostic s_unusedUsingsDiagnostic = new()
         {
             Range = new Range()
             {
@@ -70,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "Using directive is unnecessary."
         };
 
-        private static readonly Diagnostic s_removeUnnecessaryImportsFixableDiagnostic = new Diagnostic()
+        private static readonly Diagnostic s_removeUnnecessaryImportsFixableDiagnostic = new()
         {
             Range = new Range()
             {
@@ -430,6 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 await Task.CompletedTask;
             }
+
             var expectedResponses = GetExpectedResultsAsync();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker

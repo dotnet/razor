@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "microsoft.aspnetcore.razor.vscode": "link:../../src/Microsoft.AspNetCore.Razor.VSCode",
+    "tar": "^6.1.11",
     "vscode-test": "^1.3.0"
   }
 }

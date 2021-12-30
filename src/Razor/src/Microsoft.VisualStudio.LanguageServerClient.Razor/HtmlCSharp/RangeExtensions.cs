@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static Range Overlap(this Range range, Range other)
+        public static Range? Overlap(this Range range, Range other)
         {
             if (range is null)
             {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectSnapshotManagerBase projectManager)
             : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (_projectManager == null)
+            if (_projectManager is null)
             {
                 _projectManager = (ProjectSnapshotManagerBase)_workspace.Services.GetLanguageServices(RazorLanguage.Name).GetRequiredService<ProjectSnapshotManager>();
             }
@@ -178,11 +180,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         protected void UpdateProjectUnsafe(HostProject project)
         {
             var projectManager = GetProjectManager();
-            if (Current == null && project == null)
+            if (Current is null && project is null)
             {
                 // This is a no-op. This project isn't using Razor.
             }
-            else if (Current == null && project != null)
+            else if (Current is null && project != null)
             {
                 // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
                 // ensure we're going to actually do something with the new project that we've just been told about.
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 projectManager.ProjectAdded(project);
             }
-            else if (Current != null && project == null)
+            else if (Current != null && project is null)
             {
                 Debug.Assert(_currentDocuments.Count == 0);
                 projectManager.ProjectRemoved(Current);
@@ -294,6 +296,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 path = null;
                 return false;
             }
+
             var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
             var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
 
@@ -309,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 //
                 // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
                 joinedPath = ResolveFallbackIntermediateOutputPath(rule, intermediateOutputPathValue);
-                if (joinedPath == null)
+                if (joinedPath is null)
                 {
                     // Still couldn't resolve a valid directory.
                     path = null;

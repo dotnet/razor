@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -23,7 +25,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         [ImportingConstructor]
         public RazorGuestInitializationService([Import(typeof(LiveShareSessionAccessor))] DefaultLiveShareSessionAccessor sessionAccessor)
         {
-            if (sessionAccessor == null)
+            if (sessionAccessor is null)
             {
                 throw new ArgumentNullException(nameof(sessionAccessor));
             }
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
         {
-            if (sessionContext == null)
+            if (sessionContext is null)
             {
                 throw new ArgumentNullException(nameof(sessionContext));
             }
@@ -107,7 +109,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         public SessionActiveDetector(Action onDispose)
         {
-            if (onDispose == null)
+            if (onDispose is null)
             {
                 throw new ArgumentNullException(nameof(onDispose));
             }

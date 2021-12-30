@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -27,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         public TagHelperAttributeList(IEnumerable<TagHelperAttribute> attributes)
             : base (new List<TagHelperAttribute>(attributes))
         {
-            if (attributes == null)
+            if (attributes is null)
             {
                 throw new ArgumentNullException(nameof(attributes));
             }
@@ -41,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         public TagHelperAttributeList(List<TagHelperAttribute> attributes)
             : base(attributes)
         {
-            if (attributes == null)
+            if (attributes is null)
             {
                 throw new ArgumentNullException(nameof(attributes));
             }
@@ -59,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
             }
             set
             {
-                if (value == null)
+                if (value is null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
@@ -99,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// case-insensitively.</remarks>
         public void SetAttribute(TagHelperAttribute attribute)
         {
-            if (attribute == null)
+            if (attribute is null)
             {
                 throw new ArgumentNullException(nameof(attribute));
             }
@@ -150,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <inheritdoc />
         public void Add(TagHelperAttribute attribute)
         {
-            if (attribute == null)
+            if (attribute is null)
             {
                 throw new ArgumentNullException(nameof(attribute));
             }
@@ -161,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <inheritdoc />
         public void Insert(int index, TagHelperAttribute attribute)
         {
-            if (attribute == null)
+            if (attribute is null)
             {
                 throw new ArgumentNullException(nameof(attribute));
             }
@@ -175,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// </remarks>
         public bool Remove(TagHelperAttribute attribute)
         {
-            if (attribute == null)
+            if (attribute is null)
             {
                 throw new ArgumentNullException(nameof(attribute));
             }
@@ -202,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <remarks><paramref name="name"/> is compared case-insensitively.</remarks>
         public bool RemoveAll(string name)
         {
-            if (name == null)
+            if (name is null)
             {
                 throw new ArgumentNullException(nameof(name));
             }

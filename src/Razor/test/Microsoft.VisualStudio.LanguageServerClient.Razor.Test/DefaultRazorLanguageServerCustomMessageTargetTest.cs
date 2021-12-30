@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -282,6 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await Task.CompletedTask;
             }
+
             var expectedResults = GetExpectedResultsAsync();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
@@ -344,6 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await Task.CompletedTask;
             }
+
             var expectedResponses = GetExpectedResultsAsync();
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
                 It.IsAny<ITextBuffer>(),
@@ -374,7 +378,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.Equal(expectedCodeAction.Title, result.Title);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         [Fact]
         public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync()
         {
@@ -384,17 +387,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new ProvideSemanticTokensParams()
-            {
-                TextDocument = new OmniSharp.Extensions.LanguageServer.Protocol.Models.TextDocumentIdentifier()
+            var request = new ProvideSemanticTokensRangeParams(
+                textDocument: new OmniSharpTextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
-                RequiredHostDocumentVersion = 1,
-            };
+                requiredHostDocumentVersion: 1,
+                range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
 
             // Act
-            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+            var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -411,16 +413,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new ProvideSemanticTokensParams()
-            {
-                TextDocument = new OmniSharpTextDocumentIdentifier()
+            var request = new ProvideSemanticTokensRangeParams(
+                textDocument: new OmniSharpTextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
-            };
+                requiredHostDocumentVersion: 0,
+                range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
 
             // Act
-            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+            var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -445,11 +447,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedcSharpResults = new VSSemanticTokensResponse();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams, VSSemanticTokensResponse>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams, VSSemanticTokensResponse>(
                 TextBuffer,
-                Methods.TextDocumentSemanticTokensFullName,
+                Methods.TextDocumentSemanticTokensRangeName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
-                It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams>(),
+                It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedcSharpResults)));
 
@@ -463,24 +465,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
                 uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
-            var request = new ProvideSemanticTokensParams()
-            {
-                TextDocument = new OmniSharpTextDocumentIdentifier()
+            var request = new ProvideSemanticTokensRangeParams(
+                textDocument: new OmniSharpTextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to%20-%20project/file.razor")
                 },
-                RequiredHostDocumentVersion = 0,
-            };
+                requiredHostDocumentVersion: 0,
+                range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
             var expectedResults = new ProvideSemanticTokensResponse(
-                expectedcSharpResults.ResultId, expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
+                expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
 
             // Act
-            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+            var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
 
             // Assert
             Assert.Equal(expectedResults, result);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         [Fact]
         public async Task RazorServerReadyAsync_ReportsReadyAsync()
@@ -500,11 +500,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedResults = new SemanticTokens { };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, SemanticTokens>(
                 TextBuffer,
-                Methods.TextDocumentSemanticTokensFullName,
+                Methods.TextDocumentSemanticTokensRangeName,
                 LanguageServerKind.CSharp.ToContentType(),
-                It.IsAny<SemanticTokensParams>(),
+                It.IsAny<SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvocationResponse<SemanticTokens>("languageClient", expectedResults)));
 

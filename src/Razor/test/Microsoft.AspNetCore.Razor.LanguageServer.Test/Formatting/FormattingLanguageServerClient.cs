@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,6 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     throw new InvalidOperationException("Couldn't get syntax root.");
                 }
+
                 var spanToFormat = @params.ProjectedRange.AsTextSpan(csharpSourceText);
 
                 var changes = Formatter.GetFormattedTextChanges(root, spanToFormat, csharpDocument.Project.Solution.Workspace);
@@ -250,6 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 return Task.FromResult(Convert(response));
             }
+
             throw new NotImplementedException();
         }
 

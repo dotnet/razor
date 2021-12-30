@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Text;
 
@@ -30,6 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public object State { get; }
 
-        public TestVirtualDocumentSnapshot Fork(int hostDocumentVersion) => new TestVirtualDocumentSnapshot(Uri, hostDocumentVersion);
+        public TestVirtualDocumentSnapshot Fork(int hostDocumentVersion) => new(Uri, hostDocumentVersion);
     }
 }

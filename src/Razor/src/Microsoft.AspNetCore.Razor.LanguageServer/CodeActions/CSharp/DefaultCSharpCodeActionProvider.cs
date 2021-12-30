@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -47,13 +49,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Used to identify if this is VSCode which doesn't support
             // code action resolve.
             if (!context.SupportsCodeActionResolve)
-            {
-                return EmptyResult;
-            }
-
-            // Disable multi-line code actions in @functions block
-            // Will be removed once https://github.com/dotnet/aspnetcore/issues/26501 is unblocked.
-            if (InFunctionsBlock(context))
             {
                 return EmptyResult;
             }

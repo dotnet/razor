@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(DocumentHighlightHandler));
         }
 
-        public async Task<DocumentHighlight[]> HandleRequestAsync(DocumentHighlightParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 rangesToMap,
                 cancellationToken).ConfigureAwait(false);
 
-            if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
+            if (mappingResult?.HostDocumentVersion != documentSnapshot.Version)
             {
                 // Couldn't remap the range or the document changed in the meantime. Discard this highlight.
                 _logger.LogInformation($"Mapping failed. Versions: {documentSnapshot.Version} -> {mappingResult?.HostDocumentVersion}.");

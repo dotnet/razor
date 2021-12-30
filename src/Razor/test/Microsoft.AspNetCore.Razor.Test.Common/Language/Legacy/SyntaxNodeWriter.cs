@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -106,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
         private void WriteRazorDirective(RazorDirectiveSyntax node)
         {
-            if (node.DirectiveDescriptor == null)
+            if (node.DirectiveDescriptor is null)
             {
                 return;
             }

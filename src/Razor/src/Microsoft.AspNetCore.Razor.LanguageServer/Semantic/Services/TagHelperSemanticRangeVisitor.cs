@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,6 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
                 }
+
                 AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
             }
         }
@@ -224,6 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
             }
+
             AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
         }
 
@@ -273,6 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
             }
+
             Visit(node.NameSuffix);
 
             AddSemanticRange(node.EqualsToken, RazorSemanticTokensLegend.MarkupOperator);

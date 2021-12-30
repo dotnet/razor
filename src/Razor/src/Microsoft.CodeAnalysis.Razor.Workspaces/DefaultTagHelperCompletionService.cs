@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -16,12 +18,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultTagHelperCompletionService : TagHelperCompletionService
     {
         private readonly TagHelperFactsService _tagHelperFactsService;
-        private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new HashSet<TagHelperDescriptor>();
+        private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
         [ImportingConstructor]
         public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
         {
-            if (tagHelperFactsService == null)
+            if (tagHelperFactsService is null)
             {
                 throw new ArgumentNullException(nameof(tagHelperFactsService));
             }
@@ -41,7 +43,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // BoundAttributeDescriptor. By doing this a user can see what C# type a TagHelper expects for the attribute.
         public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
         {
-            if (completionContext == null)
+            if (completionContext is null)
             {
                 throw new ArgumentNullException(nameof(completionContext));
             }
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var unprefixedTagName = completionContext.CurrentTagName.Substring(prefix.Length);
 
             if (!completionContext.InHTMLSchema(unprefixedTagName) &&
-                applicableDescriptors.All(descriptor => descriptor.TagOutputHint == null))
+                applicableDescriptors.All(descriptor => descriptor.TagOutputHint is null))
             {
                 // This isn't a known HTML tag and no descriptor has an output element hint. Remove all previous completions.
                 attributeCompletions.Clear();
@@ -132,7 +134,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             void UpdateCompletions(string attributeName, BoundAttributeDescriptor possibleDescriptor)
             {
                 if (completionContext.Attributes.Any(attribute => string.Equals(attribute.Key, attributeName, StringComparison.OrdinalIgnoreCase)) &&
-                    (completionContext.CurrentAttributeName == null ||
+                    (completionContext.CurrentAttributeName is null ||
                     !string.Equals(attributeName, completionContext.CurrentAttributeName, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Attribute is already present on this element and it is not the attribute in focus.
@@ -155,7 +157,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
         {
-            if (completionContext == null)
+            if (completionContext is null)
             {
                 throw new ArgumentNullException(nameof(completionContext));
             }
@@ -267,7 +269,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ElementCompletionContext completionContext,
             Dictionary<string, HashSet<TagHelperDescriptor>> elementCompletions)
         {
-            if (completionContext.ContainingTagName == null)
+            if (completionContext.ContainingTagName is null)
             {
                 // If we're at the root then there's no containing TagHelper to specify allowed children.
                 return;
@@ -282,7 +284,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 completionContext.ContainingParentTagName,
                 completionContext.ContainingParentIsTagHelper);
 
-            if (binding == null)
+            if (binding is null)
             {
                 // Containing tag is not a TagHelper; therefore, it allows any children.
                 return;
@@ -361,7 +363,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class ShortNameToFullyQualifiedComparer : IEqualityComparer<TagHelperDescriptor>
         {
-            public static readonly ShortNameToFullyQualifiedComparer Instance = new ShortNameToFullyQualifiedComparer();
+            public static readonly ShortNameToFullyQualifiedComparer Instance = new();
 
             public bool Equals(TagHelperDescriptor x, TagHelperDescriptor y)
             {

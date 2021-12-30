@@ -12,6 +12,11 @@
         <target state="translated">태그에서 구성 요소 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Not_Found">
+        <source>Document {0} was not found.</source>
+        <target state="translated">문서 {0}을(를) 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">코드 숨김에 블록 추출</target>

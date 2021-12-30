@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Hosting
@@ -22,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="languageVersion">The language version of Razor</param>
         public RazorLanguageVersionAttribute(string languageVersion)
         {
-            if (languageVersion == null)
+            if (languageVersion is null)
             {
                 throw new ArgumentNullException(nameof(languageVersion));
             }

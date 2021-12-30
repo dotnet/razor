@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,8 +9,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -50,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Normalize and re-map the C# edits.
             var codeDocument = context.CodeDocument;
             var csharpText = codeDocument.GetCSharpSourceText();
-            var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits);
+            var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits, out var originalTextWithChanges);
             var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
             var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
             if (filteredEdits.Length == 0)
@@ -146,7 +147,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var finalChanges = cleanedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
+            if (context.AutomaticallyAddUsings)
+            {
+                // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
+                if (result.Edits.Any(e => e.NewText.IndexOf("using") != -1))
+                {
+                    finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
+                }
+            }
+
             return new FormattingResult(finalEdits);
+        }
+
+        private async Task<TextEdit[]> AddUsingStatementEditsAsync(RazorCodeDocument codeDocument, TextEdit[] finalEdits, SourceText csharpText, SourceText originalTextWithChanges, CancellationToken cancellationToken)
+        {
+            // Now that we're done with everything, lets see if there are any using statements to fix up
+            // We do this by comparing the original generated C# code, and the changed C# code, and look for a difference
+            // in using statements. We can't use edits for this for two main reasons:
+            //
+            // 1. Using statements in the generated code might come from _Imports.razor, or from this file, and C# will shove them anywhere
+            // 2. The edit might not be clean. eg given:
+            //      using System;
+            //      using System.Text;
+            //    Adding "using System.Linq;" could result in an insert of "Linq;\r\nusing System." on line 2
+            //
+            // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
+            // to the Razor document.
+
+            // First grab the old usings. We just convert them all to strings, because we only care about how the statements are represented in code.
+            var oldSyntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken);
+            var oldUsings = oldRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+
+            // Grab the new usings
+            var newSyntaxTree = CSharpSyntaxTree.ParseText(originalTextWithChanges, cancellationToken: cancellationToken);
+            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken);
+            var newUsings = newRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+
+            var edits = new List<TextEdit>();
+            foreach (var usingStatement in newUsings.Except(oldUsings))
+            {
+                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, null);
+                edits.AddRange(workspaceEdit.DocumentChanges.First().TextDocumentEdit!.Edits);
+            }
+
+            edits.AddRange(finalEdits);
+            return edits.ToArray();
         }
 
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
@@ -161,7 +207,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return newText;
         }
 
-        private TextEdit[] FilterCSharpTextEdits(FormattingContext context, TextEdit[] edits)
+        private static TextEdit[] FilterCSharpTextEdits(FormattingContext context, TextEdit[] edits)
         {
             var filteredEdits = edits.Where(e =>
             {
@@ -193,6 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     firstPosition = range.Start;
                 }
+
                 if (lastPosition is null || lastPosition < range.End)
                 {
                     lastPosition = range.End;
@@ -208,8 +255,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
-            var isOnType = range is not null;
-
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
             var csharpDocument = context.CodeDocument.GetCSharpDocument();
@@ -225,7 +270,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                CleanupSourceMappingStart(context, mappingRange, changes, isOnType, out var newLineAdded);
+                CleanupSourceMappingStart(context, mappingRange, changes, out var newLineAdded);
 
                 CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
             }
@@ -233,7 +278,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return changes;
         }
 
-        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool isOnType, out bool newLineAdded)
+        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
         {
             newLineAdded = false;
 
@@ -284,7 +329,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // We want to return the length of the range marked by |...|
             //
             var whitespaceLength = text.GetFirstNonWhitespaceOffset(sourceMappingSpan, out var newLineCount);
-            if (whitespaceLength == null)
+            if (whitespaceLength is null)
             {
                 // There was no content after the start of this mapping. Meaning it already is clean.
                 // E.g,
@@ -363,7 +408,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
             var mappingEndLineIndex = sourceMappingRange.End.Line;
 
-            var startsInCSharpContext = context.Indentations[mappingEndLineIndex].StartsInCSharpContext;
+            var indentations = context.GetIndentations();
+
+            var startsInCSharpContext = indentations[mappingEndLineIndex].StartsInCSharpContext;
 
             // If the span is on a single line, and we added a line, then end point is now on a line that does start in a C# context.
             if (!startsInCSharpContext && newLineWasAddedAtStart && sourceMappingRange.Start.Line == mappingEndLineIndex)
@@ -393,7 +440,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var contentStartOffset = text.Lines[mappingEndLineIndex].GetFirstNonWhitespaceOffset(sourceMappingRange.End.Character);
-            if (contentStartOffset == null)
+            if (contentStartOffset is null)
             {
                 // There is no content after the end of this source mapping. No need to clean up.
                 return;
@@ -420,11 +467,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             changes.Add(change);
         }
 
-        private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
+        private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
         {
             var changes = edits.Select(e => e.AsTextChange(originalText));
-            var changedText = originalText.WithChanges(changes);
-            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            originalTextWithChanges = originalText.WithChanges(changes);
+            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
             var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
         }

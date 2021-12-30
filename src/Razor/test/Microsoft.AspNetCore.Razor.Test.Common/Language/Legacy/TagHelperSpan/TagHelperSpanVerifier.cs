@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Text;
@@ -57,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     return;
                 }
 
-                if (expected == null)
+                if (expected is null)
                 {
                     var message = "The span is missing from baseline.";
                     throw new TagHelperSpanBaselineException(span, expected, actual, message);

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private Uri Uri { get; }
         private TimeSpan TestWaitForProgressNotificationTimeout { get; }
 
-        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+        private static readonly ILanguageClient s_languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -131,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(s_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -263,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(s_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -792,7 +794,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterTokens[i]);
                     }
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(s_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -921,7 +923,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(s_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             return (requestInvoker.Object, lspProgressListener);
         }

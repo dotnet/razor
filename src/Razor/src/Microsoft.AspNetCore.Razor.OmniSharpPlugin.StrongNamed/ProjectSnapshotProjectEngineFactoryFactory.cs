@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -16,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,22 +25,22 @@ namespace Microsoft.CodeAnalysis.Host
             IEnumerable<ILanguageService> languageServices,
             Workspace workspace)
         {
-            if (hostServices == null)
+            if (hostServices is null)
             {
                 throw new ArgumentNullException(nameof(hostServices));
             }
 
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             var service = _workspaceServices.OfType<TWorkspaceService>().FirstOrDefault();
 
-            if (service == null)
+            if (service is null)
             {
                 // Fallback to default host services to resolve roslyn specific features.
                 service = s_defaultWorkspace.Services.GetService<TWorkspaceService>();

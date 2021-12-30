@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Hosting
@@ -29,17 +31,17 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="identifier">The identifier associated with this thumbprint.</param>
         public RazorSourceChecksumAttribute(string checksumAlgorithm, string checksum, string identifier)
         {
-            if (checksumAlgorithm == null)
+            if (checksumAlgorithm is null)
             {
                 throw new ArgumentNullException(nameof(checksumAlgorithm));
             }
 
-            if (checksum == null)
+            if (checksum is null)
             {
                 throw new ArgumentNullException(nameof(checksum));
             }
 
-            if (identifier == null)
+            if (identifier is null)
             {
                 throw new ArgumentNullException(nameof(identifier));
             }

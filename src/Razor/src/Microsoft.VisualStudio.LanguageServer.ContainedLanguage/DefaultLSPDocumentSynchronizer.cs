@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         // Internal for testing
         internal TimeSpan _synchronizationTimeout = TimeSpan.FromSeconds(2);
         private readonly Dictionary<Uri, DocumentContext> _virtualDocumentContexts;
-        private readonly object _documentContextLock = new object();
+        private readonly object _documentContextLock = new();
         private readonly FileUriProvider _fileUriProvider;
 
         [ImportingConstructor]
@@ -38,6 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, CancellationToken cancellationToken)
+            => TrySynchronizeVirtualDocumentAsync(requiredHostDocumentVersion, virtualDocument, rejectOnNewerParallelRequest: true, cancellationToken);
+
+        public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
         {
             if (virtualDocument is null)
             {
@@ -59,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 }
 
                 // Currently tracked synchronizing context is not sufficient, need to update a new one.
-                var onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, cancellationToken);
+                var onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken);
                 return onSynchronizedTask;
             }
         }
@@ -192,14 +197,15 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 }
             }
 
-            public Task<bool> GetSynchronizationTaskAsync(int requiredHostDocumentVersion, CancellationToken cancellationToken)
+            public Task<bool> GetSynchronizationTaskAsync(int requiredHostDocumentVersion, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
             {
                 // Cancel any out-of-date existing synchronizing contexts.
 
                 for (var i = _synchronizingContexts.Count - 1; i >= 0; i--)
                 {
                     var context = _synchronizingContexts[i];
-                    if (context.RequiredHostDocumentVersion < requiredHostDocumentVersion)
+                    if (context.RejectOnNewerParallelRequest &&
+                        context.RequiredHostDocumentVersion < requiredHostDocumentVersion)
                     {
                         // All of the existing synchronizations that are older than this version are no longer valid.
                         context.SetSynchronized(result: false);
@@ -207,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                     }
                 }
 
-                var synchronizingContext = new DocumentSynchronizingContext(requiredHostDocumentVersion, _synchronizingTimeout, cancellationToken);
+                var synchronizingContext = new DocumentSynchronizingContext(requiredHostDocumentVersion, rejectOnNewerParallelRequest, _synchronizingTimeout, cancellationToken);
                 _synchronizingContexts.Add(synchronizingContext);
                 return synchronizingContext.OnSynchronizedAsync;
             }
@@ -230,10 +236,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
                 public DocumentSynchronizingContext(
                     int requiredHostDocumentVersion,
+                    bool rejectOnNewerParallelRequest,
                     TimeSpan timeout,
                     CancellationToken requestCancellationToken)
                 {
                     RequiredHostDocumentVersion = requiredHostDocumentVersion;
+                    RejectOnNewerParallelRequest = rejectOnNewerParallelRequest;
                     _onSynchronizedSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _cts = CancellationTokenSource.CreateLinkedTokenSource(requestCancellationToken);
 
@@ -242,6 +250,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                     _cts.Token.Register(() => SetSynchronized(false));
                     _cts.CancelAfter(timeout);
                 }
+
+                public bool RejectOnNewerParallelRequest { get; }
 
                 public int RequiredHostDocumentVersion { get; }
 

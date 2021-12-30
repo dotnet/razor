@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -57,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             foreach (var completionItem in completionList.Items)
             {
                 var commitCharacters = completionItem.CommitCharacters;
-                if (commitCharacters == null)
+                if (commitCharacters is null)
                 {
                     continue;
                 }

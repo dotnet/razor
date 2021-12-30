@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -11,7 +9,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal abstract class HtmlFactsService
     {
-        private static readonly HashSet<string> s_htmlSchemaTagNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> s_htmlSchemaTagNames = new(StringComparer.OrdinalIgnoreCase)
         {
             "DOCTYPE",
             "a",

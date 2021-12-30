@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
 {
     /// <summary>
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
                 payload = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
             }
 
-            if (!(payload is null))
+            if (payload is not null)
             {
                 // this completes the handshake to give the payload back to the client.
                 await sendNotification(payload);

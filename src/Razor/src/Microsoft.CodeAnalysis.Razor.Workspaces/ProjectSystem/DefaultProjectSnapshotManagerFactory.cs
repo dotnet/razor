@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -21,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (triggers == null)
+            if (triggers is null)
             {
                 throw new ArgumentNullException(nameof(triggers));
             }
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }

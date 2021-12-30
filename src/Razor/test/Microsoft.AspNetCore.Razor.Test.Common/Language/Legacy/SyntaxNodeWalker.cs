@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -8,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 {
     internal class SyntaxNodeWalker : SyntaxRewriter
     {
-        private readonly List<SyntaxNode> _ancestors = new List<SyntaxNode>();
+        private readonly List<SyntaxNode> _ancestors = new();
 
         protected IReadOnlyList<SyntaxNode> Ancestors => _ancestors;
 

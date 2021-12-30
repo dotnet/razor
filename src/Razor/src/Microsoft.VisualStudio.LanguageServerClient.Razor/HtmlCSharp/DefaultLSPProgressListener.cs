@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
             Func<CancellationToken, Task> delayAfterLastNotifyAsync,
             CancellationToken handlerCancellationToken,
-            out Task onCompleted)
+            [NotNullWhen(true)] out Task? onCompleted)
         {
             var onCompletedSource = new TaskCompletionSource<bool>();
             var request = new ProgressRequest(
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        private Task ClientNotifyAsyncListenerAsync(object sender, LanguageClientNotifyEventArgs args)
+        private Task ClientNotifyAsyncListenerAsync(object? sender, LanguageClientNotifyEventArgs args)
             => ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken);
 
         // Internal for testing
@@ -77,14 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            var token = parameterToken[Methods.ProgressNotificationTokenName].ToObject<string>(); // IProgress<object>>();
+            var token = parameterToken[Methods.ProgressNotificationTokenName]?.ToObject<string>(); // IProgress<object>>();
 
-            if (string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
+            if (token is null || string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
             {
                 return;
             }
 
-            var value = parameterToken[ProgressNotificationValueName];
+            var value = parameterToken[ProgressNotificationValueName]!;
 
             try
             {
@@ -118,7 +119,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _ = CompleteAfterDelayAsync(token, request.DelayAfterLastNotifyAsync, linkedCTS); // Fire and forget
 
-
             async Task CompleteAfterDelayAsync(string token, Func<CancellationToken, Task> delayAfterLastNotifyAsync, CancellationTokenSource cts)
             {
                 try
@@ -144,9 +144,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private static void CancelAndDisposeToken(CancellationTokenSource cts)
+        private static void CancelAndDisposeToken(CancellationTokenSource? cts)
         {
-            if (cts != null &&
+            if (cts is not null &&
                 cts.Token.CanBeCanceled &&
                 !cts.Token.IsCancellationRequested)
             {
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             internal CancellationToken HandlerCancellationToken { get; }
 
             internal Func<CancellationToken, Task> DelayAfterLastNotifyAsync { get; }
-            internal CancellationTokenSource TimeoutCancellationTokenSource { get; set; }
+            internal CancellationTokenSource? TimeoutCancellationTokenSource { get; set; }
             internal object RequestLock { get; } = new object();
         }
     }

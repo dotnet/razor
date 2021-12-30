@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -640,7 +642,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
         {
-            private static readonly Mock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>(MockBehavior.Strict);
+            private static readonly Mock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new(MockBehavior.Strict);
 
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
 

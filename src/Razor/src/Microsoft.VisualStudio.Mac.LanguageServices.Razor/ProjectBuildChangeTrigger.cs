@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -28,17 +30,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             TextBufferProjectService projectService,
             ProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
@@ -55,22 +57,22 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             ProjectSnapshotManagerBase projectManager)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -83,7 +85,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -98,7 +100,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void ProjectOperations_EndBuild(object sender, BuildEventArgs args)
         {
-            if (args == null)
+            if (args is null)
             {
                 throw new ArgumentNullException(nameof(args));
             }

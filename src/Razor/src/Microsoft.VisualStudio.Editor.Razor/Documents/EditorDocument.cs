@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -93,7 +95,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _fileTracker.Changed += ChangeTracker_Changed;
 
             // Only one of these should be active at a time.
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _fileTracker.StartListening(), CancellationToken.None).ConfigureAwait(false);
@@ -122,7 +124,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void ProcessOpen(ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }

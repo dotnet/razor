@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -21,12 +23,12 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             LiveShareSessionAccessor liveShareSessionAccessor,
             JoinableTaskContext joinableTaskContext)
         {
-            if (liveShareSessionAccessor == null)
+            if (liveShareSessionAccessor is null)
             {
                 throw new ArgumentNullException(nameof(liveShareSessionAccessor));
             }
 
-            if (joinableTaskContext == null)
+            if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
@@ -42,7 +44,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         public override IProjectHierarchyProxy GetProjectHierarchyProxy()
         {
-            if (_projectHierarchyProxy == null)
+            if (_projectHierarchyProxy is null)
             {
                 _projectHierarchyProxy = CreateServiceProxy<IProjectHierarchyProxy>();
             }

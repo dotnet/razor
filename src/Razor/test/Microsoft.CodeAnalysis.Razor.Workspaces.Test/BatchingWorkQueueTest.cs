@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             public override ValueTask ProcessAsync(CancellationToken cancellationToken)
             {
-                base.ProcessAsync(cancellationToken);
+                _ = base.ProcessAsync(cancellationToken);
                 throw new InvalidOperationException();
             }
         }

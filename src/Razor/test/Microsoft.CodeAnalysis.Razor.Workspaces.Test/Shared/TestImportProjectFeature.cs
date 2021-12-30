@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
         {
-            if (projectItem == null)
+            if (projectItem is null)
             {
                 throw new ArgumentNullException(nameof(projectItem));
             }

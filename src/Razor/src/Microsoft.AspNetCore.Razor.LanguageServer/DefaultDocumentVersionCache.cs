@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -15,11 +16,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal readonly Dictionary<string, List<DocumentEntry>> DocumentLookup;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private ProjectSnapshotManagerBase? _projectSnapshotManager;
+
+        private ProjectSnapshotManagerBase ProjectSnapshotManager
+        {
+            get
+            {
+                if (_projectSnapshotManager is null)
+                {
+                    throw new InvalidOperationException("ProjectSnapshotManager accessed before Initialized was called.");
+                }
+
+                return _projectSnapshotManager;
+            }
+        }
 
         public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
@@ -30,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version)
         {
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
@@ -56,9 +70,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentEntries.Add(entry);
         }
 
-        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out int? version)
+        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version)
         {
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
@@ -71,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            DocumentEntry entry = null;
+            DocumentEntry? entry = null;
             for (var i = documentEntries.Count - 1; i >= 0; i--)
             {
                 // We iterate backwards over the entries to prioritize newer entries.
@@ -83,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            if (entry == null)
+            if (entry is null)
             {
                 version = null;
                 return false;
@@ -96,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
             _projectSnapshotManager = projectManager;
-            _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+            ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
@@ -113,23 +127,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 case ProjectChangeKind.DocumentChanged:
                     if (DocumentLookup.ContainsKey(args.DocumentFilePath) &&
-                        !_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
+                        !ProjectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
                         // Document closed, evict entry.
                         DocumentLookup.Remove(args.DocumentFilePath);
                     }
+
                     break;
             }
 
             // Any event that has a project may have changed the state of the documents
             // and therefore requires us to mark all existing documents as latest.
-            if (args.ProjectFilePath == null)
+            if (args.ProjectFilePath is null)
             {
                 return;
             }
 
-            var project = _projectSnapshotManager.GetLoadedProject(args.ProjectFilePath);
-            if (project == null)
+            var project = ProjectSnapshotManager.GetLoadedProject(args.ProjectFilePath);
+            if (project is null)
             {
                 // Project no longer loaded, wait for document removed event.
                 return;
@@ -151,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Internal for testing
-        internal bool TryGetLatestVersionFromPath(string filePath, out int? version)
+        internal bool TryGetLatestVersionFromPath(string filePath, [NotNullWhen(true)] out int? version)
         {
             if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
             {

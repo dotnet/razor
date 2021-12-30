@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,22 +27,22 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             IProjectSnapshotManagerProxy hostProjectManagerProxy,
             ProjectSnapshotManagerBase projectSnapshotManager)
         {
-            if (joinableTaskFactory == null)
+            if (joinableTaskFactory is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskFactory));
             }
 
-            if (sessionContext == null)
+            if (sessionContext is null)
             {
                 throw new ArgumentNullException(nameof(sessionContext));
             }
 
-            if (hostProjectManagerProxy == null)
+            if (hostProjectManagerProxy is null)
             {
                 throw new ArgumentNullException(nameof(hostProjectManagerProxy));
             }
 
-            if (projectSnapshotManager == null)
+            if (projectSnapshotManager is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManager));
             }
@@ -142,7 +144,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         private async void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            if (args == null)
+            if (args is null)
             {
                 throw new ArgumentNullException(nameof(args));
             }

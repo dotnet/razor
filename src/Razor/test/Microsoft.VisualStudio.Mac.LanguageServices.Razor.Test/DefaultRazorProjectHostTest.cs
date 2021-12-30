@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -524,7 +526,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             public string Condition => throw new NotImplementedException();
 
             public bool IsImported => throw new NotImplementedException();
-
 
             public string UnevaluatedInclude => throw new NotImplementedException();
 

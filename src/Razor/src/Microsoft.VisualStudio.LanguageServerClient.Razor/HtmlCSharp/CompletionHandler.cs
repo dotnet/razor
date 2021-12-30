@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -141,18 +142,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+            if (request.Context is null)
+            {
+                _logger.LogWarning($"No Context available when document was found.");
+                return null;
+            }
+
             if (!TryGetWordExtent(request, documentSnapshot, out var wordExtent))
             {
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(
+            var projectionResult = await _projectionProvider.GetProjectionForCompletionAsync(
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
-                if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent))
+                if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent.Value))
                 {
                     var csharpPolyfilledCompletionList = new CompletionList()
                     {
@@ -233,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (serverKind == LanguageServerKind.CSharp)
                 {
-                    completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent, completionList);
+                    completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent.Value, completionList);
                 }
 
                 completionList = TranslateTextEdits(request.Position, projectedPosition, wordExtent, completionList);
@@ -253,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation("Returning completion list.");
             return completionList;
 
-            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, out CompletionList completionList)
+            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, [NotNullWhen(true)] out CompletionList? completionList)
             {
                 if (!original.HasValue)
                 {
@@ -279,20 +286,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal static bool IsRazorCompilerBugWithCSharpKeywords(CompletionParams request, TextExtent? wordExtent)
+        internal static bool IsRazorCompilerBugWithCSharpKeywords(CompletionParams request, TextExtent wordExtent)
         {
             // This was originally found when users would attempt to type out `@using` in an _Imports.razor file and get 0 completion items at the `g` of `using`.
             // After lots of investigation it turns out that the Razor compiler will generate 0 C# source for an incomplete using directive. This in turn results
             // in 0 C# information at `@using|`. This is tracked here: https://github.com/dotnet/aspnetcore/issues/37568
             //
             // The entire purpose of this method is to encapsulate this compiler bug and try and make users experiences a little better in a low-risk fashion.
-            return request.Context.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions &&
+            return request.Context!.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions &&
                 WordSpanMatchesCSharpPolyfills(wordExtent);
         }
 
         private static bool WordSpanMatchesCSharpPolyfills(TextExtent? wordExtent)
         {
-            if (wordExtent == null || !wordExtent.Value.IsSignificant)
+            if (wordExtent is null || !wordExtent.Value.IsSignificant)
             {
                 return false;
             }
@@ -334,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return false;
         }
 
-        private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, out TextExtent? wordExtent)
+        private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out TextExtent? wordExtent)
         {
             var wordCharacterPosition = request.Position.Character;
             var invokeKind = (request.Context as VSInternalCompletionContext)?.InvokeKind;
@@ -350,6 +357,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, wordCharacterPosition, _textStructureNavigator);
+
+            if (wordExtent is null)
+            {
+                return false;
+            }
 
             return true;
         }
@@ -370,22 +382,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private CompletionList PostProcessCSharpCompletionList(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
-            TextExtent? wordExtent,
+            TextExtent wordExtent,
             CompletionList completionList)
         {
-            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
+
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
                 completionList = RemovePreselection(completionList);
                 completionList = IncludeCSharpKeywords(completionList);
 
                 // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
-                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent.Value, formattingOptions) - 1, 0);
+                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions) - 1, 0);
                 completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
             else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
             {
-                var baseIndentation = GetBaseIndentation(wordExtent.Value, formattingOptions);
+                var baseIndentation = GetBaseIndentation(wordExtent, formattingOptions);
                 completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
 
@@ -457,13 +470,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
         {
+            if (request.Context is null)
+            {
+                return false;
+            }
+
             if (string.Equals(request.Context.TriggerCharacter, "@", StringComparison.Ordinal))
             {
                 // Completion was triggered with `@` this is always a simple implicit expression
                 return true;
             }
 
-            if (wordExtent == null)
+            if (wordExtent is null)
             {
                 return false;
             }
@@ -600,6 +618,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             SumType<CompletionItem[], CompletionList>? result = null;
             if (projection.LanguageKind != RazorLanguageKind.Html ||
+                request.Context is null ||
                 request.Context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
                 request.Context.TriggerCharacter != ".")
             {
@@ -615,11 +634,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var previousCharacterPosition = new Position(projection.Position.Line, projection.Position.Character - 1);
-            var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(
+            var previousCharacterProjection = await _projectionProvider.GetProjectionForCompletionAsync(
                 documentSnapshot,
                 previousCharacterPosition,
                 cancellationToken).ConfigureAwait(false);
-            if (previousCharacterProjection == null ||
+            if (previousCharacterProjection is null ||
                 previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp ||
                 previousCharacterProjection.HostDocumentVersion is null)
             {
@@ -732,7 +751,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             return completionList;
 
-            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range wordRange, CompletionItem item)
+            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range? wordRange, CompletionItem item)
             {
                 if (item.TextEdit != null)
                 {
@@ -809,7 +828,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     var data = new CompletionResolveData()
                     {
                         ResultId = resultId,
-                        OriginalData = item.Data,
+                        OriginalData = item.Data!,
                     };
                     item.Data = data;
                 }
@@ -848,7 +867,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return false;
         }
 
-        private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
+        private static bool IsApplicableTriggerCharacter(string? triggerCharacter, RazorLanguageKind languageKind)
         {
             if (s_razorTriggerCharacters.Contains(triggerCharacter))
             {
@@ -889,7 +908,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private bool IsWordOnEmptyLine(TextExtent? wordExtent, LSPDocumentSnapshot documentSnapshot)
         {
-            if (wordExtent == null)
+            if (wordExtent is null)
             {
                 return false;
             }
@@ -950,6 +969,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         break;
                     }
                 }
+
                 var nonTabIndentation = wordStart - firstNonTab;
                 var leadingIndentation = leadingTabs * formattingOptions.TabSize;
                 var baseIndentation = leadingIndentation + nonTabIndentation;

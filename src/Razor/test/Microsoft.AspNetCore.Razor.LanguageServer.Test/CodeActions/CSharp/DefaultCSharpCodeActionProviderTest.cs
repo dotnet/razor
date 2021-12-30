@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -85,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task ProvideAsync_FunctionsBlock_ValidCodeActions_ReturnsEmpty()
+        public async Task ProvideAsync_FunctionsBlock_SingleLine_ValidCodeActions_ReturnsProvidedCodeAction()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -107,7 +109,73 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
             // Assert
-            Assert.Empty(providedCodeActions);
+            Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+            var providedNames = providedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedCodeActions.Select(action => action.Name);
+            Assert.Equal(expectedNames, providedNames);
+        }
+
+        [Fact]
+        public async Task ProvideAsync_FunctionsBlock_OpenBraceSameLine_ValidCodeActions_ReturnsProvidedCodeAction()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = @"@functions {
+Path;
+}";
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Range = new Range(),
+                Context = new CodeActionContext()
+            };
+
+            var location = new SourceLocation(14, -1, -1);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(13, 4));
+            context.CodeDocument.SetFileKind(FileKinds.Legacy);
+
+            var provider = new DefaultCSharpCodeActionProvider();
+
+            // Act
+            var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+
+            // Assert
+            Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+            var providedNames = providedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedCodeActions.Select(action => action.Name);
+            Assert.Equal(expectedNames, providedNames);
+        }
+
+        [Fact]
+        public async Task ProvideAsync_FunctionsBlock_OpenBraceNextLine_ValidCodeActions_ReturnsProvidedCodeAction()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = @"@functions
+{
+Path;
+}";
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Range = new Range(),
+                Context = new CodeActionContext()
+            };
+
+            var location = new SourceLocation(15, -1, -1);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(13, 4));
+            context.CodeDocument.SetFileKind(FileKinds.Legacy);
+
+            var provider = new DefaultCSharpCodeActionProvider();
+
+            // Act
+            var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+
+            // Assert
+            Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+            var providedNames = providedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedCodeActions.Select(action => action.Name);
+            Assert.Equal(expectedNames, providedNames);
         }
 
         [Fact]

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return Task.CompletedTask;
         }
 
-        public override Task<JToken> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken>> sendRequest)
+        public override Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
         {
             throw new NotImplementedException();
         }

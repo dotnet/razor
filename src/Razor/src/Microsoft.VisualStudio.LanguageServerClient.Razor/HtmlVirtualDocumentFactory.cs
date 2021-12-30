@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             get
             {
-                if (s_htmlLSPContentType == null)
+                if (s_htmlLSPContentType is null)
                 {
                     s_htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName);
                 }

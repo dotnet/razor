@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,22 +27,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             Workspace workspace,
             HostWorkspaceServices fallbackServices)
         {
-            if (hostServices == null)
+            if (hostServices is null)
             {
                 throw new ArgumentNullException(nameof(hostServices));
             }
 
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -65,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
             var service = _workspaceServices.OfType<TWorkspaceService>().FirstOrDefault();
 
-            if (service == null)
+            if (service is null)
             {
                 // Fallback to default host services to resolve roslyn specific features.
                 service = _fallbackServices.GetService<TWorkspaceService>();

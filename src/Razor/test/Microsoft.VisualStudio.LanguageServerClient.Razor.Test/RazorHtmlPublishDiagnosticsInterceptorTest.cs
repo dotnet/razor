@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,12 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     public class RazorHtmlPublishDiagnosticsInterceptorTest
     {
-        private static readonly Uri s_razorUri = new Uri("C:/path/to/file.razor");
-        private static readonly Uri s_cshtmlUri = new Uri("C:/path/to/file.cshtml");
-        private static readonly Uri s_razorVirtualHtmlUri = new Uri("C:/path/to/file.razor__virtual.html");
-        private static readonly Uri s_razorVirtualCssUri = new Uri("C:/path/to/file.razor__virtual.css");
+        private static readonly Uri s_razorUri = new("C:/path/to/file.razor");
+        private static readonly Uri s_cshtmlUri = new("C:/path/to/file.cshtml");
+        private static readonly Uri s_razorVirtualHtmlUri = new("C:/path/to/file.razor__virtual.html");
+        private static readonly Uri s_razorVirtualCssUri = new("C:/path/to/file.razor__virtual.css");
 
-        private static readonly Diagnostic s_validDiagnostic_HTML = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_HTML = new()
         {
             Range = new Range()
             {
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Code = null
         };
 
-        private static readonly Diagnostic s_validDiagnostic_CSS = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_CSS = new()
         {
             Range = new Range()
             {
@@ -270,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return documentManager.Object;
         }
 
-        private LSPDiagnosticsTranslator GetDiagnosticsProvider()
+        private static LSPDiagnosticsTranslator GetDiagnosticsProvider()
         {
             var diagnosticsToIgnore = new HashSet<string>()
             {

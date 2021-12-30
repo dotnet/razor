@@ -40,9 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
         private readonly VSHostServicesProvider _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
-        private RazorLanguageServer _server;
-        private IDisposable _serverShutdownDisposable;
-        private LogHubLoggerProvider _loggerProvider;
+        private RazorLanguageServer? _server;
+        private IDisposable? _serverShutdownDisposable;
+        private LogHubLoggerProvider? _loggerProvider;
 
         private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
@@ -103,11 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public string Name => RazorLSPConstants.RazorLanguageServerName;
 
-        public IEnumerable<string> ConfigurationSections => null;
+        public IEnumerable<string>? ConfigurationSections => null;
 
-        public object InitializationOptions => null;
+        public object? InitializationOptions => null;
 
-        public IEnumerable<string> FilesToWatch => null;
+        public IEnumerable<string>? FilesToWatch => null;
 
         public object MiddleLayer => _middleLayer;
 
@@ -120,14 +120,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public bool ShowNotificationOnInitializeFailed => true;
 
-        public event AsyncEventHandler<EventArgs> StartAsync;
-        public event AsyncEventHandler<EventArgs> StopAsync
+        public event AsyncEventHandler<EventArgs>? StartAsync;
+        public event AsyncEventHandler<EventArgs>? StopAsync
         {
             add { }
             remove { }
         }
 
-        public async Task<Connection> ActivateAsync(CancellationToken token)
+        public async Task<Connection?> ActivateAsync(CancellationToken token)
         {
             // Swap to background thread, nothing below needs to be done on the UI thread.
             await TaskScheduler.Default;
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         protected virtual bool IsVSServer()
         {
             var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
-            var result = shell.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
+            var result = shell!.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
 
             var isVSServer = ErrorHandler.Succeeded(result) && (int)mode == (int)__VSShellMode.VSSM_Server;
             return isVSServer;
@@ -201,14 +201,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             const int WaitForShutdownAttempts = 10;
 
-            if (_server == null)
+            if (_server is null)
             {
                 // Server was already cleaned up
                 return;
             }
 
             var attempts = 0;
-            while (_server != null && ++attempts < WaitForShutdownAttempts)
+            while (_server is not null && ++attempts < WaitForShutdownAttempts)
             {
                 // Server failed to shutdown, lets wait a little bit and check again.
                 await Task.Delay(100, token).ConfigureAwait(false);
@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             lock (_shutdownLock)
             {
-                if (_server != null)
+                if (_server is not null)
                 {
                     // Server still hasn't shutdown, attempt an ungraceful shutdown.
                     _server.Dispose();
@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Task OnServerInitializedAsync()
         {
-            _serverShutdownDisposable = _server.OnShutdown.Subscribe((_) => ServerShutdown());
+            _serverShutdownDisposable = _server!.OnShutdown.Subscribe((_) => ServerShutdown());
 
             ServerStarted();
 
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             lock (_shutdownLock)
             {
-                if (_server == null)
+                if (_server is null)
                 {
                     // Already shutdown
                     return;
@@ -305,12 +305,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
 
-        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+        public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
         {
-            var initializationFailureContext = new InitializationFailureContext();
-            initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
-                Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
-            return Task.FromResult<InitializationFailureContext>(initializationFailureContext);
+            var initializationFailureContext = new InitializationFailureContext
+            {
+                FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
+                    Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString())
+            };
+            return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
     }
 }

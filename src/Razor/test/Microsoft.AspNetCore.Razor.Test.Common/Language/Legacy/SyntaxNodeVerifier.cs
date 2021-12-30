@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (node == null)
+                if (node is null)
                 {
                     return node;
                 }
@@ -91,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     return;
                 }
 
-                if (expected == null)
+                if (expected is null)
                 {
                     var message = "The node is missing from baseline.";
                     throw new SyntaxNodeBaselineException(node, Ancestors.ToArray(), expected, actual, message);

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -27,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
             IDictionary<object, object> items,
             string uniqueId) : this(allAttributes, items, uniqueId)
         {
-            if (tagName == null)
+            if (tagName is null)
             {
                 throw new ArgumentNullException(nameof(tagName));
             }
@@ -47,17 +49,17 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
             IDictionary<object, object> items,
             string uniqueId)
         {
-            if (items == null)
+            if (items is null)
             {
                 throw new ArgumentNullException(nameof(items));
             }
 
-            if (uniqueId == null)
+            if (uniqueId is null)
             {
                 throw new ArgumentNullException(nameof(uniqueId));
             }
 
-            if (allAttributes == null)
+            if (allAttributes is null)
             {
                 throw new ArgumentNullException(nameof(allAttributes));
             }

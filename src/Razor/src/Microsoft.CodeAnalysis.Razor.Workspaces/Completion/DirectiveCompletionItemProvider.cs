@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 return false;
             }
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Do not provide IntelliSense for explicit expressions. Explicit expressions will usually look like:
             // [@] [(] [DateTime.Now] [)]
             var implicitExpression = owner.FirstAncestorOrSelf<CSharpImplicitExpressionSyntax>();
-            if (implicitExpression == null)
+            if (implicitExpression is null)
             {
                 return false;
             }
@@ -131,14 +133,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         private static IReadOnlyCollection<string> GetDirectiveCommitCharacters(DirectiveKind directiveKind)
         {
-            switch (directiveKind)
+            return directiveKind switch
             {
-                case DirectiveKind.CodeBlock:
-                case DirectiveKind.RazorBlock:
-                    return BlockDirectiveCommitCharacters;
-                default:
-                    return SingleLineDirectiveCommitCharacters;
-            }
+                DirectiveKind.CodeBlock or DirectiveKind.RazorBlock => BlockDirectiveCommitCharacters,
+                _ => SingleLineDirectiveCommitCharacters,
+            };
         }
 
         // Internal for testing

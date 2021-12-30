@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -22,7 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private DirectiveAttributeTransitionCompletionItemProvider Provider { get; }
 
         private static RazorCompletionItem TransitionCompletionItem => DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
-
 
         [Fact]
         public void IsValidCompletionPoint_AtPrefixLeadingEdge_ReturnsFalse()

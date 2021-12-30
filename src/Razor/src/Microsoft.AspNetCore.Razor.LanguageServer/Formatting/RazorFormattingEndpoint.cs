@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editContainer = new TextEditContainer(edits);
             return editContainer;
         }
-#nullable enable
+#nullable restore
 
         public async Task<TextEditContainer?> Handle(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {
@@ -225,7 +223,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            {
+                return null;
+            }
+
             var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
             if (triggerCharacterKind is not RazorLanguageKind.CSharp)
             {
@@ -247,7 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             using var formattingContext = FormattingContext.Create(
-                request.TextDocument.Uri, documentSnapshot, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true);
+                request.TextDocument.Uri, documentSnapshot, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
             var documentOptions = await GetDocumentOptionsAsync(request, formattingContext.CSharpWorkspaceDocument).ConfigureAwait(false);
 
             // Ask C# for formatting changes.
@@ -265,8 +267,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, textEdits, request.Options, cancellationToken).ConfigureAwait(false);
+            var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, textEdits, request.Options, cancellationToken).ConfigureAwait(false);
             if (formattedEdits.Length == 0)
             {
                 _logger.LogInformation("No formatting changes were necessary");

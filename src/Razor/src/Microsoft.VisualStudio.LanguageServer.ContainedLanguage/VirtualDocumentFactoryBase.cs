@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
@@ -84,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // This ensures that LiveShare does not serialize this virtual document to disk in LiveShare & Codespaces scenarios.
             languageBuffer.Properties.AddProperty(ContainedLanguageMarker, true);
 
-            if (!(LanguageBufferProperties is null))
+            if (LanguageBufferProperties is not null)
             {
                 foreach (var keyValuePair in LanguageBufferProperties)
                 {

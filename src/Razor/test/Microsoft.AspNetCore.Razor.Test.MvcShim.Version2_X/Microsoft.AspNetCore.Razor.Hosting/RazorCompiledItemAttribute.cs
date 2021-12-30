@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Hosting
@@ -24,12 +26,12 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// </param>
         public RazorCompiledItemAttribute(Type type, string kind, string identifier)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (kind == null)
+            if (kind is null)
             {
                 throw new ArgumentNullException(nameof(kind));
             }

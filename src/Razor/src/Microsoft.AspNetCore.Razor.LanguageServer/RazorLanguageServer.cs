@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -36,6 +38,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
+using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -130,6 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
                     .WithHandler<LinkedEditingRangeEndpoint>()
+                    .WithHandler<WrapWithTagEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder

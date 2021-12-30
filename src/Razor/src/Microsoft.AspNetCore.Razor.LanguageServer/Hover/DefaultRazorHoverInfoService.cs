@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -72,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
             var owner = syntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
                 return null;

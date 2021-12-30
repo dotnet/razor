@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Test;
@@ -33,6 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
 
-        public TestLSPDocumentSnapshot Fork(int version, params VirtualDocumentSnapshot[] virtualDocuments) => new TestLSPDocumentSnapshot(Uri, version, virtualDocuments);
+        public TestLSPDocumentSnapshot Fork(int version, params VirtualDocumentSnapshot[] virtualDocuments) => new(Uri, version, virtualDocuments);
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorSpanMappingService(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -32,18 +34,18 @@ namespace Microsoft.CodeAnalysis.Razor
             IEnumerable<TextSpan> spans,
             CancellationToken cancellationToken)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            if (spans == null)
+            if (spans is null)
             {
                 throw new ArgumentNullException(nameof(spans));
             }
 
             // Called on an uninitialized document.
-            if (_document == null)
+            if (_document is null)
             {
                 return ImmutableArray.Create<RazorMappedSpanResult>();
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
@@ -90,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 lcts.Token,
                 TaskCreationOptions.None,
                 TaskScheduler.Default).Unwrap();
-            updateTask.ConfigureAwait(false);
             updateItem = new UpdateItem(updateTask, lcts);
             Updates[projectSnapshot.FilePath] = updateItem;
         }
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         var csharpLanguageVersion = LanguageVersion.Default;
                         var csharpParseOptions = (CSharpParseOptions)workspaceProject.ParseOptions;
-                        if (csharpParseOptions == null)
+                        if (csharpParseOptions is null)
                         {
                             Debug.Fail("Workspace project should always have CSharp parse options.");
                         }
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         {
                             csharpLanguageVersion = csharpParseOptions.LanguageVersion;
                         }
+
                         var tagHelperResolutionResult = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken);
                         workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
                     }
@@ -246,12 +248,12 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             public UpdateItem(Task task, CancellationTokenSource cts)
             {
-                if (task == null)
+                if (task is null)
                 {
                     throw new ArgumentNullException(nameof(task));
                 }
 
-                if (cts == null)
+                if (cts is null)
                 {
                     throw new ArgumentNullException(nameof(cts));
                 }

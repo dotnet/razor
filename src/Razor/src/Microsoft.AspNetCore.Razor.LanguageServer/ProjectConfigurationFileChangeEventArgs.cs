@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
@@ -68,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             handle = _projectSnapshotHandle;
-            if (handle == null)
+            if (handle is null)
             {
                 // Deserialization failed
                 return false;

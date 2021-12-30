@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     [Collection("IntegrationTestSerialRuns")]
     public abstract class IntegrationTestBase
     {
-        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
+        private static readonly AsyncLocal<string> s_fileName = new();
 
         private static readonly CSharpCompilation s_defaultBaseCompilation;
 
@@ -172,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         protected RazorProjectItem CreateProjectItemFromFile(string filePath = null, string fileKind = null)
         {
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(CreateProjectItemFromFile)} should only be called from an integration test, ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -186,6 +188,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             {
                 throw new XunitException($"The resource {sourceFileName} was not found.");
             }
+
             var fileContent = testFile.ReadAllText();
             var normalizedContent = NormalizeNewLines(fileContent);
 
@@ -342,7 +345,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         protected void AssertDocumentNodeMatchesBaseline(DocumentIntermediateNode document)
         {
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(AssertDocumentNodeMatchesBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -369,7 +372,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         internal void AssertHtmlDocumentMatchesBaseline(RazorHtmlDocument htmlDocument)
         {
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(AssertHtmlDocumentMatchesBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -399,7 +402,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         protected void AssertCSharpDocumentMatchesBaseline(RazorCSharpDocument cSharpDocument)
         {
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(AssertCSharpDocumentMatchesBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -452,7 +455,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         protected void AssertSourceMappingsMatchBaseline(RazorCodeDocument codeDocument)
         {
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(AssertSourceMappingsMatchBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -557,7 +560,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         protected void AssertLinePragmas(RazorCodeDocument codeDocument, bool designTime)
         {
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(AssertSourceMappingsMatchBaseline)} should only be called from an integration test. ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -630,6 +633,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 {
                     CodeSpans.Add(node);
                 }
+
                 return base.VisitCSharpStatementLiteral(node);
             }
 
@@ -640,6 +644,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 {
                     CodeSpans.Add(node);
                 }
+
                 return base.VisitCSharpExpressionLiteral(node);
             }
 
@@ -731,7 +736,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
             public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
             {
-                if (_inner == null)
+                if (_inner is null)
                 {
                     return Array.Empty<RazorProjectItem>();
                 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Text;
@@ -120,6 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 {
                     returnTypeName = descriptionInfo.ReturnTypeName;
                 }
+
                 var reducedReturnTypeName = ReduceTypeName(returnTypeName);
                 descriptionBuilder.Append(reducedReturnTypeName);
                 StartOrEndBold(descriptionBuilder);
@@ -175,6 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     summaryBuilder.Insert(cref.Index, $"`{reducedValue}`");
                 }
             }
+
             var lines = summaryBuilder.ToString().Split(new[] { '\n' }, StringSplitOptions.None).Select(line => line.Trim());
             var finalSummaryContent = string.Join(Environment.NewLine, lines);
             return finalSummaryContent;

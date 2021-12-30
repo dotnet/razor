@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.IO;
@@ -34,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public Stream OpenRead()
         {
             var stream = Assembly.GetManifestResourceStream(ResourceName);
-            if (stream == null)
+            if (stream is null)
             {
                 Assert.True(false, string.Format(CultureInfo.InvariantCulture, "Manifest resource: {0} not found", ResourceName));
             }

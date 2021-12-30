@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -37,12 +39,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             VisualStudioDescriptionFactory descriptionFactory,
             JoinableTaskContext joinableTaskContext)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(asyncCoompletionBroker));
             }
 
-            if (descriptionFactory == null)
+            if (descriptionFactory is null)
             {
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
@@ -71,14 +73,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
             if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveAttributeCompletionSource), out IAsyncCompletionSource completionSource) ||
-                completionSource == null)
+                completionSource is null)
             {
                 completionSource = CreateCompletionSource(razorBuffer);
                 razorBuffer.Properties.AddProperty(typeof(RazorDirectiveAttributeCompletionSource), completionSource);

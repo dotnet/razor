@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -19,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             get
             {
-                if (s_transitionCompletionItem == null)
+                if (s_transitionCompletionItem is null)
                 {
                     s_transitionCompletionItem = new RazorCompletionItem(
                         displayText: "@...",
@@ -53,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 return Array.Empty<RazorCompletionItem>();
             }

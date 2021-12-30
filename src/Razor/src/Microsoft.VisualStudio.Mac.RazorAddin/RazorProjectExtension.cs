@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
 {
     internal class RazorProjectExtension : ProjectExtension
     {
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
 
         protected override void OnBoundToSolution()
         {
-            if (!(Project is DotNetProject dotNetProject))
+            if (Project is not DotNetProject dotNetProject)
             {
                 return;
             }

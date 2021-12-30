@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -84,7 +86,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
-                if (codeDocument == null)
+                if (codeDocument is null)
                 {
                     // Code document not available yet.
                     return CompletionContext.Empty;

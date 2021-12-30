@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,16 +105,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
         {
-            var actualEdits = new List<TextEdit>();
-            foreach (var edit in csharpEdits)
-            {
-                if (_documentMappingService.TryMapFromProjectedDocumentEdit(codeDocument, edit, out var newEdit))
-                {
-                    actualEdits.Add(newEdit);
-                }
-            }
+            var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument, csharpEdits);
 
-            return actualEdits.ToArray();
+            return actualEdits;
         }
 
         private async Task<TextEdit[]> FormatOnClientAsync(
@@ -235,10 +226,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // will not indent them at all. When they happen to be indented more than 2 levels this causes a problem
                         // because we essentially assume that we should always move them left by at least 2 levels. This means that these
                         // nodes end up moving left with every format operation, until they hit the minimum of 2 indent levels.
-                        // We can't fix this, so we just work around it by ignoring those nodes compeletely, and leaving them where the
-                        // user put them. This is the same as what the C# formatter does.
+                        // We can't fix this, so we just work around it by ignoring those lines compeletely, and leaving them where the
+                        // user put them.
 
-                        if (IsIgnoredByCSharpFormatter(token.Parent))
+                        if (ShouldIgnoreLineCompletely(token.Parent, formattedText))
                         {
                             offset = -1;
                         }
@@ -249,15 +240,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        private static bool IsIgnoredByCSharpFormatter(SyntaxNode? parent)
-            => parent?.AncestorsAndSelf().Any(n => n switch
+        private static bool ShouldIgnoreLineCompletely(SyntaxNode? parent, SourceText text)
+        {
+            return ShouldIgnoreLineCompletelyBecauseOfNode(parent, text)
+                || ShouldIgnoreLineCompletelyBecauseOfAncestors(parent, text);
+
+            static bool ShouldIgnoreLineCompletelyBecauseOfNode(SyntaxNode? node, SourceText text)
             {
-                // C# formatter doesn't touch array initializers
-                InitializerExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression } => true,
-                // C# formatter doesn't touch object and collection initializers if they're not empty
-                InitializerExpressionSyntax { Expressions: { Count: > 0 } } => true,
-                _ => false
-            }) ?? false;
+                return node switch
+                {
+                    // We don't want to format lines that are part of multi-line string literals
+                    LiteralExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression } => SpansMultipleLines(node, text),
+                    // As above, but for mutli-line interpolated strings
+                    InterpolatedStringExpressionSyntax => SpansMultipleLines(node, text),
+                    InterpolatedStringTextSyntax => SpansMultipleLines(node, text),
+                    _ => false
+                };
+            }
+
+            static bool ShouldIgnoreLineCompletelyBecauseOfAncestors(SyntaxNode? parent, SourceText text)
+            {
+                return parent?.AncestorsAndSelf().Any(node => node switch
+                {
+                    // C# formatter doesn't touch array initializers
+                    InitializerExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression } => true,
+                    // C# formatter doesn't touch object and collection initializers if they're not empty
+                    InitializerExpressionSyntax { Expressions: { Count: > 0 } } => true,
+                    _ => false
+                }) ?? false;
+            }
+
+            static bool SpansMultipleLines(SyntaxNode node, SourceText text)
+            {
+                var range = node.Span.AsRange(text);
+                return range.Start.Line != range.End.Line;
+            }
+        }
 
         private static (Dictionary<int, IndentationMapData>, SyntaxTree) InitializeIndentationData(
             FormattingContext context,

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { RazorLSPConstants.CSHTMLFileExtension, RazorLSPConstants.RazorFileExtension });
 
-        private static readonly CommandState s_availableCommandState = new CommandState(isAvailable: true, displayText: Resources.View_Code);
+        private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: Resources.View_Code);
 
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 

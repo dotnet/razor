@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public EphemeralProjectSnapshot(HostWorkspaceServices services, string filePath)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override DocumentSnapshot GetDocument(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override bool IsImportDocument(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }

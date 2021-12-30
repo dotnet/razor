@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
@@ -12,17 +14,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
             string targetPath,
             string fileKind)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (targetPath == null)
+            if (targetPath is null)
             {
                 throw new ArgumentNullException(nameof(targetPath));
             }
 
-            if (fileKind == null)
+            if (fileKind is null)
             {
                 throw new ArgumentNullException(nameof(fileKind));
             }

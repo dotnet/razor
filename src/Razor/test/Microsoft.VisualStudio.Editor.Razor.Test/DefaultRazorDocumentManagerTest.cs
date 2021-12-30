@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -25,9 +27,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private IContentType NonRazorCoreContentType { get; } = Mock.Of<IContentType>(c => c.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
 
-        private string FilePath => "C:/Some/Path/TestDocumentTracker.cshtml";
+        private static string FilePath => "C:/Some/Path/TestDocumentTracker.cshtml";
 
-        private string ProjectPath => "C:/Some/Path/TestProject.csproj";
+        private static string ProjectPath => "C:/Some/Path/TestProject.csproj";
 
         private ProjectSnapshotManager ProjectManager => Mock.Of<ProjectSnapshotManager>(p => p.Projects == new List<ProjectSnapshot>() && p.GetOrCreateProject(It.IsAny<string>()) == null, MockBehavior.Strict);
 
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        private Workspace Workspace => TestWorkspace.Create();
+        private static Workspace Workspace => TestWorkspace.Create();
 
         [UIFact]
         public async Task OnTextViewOpened_ForNonRazorTextBuffer_DoesNothing()
@@ -171,7 +173,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         [UIFact]
-        public async Task nTextViewClosed_UnsubscribesAfterLastTextViewClosed()
+        public async Task OnTextViewClosed_UnsubscribesAfterLastTextViewClosed()
         {
             // Arrange
             var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);

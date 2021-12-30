@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,17 +32,17 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
             }
 
-            if (projectChangeTriggers == null)
+            if (projectChangeTriggers is null)
             {
                 throw new ArgumentNullException(nameof(projectChangeTriggers));
             }
 
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -55,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     var projectSnapshotManager = new DefaultProjectSnapshotManager(
                         _projectSnapshotManagerDispatcher.InternalDispatcher,

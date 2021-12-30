@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -79,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -153,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             }
 
             var projectConfiguration = GetProjectConfiguration(projectInstance, _projectConfigurationProviders);
-            if (projectConfiguration == null)
+            if (projectConfiguration is null)
             {
                 // Not a Razor project
                 return;
@@ -161,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
             var projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
             var hostProject = new OmniSharpHostProject(projectFilePath, projectConfiguration.Configuration, projectConfiguration.RootNamespace);
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 // Project doesn't exist yet, create it and set it up with all of its host documents.
 
@@ -204,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                     }
                 }
 
-                if (associatedHostDocument == null)
+                if (associatedHostDocument is null)
                 {
                     // Document was removed
                     _projectManager.DocumentRemoved(hostProject, currentHostDocument);
@@ -231,12 +233,12 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             ProjectInstance projectInstance,
             IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders)
         {
-            if (projectInstance == null)
+            if (projectInstance is null)
             {
                 throw new ArgumentNullException(nameof(projectInstance));
             }
 
-            if (projectConfigurationProviders == null)
+            if (projectConfigurationProviders is null)
             {
                 throw new ArgumentNullException(nameof(projectConfigurationProviders));
             }
@@ -273,6 +275,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 {
                     Thread.Sleep(1000);
                 }
+
                 Debugger.Break();
             }
         }

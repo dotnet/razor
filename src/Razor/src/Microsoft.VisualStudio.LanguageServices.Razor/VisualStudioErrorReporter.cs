@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         [ImportingConstructor]
         public VisualStudioErrorReporter(SVsServiceProvider services)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return;
             }
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception, ProjectSnapshot project)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return;
             }
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception, Project workspaceProject)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return;
             }

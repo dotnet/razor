@@ -73,9 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(CompletionResolveHandler));
         }
 
-        public async Task<CompletionItem> HandleRequestAsync(CompletionItem request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<CompletionItem?> HandleRequestAsync(CompletionItem request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            if (request?.Data == null)
+            if (request.Data is null)
             {
                 _logger.LogInformation("Received no completion resolve data.");
                 return request;
@@ -84,6 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation("Starting request to resolve completion.");
 
             var resolveData = request.Data is CompletionResolveData data ? data : ((JToken)request.Data).ToObject<CompletionResolveData>();
+
+            if (resolveData is null)
+            {
+                _logger.LogInformation("CompletionResolveData failed to serialize.");
+                return request;
+            }
 
             // Set the original resolve data back so the language server deserializes it correctly.
             request.Data = resolveData.OriginalData;
@@ -117,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Received result, post-processing.");
 
-            var postProcessedResult = await PostProcessCompletionItemAsync(request, result, requestContext, cancellationToken).ConfigureAwait(false);
+            var postProcessedResult = await PostProcessCompletionItemAsync(request, result, requestContext, documentSnapshot, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Returning resolved completion.");
             return postProcessedResult;
         }
@@ -126,13 +132,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             CompletionItem preResolveCompletionItem,
             CompletionItem resolvedCompletionItem,
             CompletionRequestContext requestContext,
+            LSPDocumentSnapshot documentSnapshot,
             CancellationToken cancellationToken)
         {
             // This is a special contract between the Visual Studio LSP platform and language servers where if insert text and text edit's are not present
             // then the "resolve" endpoint is guaranteed to run prior to a completion item's content being comitted. This gives language servers the
             // opportunity to lazily evaluate text edits which in turn we need to remap. Given text edits generated through this mechanism tend to be
             // more exntensive we do a full remapping gesture which includes formatting of said text-edits.
-            var shouldRemapTextEdits = preResolveCompletionItem.InsertText == null && preResolveCompletionItem.TextEdit == null;
+            var shouldRemapTextEdits = preResolveCompletionItem.InsertText is null && preResolveCompletionItem.TextEdit is null;
             if (!shouldRemapTextEdits)
             {
                 _logger.LogInformation("No TextEdit remap required.");
@@ -141,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Start formatting text edit.");
 
-            var formattingOptions = _formattingOptionsProvider.GetOptions(requestContext.HostDocumentUri);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
             if (resolvedCompletionItem.TextEdit != null)
             {
                 var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;

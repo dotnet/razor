@@ -1,6 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
-#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -77,6 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var expectedTokens = semanticArray[i..end];
                 Assert.True(Enumerable.SequenceEqual(expectedTokens, actualTokens), $"Expected: {string.Join(',', expectedTokens)} Actual: {string.Join(',', actualTokens)} index: {i}");
             }
+
             Assert.True(semanticArray.Length == actual.Length, $"Expected length: {semanticArray.Length}, Actual length: {actual.Length}");
         }
 
@@ -96,6 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 throw new XunitException($"The resource {baselineFileName} was not found.");
             }
+
             var semanticIntStr = semanticFile.ReadAllText();
             var semanticArray = ParseSemanticBaseline(semanticIntStr);
             return semanticArray;
@@ -146,6 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 throw new XunitException($"The resource {baselineFileName} was not found.");
             }
+
             var semanticEditStr = semanticEditFile.ReadAllText();
             var semanticEdits = ParseSemanticEditBaseline(semanticEditStr);
             return semanticEdits;
@@ -182,6 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     {
                         builder.Append(i).Append(' ');
                     }
+
                     builder.AppendLine("]");
                 }
             }
@@ -288,6 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     edit = edit with { Data = data.ToImmutableArray(), };
                     edits.Add(edit);
                 }
+
                 var delta = new SemanticTokensDelta()
                 {
                     Edits = edits,
@@ -307,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             public bool Equals(SemanticTokensEdit? x, SemanticTokensEdit? y)
             {
-                if (x == null && y == null)
+                if (x is null && y is null)
                 {
                     return true;
                 }
@@ -344,6 +349,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     Assert.True(x[i] == y[i], $"x {x[i]} y {y[i]} i {i}");
                 }
+
                 Assert.Equal(x.Length, y.Length);
 
                 return true;

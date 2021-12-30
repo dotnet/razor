@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -19,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             .RegisterRazorConverters()
             .ToImmutableArray();
 
-        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new RazorServiceDescriptorsWrapper(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
+        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
     }
 }

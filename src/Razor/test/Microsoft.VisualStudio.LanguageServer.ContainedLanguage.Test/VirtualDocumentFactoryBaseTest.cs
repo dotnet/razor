@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
             public const string LanguageFileNameSuffixConst = "__virtual.test";
 
             public static IContentType LanguageLSPContentTypeInstance { get; } = new TestContentType(LanguageContentTypeNameConst);
-            public static Dictionary<object, object> LanguageBufferPropertiesInstance = new Dictionary<object, object>() { {"testKey", "testValue"} };
+            public static Dictionary<object, object> LanguageBufferPropertiesInstance = new() { {"testKey", "testValue"} };
 
             public TestVirtualDocumentFactory(
                 IContentTypeRegistryService contentTypeRegistryService,

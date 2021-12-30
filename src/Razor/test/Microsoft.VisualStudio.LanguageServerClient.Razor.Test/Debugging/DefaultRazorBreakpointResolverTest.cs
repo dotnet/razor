@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -21,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
     {
         public DefaultRazorBreakpointResolverTest()
         {
+            CSHTMLDocumentUri = new Uri("file://C:/path/to/file.cshtml", UriKind.Absolute);
             DocumentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
             CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".g.cs", UriKind.Absolute);
 
@@ -47,6 +50,8 @@ $@"public class SomeRazorFile
         private ITextBuffer CSharpTextBuffer { get; }
 
         private Uri DocumentUri { get; }
+
+        private Uri CSHTMLDocumentUri { get; }
 
         private Uri CSharpDocumentUri { get; }
 
@@ -193,6 +198,26 @@ $@"public class SomeRazorFile
         }
 
         [Fact]
+        public void GetMappingBehavior_CSHTML()
+        {
+            // Act
+            var result = DefaultRazorBreakpointResolver.GetMappingBehavior(CSHTMLDocumentUri);
+
+            // Assert
+            Assert.Equal(LanguageServerMappingBehavior.Inclusive, result);
+        }
+
+        [Fact]
+        public void GetMappingBehavior_Razor()
+        {
+            // Act
+            var result = DefaultRazorBreakpointResolver.GetMappingBehavior(DocumentUri);
+
+            // Assert
+            Assert.Equal(LanguageServerMappingBehavior.Strict, result);
+        }
+
+        [Fact]
         public async Task TryResolveBreakpointRangeAsync_MappableCSharpBreakpointLocation_ReturnsHostBreakpointLocation()
         {
             // Arrange
@@ -263,7 +288,7 @@ $@"public class SomeRazorFile
             if (documentMappingProvider is null)
             {
                 documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict).Object;
-                Mock.Get(documentMappingProvider).Setup(p => p.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), CancellationToken.None))
+                Mock.Get(documentMappingProvider).Setup(p => p.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), LanguageServerMappingBehavior.Strict, CancellationToken.None))
                     .Returns(Task.FromResult<RazorMapToDocumentRangesResponse>(null));
             }
 
@@ -357,6 +382,9 @@ $@"public class SomeRazorFile
 
                 return Task.FromResult(projectionResult);
             }
+
+            public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+                => GetProjectionAsync(documentSnapshot, position, cancellationToken);
         }
     }
 }

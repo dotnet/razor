@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -124,6 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // Don't trust ourselves in an incomplete scenario.
                     return false;
                 }
+
                 var code = cSharpCode.Children.PreviousSiblingOrSelf(closeBrace) as CSharpCodeBlockSyntax;
 
                 var openBraceNode = openBrace;
@@ -399,9 +398,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
                 {
                     // If for some reason we don't match a particular span use the indentation for the whole line
-                    var indentation = context.Indentations[range.Start.Line];
+                    var indentations = context.GetIndentations();
+                    var indentation = indentations[range.Start.Line];
                     desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
                 }
+
                 var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
                 var currentIndentationOffset = openBraceNode.GetTrailingWhitespaceLength(context) + codeNode.GetLeadingWhitespaceLength(context);
 

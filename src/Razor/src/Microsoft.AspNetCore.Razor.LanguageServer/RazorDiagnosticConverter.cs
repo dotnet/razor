@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,12 +16,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static Diagnostic Convert(RazorDiagnostic razorDiagnostic, SourceText sourceText)
         {
-            if (razorDiagnostic == null)
+            if (razorDiagnostic is null)
             {
                 throw new ArgumentNullException(nameof(razorDiagnostic));
             }
 
-            if (sourceText == null)
+            if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }

@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
         }
 
-        public async Task<Location[]> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<Location[]?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }

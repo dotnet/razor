@@ -17,10 +17,11 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
-using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams;
+using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -103,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentSynchronizer));
             }
 
-            _documentManager = documentManager as TrackingLSPDocumentManager;
+            _documentManager = (TrackingLSPDocumentManager)documentManager;
 
             if (_documentManager is null)
             {
@@ -119,7 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Testing constructor
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal DefaultRazorLanguageServerCustomMessageTarget(TrackingLSPDocumentManager documentManager)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _documentManager = documentManager;
         }
@@ -139,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }
@@ -167,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }
@@ -275,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<IReadOnlyList<VSInternalCodeAction>> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<VSInternalCodeAction>?> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
         {
             if (codeActionParams is null)
             {
@@ -313,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return codeActions;
         }
-#nullable enable
+
         public override async Task<VSInternalCodeAction?> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
         {
             if (resolveCodeActionParams is null)
@@ -347,15 +350,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return null;
         }
-#nullable disable
 
-        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
-            ProvideSemanticTokensParams semanticTokensParams,
+        public override async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(
+            ProvideSemanticTokensRangeParams semanticTokensParams,
             CancellationToken cancellationToken)
         {
             if (semanticTokensParams is null)
             {
                 throw new ArgumentNullException(nameof(semanticTokensParams));
+            }
+
+            if (semanticTokensParams.Range is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensParams.Range));
             }
 
             var csharpDoc = GetCSharpDocumentSnapshsot(semanticTokensParams.TextDocument.Uri.ToUri());
@@ -372,22 +379,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // If we're unable to synchronize we won't produce useful results, but we have to indicate
                 // it's due to out of sync by providing the old version
                 return new ProvideSemanticTokensResponse(
-                    resultId: null, tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                    tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
             var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
             semanticTokensParams = semanticTokensParams with { TextDocument = csharpTextDocument };
 
-            var newParams = new SemanticTokensParams
+            var newParams = new SemanticTokensRangeParams
             {
                 TextDocument = semanticTokensParams.TextDocument,
                 PartialResultToken = semanticTokensParams.PartialResultToken,
+                Range = semanticTokensParams.Range,
             };
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
-            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                 textBuffer,
-                Methods.TextDocumentSemanticTokensFullName,
+                Methods.TextDocumentSemanticTokensRangeName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
@@ -397,91 +405,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
                 return new ProvideSemanticTokensResponse(
-                    resultId: null, tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                    tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
             var response = new ProvideSemanticTokensResponse(
-                result.ResultId, result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
+                result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
 
             return response;
         }
 
-        public override async Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(
-            ProvideSemanticTokensDeltaParams semanticTokensEditsParams,
-            CancellationToken cancellationToken)
-        {
-            if (semanticTokensEditsParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensEditsParams));
-            }
-
-            var documentUri = semanticTokensEditsParams.TextDocument.Uri.ToUri();
-            var csharpDoc = GetCSharpDocumentSnapshsot(documentUri);
-            if (csharpDoc is null)
-            {
-                return null;
-            }
-
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                (int)semanticTokensEditsParams.RequiredHostDocumentVersion, csharpDoc, cancellationToken);
-            if (!synchronized)
-            {
-                // If we're unable to synchronize we won't produce useful results
-                return new ProvideSemanticTokensEditsResponse(
-                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
-            }
-
-            var newParams = new SemanticTokensDeltaParams
-            {
-                TextDocument = new TextDocumentIdentifier
-                {
-                    Uri = csharpDoc.Uri,
-                },
-                PreviousResultId = semanticTokensEditsParams.PreviousResultId,
-            };
-
-            var textBuffer = csharpDoc.Snapshot.TextBuffer;
-            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<VSSemanticTokensResponse, VSSemanticTokensDeltaResponse>>(
-                textBuffer,
-                Methods.TextDocumentSemanticTokensFullDeltaName,
-                RazorLSPConstants.RazorCSharpLanguageServerName,
-                newParams,
-                cancellationToken).ConfigureAwait(false);
-            var csharpResults = csharpResponse?.Response;
-            if (csharpResults is null)
-            {
-                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
-                return new ProvideSemanticTokensEditsResponse(
-                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
-            }
-
-            // Converting from LSP to O# types
-            if (csharpResults.Value.Value is VSSemanticTokensResponse tokens)
-            {
-                var response = new ProvideSemanticTokensEditsResponse(
-                    tokens.ResultId, tokens.Data, edits: null, isFinalized: tokens.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
-                return response;
-            }
-            else if (csharpResults.Value.Value is VSSemanticTokensDeltaResponse edits)
-            {
-                var results = new RazorSemanticTokensEdit[edits.Edits.Length];
-                for (var i = 0; i < edits.Edits.Length; i++)
-                {
-                    var currentEdit = edits.Edits[i];
-                    results[i] = new RazorSemanticTokensEdit(currentEdit.Start, currentEdit.DeleteCount, currentEdit.Data);
-                }
-
-                var response = new ProvideSemanticTokensEditsResponse(
-                    edits.ResultId, tokens: null, edits: results, isFinalized: edits.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
-                return response;
-            }
-            else
-            {
-                throw new ArgumentException("Returned tokens should be of type VSSemanticTokensResponse or VSSemanticTokensDeltaResponse.");
-            }
-        }
-
-        private CSharpVirtualDocumentSnapshot GetCSharpDocumentSnapshsot(Uri uri)
+        private CSharpVirtualDocumentSnapshot? GetCSharpDocumentSnapshsot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
             var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));
@@ -540,6 +473,55 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             return Task.FromResult(result.ToArray());
+        }
+
+        public override async Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken)
+        {
+            // Same as in LanguageServerConstants, and in Web Tools
+            const string HtmlWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
+
+            var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
+
+            var hostDocumentUri = wrapWithParams.TextDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return response;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            if (documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlDocument.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't happen in a real scenario.");
+                return response;
+            }
+
+            // We call the Html language server to do the actual work here, now that we have the vitrual document that they know about
+            var request = new VSInternalWrapWithTagParams(
+                wrapWithParams.Range,
+                wrapWithParams.TagName,
+                wrapWithParams.Options,
+                new TextDocumentIdentifier() { Uri = projectedUri });
+
+            var textBuffer = htmlDocument.Snapshot.TextBuffer;
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(
+                textBuffer,
+                HtmlWrapWithTagEndpoint,
+                languageServerName,
+                request,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result?.Response is not null)
+            {
+                response = result.Response;
+            }
+
+            return response;
         }
     }
 }

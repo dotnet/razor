@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,17 +20,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             ProjectResolver projectResolver,
             FilePathNormalizer filePathNormalizer)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (projectResolver == null)
+            if (projectResolver is null)
             {
                 throw new ArgumentNullException(nameof(projectResolver));
             }
 
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
@@ -39,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _filePathNormalizer = filePathNormalizer;
         }
 
-        public override bool TryResolveDocument(string documentFilePath, out DocumentSnapshot document)
+        public override bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out DocumentSnapshot? document)
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 

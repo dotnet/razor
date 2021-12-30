@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Language
@@ -9,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public static BoundAttributeDescriptorBuilder Name(this BoundAttributeDescriptorBuilder builder, string name)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -21,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder TypeName(this BoundAttributeDescriptorBuilder builder, string typeName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -33,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder PropertyName(this BoundAttributeDescriptorBuilder builder, string propertyName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -45,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder DisplayName(this BoundAttributeDescriptorBuilder builder, string displayName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -57,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder AsEnum(this BoundAttributeDescriptorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -72,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             string attributeNamePrefix,
             string valueTypeName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -86,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder Documentation(this BoundAttributeDescriptorBuilder builder, string documentation)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -98,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder AddMetadata(this BoundAttributeDescriptorBuilder builder, string key, string value)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -110,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static BoundAttributeDescriptorBuilder AddDiagnostic(this BoundAttributeDescriptorBuilder builder, RazorDiagnostic diagnostic)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

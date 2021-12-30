@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -26,17 +28,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             TextBufferProjectService projectService,
             [Import(typeof(VisualStudioWorkspace))] Workspace defaultWorkspace)
         {
-            if (bufferGraphService == null)
+            if (bufferGraphService is null)
             {
                 throw new ArgumentNullException(nameof(bufferGraphService));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            if (defaultWorkspace == null)
+            if (defaultWorkspace is null)
             {
                 throw new ArgumentNullException(nameof(defaultWorkspace));
             }
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -82,14 +84,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var graph = _bufferGraphService.CreateBufferGraph(textBuffer);
             var projectedCSharpBuffer = graph.GetTextBuffers(buffer => buffer.ContentType.IsOfType("CSharp")).FirstOrDefault();
 
-            if (projectedCSharpBuffer == null)
+            if (projectedCSharpBuffer is null)
             {
                 workspace = null;
                 return false;
             }
 
             workspace = projectedCSharpBuffer.GetWorkspace();
-            if (workspace == null)
+            if (workspace is null)
             {
                 // Couldn't resolve a workspace for the projected csharp buffer.
                 return false;
@@ -103,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
             var project = _projectService.GetHostProject(textBuffer);
 
-            if (project == null)
+            if (project is null)
             {
                 // Could not locate a project for the given text buffer.
                 workspace = null;

@@ -3,6 +3,7 @@
 
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
@@ -19,17 +20,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
             privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
-        private readonly SemaphoreSlim _initializationSemaphore = null;
-        private IServiceBroker _serviceBroker = null;
+        private readonly SemaphoreSlim _initializationSemaphore;
+        private IServiceBroker? _serviceBroker = null;
 
         public RazorLogHubTraceProvider()
         {
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
-        public async Task<TraceSource> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
+        public async Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
         {
-            if (!await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false))
+            if ((await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false)) is false)
             {
                 return null;
             }
@@ -38,19 +39,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 logName: $"{logIdentifier}.{logHubSessionId}",
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
-            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
+            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker!, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
 
             return traceSource;
         }
 
+        [MemberNotNullWhen(returnValue: true, member: $"{nameof(_serviceBroker)}")]
         public async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)
         {
             await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 // Check if the service broker has already been initialized
-                if (!(_serviceBroker is null))
+                if (_serviceBroker is not null)
                 {
                     return true;
                 }

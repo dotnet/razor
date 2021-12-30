@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Hosting
@@ -22,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="configurationName">The name of the Razor configuration.</param>
         public RazorConfigurationNameAttribute(string configurationName)
         {
-            if (configurationName == null)
+            if (configurationName is null)
             {
                 throw new ArgumentNullException(nameof(configurationName));
             }

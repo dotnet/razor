@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -18,17 +20,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             bool containingParentIsTagHelper,
             Func<string, bool> inHTMLSchema)
         {
-            if (documentContext == null)
+            if (documentContext is null)
             {
                 throw new ArgumentNullException(nameof(documentContext));
             }
 
-            if (existingCompletions == null)
+            if (existingCompletions is null)
             {
                 throw new ArgumentNullException(nameof(existingCompletions));
             }
 
-            if (inHTMLSchema == null)
+            if (inHTMLSchema is null)
             {
                 throw new ArgumentNullException(nameof(inHTMLSchema));
             }

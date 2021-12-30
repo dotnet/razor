@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -116,7 +118,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         internal override Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default)
         {
-            if (atOrNewerSnapshot == null)
+            if (atOrNewerSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(atOrNewerSnapshot));
             }
@@ -139,7 +141,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     }
                 }
 
-                if (request == null)
+                if (request is null)
                 {
                     request = new CodeDocumentRequest(atOrNewerSnapshot, cancellationToken);
                     _codeDocumentRequests.Add(request);
@@ -278,7 +280,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             lock (_idleLock)
             {
-                if (_idleTimer == null)
+                if (_idleTimer is null)
                 {
                     // Timer will fire after a fixed delay, but only once.
                     _idleTimer = NonCapturingTimer.Create(state => ((DefaultVisualStudioRazorParser)state).Timer_Tick(), this, _idleDelay, Timeout.InfiniteTimeSpan);
@@ -346,6 +348,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     codeDocument.Items[item.Key] = item.Value;
                 }
+
                 codeDocument.SetSyntaxTree(partialParseSyntaxTree);
                 TryUpdateLatestParsedSyntaxTreeSnapshot(codeDocument, snapshot);
             }
@@ -473,7 +476,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             var backgroundParserArgs = (BackgroundParserResultsReadyEventArgs)state;
-            if (_latestChangeReference == null || // extra hardening
+            if (_latestChangeReference is null || // extra hardening
                 _latestChangeReference != backgroundParserArgs.ChangeReference)
             {
                 // In the middle of parsing a newer change or about to parse a newer change.
@@ -506,6 +509,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 builder.SetCSharpLanguageVersion(projectSnapshot.CSharpLanguageVersion);
             }
+
             builder.SetRootNamespace(projectSnapshot?.RootNamespace);
             builder.Features.Add(new VisualStudioParserOptionsFeature(_documentTracker.EditorSettings));
             builder.Features.Add(new VisualStudioTagHelperFeature(_documentTracker.TagHelpers));
@@ -531,14 +535,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TryUpdateLatestParsedSyntaxTreeSnapshot(RazorCodeDocument codeDocument, ITextSnapshot snapshot)
         {
-            if (snapshot == null)
+            if (snapshot is null)
             {
                 throw new ArgumentNullException(nameof(snapshot));
             }
 
             lock (_updateStateLock)
             {
-                if (_latestParsedSnapshot == null ||
+                if (_latestParsedSnapshot is null ||
                     _latestParsedSnapshot.Version.VersionNumber < snapshot.Version.VersionNumber)
                 {
                     _latestParsedSnapshot = snapshot;
@@ -623,7 +627,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public CodeDocumentRequest(ITextSnapshot snapshot, CancellationToken cancellationToken)
             {
-                if (snapshot == null)
+                if (snapshot is null)
                 {
                     throw new ArgumentNullException(nameof(snapshot));
                 }
@@ -646,7 +650,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public void Complete(RazorCodeDocument codeDocument)
             {
-                if (codeDocument == null)
+                if (codeDocument is null)
                 {
                     throw new ArgumentNullException(nameof(codeDocument));
                 }

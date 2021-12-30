@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,7 +15,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using System.IO;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 {
     public class CompletionListSerializationBenchmark : TagHelperBenchmarkBase
     {

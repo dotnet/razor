@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public DocumentSnapshotTextLoader(DocumentSnapshot documentSnapshot)
         {
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }

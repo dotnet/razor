@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -113,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory))
+            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false))
             {
                 for (var i = 0; i < applicableProviders.Count; i++)
                 {

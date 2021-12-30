@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.Extensions.Internal;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public bool Equals(RazorMapToDocumentRangesParams other)
         {
             return
-                other != null &&
+                other is not null &&
                 Kind == other.Kind &&
                 RazorDocumentUri == other.RazorDocumentUri &&
                 MappingBehavior == other.MappingBehavior &&

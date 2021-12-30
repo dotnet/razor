@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -54,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     writer.WriteStartArray();
                     foreach (var completionItem in completionList.Items)
                     {
-                        if (completionItem == null)
+                        if (completionItem is null)
                         {
                             continue;
                         }
@@ -65,6 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         var suppressData = (completionList as VSCompletionList)?.Data != null;
                         WriteCompletionItem(writer, completionItem, serializer, suppressData);
                     }
+
                     writer.WriteEndArray();
                 }
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Threading;
@@ -17,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public DefaultRemoteTextLoaderFactory(
             FilePathNormalizer filePathNormalizer)
         {
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
@@ -27,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public override TextLoader Create(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -42,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             public RemoteTextLoader(string filePath)
             {
-                if (filePath == null)
+                if (filePath is null)
                 {
                     throw new ArgumentNullException(nameof(filePath));
                 }

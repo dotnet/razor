@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -10,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingTestLoggerFactory : ILoggerFactory
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public FormattingTestLoggerFactory(ITestOutputHelper output)
         {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -13,13 +11,18 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+
+using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
@@ -28,12 +31,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
+        private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger<RazorDefinitionEndpoint> _logger;
 
         public RazorDefinitionEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine,
+            RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
             if (loggerFactory is null)
@@ -44,6 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
         }
 
@@ -95,14 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            var originTagHelperBinding = await GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, request.Position, _logger).ConfigureAwait(false);
-            if (originTagHelperBinding is null)
-            {
-                _logger.LogInformation("Origin TagHelper binding is null.");
-                return null;
-            }
-
-            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault(d => !d.IsAttributeDescriptor());
+            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, request.Position, _logger).ConfigureAwait(false);
             if (originTagDescriptor is null)
             {
                 _logger.LogInformation("Origin TagHelper descriptor is null.");
@@ -118,6 +117,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             _logger.LogInformation($"Definition found at file path: {originComponentDocumentSnapshot.FilePath}");
 
+            var range = await GetNavigateRangeAsync(originComponentDocumentSnapshot, attributeDescriptor, cancellationToken);
+
             var originComponentUri = new UriBuilder
             {
                 Path = originComponentDocumentSnapshot.FilePath,
@@ -130,12 +131,85 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 new LocationOrLocationLink(new Location
                 {
                     Uri = originComponentUri,
-                    Range = new Range(new Position(0, 0), new Position(0, 0)),
+                    Range = range,
                 }),
             });
         }
 
-        internal static async Task<TagHelperBinding?> GetOriginTagHelperBindingAsync(
+        private async Task<Range> GetNavigateRangeAsync(DocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
+        {
+            if (attributeDescriptor is not null)
+            {
+                _logger.LogInformation("Attempting to get definition from an attribute directly.");
+
+                var originCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+                var range = await TryGetPropertyRangeAsync(originCodeDocument, attributeDescriptor.GetPropertyName(), _documentMappingService, _logger, cancellationToken).ConfigureAwait(false);
+
+                if (range is not null)
+                {
+                    return range;
+                }
+            }
+
+            // When navigating from a start or end tag, we just take the user to the top of the file.
+            // If we were trying to navigate to a property, and we couldn't find it, we can at least take
+            // them to the file for the component. If the property was defined in a partial class they can
+            // at least then press F7 to go there.
+            return new Range(new Position(0, 0), new Position(0, 0));
+        }
+
+        internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, RazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
+        {
+            // Parse the C# file and find the property that matches the name.
+            // We don't worry about parameter attributes here for two main reasons:
+            //   1. We don't have symbolic information, so the best we could do would be checking for any
+            //      attribute named Parameter, regardless of which namespace. It also means we would have
+            //      to do more checks for all of the various ways that the attribute could be specified
+            //      (eg fully qualified, aliased, etc.)
+            //   2. Since C# doesn't allow multiple properties with the same name, and we're doing a case
+            //      sensitive search, we know the property we find is the one the user is trying to encode in a
+            //      tag helper attribute. If they don't have the [Parameter] attribute then the Razor compiler
+            //      will error, but allowing them to Go To Def on that property regardless, actually helps
+            //      them fix the error.
+            var csharpText = codeDocument.GetCSharpSourceText();
+            var syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Since we know how the compiler generates the C# source we can be a little specific here, and avoid
+            // long tree walks. If the compiler ever changes how they generate their code, the tests for this will break
+            // so we'll know about it.
+            if (root is CompilationUnitSyntax compilationUnit &&
+                compilationUnit.Members[0] is NamespaceDeclarationSyntax namespaceDeclaration &&
+                namespaceDeclaration.Members[0] is ClassDeclarationSyntax classDeclaration)
+            {
+                var property = classDeclaration
+                    .Members
+                    .OfType<PropertyDeclarationSyntax>()
+                    .Where(p => p.Identifier.ValueText.Equals(propertyName, StringComparison.Ordinal))
+                    .FirstOrDefault();
+
+                if (property is null)
+                {
+                    // The property probably exists in a partial class
+                    logger.LogInformation("Could not find property in the generated source. Comes from partial?");
+                    return null;
+                }
+
+                var range = property.Identifier.Span.AsRange(csharpText);
+                if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
+                {
+                    return originalRange;
+                }
+
+                logger.LogInformation("Property found but couldn't map its location.");
+            }
+
+            logger.LogInformation("Generated C# was not in expected shape (CompilationUnit -> Namespace -> Class)");
+
+            return null;
+        }
+
+        internal static async Task<(TagHelperDescriptor?, BoundAttributeDescriptor?)> GetOriginTagHelperBindingAsync(
             DocumentSnapshot documentSnapshot,
             RazorCodeDocument codeDocument,
             Position position,
@@ -151,14 +225,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             if (syntaxTree?.Root is null)
             {
                 logger.LogInformation("Could not retrieve syntax tree.");
-                return null;
+                return (null, null);
             }
 
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner is null)
             {
                 logger.LogInformation("Could not locate owner.");
-                return null;
+                return (null, null);
             }
 
             var node = owner.Ancestors().FirstOrDefault(n =>
@@ -167,29 +241,56 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             if (node is null)
             {
                 logger.LogInformation("Could not locate ancestor of type MarkupTagHelperStartTag or MarkupTagHelperEndTag.");
-                return null;
+                return (null, null);
             }
 
             var name = GetStartOrEndTagName(node);
             if (name is null)
             {
                 logger.LogInformation("Could not retrieve name of start or end tag.");
-                return null;
+                return (null, null);
+            }
+
+            string? propertyName = null;
+
+            // If we're on an attribute then just validate against the attribute name
+            if (owner.Parent is MarkupTagHelperAttributeSyntax attribute)
+            {
+                // Normal attribute, ie <Component attribute=value />
+                name = attribute.Name;
+                propertyName = attribute.TagHelperAttributeInfo.Name;
+            }
+            else if (owner.Parent is MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute)
+            {
+                // Minimized attribute, ie <Component attribute />
+                name = minimizedAttribute.Name;
+                propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
             }
 
             if (!name.Span.Contains(location.AbsoluteIndex))
             {
-                logger.LogInformation($"Tag name's span does not contain location's absolute index ({location.AbsoluteIndex}).");
-                return null;
+                logger.LogInformation($"Tag name or attributes's span does not contain location's absolute index ({location.AbsoluteIndex}).");
+                return (null, null);
             }
 
             if (node.Parent is not MarkupTagHelperElementSyntax tagHelperElement)
             {
                 logger.LogInformation("Parent of start or end tag is not a MarkupTagHelperElement.");
-                return null;
+                return (null, null);
             }
 
-            return tagHelperElement.TagHelperInfo.BindingResult;
+            var originTagDescriptor = tagHelperElement.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => !d.IsAttributeDescriptor());
+            if (originTagDescriptor is null)
+            {
+                logger.LogInformation("Origin TagHelper descriptor is null.");
+                return (null, null);
+            }
+
+            var attributeDescriptor = (propertyName is not null)
+                ? originTagDescriptor.BoundAttributes.FirstOrDefault(a => a.Name.Equals(propertyName, StringComparison.Ordinal))
+                : null;
+
+            return (originTagDescriptor, attributeDescriptor);
         }
 
         private static SyntaxNode? GetStartOrEndTagName(SyntaxNode node)

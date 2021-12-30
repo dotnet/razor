@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Text;
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public TextSnapshotProjectItem(ITextSnapshot snapshot, string projectDirectory, string relativeFilePath, string filePath, string fileKind)
         {
-            if (snapshot == null)
+            if (snapshot is null)
             {
                 throw new ArgumentNullException(nameof(snapshot));
             }
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            if (fileKind == null)
+            if (fileKind is null)
             {
                 throw new ArgumentNullException(nameof(fileKind));
             }

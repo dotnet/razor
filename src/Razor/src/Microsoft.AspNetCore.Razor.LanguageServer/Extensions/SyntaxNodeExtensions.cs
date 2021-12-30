@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
@@ -17,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, out SyntaxNode previousSibling)
         {
             var syntaxNodeParent = syntaxNode.Parent;
-            if (syntaxNodeParent == null)
+            if (syntaxNodeParent is null)
             {
                 previousSibling = default;
                 return false;

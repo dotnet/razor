@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal abstract class LSPDiagnosticsTranslator

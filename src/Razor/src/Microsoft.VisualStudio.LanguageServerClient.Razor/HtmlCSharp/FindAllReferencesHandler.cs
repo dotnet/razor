@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -105,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }
@@ -127,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: (value, ct) => ProcessReferenceItemsAsync(value, request.PartialResultToken, ct),
+                onProgressNotifyAsync: (value, ct) => ProcessReferenceItemsAsync(value, request.PartialResultToken!, ct),
                 DelayAfterLastNotifyAsync,
                 cancellationToken,
                 out var onCompleted))
@@ -193,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var result = value.ToObject<VSInternalReferenceItem[]>();
 
-            if (result == null || result.Length == 0)
+            if (result is null || result.Length == 0)
             {
                 _logger.LogInformation("Received empty progress notification");
                 return;
@@ -241,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     new[] { referenceItem.Location.Range },
                     cancellationToken).ConfigureAwait(false);
 
-                if (mappingResult == null ||
+                if (mappingResult is null ||
                     mappingResult.Ranges[0].IsUndefined() ||
                     (_documentManager.TryGetDocument(razorDocumentUri, out var mappedDocumentSnapshot) &&
                     mappingResult.HostDocumentVersion != mappedDocumentSnapshot.Version))

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
@@ -23,10 +25,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            var extensionName = string.Empty;
-
-            reader.ReadProperties(propertyName =>
+            var (_, extensionName) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, extensionName) = (arg.reader, arg.extensionName);
                 switch (propertyName)
                 {
                     case nameof(RazorExtension.ExtensionName):
@@ -34,9 +35,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         {
                             extensionName = (string)reader.Value;
                         }
+
                         break;
                 }
-            });
+
+                return (reader, extensionName);
+            }, (reader, extensionName: string.Empty));
 
             return new SerializedRazorExtension(extensionName);
         }

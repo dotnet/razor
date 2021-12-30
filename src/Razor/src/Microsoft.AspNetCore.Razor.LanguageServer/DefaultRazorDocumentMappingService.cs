@@ -12,88 +12,196 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.Extensions.Logging;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
-        public override bool TryMapFromProjectedDocumentEdit(RazorCodeDocument codeDocument, TextEdit edit, out TextEdit newEdit)
+        private readonly ILogger _logger;
+
+        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
         {
-            newEdit = default;
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
 
+            _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
+        }
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("This only exists to prevent Moq from complaining, use the other constructor.")]
+        public DefaultRazorDocumentMappingService() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+        public override TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits)
+        {
+            var projectedEdits = new List<TextEdit>();
             var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var range = edit.Range;
-            if (!IsRangeWithinDocument(range, csharpSourceText))
+            var lastNewLineAddedToLine = 0;
+
+            foreach (var edit in edits)
             {
-                return false;
-            }
-
-            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
-            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
-            var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
-            var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
-
-            // Ideal case, both start and end can be mapped so just return the edit
-            if (mappedStart && mappedEnd)
-            {
-                newEdit = new TextEdit()
+                var range = edit.Range;
+                if (!IsRangeWithinDocument(range, csharpSourceText))
                 {
-                    NewText = edit.NewText,
-                    Range = new Range(hostDocumentStart, hostDocumentEnd)
-                };
-                return true;
-            }
+                    continue;
+                }
 
-            // For the first line of a code block the C# formatter will often return an edit that starts
-            // before our mapping, but ends within. In those cases, when the edit spans multiple lines
-            // we just take the last line and try to use that.
-            //
-            // eg in the C# document you might see:
-            //
-            //      protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
-            //      {
-            // #nullable restore
-            // #line 1 "/path/to/Document.component"
-            //    
-            //          var x = DateTime.Now;
-            //
-            // To indent the 'var x' line the formatter will return an edit that starts the line before,
-            // with a NewText of '\n            '. The start of that edit is outside our mapping, but we
-            // still want to know how to format the 'var x' line, so we have to break up the edit.
-            if (!mappedStart && mappedEnd && range.SpansMultipleLines())
-            {
-                // Construct a theoretical edit that is just for the last line of the edit that the C# formatter
-                // gave us, and see if we can map that.
-                // The +1 here skips the newline character that is found, but also protects from Substring throwing
-                // if there are no newlines (which should be impossible anyway)
-                var lastNewLine = edit.NewText.LastIndexOfAny(new char[] { '\n', '\r' }) + 1;
-
-                // Strictly speaking we could be dropping more lines than we need to, because our mapping point could be anywhere within the edit
-                // but we know that the C# formatter will only be returning blank lines up until the first bit of content that needs to be indented
-                // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
-                Debug.Assert(edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
-
-                var proposedEdit = new TextEdit()
+                var startSync = range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex);
+                var endSync = range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex);
+                if (startSync is false || endSync is false)
                 {
-                    NewText = edit.NewText.Substring(lastNewLine),
-                    Range = new Range(range.End.Line, 0, range.End.Line, range.End.Character)
-                };
+                    break;
+                }
 
-                // We don't need to worry about the recursion here because we're deliberately constructing a range
-                // that is on a single line, but only recursing if the range spans multiple.
-                if (TryMapFromProjectedDocumentEdit(codeDocument, proposedEdit, out newEdit))
+                var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
+                var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
+
+                // Ideal case, both start and end can be mapped so just return the edit
+                if (mappedStart && mappedEnd)
                 {
-                    return true;
+                    // If the previous edit was on the same line, and added a newline, then we need to add a space
+                    // between this edit and the previous one, because the normalization will have swallowed it. See
+                    // below for a more info.
+                    var newText = (lastNewLineAddedToLine == range.Start.Line ? " " : "") + edit.NewText;
+                    projectedEdits.Add(new TextEdit()
+                    {
+                        NewText = newText,
+                        Range = new Range(hostDocumentStart!, hostDocumentEnd!)
+                    });
+                    continue;
+                }
+
+                // For the first line of a code block the C# formatter will often return an edit that starts
+                // before our mapping, but ends within. In those cases, when the edit spans multiple lines
+                // we just take the last line and try to use that.
+                //
+                // eg in the C# document you might see:
+                //
+                //      protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                //      {
+                // #nullable restore
+                // #line 1 "/path/to/Document.component"
+                //
+                //          var x = DateTime.Now;
+                //
+                // To indent the 'var x' line the formatter will return an edit that starts the line before,
+                // with a NewText of '\n            '. The start of that edit is outside our mapping, but we
+                // still want to know how to format the 'var x' line, so we have to break up the edit.
+                if (!mappedStart && mappedEnd && range.SpansMultipleLines())
+                {
+                    // Construct a theoretical edit that is just for the last line of the edit that the C# formatter
+                    // gave us, and see if we can map that.
+                    // The +1 here skips the newline character that is found, but also protects from Substring throwing
+                    // if there are no newlines (which should be impossible anyway)
+                    var lastNewLine = edit.NewText.LastIndexOfAny(new char[] { '\n', '\r' }) + 1;
+
+                    // Strictly speaking we could be dropping more lines than we need to, because our mapping point could be anywhere within the edit
+                    // but we know that the C# formatter will only be returning blank lines up until the first bit of content that needs to be indented
+                    // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
+                    Debug.Assert(lastNewLine == 0 || edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
+
+                    var proposedRange = new Range(range.End.Line, 0, range.End.Line, range.End.Character);
+                    startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
+                    endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out endIndex);
+                    if (startSync is false || endSync is false)
+                    {
+                        break;
+                    }
+
+                    mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
+                    mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
+
+                    if (mappedStart && mappedEnd)
+                    {
+                        projectedEdits.Add(new TextEdit()
+                        {
+                            NewText = edit.NewText.Substring(lastNewLine),
+                            Range = new Range(hostDocumentStart!, hostDocumentEnd!)
+                        });
+                        continue;
+                    }
+                }
+
+                // If we couldn't map either the start or the end then we still might want to do something tricky.
+                // When we have a block like this:
+                //
+                // @functions {
+                //    class Goo
+                //    {
+                //    }
+                // }
+                //
+                // The source mapping starts at char 13 on the "@functions" line (after the open brace). Unfortunately
+                // and code that is needed on that line, say an attribute that the code action wants to insert, will
+                // start at char 8 because of the desired indentation of that new code. This means it starts outside of the
+                // mapping, so is thrown away, which results in data loss.
+                //
+                // To fix this we check and if the mapping would have been successful at the end of the line (char 13 above)
+                // then we insert a newline, and enough indentation to get us back out to where the new code wanted to start (char 8)
+                // and then we're good - we've left the @functions bit alone which razor needs, but we're still able to insert
+                // new code above where the C# code is in the generated document.
+                //
+                // One last hurdle is that sometimes these edits come in as separate edits. So for example replacing "class Goo" above
+                // with "public class Goo" would come in as one edit for "public", one for "class" and one for "Goo", all on the same line.
+                // When we map the edit for "public" we will push everything down a line, so we don't want to do it for other edits
+                // on that line.
+                if (!mappedStart && !mappedEnd && !range.SpansMultipleLines())
+                {
+                    // If the new text doesn't have any content we don't care - throwing away invisible whitespace is fine
+                    if (string.IsNullOrWhiteSpace(edit.NewText))
+                    {
+                        continue;
+                    }
+
+                    var line = csharpSourceText.Lines[range.Start.Line];
+
+                    // If the line isn't blank, then this isn't a functions directive
+                    if (line.GetFirstNonWhitespaceOffset() is not null)
+                    {
+                        continue;
+                    }
+
+                    // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
+                    var endOfLine = line.Span.End;
+                    if (TryMapFromProjectedDocumentPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
+                    {
+                        if (range.Start.Line == lastNewLineAddedToLine)
+                        {
+                            // If we already added a newline to this line, then we don't want to add another one, but
+                            // we do need to add a space between this edit and the previous one, because the normalization
+                            // will have swallowed it.
+                            projectedEdits.Add(new TextEdit()
+                            {
+                                NewText = " " + edit.NewText,
+                                Range = new Range(hostDocumentIndex, hostDocumentIndex)
+                            });
+                        }
+                        else
+                        {
+                            // Otherwise, add a newline and the real content, and remember where we added it
+                            lastNewLineAddedToLine = range.Start.Line;
+                            projectedEdits.Add(new TextEdit()
+                            {
+                                NewText = Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText,
+                                Range = new Range(hostDocumentIndex, hostDocumentIndex)
+                            });
+                        }
+
+                        continue;
+                    }
                 }
             }
 
-            return false;
+            return projectedEdits.ToArray();
         }
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, out Range originalRange)
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
             if (codeDocument is null)
             {
@@ -118,8 +226,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Unknown_mapping_behavior);
             }
         }
-
-#nullable enable
 
         public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
         {
@@ -150,20 +256,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var startIndex = range.Start.GetAbsoluteIndex(sourceText);
-            if (!TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
+            if (!range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startIndex) ||
+                !TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
             {
                 return false;
             }
 
-            var endIndex = range.End.GetAbsoluteIndex(sourceText);
-            if (!TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
+            if (!range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endIndex) ||
+                !TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
             {
                 return false;
             }
 
             // Ensures a valid range is returned.
-            // As we're doing two seperate TryMapToProjectedDocumentPosition calls,
+            // As we're doing two separate TryMapToProjectedDocumentPosition calls,
             // it's possible the projectedStart and projectedEnd positions are in completely
             // different places in the document, including the possibility that the
             // projectedEnd position occurs before the projectedStart position.
@@ -182,9 +288,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-#nullable restore
-
-        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, out Position originalPosition, out int originalIndex)
+        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
         {
             if (codeDocument is null)
             {
@@ -218,7 +322,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return false;
         }
 
-        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, out Position projectedPosition, out int projectedIndex)
+        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         {
             if (codeDocument is null)
             {
@@ -349,7 +453,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private bool TryMapFromProjectedDocumentRangeStrict(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange)
+        private bool TryMapFromProjectedDocumentRangeStrict(RazorCodeDocument codeDocument, Range projectedRange, out Range? originalRange)
         {
             originalRange = default;
 
@@ -360,14 +464,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
-            if (!TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
+            if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex) ||
+                !TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
 
-            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
-            if (!TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
+            if (!range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex) ||
+                !TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
             {
                 return false;
             }
@@ -379,7 +483,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange)
+        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, out Range? originalRange)
         {
             originalRange = default;
 
@@ -396,7 +500,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (startMappedDirectly && endMappedDirectly)
             {
                 // We strictly mapped the start/end of the projected range.
-                originalRange = new Range(hostDocumentStart, hostDocumentEnd);
+                originalRange = new Range(hostDocumentStart!, hostDocumentEnd!);
                 return true;
             }
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -14,11 +16,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             get
             {
-                if (s_instance == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (s_instance is null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     s_instance = StringComparer.Ordinal;
                 }
-                else if (s_instance == null)
+                else if (s_instance is null)
                 {
                     s_instance = StringComparer.OrdinalIgnoreCase;
                 }

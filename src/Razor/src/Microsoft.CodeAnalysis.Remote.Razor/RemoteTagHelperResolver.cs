@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory)
         {
-            if (fallbackFactory == null)
+            if (fallbackFactory is null)
             {
                 throw new ArgumentNullException(nameof(fallbackFactory));
             }
@@ -38,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Razor
             string factoryTypeName,
             CancellationToken cancellationToken = default)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (configuration == null || project == null)
+            if (configuration is null || project is null)
             {
                 return Task.FromResult(TagHelperResolutionResult.Empty);
             }
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private static IProjectEngineFactory? CreateFactory(string factoryTypeName)
         {
-            if (factoryTypeName == null)
+            if (factoryTypeName is null)
             {
                 return null;
             }

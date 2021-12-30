@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -661,7 +663,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                     Interlocked.Increment(ref _parseCount);
 
-                    if (args.SourceChange == null)
+                    if (args.SourceChange is null)
                     {
                         // Reparse occurred
                         _reparseComplete.Set();

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis;
@@ -66,7 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var bufferGraphService = new Mock<IBufferGraphFactoryService>(MockBehavior.Strict);
             bufferGraphService.Setup(service => service.CreateBufferGraph(It.IsAny<ITextBuffer>()))
                 .Returns(bufferGraph.Object);
-            var workspaceAccessor = new DefaultVisualStudioWorkspaceAccessor(bufferGraphService.Object, Mock.Of<TextBufferProjectService>(MockBehavior.Strict), TestWorkspace.Create());
+            using var testWorkspace = TestWorkspace.Create();
+            var workspaceAccessor = new DefaultVisualStudioWorkspaceAccessor(bufferGraphService.Object, Mock.Of<TextBufferProjectService>(MockBehavior.Strict), testWorkspace);
             var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
 
             // Act

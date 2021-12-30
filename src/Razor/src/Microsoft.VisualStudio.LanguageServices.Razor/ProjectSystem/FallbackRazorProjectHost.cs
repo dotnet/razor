@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     }
                 }
 
-                if (mvcReferenceFullPath == null)
+                if (mvcReferenceFullPath is null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
                     await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
 
                 var version = GetAssemblyVersion(mvcReferenceFullPath);
-                if (version == null)
+                if (version is null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
                     await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);

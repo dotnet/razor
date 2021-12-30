@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
@@ -26,6 +28,7 @@ namespace Microsoft.VisualStudio.RazorExtension
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(PackageGuidString)]
     public sealed class RazorPackage : AsyncPackage
     {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +27,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }

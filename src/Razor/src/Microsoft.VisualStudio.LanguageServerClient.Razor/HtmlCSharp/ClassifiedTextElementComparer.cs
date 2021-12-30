@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 return false;
             }
-            else if (x.Runs.Count() != y.Runs.Count())
+            else if (x!.Runs.Count() != y!.Runs.Count())
             {
                 return false;
             }

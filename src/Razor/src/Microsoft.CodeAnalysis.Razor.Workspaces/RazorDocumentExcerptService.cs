@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -78,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 mappings,
                 cancellationToken).ConfigureAwait(false);
 
-
             var excerptText = GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
 
             return new ExcerptResultInternal(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 var primarySpan = sorted[i].OriginalSpan.AsTextSpan();
                 var intersection = primarySpan.Intersection(remainingSpan);
-                if (intersection == null)
+                if (intersection is null)
                 {
                     // This span is outside the area we're interested in.
                     continue;

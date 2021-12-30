@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -127,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 CancellationToken cancellationToken,
                 string previousResultId = null)
             {
-                return Task.FromResult(new VersionedSemanticRange(new List<SemanticRange>(), "0", IsFinalizedCSharp: false));
+                return Task.FromResult(new VersionedSemanticRange(new List<SemanticRange>(), IsFinalizedCSharp: false));
             }
         }
     }

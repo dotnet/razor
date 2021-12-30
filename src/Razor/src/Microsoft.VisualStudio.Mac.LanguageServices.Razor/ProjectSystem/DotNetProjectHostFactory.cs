@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
@@ -23,17 +25,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (workspaceAccessor == null)
+            if (workspaceAccessor is null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
@@ -45,7 +47,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public DotNetProjectHost Create(DotNetProject project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }

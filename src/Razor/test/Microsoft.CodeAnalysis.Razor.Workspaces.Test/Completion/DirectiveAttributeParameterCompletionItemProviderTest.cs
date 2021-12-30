@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -159,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         public void GetAttributeParameterCompletions_ReturnsCompletion()
         {
             // Arrange
-
 
             // Act
             var completions = Provider.GetAttributeParameterCompletions("@bind", string.Empty, "input", EmptyAttributes, DefaultTagHelperDocumentContext);

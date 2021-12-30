@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Host;
 
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     public static class TestWorkspace
     {
-        private static readonly object s_workspaceLock = new object();
+        private static readonly object s_workspaceLock = new();
 
         public static Workspace Create(Action<AdhocWorkspace> configure = null) => Create(services: null, configure: configure);
 
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         {
             lock (s_workspaceLock)
             {
-                var workspace = services == null ? new AdhocWorkspace() : new AdhocWorkspace(services);
+                var workspace = services is null ? new AdhocWorkspace() : new AdhocWorkspace(services);
                 configure?.Invoke(workspace);
 
                 return workspace;

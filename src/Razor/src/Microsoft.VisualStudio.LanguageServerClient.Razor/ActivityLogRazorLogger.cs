@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [ImportingConstructor]
         public ActivityLogRazorLogger(SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
         {
-            if (serviceProvider == null)
+            if (serviceProvider is null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
@@ -75,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private IVsActivityLog GetActivityLog()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            return _serviceProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+            return (IVsActivityLog)_serviceProvider.GetService(typeof(SVsActivityLog));
         }
     }
 }

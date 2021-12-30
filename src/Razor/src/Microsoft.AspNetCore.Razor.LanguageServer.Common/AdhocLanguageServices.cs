@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,12 +18,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public AdhocLanguageServices(HostWorkspaceServices workspaceServices, IEnumerable<ILanguageService> languageServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }
@@ -38,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
             var service = _languageServices.OfType<TLanguageService>().FirstOrDefault();
 
-            if (service == null)
+            if (service is null)
             {
                 throw new InvalidOperationException(RazorLSCommon.Resources.FormatLanguage_Services_Missing_Service(typeof(TLanguageService).FullName));
             }

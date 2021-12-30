@@ -1,14 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
-#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+//using Castle.Core.Logging;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -197,6 +200,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         internal HtmlFactsService HtmlFactsService { get; }
 
         protected TagHelperFactsService TagHelperFactsService { get; }
+
+        protected ILogger Logger { get; } = NullLogger.Instance;
 
         internal static RazorCodeDocument CreateCodeDocument(string text, params TagHelperDescriptor[] tagHelpers)
         {

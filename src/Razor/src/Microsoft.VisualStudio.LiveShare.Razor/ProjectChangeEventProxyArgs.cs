@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor
@@ -9,7 +11,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
     {
         public ProjectChangeEventProxyArgs(ProjectSnapshotHandleProxy older, ProjectSnapshotHandleProxy newer, ProjectProxyChangeKind kind)
         {
-            if (older == null && newer == null)
+            if (older is null && newer is null)
             {
                 throw new ArgumentException("Both projects cannot be null.");
             }

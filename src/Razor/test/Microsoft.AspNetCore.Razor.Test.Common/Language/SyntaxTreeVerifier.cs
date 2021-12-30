@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -26,6 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     builder.Append(syntaxTree.Source[i]);
                 }
+
                 var sourceString = builder.ToString();
 
                 // Make sure the syntax tree contains all of the text in the document.
@@ -38,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                     var location = new SourceChange(span, string.Empty);
                     var owner = syntaxTree.Root.LocateOwner(location);
 
-                    if (owner == null)
+                    if (owner is null)
                     {
                         var snippetStartIndex = Math.Max(0, i - 10);
                         var snippetStartLength = i - snippetStartIndex;

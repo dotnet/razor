@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Language
@@ -9,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public static RequiredAttributeDescriptorBuilder Name(this RequiredAttributeDescriptorBuilder builder, string name)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -23,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             this RequiredAttributeDescriptorBuilder builder,
             RequiredAttributeDescriptor.NameComparisonMode nameComparison)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -35,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static RequiredAttributeDescriptorBuilder Value(this RequiredAttributeDescriptorBuilder builder, string value)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -49,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             this RequiredAttributeDescriptorBuilder builder,
             RequiredAttributeDescriptor.ValueComparisonMode valueComparison)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

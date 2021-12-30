@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
@@ -35,7 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 directoryPathResolver.Object,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             configurationFileEndpoint.Dispose();
             var request = new MonitorProjectConfigurationFilePathParams()
             {
@@ -58,7 +62,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 directoryPathResolver.Object,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var request = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:/dir/project.csproj",
@@ -79,7 +84,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var startRequest = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:/dir/project.csproj",
@@ -110,7 +116,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var startRequest = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:/dir/project.csproj",
@@ -134,7 +141,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var startRequest = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:/dir/project.csproj",
@@ -160,7 +168,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:\\dir\\project.csproj",
@@ -191,7 +200,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var externalRequest = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:\\dir\\project.csproj",
@@ -213,17 +223,68 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public async Task Handle_MultipleProjects_StartedAndStopped()
+        public async Task Handle_ProjectPublished()
         {
             // Arrange
             var callCount = 0;
-            var detectors = new[] { new TestFileChangeDetector(), new TestFileChangeDetector() };
+            var projectOpenDebugDetector = new TestFileChangeDetector();
+            var releaseDetector = new TestFileChangeDetector();
+            var postPublishDebugDetector = new TestFileChangeDetector();
+            var detectors = new[] { projectOpenDebugDetector, releaseDetector, postPublishDebugDetector };
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detectors[callCount++],
                 LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
-                Enumerable.Empty<IProjectConfigurationFileChangeListener>());
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
+            var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
+            {
+                ProjectFilePath = "C:\\dir\\project1.csproj",
+                ConfigurationFilePath = "C:\\externaldir1\\obj\\Debug\\project.razor.json",
+            };
+            var releaseOutputPath = new MonitorProjectConfigurationFilePathParams()
+            {
+                ProjectFilePath = debugOutputPath.ProjectFilePath,
+                ConfigurationFilePath = "C:\\externaldir1\\obj\\Release\\project.razor.json",
+            };
+
+            // Act
+
+            // Project opened, defaults to Debug output path
+            await configurationFileEndpoint.Handle(debugOutputPath, CancellationToken.None);
+
+            // Project published (temporarily moves to release output path)
+            await configurationFileEndpoint.Handle(releaseOutputPath, CancellationToken.None);
+
+            // Project publish finished (moves back to debug output path)
+            await configurationFileEndpoint.Handle(debugOutputPath, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(1, projectOpenDebugDetector.StartCount);
+            Assert.Equal(1, projectOpenDebugDetector.StopCount);
+            Assert.Equal(1, releaseDetector.StartCount);
+            Assert.Equal(1, releaseDetector.StopCount);
+            Assert.Equal(1, postPublishDebugDetector.StartCount);
+            Assert.Equal(0, postPublishDebugDetector.StopCount);
+        }
+
+        [Fact]
+        public async Task Handle_MultipleProjects_StartedAndStopped()
+        {
+            // Arrange
+            var callCount = 0;
+            var debug1Detector = new TestFileChangeDetector();
+            var debug2Detector = new TestFileChangeDetector();
+            var release1Detector = new TestFileChangeDetector();
+            var detectors = new[] { debug1Detector, debug2Detector, release1Detector };
+            var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
+                () => detectors[callCount++],
+                LegacyDispatcher,
+                FilePathNormalizer,
+                DirectoryPathResolver,
+                Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                LoggerFactory);
             var debugOutputPath1 = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:\\dir\\project1.csproj",
@@ -246,10 +307,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             await configurationFileEndpoint.Handle(releaseOutputPath1, CancellationToken.None);
 
             // Assert
-            Assert.Equal(2, detectors[0].StartCount);
-            Assert.Equal(1, detectors[0].StopCount);
-            Assert.Equal(1, detectors[1].StartCount);
-            Assert.Equal(0, detectors[1].StopCount);
+            Assert.Equal(1, debug1Detector.StartCount);
+            Assert.Equal(1, debug1Detector.StopCount);
+            Assert.Equal(1, debug2Detector.StartCount);
+            Assert.Equal(0, debug2Detector.StopCount);
+            Assert.Equal(1, release1Detector.StartCount);
+            Assert.Equal(0, release1Detector.StopCount);
         }
 
         private class TestMonitorProjectConfigurationFilePathEndpoint : MonitorProjectConfigurationFilePathEndpoint
@@ -260,12 +323,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
-                IEnumerable<IProjectConfigurationFileChangeListener> listeners) : this(
+                IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+                ILoggerFactory loggerFactory) : this(
                     fileChangeDetectorFactory: null,
                     projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
-                    listeners)
+                    listeners,
+                    loggerFactory)
             {
             }
 
@@ -274,11 +339,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
-                IEnumerable<IProjectConfigurationFileChangeListener> listeners) : base(
+                IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+                ILoggerFactory loggerFactory) : base(
                     projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
-                    listeners)
+                    listeners,
+                    loggerFactory)
             {
                 _fileChangeDetectorFactory = fileChangeDetectorFactory ?? (() => Mock.Of<IFileChangeDetector>(MockBehavior.Strict));
             }

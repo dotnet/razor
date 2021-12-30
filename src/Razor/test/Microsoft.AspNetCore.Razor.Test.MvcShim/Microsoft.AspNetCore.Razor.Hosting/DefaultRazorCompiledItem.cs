@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -12,17 +14,17 @@ namespace Microsoft.AspNetCore.Razor.Hosting
 
         public DefaultRazorCompiledItem(Type type, string kind, string identifier)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (kind == null)
+            if (kind is null)
             {
                 throw new ArgumentNullException(nameof(kind));
             }
 
-            if (identifier == null)
+            if (identifier is null)
             {
                 throw new ArgumentNullException(nameof(identifier));
             }
@@ -40,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         {
             get
             {
-                if (_metadata == null)
+                if (_metadata is null)
                 {
                     _metadata = Type.GetCustomAttributes(inherit: true);
                 }

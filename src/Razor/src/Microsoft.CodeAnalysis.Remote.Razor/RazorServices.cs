@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Razor
 {
     // Provides access to Razor language and workspace services that are avialable in the OOP host.

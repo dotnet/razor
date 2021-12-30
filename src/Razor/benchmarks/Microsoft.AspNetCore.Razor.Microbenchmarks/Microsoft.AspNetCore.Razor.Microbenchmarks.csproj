@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -11,14 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Serialization\*.cs">
-      <Link>Serialization\%(FileName)%(Extension)</Link>
-    </Compile>
     <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\TestServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
@@ -32,7 +29,9 @@
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
 
-    <Compile Include="$(SharedSourceRoot)BenchmarkRunner\*.cs" />
+    <Compile Include="$(SharedSourceRoot)BenchmarkRunner\*.cs">
+      <Link>BenchmarkRunner\%(FileName)%(Extension)</Link>
+    </Compile>
 
     <None Include="MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
@@ -41,7 +40,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPackageVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion)" />
     <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="$(OmniSharpExtensionsLanguageProtocolPackageVersion)" />
   </ItemGroup>
 

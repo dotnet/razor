@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -44,8 +46,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            var input = Console.OpenStandardInput();
-            var server = await RazorLanguageServer.CreateAsync(input, Console.OpenStandardOutput(), trace);
+            var server = await RazorLanguageServer.CreateAsync(
+                Console.OpenStandardInput(),
+                Console.OpenStandardOutput(),
+                trace);
             await server.InitializedAsync(CancellationToken.None);
             await server.WaitForExit;
         }

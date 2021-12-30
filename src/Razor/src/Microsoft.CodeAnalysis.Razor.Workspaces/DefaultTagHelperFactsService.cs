@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -23,23 +21,23 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string parentTag,
             bool parentIsTagHelper)
         {
-            if (documentContext == null)
+            if (documentContext is null)
             {
                 throw new ArgumentNullException(nameof(documentContext));
             }
 
-            if (tagName == null)
+            if (tagName is null)
             {
                 throw new ArgumentNullException(nameof(tagName));
             }
 
-            if (attributes == null)
+            if (attributes is null)
             {
                 throw new ArgumentNullException(nameof(attributes));
             }
 
             var descriptors = documentContext.TagHelpers;
-            if (descriptors == null || descriptors.Count == 0)
+            if (descriptors is null or { Count: 0 })
             {
                 return null;
             }
@@ -56,17 +54,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string attributeName,
             TagHelperBinding binding)
         {
-            if (documentContext == null)
+            if (documentContext is null)
             {
                 throw new ArgumentNullException(nameof(documentContext));
             }
 
-            if (attributeName == null)
+            if (attributeName is null)
             {
                 throw new ArgumentNullException(nameof(attributeName));
             }
 
-            if (binding == null)
+            if (binding is null)
             {
                 throw new ArgumentNullException(nameof(binding));
             }
@@ -94,12 +92,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string tagName,
             string parentTag)
         {
-            if (documentContext == null)
+            if (documentContext is null)
             {
                 throw new ArgumentNullException(nameof(documentContext));
             }
 
-            if (tagName == null)
+            if (tagName is null)
             {
                 throw new ArgumentNullException(nameof(tagName));
             }
@@ -138,7 +136,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string parentTag)
         {
-            if (documentContext == null)
+            if (documentContext is null)
             {
                 throw new ArgumentNullException(nameof(documentContext));
             }

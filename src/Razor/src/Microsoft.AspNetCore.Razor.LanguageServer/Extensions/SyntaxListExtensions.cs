@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -47,7 +45,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 return syntaxList[index + 1];
             }
         }
-
 
         internal static bool TryGetOpenBraceNode(this SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out RazorMetaCodeSyntax? brace)
         {

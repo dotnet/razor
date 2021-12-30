@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
@@ -589,9 +591,8 @@ expected: @"
     }
 }
 ";
-            var (_, edits) = await GetOnTypeFormattingEditsAsync(input, triggerCharacter: ';');
 
-            Assert.Empty(edits);
+            await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
         }
 
         [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/5676")]

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -209,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             Assert.Null(lspDocument);
         }
 
-        private Lazy<LSPDocumentChangeListener, IContentTypeMetadata> CreateChangeListenerForContentTypes(IEnumerable<string> contentTypes)
+        private static Lazy<LSPDocumentChangeListener, IContentTypeMetadata> CreateChangeListenerForContentTypes(IEnumerable<string> contentTypes)
         {
             var changeListenerObj = Mock.Of<LSPDocumentChangeListener>(MockBehavior.Strict);
 

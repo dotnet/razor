@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Newtonsoft.Json;
 
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             return reader.TokenType == expectedTokenType && reader.Read();
         }
 
-        public static void ReadProperties(this JsonReader reader, Action<string> onProperty)
+        public static void ReadProperties<TArg>(this JsonReader reader, Action<string, TArg> onProperty, TArg arg)
         {
             do
             {
@@ -22,12 +24,30 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 {
                     case JsonToken.PropertyName:
                         var propertyName = reader.Value.ToString();
-                        onProperty(propertyName);
+                        onProperty(propertyName, arg);
                         break;
                     case JsonToken.EndObject:
                         return;
                 }
             } while (reader.Read());
+        }
+
+        public static TArg ReadProperties<TArg>(this JsonReader reader, Func<string, TArg, TArg> onProperty, TArg arg)
+        {
+            do
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.PropertyName:
+                        var propertyName = reader.Value.ToString();
+                        arg = onProperty(propertyName, arg);
+                        break;
+                    case JsonToken.EndObject:
+                        return arg;
+                }
+            } while (reader.Read());
+
+            return arg;
         }
 
         public static bool TryReadNextProperty<TReturn>(this JsonReader reader, string propertyName, out TReturn value)

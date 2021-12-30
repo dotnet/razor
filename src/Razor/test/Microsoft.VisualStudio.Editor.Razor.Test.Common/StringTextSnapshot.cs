@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,10 +16,9 @@ namespace Microsoft.VisualStudio.Text
     public class StringTextSnapshot : ITextSnapshot2
     {
         private readonly List<ITextSnapshotLine> _lines;
-        private IContentType _contentType;
         private ITextBuffer _textBuffer;
 
-        public static readonly StringTextSnapshot Empty = new StringTextSnapshot(string.Empty);
+        public static readonly StringTextSnapshot Empty = new(string.Empty);
 
         public StringTextSnapshot(string content) : this(content, versionNumber: 0)
         {
@@ -73,11 +74,11 @@ namespace Microsoft.VisualStudio.Text
             set
             {
                 _textBuffer = value;
-                _contentType = _textBuffer.ContentType;
+                ContentType = _textBuffer.ContentType;
             }
         }
 
-        public IContentType ContentType => _contentType;
+        public IContentType ContentType { get; private set; }
 
         public int LineCount => _lines.Count;
 
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.Text
         {
             var matchingLine = _lines.FirstOrDefault(line => line.Start + line.Length >= position);
 
-            if (position < 0 || matchingLine == null)
+            if (position < 0 || matchingLine is null)
             {
                 throw new ArgumentOutOfRangeException();
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Moq;
@@ -61,7 +63,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var manager = new TestEditorSettingsManagerInternal(Dispatcher);
             static void Listener1(object caller, EditorSettingsChangedEventArgs args) { }
+
             static void Listener2(object caller, EditorSettingsChangedEventArgs args) { }
+
             manager.Changed += Listener1;
             manager.Changed += Listener2;
 

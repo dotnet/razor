@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -20,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher)
         {
-            if (dispatcher == null)
+            if (dispatcher is null)
             {
                 throw new ArgumentNullException(nameof(dispatcher));
             }

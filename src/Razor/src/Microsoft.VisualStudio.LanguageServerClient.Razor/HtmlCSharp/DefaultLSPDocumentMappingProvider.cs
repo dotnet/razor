@@ -15,8 +15,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
@@ -130,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (mappingResult == null ||
+                if (mappingResult is null ||
                     (_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out var documentSnapshot) &&
                     mappingResult.HostDocumentVersion != documentSnapshot.Version))
                 {
@@ -271,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 var edits = entry.Edits;
                 var (documentSnapshot, remappedEdits) = await RemapTextEditsCoreAsync(uri, edits, TextEditKind.Default, cancellationToken).ConfigureAwait(false);
-                if (remappedEdits == null || remappedEdits.Length == 0)
+                if (remappedEdits is null || remappedEdits.Length == 0)
                 {
                     // Nothing to do.
                     continue;
@@ -308,7 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 var (_, remappedEdits) = await RemapTextEditsCoreAsync(uri, edits, TextEditKind.Default, cancellationToken).ConfigureAwait(false);
-                if (remappedEdits == null || remappedEdits.Length == 0)
+                if (remappedEdits is null || remappedEdits.Length == 0)
                 {
                     // Nothing to do.
                     continue;

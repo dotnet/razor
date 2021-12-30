@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -41,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             };
 
             var provider = CreateProvider();
-            var context = FormattingContext.Create(uri, Mock.Of<DocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+            var context = FormattingContext.Create(uri, Mock.Of<DocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance, isFormatOnType: false, automaticallyAddUsings: false);
 
             // Act
             if (!provider.TryResolveInsertion(position, context, out var edit, out _))
@@ -50,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             // Assert
-            var edited = edit == null ? source : ApplyEdit(source, edit);
+            var edited = edit is null ? source : ApplyEdit(source, edit);
             var actual = edited.ToString();
             Assert.Equal(expected, actual);
         }

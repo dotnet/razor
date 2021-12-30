@@ -12,6 +12,11 @@
         <target state="translated">Vytvořit komponentu ze značky</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Not_Found">
+        <source>Document {0} was not found.</source>
+        <target state="translated">Dokument {0} nebyl nalezen.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Extrahovat blok do kódu na pozadí</target>

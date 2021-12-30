@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Text;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
     {
         public static RazorSourceDocument GetRazorSourceDocument(this SourceText sourceText, string filePath, string relativePath)
         {
-            if (sourceText == null)
+            if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 
             public override byte[] GetChecksum()
             {
-                if (_checksum == null)
+                if (_checksum is null)
                 {
                     _checksum = _sourceText.GetChecksum().ToArray();
                 }

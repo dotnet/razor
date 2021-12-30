@@ -41,47 +41,47 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (hostDocumentFactory == null)
+            if (hostDocumentFactory is null)
             {
                 throw new ArgumentNullException(nameof(hostDocumentFactory));
             }
 
-            if (remoteTextLoaderFactory == null)
+            if (remoteTextLoaderFactory is null)
             {
                 throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (projectResolver == null)
+            if (projectResolver is null)
             {
                 throw new ArgumentNullException(nameof(projectResolver));
             }
 
-            if (documentVersionCache == null)
+            if (documentVersionCache is null)
             {
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
-            if (projectSnapshotManagerAccessor == null)
+            if (projectSnapshotManagerAccessor is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -247,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
 
-            if (project == null)
+            if (project is null)
             {
                 // Never tracked the project to begin with, noop.
                 return;
@@ -271,7 +271,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
 
-            if (project == null)
+            if (project is null)
             {
                 // Never tracked the project to begin with, noop.
                 _logger.LogInformation($"Failed to update untracked project '{filePath}'.");
@@ -296,7 +296,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 return;
             }
 
-            if (configuration == null)
+            if (configuration is null)
             {
                 configuration = RazorDefaults.Configuration;
                 _logger.LogInformation($"Updating project '{filePath}' to use Razor's default configuration ('{configuration.ConfigurationName}')'.");

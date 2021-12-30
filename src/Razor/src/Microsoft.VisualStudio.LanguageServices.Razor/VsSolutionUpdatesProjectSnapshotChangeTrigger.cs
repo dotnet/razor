@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -38,17 +40,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
@@ -132,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 _activeSolutionCancellationTokenSource?.Dispose();
                 _activeSolutionCancellationTokenSource = null;
             }
-            else if (_activeSolutionCancellationTokenSource == null)
+            else if (_activeSolutionCancellationTokenSource is null)
             {
                 _activeSolutionCancellationTokenSource = new CancellationTokenSource();
             }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -194,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             }
 
             var testAssembly = assemblies.FirstOrDefault(IsTestAssembly);
-            Verify.Operation(testAssembly == null, $"Test assemblies are not allowed in test composition: {testAssembly}. Specify explicit test parts instead.");
+            Verify.Operation(testAssembly is null, $"Test assemblies are not allowed in test composition: {testAssembly}. Specify explicit test parts instead.");
 
             return new TestComposition(assemblies, Parts, ExcludedPartTypes, Scope);
 

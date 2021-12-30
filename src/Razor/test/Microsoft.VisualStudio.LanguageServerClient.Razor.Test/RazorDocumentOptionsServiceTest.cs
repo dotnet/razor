@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -75,13 +77,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         }
 
         private static OptionKey GetUseTabsOptionKey(Document document)
-            => new OptionKey(FormattingOptions.UseTabs, document.Project.Language);
+            => new(FormattingOptions.UseTabs, document.Project.Language);
 
         private static OptionKey GetTabSizeOptionKey(Document document)
-            => new OptionKey(FormattingOptions.TabSize, document.Project.Language);
+            => new(FormattingOptions.TabSize, document.Project.Language);
 
         private static OptionKey GetIndentationSizeOptionKey(Document document)
-            => new OptionKey(FormattingOptions.IndentationSize, document.Project.Language);
+            => new(FormattingOptions.IndentationSize, document.Project.Language);
 
         // Adapted from DocumentExcerptServiceTestBase's InitializeDocument.
         // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.

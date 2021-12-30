@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -11,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     {
         public override FileChangeTracker Create(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }

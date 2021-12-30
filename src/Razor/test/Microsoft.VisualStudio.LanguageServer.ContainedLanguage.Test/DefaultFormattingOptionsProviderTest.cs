@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
@@ -10,22 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class DefaultFormattingOptionsProviderTest
     {
-        [Fact]
-        public void GetOptions_CannotFindDocument_ReturnsNull()
-        {
-            // Arrange
-            var documentManager = new TestDocumentManager();
-            var indentationManagerService = new Mock<IIndentationManagerService>(MockBehavior.Strict);
-            var provider = new DefaultFormattingOptionsProvider(documentManager, indentationManagerService.Object);
-            var documentUri = new Uri("C:/path/to/unknown/razorfile.razor");
-
-            // Act
-            var options = provider.GetOptions(documentUri);
-
-            // Assert
-            Assert.Null(options);
-        }
-
         [Fact]
         public void GetOptions_UsesIndentationManagerInformation()
         {
@@ -44,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var provider = new DefaultFormattingOptionsProvider(documentManager, indentationManagerService.Object);
 
             // Act
-            var options = provider.GetOptions(documentUri);
+            var options = provider.GetOptions(documentSnapshot);
 
             // Assert
             indentationManagerService.VerifyAll();

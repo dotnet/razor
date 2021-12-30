@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.TagHelpers
@@ -19,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// </param>
         public OutputElementHintAttribute(string outputElement)
         {
-            if (outputElement == null)
+            if (outputElement is null)
             {
                 throw new ArgumentNullException(nameof(outputElement));
             }

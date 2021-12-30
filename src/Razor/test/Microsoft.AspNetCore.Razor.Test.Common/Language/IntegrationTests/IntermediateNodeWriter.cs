@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -314,10 +316,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             _writer.Write(")");
         }
 
-
         protected void WriteContent(string content)
         {
-            if (content == null)
+            if (content is null)
             {
                 return;
             }

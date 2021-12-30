@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 
 import { RazorLogger } from '../RazorLogger';
 import { JS_DEBUG_NAME, SERVER_APP_NAME } from './Constants';
-import { onDidTerminateDebugSession } from './TerminateDebugHandler';
+import { isValidEvent, onDidTerminateDebugSession } from './TerminateDebugHandler';
 
 export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -27,17 +27,22 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             url: string,
             inspectUri: string,
             debuggingPort: number,
-        } | undefined>('blazorwasm-companion.launchDebugProxy');
-        if (result) {
-            await this.launchBrowser(folder, configuration, result.inspectUri, result.debuggingPort);
-        }
+        }>('blazorwasm-companion.launchDebugProxy');
 
-        const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
-            if (event.name === JS_DEBUG_NAME || event.name === SERVER_APP_NAME) {
-                await vscode.commands.executeCommand('blazorwasm-companion.killDebugProxy', result ? result.url : null);
-                terminateDebugProxy.dispose();
-            }
-        });
+        await this.launchBrowser(
+            folder,
+            configuration,
+            result ? result.inspectUri : undefined,
+            result ? result.debuggingPort : undefined);
+
+        if (result && result.url) {
+            const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
+                if (isValidEvent(event.name)) {
+                    await vscode.commands.executeCommand('blazorwasm-companion.killDebugProxy', result.url);
+                    terminateDebugProxy.dispose();
+                }
+            });
+        }
 
         /**
          * If `resolveDebugConfiguration` returns undefined, then the debugger
@@ -76,9 +81,10 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             await this.vscodeType.debug.startDebugging(folder, app);
             if (process.platform !== 'win32') {
                 const terminate = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
-                    const blazorDevServer = 'blazor-devserver.dll';
+                    const blazorDevServer = 'blazor-devserver\\.dll';
                     const dir = folder && folder.uri && folder.uri.fsPath;
-                    const launchedApp = configuration.hosted ? app.program : `${dir}.*${blazorDevServer}|${blazorDevServer}.*${dir}`;
+                    const regexEscapedDir = dir!.toLowerCase()!.replace(/\//g, '\\/');
+                    const launchedApp = configuration.hosted ? app.program : `${regexEscapedDir}.*${blazorDevServer}|${blazorDevServer}.*${regexEscapedDir}`;
                     await onDidTerminateDebugSession(event, this.logger, launchedApp);
                     terminate.dispose();
                 });

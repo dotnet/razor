@@ -1,12 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
@@ -15,10 +18,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public static readonly ProjectWorkspaceState Default = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
 
         public ProjectWorkspaceState(
+            IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
+            LanguageVersion csharpLanguageVersion)
+            : this ((tagHelpers as IReadOnlyList<TagHelperDescriptor>) ?? tagHelpers.ToList(), csharpLanguageVersion)
+        {
+        }
+
+        [JsonConstructor]
+        public ProjectWorkspaceState(
             IReadOnlyList<TagHelperDescriptor> tagHelpers,
             LanguageVersion csharpLanguageVersion)
         {
-            if (tagHelpers == null)
+            if (tagHelpers is null)
             {
                 throw new ArgumentNullException(nameof(tagHelpers));
             }

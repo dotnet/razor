@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -34,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (node == null)
+                if (node is null)
                 {
                     return node;
                 }

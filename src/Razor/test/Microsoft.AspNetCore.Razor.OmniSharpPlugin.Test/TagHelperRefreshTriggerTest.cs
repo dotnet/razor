@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -62,7 +64,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public OmniSharpHostProject Project1 { get; }
 
         public object Project1Instance { get; }
-
 
         [Fact]
         public async Task IsComponentFile_UnknownProject_ReturnsFalse()

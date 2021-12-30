@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -19,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             IFallbackProjectEngineFactory fallback,
             [ImportMany] Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
         {
-            if (fallback == null)
+            if (fallback is null)
             {
                 throw new ArgumentNullException(nameof(fallback));
             }
 
-            if (factories == null)
+            if (factories is null)
             {
                 throw new ArgumentNullException(nameof(factories));
             }
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

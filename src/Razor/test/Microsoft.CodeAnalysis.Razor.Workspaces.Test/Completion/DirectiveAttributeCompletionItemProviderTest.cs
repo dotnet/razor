@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -271,7 +273,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         public void GetAttributeCompletions_Indexer_ReturnsCompletion()
         {
             // Arrange
-
 
             // Act
             var completions = Provider.GetAttributeCompletions("@", "input", EmptyAttributes, DefaultTagHelperDocumentContext);

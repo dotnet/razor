@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             get
             {
-                if (s_markupTransitionCompletionItem == null)
+                if (s_markupTransitionCompletionItem is null)
                 {
                     var completionDisplayText = SyntaxConstants.TextTagName;
                     s_markupTransitionCompletionItem = new RazorCompletionItem(
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
                 return Array.Empty<RazorCompletionItem>();

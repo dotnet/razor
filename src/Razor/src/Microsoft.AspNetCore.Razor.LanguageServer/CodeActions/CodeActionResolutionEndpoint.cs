@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -101,6 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
                 return codeAction;
             }
+
             var edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
             codeAction = codeAction with { Edit = edit };
             return codeAction;
@@ -141,6 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 {
                     Debug.Fail($"Duplicate resolver action for {resolver.Action} of type {typeof(T)}.");
                 }
+
                 resolverMap[resolver.Action] = resolver;
             }
 

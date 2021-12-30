@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -995,7 +997,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.NotEqual(original.Version, state.Version);
             Assert.Equal(2, callCount);
         }
-
 
         [Fact]
         public void ProjectState_WhenImportDocumentRemoved_CallsImportsChanged()

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         protected virtual async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, RazorProjectEngine engine, CancellationToken cancellationToken)
         {
-            if (workspaceProject == null)
+            if (workspaceProject is null)
             {
                 throw new ArgumentNullException(nameof(workspaceProject));
             }
 
-            if (engine == null)
+            if (engine is null)
             {
                 throw new ArgumentNullException(nameof(engine));
             }
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 return TagHelperResolutionResult.Empty;
             }
 
-            var results = new List<TagHelperDescriptor>();
+            var results = new HashSet<TagHelperDescriptor>();
             var context = TagHelperDescriptorProviderContext.Create(results);
             context.ExcludeHidden = true;
             context.IncludeDocumentation = true;

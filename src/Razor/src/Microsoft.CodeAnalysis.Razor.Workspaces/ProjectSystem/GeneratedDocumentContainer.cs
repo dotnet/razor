@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public TextContainer(SourceText sourceText)
             {
-                if (sourceText == null)
+                if (sourceText is null)
                 {
                     throw new ArgumentNullException(nameof(sourceText));
                 }
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public void SetText(SourceText sourceText)
             {
-                if (sourceText == null)
+                if (sourceText is null)
                 {
                     throw new ArgumentNullException(nameof(sourceText));
                 }

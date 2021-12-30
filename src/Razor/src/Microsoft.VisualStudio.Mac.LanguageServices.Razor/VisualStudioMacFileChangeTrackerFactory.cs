@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public VisualStudioMacFileChangeTrackerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }

@@ -5,17 +5,14 @@
 
 import * as psList from 'ps-list';
 import { DebugSession } from 'vscode';
-
 import { RazorLogger } from '../RazorLogger';
-
 import { JS_DEBUG_NAME, SERVER_APP_NAME } from './Constants';
 
-const isValidEvent = (name: string) => {
-  const VALID_EVENT_NAMES = [SERVER_APP_NAME, JS_DEBUG_NAME];
-  if (!VALID_EVENT_NAMES.includes(name)) {
-    return false;
-  }
-  return true;
+export const isValidEvent = (name: string) => {
+
+  // The name can be of the form: `Debug Blazor Web Assembly in Browser: https://localhost:7291`
+  // hence we have to examine what the name **startsWith**
+  return name.startsWith(JS_DEBUG_NAME) || name === SERVER_APP_NAME;
 };
 
 const killProcess = (targetPid: number | undefined, logger: RazorLogger) => {
@@ -66,7 +63,6 @@ async function terminateByProcessName(
   logger: RazorLogger,
   targetProcess: string,
 ) {
-  let targetPid;
   // Ignore debug sessions that are not applicable to us
   if (!isValidEvent(event.name)) {
     return;
@@ -80,8 +76,9 @@ async function terminateByProcessName(
   }
 
   const devserver = processes.find(
-    (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.match(targetProcess)));
-  targetPid = devserver ? devserver.pid : undefined;
+    (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.toLowerCase().match(targetProcess)));
 
-  killProcess(targetPid, logger);
+  if (devserver) {
+    killProcess(devserver.pid, logger);
+  }
 }

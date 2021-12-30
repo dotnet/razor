@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             try
             {
                 var codeDocument = await Parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
-                if (codeDocument == null)
+                if (codeDocument is null)
                 {
                     return CompletionContext.Empty;
                 }
@@ -96,6 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                     completionItem.Properties.AddProperty(DescriptionKey, completionDescription);
                     completionItems.Add(completionItem);
                 }
+
                 var context = new CompletionContext(completionItems.ToImmutableArray());
                 return context;
             }

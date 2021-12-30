@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -75,7 +77,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }

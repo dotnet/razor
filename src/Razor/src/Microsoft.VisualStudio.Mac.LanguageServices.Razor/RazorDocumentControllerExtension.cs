@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -49,7 +51,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         protected internal override void OnClosed()
         {
-            if (_editorDocumentManager == null)
+            if (_editorDocumentManager is null)
             {
                 return;
             }
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override Task<bool> SupportsController(DocumentController controller)
         {
-            if (controller.GetContent<ITextBuffer>() == null || !(controller is FileDocumentController))
+            if (controller.GetContent<ITextBuffer>() is null || controller is not FileDocumentController)
             {
                 return Task.FromResult(false);
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -172,6 +174,66 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Assert
             Assert.False(result1);
+            Assert.True(result2);
+        }
+
+        [Fact]
+        public async Task TrySynchronizeVirtualDocumentAsync_NewerVersionRequested_CancelsActiveRequest()
+        {
+            // Arrange
+            var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
+            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            {
+                _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
+            };
+            NotifyLSPDocumentAdded(lspDocument, synchronizer);
+
+            // Act
+
+            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None);
+            var (newLSPDocument, newVirtualDocument) = CreateDocuments(lspDocumentVersion: 125, virtualDocumentSyncVersion: 124);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, CancellationToken.None);
+
+            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
+            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, newLSPDocument.Version);
+
+            var result1 = await synchronizeTask1.ConfigureAwait(false);
+            var result2 = await synchronizeTask2.ConfigureAwait(false);
+
+            // Assert
+            Assert.False(result1);
+            Assert.True(result2);
+        }
+
+        [Fact]
+        public async Task TrySynchronizeVirtualDocumentAsync_RejectOnNewerParallelRequest_NewerVersionRequested_CancelsActiveRequest()
+        {
+            // Arrange
+            var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
+            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            {
+                _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
+            };
+            NotifyLSPDocumentAdded(lspDocument, synchronizer);
+
+            // Act
+
+            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, rejectOnNewerParallelRequest: false, CancellationToken.None);
+            var (newLSPDocument, newVirtualDocument) = CreateDocuments(lspDocumentVersion: 125, virtualDocumentSyncVersion: 124);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, CancellationToken.None);
+
+            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
+            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, newLSPDocument.Version);
+
+            var result1 = await synchronizeTask1.ConfigureAwait(false);
+            var result2 = await synchronizeTask2.ConfigureAwait(false);
+
+            // Assert
+            Assert.True(result1);
             Assert.True(result2);
         }
 

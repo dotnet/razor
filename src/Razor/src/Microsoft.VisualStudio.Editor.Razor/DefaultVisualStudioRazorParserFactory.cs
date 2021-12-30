@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -49,7 +51,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
         {
-            if (documentTracker == null)
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }

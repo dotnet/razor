@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);
                 var mvcReference = referencedAssemblies.FirstOrDefault(IsMvcAssembly);
 
-                if (mvcReference == null)
+                if (mvcReference is null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
                     await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
@@ -41,7 +43,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 }
 
                 var version = GetAssemblyVersion(mvcReference.FilePath);
-                if (version == null)
+                if (version is null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
                     await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         [ImportingConstructor]
         public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor)
         {
-            if (workspaceAccessor == null)
+            if (workspaceAccessor is null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }

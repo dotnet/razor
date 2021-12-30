@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         [ImportingConstructor]
         public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
+            if (serviceProvider is null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }

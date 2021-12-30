@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -16,12 +18,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }

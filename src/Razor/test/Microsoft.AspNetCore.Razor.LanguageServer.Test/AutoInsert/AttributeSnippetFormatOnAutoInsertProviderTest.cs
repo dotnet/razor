@@ -121,7 +121,7 @@ tagHelpers: TagHelpers);
 
         internal override RazorOnAutoInsertProvider CreateProvider()
         {
-            var provider = new AttributeSnippetOnAutoInsertProvider(new DefaultTagHelperFactsService());
+            var provider = new AttributeSnippetOnAutoInsertProvider(new DefaultTagHelperFactsService(), LoggerFactory);
             return provider;
         }
 

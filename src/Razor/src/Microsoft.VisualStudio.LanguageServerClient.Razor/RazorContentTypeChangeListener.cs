@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -63,14 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(fileToContentTypeService));
             }
 
-            _lspDocumentManager = lspDocumentManager as TrackingLSPDocumentManager;
-
-            if (_lspDocumentManager is null)
+            if (lspDocumentManager is not TrackingLSPDocumentManager tracking)
             {
-#pragma warning disable CA2208 // Instantiate argument exceptions correctly
                 throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_lspDocumentManager));
-#pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
+
+            _lspDocumentManager = tracking;
 
             _textDocumentFactory = textDocumentFactory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
@@ -142,10 +142,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return;
             }
 
-            var textDocument = sender as ITextDocument;
-            var textBuffer = textDocument?.TextBuffer;
+            if (sender is not ITextDocument textDocument)
+            {
+                return;
+            }
 
-            if (textBuffer == null)
+            var textBuffer = textDocument.TextBuffer;
+
+            if (textBuffer is null)
             {
                 return;
             }

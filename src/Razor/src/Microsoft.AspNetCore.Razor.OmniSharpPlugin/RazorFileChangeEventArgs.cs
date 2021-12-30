@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Build.Execution;
@@ -14,12 +16,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             ProjectInstance projectInstance,
             RazorFileChangeKind kind)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (projectInstance == null)
+            if (projectInstance is null)
             {
                 throw new ArgumentNullException(nameof(projectInstance));
             }

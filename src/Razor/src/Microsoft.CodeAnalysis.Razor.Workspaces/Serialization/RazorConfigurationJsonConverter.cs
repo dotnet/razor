@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -24,12 +26,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            string configurationName = null;
-            string languageVersionValue = null;
-            IReadOnlyList<RazorExtension> extensions = null;
-
-            reader.ReadProperties(propertyName =>
+            var (_, _, configurationName, languageVersionValue, extensions) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, serializer, configurationName, languageVersionValue, extensions) = (arg.reader, arg.serializer, arg.configurationName, arg.languageVersionValue, arg.extensions);
                 switch (propertyName)
                 {
                     case nameof(RazorConfiguration.ConfigurationName):
@@ -37,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         {
                             configurationName = (string)reader.Value;
                         }
+
                         break;
                     case nameof(RazorConfiguration.LanguageVersion):
                         if (reader.Read())
@@ -48,15 +48,19 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                     existingValue: null,
                                     serializer) as string;
                         }
+
                         break;
                     case nameof(RazorConfiguration.Extensions):
                         if (reader.Read())
                         {
                             extensions = serializer.Deserialize<RazorExtension[]>(reader);
                         }
+
                         break;
                 }
-            });
+
+                return (reader, serializer, configurationName, languageVersionValue, extensions);
+            }, (reader, serializer, configurationName: (string)null, languageVersionValue: (string)null, extensions: (IReadOnlyList<RazorExtension>)null));
 
             if (!RazorLanguageVersion.TryParse(languageVersionValue, out var languageVersion))
             {
@@ -107,11 +111,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                     return null;
                 }
 
-                var major = string.Empty;
-                var minor = string.Empty;
-
-                reader.ReadProperties(propertyName =>
+                var (_, major, minor) = reader.ReadProperties(static (propertyName, arg) =>
                 {
+                    var (reader, major, minor) = (arg.reader, arg.major, arg.minor);
                     switch (propertyName)
                     {
                         case "Major":
@@ -119,15 +121,19 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             {
                                 major = reader.Value.ToString();
                             }
+
                             break;
                         case "Minor":
                             if (reader.Read())
                             {
                                 minor = reader.Value.ToString();
                             }
+
                             break;
                     }
-                });
+
+                    return (reader, major, minor);
+                }, (reader, major: string.Empty, minor: string.Empty));
 
                 return $"{major}.{minor}";
             }

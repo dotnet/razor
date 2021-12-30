@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Text;
 
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             TextBufferProjectService projectService,
             LiveShareProjectPathProvider liveShareProjectPathProvider)
         {
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
@@ -26,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetProjectPath(ITextBuffer textBuffer, out string filePath)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             var project = _projectService.GetHostProject(textBuffer);
-            if (project == null)
+            if (project is null)
             {
                 filePath = null;
                 return false;

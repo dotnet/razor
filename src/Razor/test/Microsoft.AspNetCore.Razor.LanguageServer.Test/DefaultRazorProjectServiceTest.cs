@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -946,6 +948,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict).Object;
                 Mock.Get(documentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny)).Returns(false);
             }
+
             var hostDocumentFactory = new TestHostDocumentFactory();
             var remoteTextLoaderFactory = Mock.Of<RemoteTextLoaderFactory>(factory => factory.Create(It.IsAny<string>()) == Mock.Of<TextLoader>(MockBehavior.Strict), MockBehavior.Strict);
             var projectService = new DefaultRazorProjectService(

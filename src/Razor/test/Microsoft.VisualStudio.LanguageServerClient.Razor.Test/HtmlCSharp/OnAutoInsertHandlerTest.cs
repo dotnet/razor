@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -271,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class TestDocumentManager : LSPDocumentManager
         {
-            private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new Dictionary<Uri, LSPDocumentSnapshot>();
+            private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new();
 
             public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
             {

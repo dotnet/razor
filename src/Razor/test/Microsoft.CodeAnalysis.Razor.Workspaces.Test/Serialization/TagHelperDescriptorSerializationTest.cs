@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             {
                 current = current.Parent;
             }
+
             var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
             var buffer = File.ReadAllBytes(tagHelperFilePath);
             var serializer = new JsonSerializer();

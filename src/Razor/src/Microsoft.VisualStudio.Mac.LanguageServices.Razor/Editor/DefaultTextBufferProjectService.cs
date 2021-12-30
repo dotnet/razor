@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -23,7 +25,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
         [ImportingConstructor]
         public DefaultTextBufferProjectService(ITextDocumentFactoryService documentFactory)
         {
-            if (documentFactory == null)
+            if (documentFactory is null)
             {
                 throw new ArgumentNullException(nameof(documentFactory));
             }
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
 
         public override object GetHostProject(ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
             var projectsContainingFilePath = IdeApp.Workspace.GetProjectsContainingFile(textDocument.FilePath);
             foreach (var project in projectsContainingFilePath)
             {
-                if (!(project is DotNetProject))
+                if (project is not DotNetProject)
                 {
                     continue;
                 }
@@ -64,7 +66,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
 
         public override string GetProjectPath(object project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
@@ -76,7 +78,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
         // VisualStudio for Mac only supports ASP.NET Core Razor.
         public override bool IsSupportedProject(object project)
         {
-            if (!(project is DotNetProject dotNetProject))
+            if (project is not DotNetProject dotNetProject)
             {
                 return false;
             }
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
 
         public override string GetProjectName(object project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }

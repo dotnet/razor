@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     public class RazorLSPSpanMappingServiceTest
     {
-        private readonly Uri _mockDocumentUri = new Uri("C://project/path/document.razor");
+        private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
         private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
         private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";

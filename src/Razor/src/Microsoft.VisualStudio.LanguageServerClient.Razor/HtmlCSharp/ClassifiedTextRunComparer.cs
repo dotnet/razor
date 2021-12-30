@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         public static ClassifiedTextRunComparer Default = new();
 
-        public bool Equals(ClassifiedTextRun x, ClassifiedTextRun y)
+        public bool Equals(ClassifiedTextRun? x, ClassifiedTextRun? y)
         {
             if (x is null && y is null)
             {
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return false;
             }
 
-            return x.ClassificationTypeName == y.ClassificationTypeName &&
+            return x!.ClassificationTypeName == y!.ClassificationTypeName &&
                 x.Text == y.Text;
         }
 

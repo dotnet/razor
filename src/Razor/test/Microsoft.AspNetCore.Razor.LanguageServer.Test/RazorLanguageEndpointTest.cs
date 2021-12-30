@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Returns(true);
 
             DocumentVersionCache = documentVersionCache.Object;
-            MappingService = new DefaultRazorDocumentMappingService();
+            MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
         }
 
         private DocumentVersionCache DocumentVersionCache { get; }
@@ -66,7 +66,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(expectedRange, response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(expectedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -96,7 +97,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedRange, response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -126,7 +128,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedRange, response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -156,7 +159,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedRange, response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -179,7 +183,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(request.ProjectedRanges[0], response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(request.ProjectedRanges[0], response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -202,7 +207,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(request.ProjectedRanges[0], response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(request.ProjectedRanges[0], response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -233,7 +239,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedRange, response.Ranges[0]);
+            Assert.NotNull(response);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -355,7 +362,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return documentResolver.Object;
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);

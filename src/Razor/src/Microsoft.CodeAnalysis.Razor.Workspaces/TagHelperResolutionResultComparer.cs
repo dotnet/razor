@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Razor
 
             if (obj.Descriptors != null)
             {
-                for (var i = 0; i < obj.Descriptors.Count; i++)
+                foreach (var descriptor in obj.Descriptors)
                 {
-                    hash.Add(obj.Descriptors[i]);
+                    hash.Add(descriptor);
                 }
             }
 

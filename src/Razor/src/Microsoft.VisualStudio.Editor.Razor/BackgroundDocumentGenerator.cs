@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Razor
         protected virtual void StartWorker()
         {
             // Access to the timer is protected by the lock in Enqueue and in Timer_Tick
-            if (_timer == null)
+            if (_timer is null)
             {
                 // Timer will fire after a fixed delay, but only once.
                 _timer = NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, Delay, Timeout.InfiniteTimeSpan);
@@ -309,6 +311,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 _solutionIsClosing = true;
                 return;
             }
+
             _solutionIsClosing = false;
 
             switch (e.Kind)

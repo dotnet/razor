@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies);
-        private static readonly ConcurrentDictionary<string, Scope> s_scopes = new ConcurrentDictionary<string, Scope>();
+        private static readonly ConcurrentDictionary<string, Scope> s_scopes = new();
         private const string DefaultScope = "default";
 
         internal static bool Enabled { get; private set; }
@@ -72,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
-            var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
+            var discovery = resolver is null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
             // If we run CreatePartsAsync on the test thread we may deadlock since it'll schedule stuff back
             // on the thread.
@@ -85,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver? resolver = null)
         {
-            var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
+            var discovery = resolver is null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
             // If we run CreatePartsAsync on the test thread we may deadlock since it'll schedule stuff back
             // on the thread.
@@ -161,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 RequireForSingleExportProvider(expectedCatalog == _catalog);
 
                 var expected = _scope._expectedProviderForCatalog;
-                if (expected == null)
+                if (expected is null)
                 {
                     foreach (var errorCollection in _configuration.CompositionErrors)
                     {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public static class LanguageServerConstants
@@ -42,11 +44,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorResolveCodeActionsEndpoint = "razor/resolveCodeActions";
 
-        public const string RazorProvideSemanticTokensEndpoint = "razor/provideSemanticTokens";
-
-        public const string RazorProvideSemanticTokensEditsEndpoint = "razor/provideSemanticTokensEdits";
+        public const string RazorProvideSemanticTokensRangeEndpoint = "razor/provideSemanticTokensRange";
 
         public const string RazorServerReadyEndpoint = "razor/serverReady";
+
+        // This needs to be the same as in Web Tools, that is used by the HTML editor, because
+        // we actually respond to the Web Tools "Wrap With Div" command handler, which sends this message
+        // to all servers. We then take the message, get the HTML virtual document, and send it
+        // straight back to Web Tools for them to do the work.
+        public const string RazorWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
 
         public static class CodeActions
         {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => await Task.Delay(1).ConfigureAwait(false),
+                onProgressNotifyAsync: async (value, ct) => await Task.Delay(1, cts.Token).ConfigureAwait(false),
                 delayAfterLastNotifyAsync: cancellationToken => Task.Delay(s_notificationTimeout, cancellationToken),
                 cts.Token,
                 out var onCompleted);
@@ -60,13 +62,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Act
             _ = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => await Task.Delay(1).ConfigureAwait(false),
+                onProgressNotifyAsync: async (value, ct) => await Task.Delay(1, cts.Token).ConfigureAwait(false),
                 delayAfterLastNotifyAsync: cancellationToken => Task.Delay(s_notificationTimeout, cancellationToken),
                 cts.Token,
                 out _);
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => await Task.Delay(1).ConfigureAwait(false),
+                onProgressNotifyAsync: async (value, ct) => await Task.Delay(1, cts.Token).ConfigureAwait(false),
                 delayAfterLastNotifyAsync: cancellationToken => Task.Delay(s_notificationTimeout, cancellationToken),
                 cts.Token,
                 out var onCompleted);

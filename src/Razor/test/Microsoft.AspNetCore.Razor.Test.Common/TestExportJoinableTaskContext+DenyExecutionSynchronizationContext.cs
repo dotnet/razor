@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -89,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             /// </summary>
             internal void ThrowIfSwitchOccurred()
             {
-                if (_failedTransfer.Value == null)
+                if (_failedTransfer.Value is null)
                 {
                     return;
                 }
@@ -101,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             {
                 try
                 {
-                    if (_failedTransfer.Value == null)
+                    if (_failedTransfer.Value is null)
                     {
                         ThrowFailedTransferExceptionForCapture();
                     }
@@ -121,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             {
                 try
                 {
-                    if (_failedTransfer.Value == null)
+                    if (_failedTransfer.Value is null)
                     {
                         ThrowFailedTransferExceptionForCapture();
                     }

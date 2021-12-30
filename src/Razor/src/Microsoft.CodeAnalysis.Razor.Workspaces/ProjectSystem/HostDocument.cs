@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public HostDocument(HostDocument other)
         {
-            if (other == null)
+            if (other is null)
             {
                 throw new ArgumentNullException(nameof(other));
             }
@@ -29,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public HostDocument(string filePath, string targetPath, string fileKind)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (targetPath == null)
+            if (targetPath is null)
             {
                 throw new ArgumentNullException(nameof(targetPath));
             }

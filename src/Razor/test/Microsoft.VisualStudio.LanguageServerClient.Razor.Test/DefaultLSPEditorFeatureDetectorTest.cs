@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 
@@ -119,6 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.False(result);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private class TestLSPEditorFeatureDetector : DefaultLSPEditorFeatureDetector
         {
             public bool UseLegacyEditor { get; set; }
@@ -141,5 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy) => ProjectSupportsLSPEditorValue;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

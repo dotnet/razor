@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -177,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions)
             {
-                if (versions == null)
+                if (versions is null)
                 {
                     throw new ArgumentNullException(nameof(versions));
                 }

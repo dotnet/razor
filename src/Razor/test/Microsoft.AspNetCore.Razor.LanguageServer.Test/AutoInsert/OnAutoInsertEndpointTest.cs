@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
@@ -23,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public OnAutoInsertEndpointTest()
         {
-            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
+            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot?>.IsAny) == false, MockBehavior.Strict);
         }
 
         private DocumentResolver EmptyDocumentResolver { get; }
@@ -35,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
+            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
             var endpoint = new OnAutoInsertEndpoint(LegacyDispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
@@ -63,11 +64,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false)
+            var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false, LoggerFactory)
             {
                 ResolvedTextEdit = new TextEdit()
             };
-            var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true)
+            var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
             {
                 ResolvedTextEdit = new TextEdit()
             };
@@ -100,11 +101,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true)
+            var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
             {
                 ResolvedTextEdit = new TextEdit()
             };
-            var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true)
+            var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
             {
                 ResolvedTextEdit = new TextEdit()
             };
@@ -137,8 +138,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true);
-            var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true);
+            var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
+            var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true, LoggerFactory);
             var endpoint = new OnAutoInsertEndpoint(LegacyDispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
@@ -164,7 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
             // Arrange
-            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
+            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
             var endpoint = new OnAutoInsertEndpoint(LegacyDispatcher, EmptyDocumentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var uri = new Uri("file://path/test.razor");
             var @params = new OnAutoInsertParams()
@@ -194,7 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
+            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
             var endpoint = new OnAutoInsertEndpoint(LegacyDispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
@@ -222,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false);
+            var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false, LoggerFactory);
             var endpoint = new OnAutoInsertEndpoint(LegacyDispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
@@ -247,7 +248,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             private readonly bool _canResolve;
 
-            public TestOnAutoInsertProvider(string triggerCharacter, bool canResolve)
+            public TestOnAutoInsertProvider(string triggerCharacter, bool canResolve, ILoggerFactory loggerFactory) : base(loggerFactory)
             {
                 TriggerCharacter = triggerCharacter;
                 _canResolve = canResolve;
@@ -255,14 +256,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             public bool Called { get; private set; }
 
-            public TextEdit ResolvedTextEdit { get; set; }
+            public TextEdit? ResolvedTextEdit { get; set; }
 
             public override string TriggerCharacter { get; }
 
-            public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit edit, out InsertTextFormat format)
+            // Disabling because [NotNullWhen] is available in two Assemblies and causes warnings
+#pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
+            public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit? edit, out InsertTextFormat format)
+#pragma warning restore CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             {
                 Called = true;
-                edit = ResolvedTextEdit;
+                edit = ResolvedTextEdit!;
                 format = default;
                 return _canResolve;
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -19,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentVersionCache == null)
+            if (documentVersionCache is null)
             {
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
@@ -48,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            if (!(document is DefaultDocumentSnapshot defaultDocument))
+            if (document is not DefaultDocumentSnapshot defaultDocument)
             {
                 return;
             }
@@ -58,11 +60,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // Document is no longer important.
                 return;
             }
+
             var syncVersion = nullableSyncVersion.Value;
 
             var documentContainer = defaultDocument.State.GeneratedDocumentContainer;
             var latestSynchronizedDocument = documentContainer.LatestDocument;
-            if (latestSynchronizedDocument == null ||
+            if (latestSynchronizedDocument is null ||
                 latestSynchronizedDocument == document)
             {
                 // Already up-to-date

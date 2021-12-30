@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,8 +33,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
         private readonly Queue<ProjectChangeEventArgs> _notificationWork;
-
-        private bool _solutionIsClosing;
 
         public DefaultProjectSnapshotManager(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // internal for testing
-        internal bool IsSolutionClosing => _solutionIsClosing;
+        internal bool IsSolutionClosing { get; private set; }
 
         public override IReadOnlyList<ProjectSnapshot> Projects
         {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override ProjectSnapshot GetLoadedProject(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override ProjectSnapshot GetOrCreateProject(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override bool IsDocumentOpen(string documentFilePath)
         {
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
@@ -169,12 +169,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
         {
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -184,14 +184,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, document.FilePath, ProjectChangeKind.DocumentAdded);
                 }
                 else
                 {
-                    var loader = textLoader == null
+                    var loader = textLoader is null
                     ? DocumentState.EmptyLoader
                     : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
                     var state = entry.State.WithAddedHostDocument(document, loader);
@@ -210,12 +210,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void DocumentRemoved(HostProject hostProject, HostDocument document)
         {
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var snapshot = entry.GetSnapshot();
                     NotifyListeners(snapshot, snapshot, document.FilePath, ProjectChangeKind.DocumentRemoved);
@@ -248,17 +248,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (sourceText == null)
+            if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -313,17 +313,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (textLoader == null)
+            if (textLoader is null)
             {
                 throw new ArgumentNullException(nameof(textLoader));
             }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -361,17 +361,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (sourceText == null)
+            if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 var currentText = sourceText;
 
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -425,17 +425,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (textLoader == null)
+            if (textLoader is null)
             {
                 throw new ArgumentNullException(nameof(textLoader));
             }
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void ProjectAdded(HostProject hostProject)
         {
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void ProjectConfigurationChanged(HostProject hostProject)
         {
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
@@ -527,12 +527,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (projectWorkspaceState == null)
+            if (projectWorkspaceState is null)
             {
                 throw new ArgumentNullException(nameof(projectWorkspaceState));
             }
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(projectFilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionIsClosing)
+                if (IsSolutionClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void ProjectRemoved(HostProject hostProject)
         {
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
@@ -583,17 +583,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void SolutionOpened()
         {
-            _solutionIsClosing = false;
+            IsSolutionClosing = false;
         }
 
         public override void SolutionClosed()
         {
-            _solutionIsClosing = true;
+            IsSolutionClosing = true;
         }
 
         public override void ReportError(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void ReportError(Exception exception, ProjectSnapshot project)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
@@ -613,18 +613,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void ReportError(Exception exception, HostProject hostProject)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            var snapshot = hostProject?.FilePath == null ? null : GetLoadedProject(hostProject.FilePath);
+            var snapshot = hostProject?.FilePath is null ? null : GetLoadedProject(hostProject.FilePath);
             _errorReporter.ReportError(exception, snapshot);
         }
 
         private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
         {
-            NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, _solutionIsClosing));
+            NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
         }
 
         // virtual so it can be overridden in tests

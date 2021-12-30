@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Newtonsoft.Json;
 
@@ -8,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization
 {
     internal class OmniSharpProjectSnapshotHandleJsonConverter : JsonConverter
     {
-        public static readonly OmniSharpProjectSnapshotHandleJsonConverter Instance = new OmniSharpProjectSnapshotHandleJsonConverter();
+        public static readonly OmniSharpProjectSnapshotHandleJsonConverter Instance = new();
 
         public override bool CanConvert(Type objectType)
         {

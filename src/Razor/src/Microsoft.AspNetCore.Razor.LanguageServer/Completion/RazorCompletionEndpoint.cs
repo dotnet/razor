@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,8 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Name = "editor.action.triggerSuggest",
             Title = RazorLS.Resources.ReTrigger_Completions_Title,
         };
-        private PlatformAgnosticCompletionCapability _capability;
-        private IReadOnlyList<ExtendedCompletionItemKinds> _supportedItemKinds;
+        private PlatformAgnosticCompletionCapability? _capability;
+        private IReadOnlyList<ExtendedCompletionItemKinds>? _supportedItemKinds;
 
         // Guid is magically generated and doesn't mean anything. O# magic.
         public Guid Id => new Guid("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
@@ -52,22 +53,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (lspTagHelperTooltipFactory == null)
+            if (lspTagHelperTooltipFactory is null)
             {
                 throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
             }
@@ -82,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -104,6 +105,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public CompletionRegistrationOptions GetRegistrationOptions(CompletionCapability capability, ClientCapabilities clientCapabilities)
         {
             _capability = (PlatformAgnosticCompletionCapability)capability;
+            if (_capability.CompletionItemKind is null)
+            {
+                throw new ArgumentNullException(nameof(CompletionItemKind), $"{nameof(CompletionItemKind)} was not supplied. Value is mandatory.");
+            }
+
             _supportedItemKinds = _capability.CompletionItemKind.ValueSet.Cast<ExtendedCompletionItemKinds>().ToList();
             return new CompletionRegistrationOptions()
             {
@@ -131,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return new CompletionList(isIncomplete: false);
             }
 
-            if (!IsApplicableTriggerContext(request.Context))
+            if (request.Context is null || !IsApplicableTriggerContext(request.Context))
             {
                 return new CompletionList(isIncomplete: false);
             }
@@ -146,7 +152,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            {
+                return new CompletionList(isIncomplete: false);
+            }
+
             var location = new SourceSpan(hostDocumentIndex, 0);
             var reason = request.Context.TriggerKind switch
             {
@@ -181,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             var labelQuery = completionItem.Label;
             var associatedRazorCompletion = cachedCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
-            if (associatedRazorCompletion == null)
+            if (associatedRazorCompletion is null)
             {
                 Debug.Fail("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
                 return Task.FromResult(completionItem);
@@ -191,8 +201,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var useDescriptionProperty = _languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
                 clientCapabilities.SupportsVisualStudioExtensions;
 
-            MarkupContent tagHelperMarkupTooltip = null;
-            VSClassifiedTextElement tagHelperClassifiedTextTooltip = null;
+            MarkupContent? tagHelperMarkupTooltip = null;
+            VSClassifiedTextElement? tagHelperClassifiedTextTooltip = null;
 
             switch (associatedRazorCompletion.Kind)
             {
@@ -284,8 +294,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         internal static CompletionList CreateLSPCompletionList(
             IReadOnlyList<RazorCompletionItem> razorCompletionItems,
             CompletionListCache completionListCache,
-            IReadOnlyList<ExtendedCompletionItemKinds> supportedItemKinds,
-            PlatformAgnosticCompletionCapability completionCapability)
+            IReadOnlyList<ExtendedCompletionItemKinds>? supportedItemKinds,
+            PlatformAgnosticCompletionCapability? completionCapability)
         {
             var resultId = completionListCache.Set(razorCompletionItems);
             var completionItems = new List<CompletionItem>();
@@ -322,8 +332,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         // Internal for testing
         internal static bool TryConvert(
             RazorCompletionItem razorCompletionItem,
-            IReadOnlyList<ExtendedCompletionItemKinds> supportedItemKinds,
-            out CompletionItem completionItem)
+            IReadOnlyList<ExtendedCompletionItemKinds>? supportedItemKinds,
+            [NotNullWhen(true)] out CompletionItem? completionItem)
         {
             if (razorCompletionItem is null)
             {

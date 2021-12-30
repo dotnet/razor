@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
@@ -17,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
     {
         public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
         public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
@@ -58,7 +59,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return statements;
         }
 
-        public static SyntaxNode GetOwner(this RazorSyntaxTree syntaxTree, SourceText sourceText, Position position)
+        public static SyntaxNode? GetOwner(
+            this RazorSyntaxTree syntaxTree,
+            SourceText sourceText,
+            Position position,
+            ILogger logger)
         {
             if (syntaxTree is null)
             {
@@ -75,13 +80,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(position));
             }
 
-            var absoluteIndex = position.GetAbsoluteIndex(sourceText);
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+            {
+                return default;
+            }
+
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
             return owner;
         }
 
-        public static SyntaxNode GetOwner(this RazorSyntaxTree syntaxTree, SourceText sourceText, Range range)
+        public static SyntaxNode? GetOwner(
+            this RazorSyntaxTree syntaxTree,
+            SourceText sourceText,
+            Range range,
+            ILogger logger)
         {
             if (syntaxTree is null)
             {
@@ -98,8 +116,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(range));
             }
 
-            var absoluteStartIndex = range.Start.GetAbsoluteIndex(sourceText);
-            var absoluteEndIndex = range.End.GetAbsoluteIndex(sourceText);
+            var startInSync = range.Start.TryGetAbsoluteIndex(sourceText, logger, out var absoluteStartIndex);
+            var endInSync = range.End.TryGetAbsoluteIndex(sourceText, logger, out var absoluteEndIndex);
+            if (startInSync is false || endInSync is false)
+            {
+                return default;
+            }
+
             var length = absoluteEndIndex - absoluteStartIndex;
             var change = new SourceChange(absoluteStartIndex, length, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);

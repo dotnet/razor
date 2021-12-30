@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -96,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _editorOptionsFactory = editorOptionsFactory;
             _requestInvoker = requestInvoker;
             _clientOptionsMonitor = clientOptionsMonitor;
-            _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager4;
+            _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
 
             Assumes.Present(_textManager);
         }
@@ -325,7 +327,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
             }
 
-            private IOleCommandTarget Next { get; set; }
+            private IOleCommandTarget _next;
+
+            private IOleCommandTarget Next
+            {
+                get
+                {
+                    if (_next is null)
+                    {
+                        throw new InvalidOperationException($"{nameof(Next)} called before being set.");
+                    }
+
+                    return _next;
+                }
+                set
+                {
+                    _next = value;
+                }
+            }
 
             public static void CreateAndRegister(IVsTextView textView)
             {

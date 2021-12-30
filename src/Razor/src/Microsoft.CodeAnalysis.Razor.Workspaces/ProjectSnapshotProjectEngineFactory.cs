@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
@@ -22,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorProjectEngine Create(ProjectSnapshot project, RazorProjectFileSystem fileSystem)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (fileSystem == null)
+            if (fileSystem is null)
             {
                 throw new ArgumentNullException(nameof(fileSystem));
             }
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorProjectEngine Create(ProjectSnapshot project, Action<RazorProjectEngineBuilder> configure)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
@@ -47,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorProjectEngine Create(ProjectSnapshot project, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (fileSystem == null)
+            if (fileSystem is null)
             {
                 throw new ArgumentNullException(nameof(fileSystem));
             }
@@ -62,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorProjectEngine Create(RazorConfiguration configuration, string directoryPath, Action<RazorProjectEngineBuilder> configure)
         {
-            if (configuration == null)
+            if (configuration is null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            if (directoryPath == null)
+            if (directoryPath is null)
             {
                 throw new ArgumentNullException(nameof(directoryPath));
             }

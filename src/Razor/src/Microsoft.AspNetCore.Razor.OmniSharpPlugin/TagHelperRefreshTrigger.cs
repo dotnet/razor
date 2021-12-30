@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -43,17 +45,17 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             Workspace omniSharpWorkspace,
             OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (omniSharpWorkspace == null)
+            if (omniSharpWorkspace is null)
             {
                 throw new ArgumentNullException(nameof(omniSharpWorkspace));
             }
 
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
@@ -68,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -78,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public void ProjectLoaded(ProjectLoadedEventArgs args)
         {
-            if (args == null)
+            if (args is null)
             {
                 throw new ArgumentNullException(nameof(args));
             }
@@ -116,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public void RazorDocumentOutputChanged(RazorFileChangeEventArgs args)
         {
-            if (args == null)
+            if (args is null)
             {
                 throw new ArgumentNullException(nameof(args));
             }
@@ -162,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         private bool TryGetProjectSnapshot(string projectFilePath, out OmniSharpProjectSnapshot projectSnapshot)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 projectSnapshot = null;
                 return false;
@@ -178,13 +180,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 return false;
             }
 
             var documentSnapshot = projectSnapshot.GetDocument(relativeDocumentFilePath);
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 return false;
             }

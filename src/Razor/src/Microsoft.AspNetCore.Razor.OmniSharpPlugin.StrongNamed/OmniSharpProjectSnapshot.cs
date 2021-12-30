@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -28,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public OmniSharpDocumentSnapshot GetDocument(string filePath)
         {
             var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
-            if (documentSnapshot == null)
+            if (documentSnapshot is null)
             {
                 return null;
             }
@@ -39,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
         {
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 return null;
             }

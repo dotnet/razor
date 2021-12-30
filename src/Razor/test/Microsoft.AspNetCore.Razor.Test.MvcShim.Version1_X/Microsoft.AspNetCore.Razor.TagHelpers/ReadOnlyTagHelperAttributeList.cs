@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -48,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         {
             get
             {
-                if (name == null)
+                if (name is null)
                 {
                     throw new ArgumentNullException(nameof(name));
                 }
@@ -96,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <remarks><paramref name="name"/> is compared case-insensitively.</remarks>
         public bool TryGetAttribute(string name, out TagHelperAttribute attribute)
         {
-            if (name == null)
+            if (name is null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
@@ -119,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <remarks><paramref name="name"/> is compared case-insensitively.</remarks>
         public bool TryGetAttributes(string name, out IReadOnlyList<TagHelperAttribute> attributes)
         {
-            if (name == null)
+            if (name is null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
@@ -130,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
             {
                 if (NameEquals(name, Items[i]))
                 {
-                    if (matchedAttributes == null)
+                    if (matchedAttributes is null)
                     {
                         matchedAttributes = new List<TagHelperAttribute>();
                     }
@@ -138,6 +140,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
                     matchedAttributes.Add(Items[i]);
                 }
             }
+
             attributes = matchedAttributes ?? s_emptyList;
 
             return matchedAttributes != null;
@@ -153,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// if found; otherwise, -1.</returns>
         public int IndexOfName(string name)
         {
-            if (name == null)
+            if (name is null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
@@ -179,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <see cref="TagHelperAttribute.Name"/>.</returns>
         protected static bool NameEquals(string name, TagHelperAttribute attribute)
         {
-            if (attribute == null)
+            if (attribute is null)
             {
                 throw new ArgumentNullException(nameof(attribute));
             }

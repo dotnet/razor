@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 .Returns(true);
 
             DocumentVersionCache = documentVersionCache.Object;
-            MappingService = new DefaultRazorDocumentMappingService();
+            MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
         }
 
         private DocumentVersionCache DocumentVersionCache { get; }
@@ -952,7 +952,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             // Assert
             var returnedDiagnostic = Assert.Single(response.Diagnostics);
-            Assert.Equal(HtmlErrorCodes.MissingEndTagErrorCode, returnedDiagnostic.Code.Value.String);
+            Assert.NotNull(returnedDiagnostic.Code);
+            Assert.Equal(HtmlErrorCodes.MissingEndTagErrorCode, returnedDiagnostic.Code!.Value.String);
         }
 
         [Fact]
@@ -1011,7 +1012,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             // Assert
             var diagnostic = Assert.Single(response.Diagnostics);
-            Assert.Equal(HtmlErrorCodes.UnexpectedEndTagErrorCode, diagnostic.Code.Value.String);
+            Assert.NotNull(diagnostic.Code);
+            Assert.Equal(HtmlErrorCodes.UnexpectedEndTagErrorCode, diagnostic.Code!.Value.String);
         }
 
         [Fact]
@@ -1110,7 +1112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             return documentResolver.Object;
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string kind = null)
+        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? kind = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
@@ -1123,7 +1125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             string razorSource,
             string projectedCSharpSource,
             IEnumerable<SourceMapping> sourceMappings,
-            IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+            IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             var codeDocument = CreateCodeDocument(razorSource, tagHelpers);
             var csharpDocument = RazorCSharpDocument.Create(

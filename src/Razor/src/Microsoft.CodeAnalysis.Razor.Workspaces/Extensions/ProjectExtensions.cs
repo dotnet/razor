@@ -3,8 +3,6 @@
 
 using System;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 {
     internal static class ProjectExtensions

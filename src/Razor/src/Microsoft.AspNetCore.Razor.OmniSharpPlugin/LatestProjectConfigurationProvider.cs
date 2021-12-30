@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -240,17 +242,17 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 RazorExtension[] extensions,
                 bool useConsolidatedMvcViews = false)
             {
-                if (languageVersion == null)
+                if (languageVersion is null)
                 {
                     throw new ArgumentNullException(nameof(languageVersion));
                 }
 
-                if (configurationName == null)
+                if (configurationName is null)
                 {
                     throw new ArgumentNullException(nameof(configurationName));
                 }
 
-                if (extensions == null)
+                if (extensions is null)
                 {
                     throw new ArgumentNullException(nameof(extensions));
                 }
@@ -274,7 +276,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             public ProjectSystemRazorExtension(string extensionName)
             {
-                if (extensionName == null)
+                if (extensionName is null)
                 {
                     throw new ArgumentNullException(nameof(extensionName));
                 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -129,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 },
                 e =>
                 {
-                    Assert.Equal("Create component from tag", e.Title);
+                    Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, e.Title);
                     Assert.NotNull(e.Data);
                     Assert.Null(e.Edit);
                 });
@@ -157,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             var command = Assert.Single(commandOrCodeActionContainer);
-            Assert.Equal("Create component from tag", command.Title);
+            Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, command.Title);
             Assert.NotNull(command.Data);
         }
 
@@ -184,7 +186,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.Empty(commandOrCodeActionContainer);
         }
-
 
         [Fact]
         public async Task Handle_ExistingComponent_SupportsFileCreationFalse_ReturnsResults()

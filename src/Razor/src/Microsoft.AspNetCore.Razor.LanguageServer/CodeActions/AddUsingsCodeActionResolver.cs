@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -237,6 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     }
                 }
             }
+
             return directives;
         }
 
@@ -248,6 +251,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     directiveNode.DirectiveDescriptor == NamespaceDirective.Directive ||
                     directiveNode.DirectiveDescriptor == PageDirective.Directive;
             }
+
             return false;
         }
 

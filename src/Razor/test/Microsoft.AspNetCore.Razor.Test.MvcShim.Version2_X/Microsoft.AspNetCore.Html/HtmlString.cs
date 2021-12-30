@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Text.Encodings.Web;
@@ -15,12 +17,12 @@ namespace Microsoft.AspNetCore.Html
         /// <summary>
         /// An <see cref="HtmlString"/> instance for <see cref="Environment.NewLine"/>.
         /// </summary>
-        public static readonly HtmlString NewLine = new HtmlString(Environment.NewLine);
+        public static readonly HtmlString NewLine = new(Environment.NewLine);
 
         /// <summary>
         /// An <see cref="HtmlString"/> instance for <see cref="string.Empty"/>.
         /// </summary>
-        public static readonly HtmlString Empty = new HtmlString(string.Empty);
+        public static readonly HtmlString Empty = new(string.Empty);
 
         /// <summary>
         /// Creates a new <see cref="HtmlString"/>.
@@ -39,12 +41,12 @@ namespace Microsoft.AspNetCore.Html
         /// <inheritdoc />
         public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
-            if (writer == null)
+            if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (encoder == null)
+            if (encoder is null)
             {
                 throw new ArgumentNullException(nameof(encoder));
             }

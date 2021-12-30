@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -18,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Razor
             IFallbackProjectEngineFactory fallback,
             Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
         {
-            if (fallback == null)
+            if (fallback is null)
             {
                 throw new ArgumentNullException(nameof(fallback));
             }
 
-            if (factories == null)
+            if (factories is null)
             {
                 throw new ArgumentNullException(nameof(factories));
             }
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
         {
-            if (fileSystem == null)
+            if (fileSystem is null)
             {
                 throw new ArgumentNullException(nameof(fileSystem));
             }
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override IProjectEngineFactory FindFactory(ProjectSnapshot project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }

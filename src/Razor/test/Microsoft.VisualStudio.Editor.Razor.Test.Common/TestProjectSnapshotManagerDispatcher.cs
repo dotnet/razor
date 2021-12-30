@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public TestProjectSnapshotManagerDispatcher()
         {
-            DispatcherScheduler = SynchronizationContext.Current == null
+            DispatcherScheduler = SynchronizationContext.Current is null
                 ? new ThrowingTaskScheduler()
                 : TaskScheduler.FromCurrentSynchronizationContext();
         }

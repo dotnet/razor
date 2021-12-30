@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public DefaultDocumentSnapshot(DefaultProjectSnapshot project, DocumentState state)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (state == null)
+            if (state is null)
             {
                 throw new ArgumentNullException(nameof(state));
             }

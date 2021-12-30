@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
@@ -182,7 +184,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             queue.Initialize(projectManager);
 
             var newWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp7_3);
-
 
             // Act & Assert
             projectManager.ProjectWorkspaceStateChanged(HostProject1.FilePath, newWorkspaceState);

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             HostProject hostProject,
             ProjectWorkspaceState projectWorkspaceState = null)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
@@ -77,22 +79,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ImmutableDictionary<string, DocumentState> documents,
             ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments)
         {
-            if (older == null)
+            if (older is null)
             {
                 throw new ArgumentNullException(nameof(older));
             }
 
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            if (documents == null)
+            if (documents is null)
             {
                 throw new ArgumentNullException(nameof(documents));
             }
 
-            if (importsToRelatedDocuments == null)
+            if (importsToRelatedDocuments is null)
             {
                 throw new ArgumentNullException(nameof(importsToRelatedDocuments));
             }
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 lock (_lock)
                 {
-                    if (_projectEngine == null)
+                    if (_projectEngine is null)
                     {
                         _projectEngine = CreateProjectEngine();
                     }
@@ -204,12 +206,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectState WithAddedHostDocument(HostDocument hostDocument, Func<Task<TextAndVersion>> loader)
         {
-            if (hostDocument == null)
+            if (hostDocument is null)
             {
                 throw new ArgumentNullException(nameof(hostDocument));
             }
 
-            if (loader == null)
+            if (loader is null)
             {
                 throw new ArgumentNullException(nameof(loader));
             }
@@ -243,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectState WithRemovedHostDocument(HostDocument hostDocument)
         {
-            if (hostDocument == null)
+            if (hostDocument is null)
             {
                 throw new ArgumentNullException(nameof(hostDocument));
             }
@@ -275,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectState WithChangedHostDocument(HostDocument hostDocument, SourceText sourceText, VersionStamp version)
         {
-            if (hostDocument == null)
+            if (hostDocument is null)
             {
                 throw new ArgumentNullException(nameof(hostDocument));
             }
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectState WithChangedHostDocument(HostDocument hostDocument, Func<Task<TextAndVersion>> loader)
         {
-            if (hostDocument == null)
+            if (hostDocument is null)
             {
                 throw new ArgumentNullException(nameof(hostDocument));
             }
@@ -327,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectState WithHostProject(HostProject hostProject)
         {
-            if (hostProject == null)
+            if (hostProject is null)
             {
                 throw new ArgumentNullException(nameof(hostProject));
             }

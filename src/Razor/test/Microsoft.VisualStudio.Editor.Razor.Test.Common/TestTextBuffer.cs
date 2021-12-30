@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
@@ -11,7 +13,6 @@ namespace Microsoft.VisualStudio.Test
     public class TestTextBuffer : ITextBuffer
     {
         private readonly List<EventHandler<TextContentChangedEventArgs>> _attachedChangedEvents;
-        private IContentType _contentType;
 
         public TestTextBuffer(ITextSnapshot initialSnapshot)
         {
@@ -91,7 +92,6 @@ namespace Microsoft.VisualStudio.Test
             }
         }
 
-
         public event EventHandler<TextContentChangedEventArgs> ChangedLowPriority;
         public event EventHandler<TextContentChangedEventArgs> ChangedHighPriority;
         public event EventHandler<TextContentChangingEventArgs> Changing;
@@ -100,17 +100,19 @@ namespace Microsoft.VisualStudio.Test
 
         public bool EditInProgress => throw new NotImplementedException();
 
-        public IContentType ContentType => _contentType;
+        public IContentType ContentType { get; private set; }
 
         public ITextEdit CreateEdit() => new BufferEdit(this);
 
         public void ChangeContentType(IContentType newContentType, object editTag){
-            _contentType = newContentType;
+            ContentType = newContentType;
 
             if (CurrentSnapshot is StringTextSnapshot oldStringTextSnapshot)
             {
-                var newStringTextSnapshot = new StringTextSnapshot(oldStringTextSnapshot.Content, oldStringTextSnapshot.Version.VersionNumber + 1);
-                newStringTextSnapshot.TextBuffer = this;
+                var newStringTextSnapshot = new StringTextSnapshot(oldStringTextSnapshot.Content, oldStringTextSnapshot.Version.VersionNumber + 1)
+                {
+                    TextBuffer = this
+                };
                 CurrentSnapshot = newStringTextSnapshot;
             }
 

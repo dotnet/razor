@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
-        private readonly CodeAnalysis.Workspace _workspace;
+        private readonly CodeAnalysis.Workspace? _workspace;
         private readonly MemoryCache<CacheKey, Range> _cache;
 
         [ImportingConstructor]
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            CodeAnalysis.Workspace workspace)
+            CodeAnalysis.Workspace? workspace)
         {
             if (fileUriProvider is null)
             {
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _cache = new MemoryCache<CacheKey, Range>(sizeLimit: 4);
         }
 
-        public override async Task<Range> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+        public override async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
         {
             if (textBuffer is null)
             {
@@ -124,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             var lspPosition = new Position(lineIndex, characterIndex);
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 // Can't map the position, invalid breakpoint location.
                 return null;
@@ -157,8 +158,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                     End = new Position(endLineIndex, endCharacterIndex),
                 },
             };
-            var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, cancellationToken).ConfigureAwait(false);
-            if (hostDocumentMapping == null)
+
+            var mappingBehavior = GetMappingBehavior(documentSnapshot.Uri);
+            var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, mappingBehavior, cancellationToken).ConfigureAwait(false);
+            if (hostDocumentMapping is null)
             {
                 return null;
             }
@@ -173,11 +176,48 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             return hostDocumentRange;
         }
 
+        // Internal for testing
+        internal static LanguageServerMappingBehavior GetMappingBehavior(Uri hostDocumentUri)
+        {
+            if (hostDocumentUri.AbsolutePath.EndsWith(".cshtml", FilePathComparison.Instance))
+            {
+                // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a cshtml file:
+                //
+                //      @DateTime.Now
+                //
+                // This would render as:
+                //
+                //      #line 123 "C:/path/to/abc.cshtml"
+                //      __o = DateTime.Now;
+                //
+                //      #line default
+                //
+                // This in turn results in a breakpoint span encompassing `|__o = DateTime.Now;|`. Problem is that if we're doing "strict" mapping
+                // Razor only maps `DateTime.Now` so mapping would fail. Therefore in cshtml scenarios we fall back to inclusive mapping which allows
+                // C# mappings that intersect to be acceptable mapping locations
+                //
+                // In Blazor this isn't an issue because the above renders as:
+                //
+                //      __o =
+                //      #line 123 "C:/path/to/abc.razor"
+                //      DateTime.Now
+                //
+                //      #line default
+                //      ;
+                //
+                // Which results in a proper mapping
+
+                return LanguageServerMappingBehavior.Inclusive;
+            }
+
+            return LanguageServerMappingBehavior.Strict;
+        }
+
         public static DefaultRazorBreakpointResolver CreateTestInstance(
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider) => new(fileUriProvider, documentManager, projectionProvider, documentMappingProvider, (CodeAnalysis.Workspace)null);
+            LSPDocumentMappingProvider documentMappingProvider) => new(fileUriProvider, documentManager, projectionProvider, documentMappingProvider, (CodeAnalysis.Workspace?)null);
 
         private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
     }

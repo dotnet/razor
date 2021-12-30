@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public static IRazorEngineBuilder AddTagHelpers(this IRazorEngineBuilder builder, IEnumerable<TagHelperDescriptor> tagHelpers)
         {
             var feature = (TestTagHelperFeature)builder.Features.OfType<ITagHelperFeature>().FirstOrDefault();
-            if (feature == null)
+            if (feature is null)
             {
                 feature = new TestTagHelperFeature();
                 builder.Features.Add(feature);
@@ -34,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public static IRazorEngineBuilder ConfigureDocumentClassifier(this IRazorEngineBuilder builder)
         {
             var feature = builder.Features.OfType<DefaultDocumentClassifierPassFeature>().FirstOrDefault();
-            if (feature == null)
+            if (feature is null)
             {
                 feature = new DefaultDocumentClassifierPassFeature();
                 builder.Features.Add(feature);

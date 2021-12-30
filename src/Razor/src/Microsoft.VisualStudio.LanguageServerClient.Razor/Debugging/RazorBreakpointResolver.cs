@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     internal abstract class RazorBreakpointResolver
     {
-        public abstract Task<Range> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
+        public abstract Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
     }
 }

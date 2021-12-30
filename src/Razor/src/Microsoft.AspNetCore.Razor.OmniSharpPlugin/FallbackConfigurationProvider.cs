@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Reflection.Metadata;
@@ -40,14 +42,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 }
             }
 
-            if (mvcReferenceFullPath == null)
+            if (mvcReferenceFullPath is null)
             {
                 configuration = null;
                 return false;
             }
 
             var version = GetAssemblyVersion(mvcReferenceFullPath);
-            if (version == null)
+            if (version is null)
             {
                 configuration = null;
                 return false;

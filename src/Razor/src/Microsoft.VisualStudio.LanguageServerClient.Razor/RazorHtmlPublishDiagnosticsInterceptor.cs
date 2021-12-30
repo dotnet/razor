@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -46,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
-            if (loggerProvider == null)
+            if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
             }
@@ -141,7 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);
-
 
             static InterceptionResult CreateDefaultResponse(JToken token)
             {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -124,14 +126,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
-            var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
+            var formattedEdits = await _razorFormattingService.FormatCodeActionAsync(
                 csharpParams.RazorFileUri,
                 documentSnapshot,
                 RazorLanguageKind.CSharp,
                 csharpTextEdits,
                 s_defaultFormattingOptions,
-                cancellationToken,
-                bypassValidationPasses: true);
+                cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 

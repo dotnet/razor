@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         public TestLanguageServices(HostWorkspaceServices workspaceServices, IEnumerable<ILanguageService> languageServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             var service = _languageServices.OfType<TLanguageService>().FirstOrDefault();
 
-            if (service == null)
+            if (service is null)
             {
                 throw new InvalidOperationException($"Test Razor language services not configured properly, missing language service '{typeof(TLanguageService).FullName}'.");
             }

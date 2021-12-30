@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -76,10 +74,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             // Next, collect all the line starts that start in C# context
+            var indentations = context.GetIndentations();
             var lineStartMap = new Dictionary<int, int>();
             for (var i = range.Start.Line; i <= range.End.Line; i++)
             {
-                if (context.Indentations[i].EmptyOrWhitespaceLine)
+                if (indentations[i].EmptyOrWhitespaceLine)
                 {
                     // We should remove whitespace on empty lines.
                     continue;
@@ -139,14 +138,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var newIndentations = new Dictionary<int, int>();
             for (var i = range.Start.Line; i <= range.End.Line; i++)
             {
-                if (context.Indentations[i].EmptyOrWhitespaceLine)
+                if (indentations[i].EmptyOrWhitespaceLine)
                 {
                     // We should remove whitespace on empty lines.
                     newIndentations[i] = 0;
                     continue;
                 }
 
-                var minCSharpIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].MinCSharpIndentLevel);
+                var minCSharpIndentation = context.GetIndentationOffsetForLevel(indentations[i].MinCSharpIndentLevel);
                 var line = context.SourceText.Lines[i];
                 var lineStart = line.GetFirstNonWhitespacePosition() ?? line.Start;
                 var lineStartSpan = new TextSpan(lineStart, 0);
@@ -213,8 +212,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 var effectiveCSharpDesiredIndentation = csharpDesiredIndentation - minCSharpIndentation;
-                var razorDesiredIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].IndentationLevel);
-                if (context.Indentations[i].StartsInHtmlContext)
+                var razorDesiredIndentation = context.GetIndentationOffsetForLevel(indentations[i].IndentationLevel);
+                if (indentations[i].StartsInHtmlContext)
                 {
                     // This is a non-C# line.
                     if (context.IsFormatOnType)
@@ -228,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // HTML is already correctly formatted. So we can use the existing indentation as is.
                         // We need to make sure to use the indentation size, as this will get passed to
                         // GetIndentationString eventually.
-                        razorDesiredIndentation = context.Indentations[i].ExistingIndentationSize;
+                        razorDesiredIndentation = indentations[i].ExistingIndentationSize;
                     }
                 }
 
@@ -246,7 +245,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var indentation = item.Value;
                 Debug.Assert(indentation >= 0, "Negative indentation. This is unexpected.");
 
-                var existingIndentationLength = context.Indentations[line].ExistingIndentation;
+                var existingIndentationLength = indentations[line].ExistingIndentation;
                 var spanToReplace = new TextSpan(context.SourceText.Lines[line].Start, existingIndentationLength);
                 var effectiveDesiredIndentation = context.GetIndentationString(indentation);
                 changes.Add(new TextChange(spanToReplace, effectiveDesiredIndentation));
@@ -280,7 +279,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
             var owner = syntaxTree.Root.LocateOwner(change);
-            if (owner == null)
+            if (owner is null)
             {
                 // Can't determine owner of this position. Optimistically allow formatting.
                 return true;
@@ -344,7 +343,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // `@using |System;
                 //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor == null);
+                    n => n is RazorDirectiveSyntax { DirectiveDescriptor: null });
             }
 
             bool IsAttributeDirective()

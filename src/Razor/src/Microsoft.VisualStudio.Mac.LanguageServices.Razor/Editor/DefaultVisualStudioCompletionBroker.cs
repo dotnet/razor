@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text.Editor;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
 
         public override bool IsCompletionActive(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }

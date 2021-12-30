@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
@@ -105,6 +107,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             {
                 projectInstance.AddItem(FallbackConfigurationProvider.ReferencePathWithRefAssembliesItemType, path);
             }
+
             var context = new ProjectConfigurationProviderContext(projectCapabilities, projectInstance);
             return context;
         }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Serialization;
@@ -23,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
 
         public static void RegisterRazorConverters(this IList<JsonConverter> collection)
         {
-            if (collection == null)
+            if (collection is null)
             {
                 throw new ArgumentNullException(nameof(collection));
             }

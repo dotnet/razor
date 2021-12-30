@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override void Update(EditorSettings updatedSettings)
         {
-            if (updatedSettings == null)
+            if (updatedSettings is null)
             {
                 throw new ArgumentNullException(nameof(updatedSettings));
             }

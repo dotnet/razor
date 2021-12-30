@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
@@ -97,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         private static void DisposeExportProvider(ExportProvider? exportProvider)
         {
-            if (exportProvider == null)
+            if (exportProvider is null)
             {
                 return;
             }

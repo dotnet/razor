@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 
@@ -13,15 +11,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     /// </summary>
     internal class ProvideSemanticTokensResponse
     {
-        public ProvideSemanticTokensResponse(string? resultId, int[]? tokens, bool isFinalized, long? hostDocumentSyncVersion)
+        public ProvideSemanticTokensResponse(int[]? tokens, bool isFinalized, long? hostDocumentSyncVersion)
         {
-            ResultId = resultId;
             Tokens = tokens;
             IsFinalized = isFinalized;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
-
-        public string? ResultId { get; }
 
         public int[]? Tokens { get; }
 
@@ -32,7 +27,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override bool Equals(object obj)
         {
             if (obj is not ProvideSemanticTokensResponse other ||
-                other.ResultId != ResultId ||
                 other.IsFinalized != IsFinalized ||
                 other.HostDocumentSyncVersion != HostDocumentSyncVersion)
             {

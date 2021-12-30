@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -38,6 +40,8 @@ namespace BenchmarkDotNet.Attributes
                 .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net5.0", null, ".NET Core 5.0")))
 #elif NET6_0
                 .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net6.0", null, ".NET 6.0")))
+#elif NET472
+                .WithToolchain(CsProjClassicNetToolchain.Net472)
 #else
 #error Target frameworks need to be updated.
 #endif

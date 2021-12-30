@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -15,12 +17,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public static void Subscribe(IVsTextBuffer vsTextBuffer, Action action)
         {
-            if (vsTextBuffer == null)
+            if (vsTextBuffer is null)
             {
                 throw new ArgumentNullException(nameof(vsTextBuffer));
             }
 
-            if (action == null)
+            if (action is null)
             {
                 throw new ArgumentNullException(nameof(action));
             }

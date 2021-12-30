@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
@@ -22,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override string Resolve()
         {
-            if (_languageServer.ClientSettings.RootUri == null)
+            if (_languageServer.ClientSettings.RootUri is null)
             {
                 // RootUri was added in LSP3, fallback to RootPath
                 return _languageServer.ClientSettings.RootPath;

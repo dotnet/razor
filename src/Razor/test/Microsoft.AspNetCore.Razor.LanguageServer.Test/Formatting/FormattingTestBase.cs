@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             LoggerFactory = new FormattingTestLoggerFactory(output);
         }
 
-        public static string TestProjectPath { get; private set; }
+        public static string? TestProjectPath { get; private set; }
 
         protected FilePathNormalizer FilePathNormalizer { get; }
 
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return s_fileName.Value; }
+            get { return s_fileName.Value!; }
             set { s_fileName.Value = value; }
         }
 
@@ -70,8 +70,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             string expected,
             int tabSize = 4,
             bool insertSpaces = true,
-            string fileKind = null,
-            IReadOnlyList<TagHelperDescriptor> tagHelpers = null,
+            string? fileKind = null,
+            IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
             bool useSourceTextDiffer = false)
         {
             // Arrange
@@ -115,23 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             char triggerCharacter,
             int tabSize = 4,
             bool insertSpaces = true,
-            string fileKind = null)
-        {
-            var (razorSourceText, edits) = await GetOnTypeFormattingEditsAsync(input, triggerCharacter, tabSize, insertSpaces, fileKind);
-
-            // Assert
-            var edited = ApplyEdits(razorSourceText, edits);
-            var actual = edited.ToString();
-
-            new XUnitVerifier().EqualOrDiff(expected, actual);
-        }
-
-        protected async Task<(SourceText, TextEdit[])> GetOnTypeFormattingEditsAsync(
-            string input,
-            char triggerCharacter,
-            int tabSize = 4,
-            bool insertSpaces = true,
-            string fileKind = null)
+            string? fileKind = null)
         {
             // Arrange
             fileKind ??= FileKinds.Component;
@@ -143,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri(path);
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-            var mappingService = new DefaultRazorDocumentMappingService();
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
 
             if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var projectedIndex))
@@ -170,11 +154,82 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             // Act
-            var edits = await formattingService.ApplyFormattedEditsAsync(
-                uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
+            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
 
-            return (razorSourceText, edits);
+            // Assert
+            if (input.Equals(expected))
+            {
+                Assert.Empty(edits);
+            }
+            else
+            {
+                var edited = ApplyEdits(razorSourceText, edits);
+                var actual = edited.ToString();
+
+                new XUnitVerifier().EqualOrDiff(expected, actual);
+            }
         }
+
+        protected async Task RunCodeActionFormattingTestAsync(
+            string input,
+            TextEdit[] codeActionEdits,
+            string expected,
+            int tabSize = 4,
+            bool insertSpaces = true,
+            string? fileKind = null)
+        {
+            if (codeActionEdits is null)
+            {
+                throw new NotImplementedException("Code action formatting must provide edits.");
+            }
+
+            // Arrange
+            fileKind ??= FileKinds.Component;
+
+            TestFileMarkupParser.GetPosition(input, out input, out var positionAfterTrigger);
+
+            var razorSourceText = SourceText.From(input);
+            var path = "file:///path/to/Document.razor";
+            var uri = new Uri(path);
+            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            var mappingService = new DefaultRazorDocumentMappingService();
+#pragma warning restore CS0618 // Type or member is obsolete
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+            if (languageKind == RazorLanguageKind.Html)
+            {
+                throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
+            }
+
+            if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var _))
+            {
+                throw new InvalidOperationException("Could not map from Razor document to generated document");
+            }
+
+            var formattingService = CreateFormattingService(codeDocument);
+            var options = new FormattingOptions()
+            {
+                TabSize = tabSize,
+                InsertSpaces = insertSpaces,
+            };
+
+            // Act
+            var edits = await formattingService.FormatCodeActionAsync(uri, documentSnapshot, languageKind, codeActionEdits, options, CancellationToken.None);
+
+            // Assert
+            var edited = ApplyEdits(razorSourceText, edits);
+            var actual = edited.ToString();
+
+            new XUnitVerifier().EqualOrDiff(expected, actual);
+        }
+
+        protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
+            => new TextEdit()
+            {
+                Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(startLine, startChar, endLine, endChar),
+                NewText = newText
+            };
 
         private static async Task<TextEdit[]> GetFormattedCSharpEditsAsync(
             RazorCodeDocument codeDocument,
@@ -213,7 +268,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private RazorFormattingService CreateFormattingService(RazorCodeDocument codeDocument)
         {
-            var mappingService = new DefaultRazorDocumentMappingService();
+            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
@@ -236,7 +291,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return source.WithChanges(changes);
         }
 
-        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string fileKind = default)
+        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default)
         {
             fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
@@ -244,6 +299,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
             }
+
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 
             // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
@@ -290,18 +346,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static string GetProjectDirectory()
         {
             var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
-            if (repoRoot == null)
+            if (repoRoot is null)
             {
                 repoRoot = AppContext.BaseDirectory;
             }
 
             var assemblyName = typeof(FormattingTestBase).Assembly.GetName().Name;
-            var projectDirectory = Path.Combine(repoRoot, "src", "Razor", "test", assemblyName);
+            var projectDirectory = Path.Combine(repoRoot, "src", "Razor", "test", assemblyName!);
 
             return projectDirectory;
         }
 
-        private static string SearchUp(string baseDirectory, string fileName)
+        private static string? SearchUp(string baseDirectory, string fileName)
         {
             var directoryInfo = new DirectoryInfo(baseDirectory);
             do
@@ -314,7 +370,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 directoryInfo = directoryInfo.Parent;
             }
-            while (directoryInfo.Parent != null);
+            while (directoryInfo?.Parent != null);
 
             return null;
         }
@@ -327,7 +383,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 current = current.Parent;
             }
-            var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
+
+            var tagHelperFilePath = Path.Combine(current!.FullName, testFileName);
             var buffer = File.ReadAllBytes(tagHelperFilePath);
             var serializer = new JsonSerializer();
             serializer.Converters.Add(new TagHelperDescriptorJsonConverter());

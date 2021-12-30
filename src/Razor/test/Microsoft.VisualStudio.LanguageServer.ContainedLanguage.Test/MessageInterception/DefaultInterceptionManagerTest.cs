@@ -10,8 +10,6 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageInterception
 {
     public class DefaultInterceptionManagerTest

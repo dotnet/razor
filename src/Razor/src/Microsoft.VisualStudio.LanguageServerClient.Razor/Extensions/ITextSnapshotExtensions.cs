@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
             int character,
             ITextStructureNavigatorSelectorService textStructureNavigatorService)
         {
-            if (snapshot == null || textStructureNavigatorService == null)
+            if (snapshot is null || textStructureNavigatorService is null)
             {
                 return null;
             }

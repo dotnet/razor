@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor
         public ExportCustomProjectEngineFactoryAttribute(string configurationName)
             : base(typeof(IProjectEngineFactory))
         {
-            if (configurationName == null)
+            if (configurationName is null)
             {
                 throw new ArgumentNullException(nameof(configurationName));
             }

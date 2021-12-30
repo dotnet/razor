@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -29,12 +31,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             [ImportMany] IEnumerable<IRazorDocumentChangeListener> documentChangeListeners,
             [ImportMany] IEnumerable<IRazorDocumentOutputChangeListener> documentOutputChangeListeners)
         {
-            if (documentChangeListeners == null)
+            if (documentChangeListeners is null)
             {
                 throw new ArgumentNullException(nameof(documentChangeListeners));
             }
 
-            if (documentOutputChangeListeners == null)
+            if (documentOutputChangeListeners is null)
             {
                 throw new ArgumentNullException(nameof(documentOutputChangeListeners));
             }
@@ -46,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public void ProjectLoaded(ProjectLoadedEventArgs loadedArgs)
         {
-            if (loadedArgs == null)
+            if (loadedArgs is null)
             {
                 throw new ArgumentNullException(nameof(loadedArgs));
             }

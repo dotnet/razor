@@ -14,8 +14,6 @@ using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     [Shared]
@@ -110,14 +108,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             CancellationToken cancellationToken)
         {
             var serializedParams = JToken.FromObject(parameters);
-            Func<ITextSnapshot, JToken> parameterFactory = (_) => serializedParams;
+            JToken ParameterFactory(ITextSnapshot _)
+            {
+                return serializedParams;
+            }
 
             var response = await _languageServiceBroker.RequestAsync(
                 textBuffer,
                 capabilitiesFilter,
                 languageServerName,
                 method,
-                parameterFactory,
+                ParameterFactory,
                 cancellationToken);
 
             if (response is null)

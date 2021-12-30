@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
         {
-            if (configuration == null)
+            if (configuration is null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            if (fileSystem == null)
+            if (fileSystem is null)
             {
                 throw new ArgumentNullException(nameof(fileSystem));
             }

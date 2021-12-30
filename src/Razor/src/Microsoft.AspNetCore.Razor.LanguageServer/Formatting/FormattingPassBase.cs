@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -67,27 +64,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return projectedTextEdits;
             }
 
-            var edits = new List<TextEdit>();
-            for (var i = 0; i < projectedTextEdits.Length; i++)
+            if (codeDocument.IsUnsupported())
             {
-                var projectedRange = projectedTextEdits[i].Range;
-                if (codeDocument.IsUnsupported() ||
-                    !DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
-                {
-                    // Can't map range. Discard this edit.
-                    continue;
-                }
-
-                var edit = new TextEdit()
-                {
-                    Range = originalRange,
-                    NewText = projectedTextEdits[i].NewText
-                };
-
-                edits.Add(edit);
+                return Array.Empty<TextEdit>();
             }
 
-            return edits.ToArray();
+            var edits = DocumentMappingService.GetProjectedDocumentEdits(codeDocument, projectedTextEdits);
+
+            return edits;
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
@@ -175,6 +177,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     break;
                 }
+
                 _indentBuilder.Append(ch);
             }
 
@@ -295,9 +298,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal static bool IsUnlinkedSpan(SyntaxNode owner)
         {
-            return owner == null ||
-                owner.NextSpan() == null ||
-                owner.PreviousSpan() == null;
+            return owner is null ||
+                owner.NextSpan() is null ||
+                owner.PreviousSpan() is null;
         }
 
         // Internal for testing

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -253,16 +255,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
                 var projectItem = CreateProjectItem(cshtmlRelativePath, cshtmlContent, fileKind);
 
-                RazorCodeDocument codeDocument;
-                if (DeclarationOnly)
-                {
-                    codeDocument = projectEngine.ProcessDeclarationOnly(projectItem);
-                }
-                else
-                {
-                    codeDocument = DesignTime ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
-                }
-
+                var codeDocument = DeclarationOnly
+                    ? projectEngine.ProcessDeclarationOnly(projectItem)
+                    : DesignTime ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
                 return new CompileToCSharpResult
                 {
                     BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
@@ -279,7 +274,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             return CompileToAssembly(cSharpResult);
         }
 
-        protected CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, bool throwOnFailure = true)
+        protected static CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, bool throwOnFailure = true)
         {
             if (cSharpResult.Diagnostics.Any() && throwOnFailure)
             {
@@ -332,15 +327,15 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             return CompileToComponent(assemblyResult, componentFullTypeName);
         }
 
-        protected IComponent CompileToComponent(CompileToCSharpResult cSharpResult, string fullTypeName)
+        protected static IComponent CompileToComponent(CompileToCSharpResult cSharpResult, string fullTypeName)
         {
             return CompileToComponent(CompileToAssembly(cSharpResult), fullTypeName);
         }
 
-        protected IComponent CompileToComponent(CompileToAssemblyResult assemblyResult, string fullTypeName)
+        protected static IComponent CompileToComponent(CompileToAssemblyResult assemblyResult, string fullTypeName)
         {
             var componentType = assemblyResult.Assembly.GetType(fullTypeName);
-            if (componentType == null)
+            if (componentType is null)
             {
                 throw new XunitException(
                     $"Failed to find component type '{fullTypeName}'. Found types:" + Environment.NewLine +

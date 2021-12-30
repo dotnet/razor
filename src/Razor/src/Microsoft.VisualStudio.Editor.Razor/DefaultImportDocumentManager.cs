@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,17 +27,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ErrorReporter errorReporter,
             FileChangeTrackerFactory fileChangeTrackerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (fileChangeTrackerFactory == null)
+            if (fileChangeTrackerFactory is null)
             {
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override void OnSubscribed(VisualStudioDocumentTracker tracker)
         {
-            if (tracker == null)
+            if (tracker is null)
             {
                 throw new ArgumentNullException(nameof(tracker));
             }
@@ -78,7 +80,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override void OnUnsubscribed(VisualStudioDocumentTracker tracker)
         {
-            if (tracker == null)
+            if (tracker is null)
             {
                 throw new ArgumentNullException(nameof(tracker));
             }
@@ -122,7 +124,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (Changed == null)
+            if (Changed is null)
             {
                 return;
             }

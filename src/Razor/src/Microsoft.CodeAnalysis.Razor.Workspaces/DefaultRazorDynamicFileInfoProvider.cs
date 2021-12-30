@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -89,12 +91,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         // Called by us to update entries
         public override void UpdateFileInfo(string projectFilePath, DynamicDocumentContainer documentContainer)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentContainer == null)
+            if (documentContainer is null)
             {
                 throw new ArgumentNullException(nameof(documentContainer));
             }
@@ -181,12 +183,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         // Called by us when a document opens in the editor
         public override void SuppressDocument(string projectFilePath, string documentFilePath)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 var updated = false;
                 lock (entry.Lock)
                 {
-                    if (!(entry.Current.TextLoader is EmptyTextLoader))
+                    if (entry.Current.TextLoader is not EmptyTextLoader)
                     {
                         updated = true;
                         entry.Current = CreateEmptyInfo(key);
@@ -221,12 +223,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public Task<RazorDynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -238,12 +240,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
@@ -263,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             return Task.CompletedTask;
         }
 
-        public TestAccessor GetTestAccessor() => new TestAccessor(this);
+        public TestAccessor GetTestAccessor() => new(this);
 
         private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
         {
@@ -283,6 +285,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                             var key = new Key(removedProject.FilePath, documentFilePath);
                             _entries.TryRemove(key, out _);
                         }
+
                         break;
                     }
                 case ProjectChangeKind.DocumentRemoved:
@@ -319,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             public Entry(RazorDynamicFileInfo current)
             {
-                if (current == null)
+                if (current is null)
                 {
                     throw new ArgumentNullException(nameof(current));
                 }
@@ -333,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 get => _current;
                 set
                 {
-                    if (value == null)
+                    if (value is null)
                     {
                         throw new ArgumentNullException(nameof(value));
                     }

@@ -718,7 +718,7 @@ expected: @"
             var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
             optionsMonitor.SetupGet(o => o.CurrentValue).Returns(Options);
 
-            var provider = new AutoClosingTagOnAutoInsertProvider(optionsMonitor.Object);
+            var provider = new AutoClosingTagOnAutoInsertProvider(optionsMonitor.Object, LoggerFactory);
             return provider;
         }
     }

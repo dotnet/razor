@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public DefaultProjectSnapshot(ProjectState state)
         {
-            if (state == null)
+            if (state is null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override bool IsImportDocument(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }

@@ -13,8 +13,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
@@ -61,7 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _loggerProvider = loggerProvider;
         }
 
-        public override async Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public override Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: true, cancellationToken);
+
+        public override Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: false, cancellationToken);
+
+        private async Task<ProjectionResult?> GetProjectionCoreAsync(LSPDocumentSnapshot documentSnapshot, Position position, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
         {
             if (documentSnapshot is null)
             {
@@ -126,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else
             {
-                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocument, cancellationToken).ConfigureAwait(false);
+                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocument, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
                 if (!synchronized)
                 {
                     _logHubLogger.LogInformation("Could not synchronize.");

@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-#nullable enable
-
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
 {
     [Export(typeof(InterceptorManager))]
@@ -56,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             {
                 throw new ArgumentException("Cannot be empty", nameof(methodName));
             }
+
             if (string.IsNullOrEmpty(contentType))
             {
                 throw new ArgumentException("Cannot be empty", nameof(contentType));

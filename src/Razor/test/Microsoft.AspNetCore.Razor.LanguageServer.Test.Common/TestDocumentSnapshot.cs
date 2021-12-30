@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -55,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
         {
-            if (_codeDocument == null)
+            if (_codeDocument is null)
             {
                 throw new InvalidOperationException("You must call " + nameof(With) + " to set the code document for this document snapshot.");
             }
@@ -66,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public TestDocumentSnapshot With(RazorCodeDocument codeDocument)
         {
-            if (codeDocument == null)
+            if (codeDocument is null)
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }

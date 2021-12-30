@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private void StartWorker()
         {
             // Access to the timer is protected by the lock in Enqueue and in Timer_TickAsync
-            if (_timer == null)
+            if (_timer is null)
             {
                 // Timer will fire after a fixed delay, but only once.
                 _timer = NonCapturingTimer.Create(

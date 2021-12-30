@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private TestServices(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            if (razorLanguageServices == null)
+            if (razorLanguageServices is null)
             {
                 throw new ArgumentNullException(nameof(razorLanguageServices));
             }
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
         {
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Hosting
@@ -23,12 +25,12 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="assemblyName">The assembly name of the extension.</param>
         public RazorExtensionAssemblyNameAttribute(string extensionName, string assemblyName)
         {
-            if (extensionName == null)
+            if (extensionName is null)
             {
                 throw new ArgumentNullException(nameof(extensionName));
             }
 
-            if (assemblyName == null)
+            if (assemblyName is null)
             {
                 throw new ArgumentNullException(nameof(assemblyName));
             }
