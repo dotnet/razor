@@ -169,11 +169,16 @@ ${razorDocument.csharpDocument.getContent()}
 
 ////////////////////// Projected CSharp as seen by VSCode ///////////////////////`;
 
-        const csharpTextDocument = await this.vscodeApi.workspace.openTextDocument(razorDocument.csharpDocument.uri);
-        if (csharpTextDocument) {
-            csharpContent = `${csharpContent}
+        try {
+            const csharpTextDocument = await this.vscodeApi.workspace.openTextDocument(razorDocument.csharpDocument.uri);
+            if (csharpTextDocument) {
+                csharpContent = `${csharpContent}
 ${csharpTextDocument.getText()}`;
-        } else {
+            } else {
+                csharpContent = `${csharpContent}
+Unable to resolve VSCode's version of CSharp`;
+            }
+        } catch (e) {
             csharpContent = `${csharpContent}
 Unable to resolve VSCode's version of CSharp`;
         }
@@ -189,11 +194,16 @@ ${razorDocument.htmlDocument.getContent()}
 
 ////////////////////// Projected Html as seen by VSCode ///////////////////////`;
 
-        const htmlTextDocument = await this.vscodeApi.workspace.openTextDocument(razorDocument.htmlDocument.uri);
-        if (htmlTextDocument) {
-            htmlContent = `${htmlContent}
+        try {
+            const htmlTextDocument = await this.vscodeApi.workspace.openTextDocument(razorDocument.htmlDocument.uri);
+            if (htmlTextDocument) {
+                htmlContent = `${htmlContent}
 ${htmlTextDocument.getText()}`;
-        } else {
+            } else {
+                htmlContent = `${htmlContent}
+Unable to resolve VSCode's version of Html`;
+            }
+        } catch (e) {
             htmlContent = `${htmlContent}
 Unable to resolve VSCode's version of Html`;
         }

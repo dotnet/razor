@@ -97,13 +97,13 @@ export function createTestVSCodeApi(): TestVSCodeApi {
         },
         workspace: {
             openTextDocument: (uri: vscode.Uri) => {
-                return new Promise((resolve) => {
+                return new Promise((resolve, reject) => {
                     for (const document of workspaceDocuments) {
                         if (document.uri === uri) {
                             resolve(document);
                         }
                     }
-                    resolve(undefined);
+                    reject('URI must correspond to an existing document');
                 });
             },
             getConfiguration: (section?: string, resource?: vscode.Uri) => {
