@@ -48,19 +48,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public void FullProjectSnapshotHandle_InvalidSerializationFormat_SerializesToNull()
         {
             // Arrange
-            var handle = new FullProjectSnapshotHandle(
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "/path/to/project.csproj",
                 Configuration,
                 rootNamespace: "TestProject",
                 ProjectWorkspaceState,
                 Array.Empty<DocumentSnapshotHandle>());
-            var serializedHandle = JsonConvert.SerializeObject(handle, Converters);
+            var serializedHandle = JsonConvert.SerializeObject(projectRazorJson, Converters);
             var serializedJObject = JObject.Parse(serializedHandle);
             serializedJObject["SerializationFormat"] = "INVALID";
             var reserializedHandle = JsonConvert.SerializeObject(serializedJObject);
 
             // Act
-            var deserializedHandle = JsonConvert.DeserializeObject<FullProjectSnapshotHandle>(reserializedHandle, Converters);
+            var deserializedHandle = JsonConvert.DeserializeObject<ProjectRazorJson>(reserializedHandle, Converters);
 
             // Assert
             Assert.Null(deserializedHandle);
@@ -70,19 +71,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public void FullProjectSnapshotHandle_MissingSerializationFormat_SerializesToNull()
         {
             // Arrange
-            var handle = new FullProjectSnapshotHandle(
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "/path/to/project.csproj",
                 Configuration,
                 rootNamespace: "TestProject",
                 ProjectWorkspaceState,
                 Array.Empty<DocumentSnapshotHandle>());
-            var serializedHandle = JsonConvert.SerializeObject(handle, Converters);
+            var serializedHandle = JsonConvert.SerializeObject(projectRazorJson, Converters);
             var serializedJObject = JObject.Parse(serializedHandle);
             serializedJObject.Remove("SerializationFormat");
             var reserializedHandle = JsonConvert.SerializeObject(serializedJObject);
 
             // Act
-            var deserializedHandle = JsonConvert.DeserializeObject<FullProjectSnapshotHandle>(reserializedHandle, Converters);
+            var deserializedHandle = JsonConvert.DeserializeObject<ProjectRazorJson>(reserializedHandle, Converters);
 
             // Assert
             Assert.Null(deserializedHandle);
@@ -94,23 +96,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             // Arrange
             var legacyDocument = new DocumentSnapshotHandle("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
             var componentDocument = new DocumentSnapshotHandle("/path/to/otherfile.razor", "otherfile.razor", FileKinds.Component);
-            var handle = new FullProjectSnapshotHandle(
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "/path/to/project.csproj",
                 Configuration,
                 rootNamespace: "TestProject",
                 ProjectWorkspaceState,
                 new[] { legacyDocument, componentDocument });
-            var serializedHandle = JsonConvert.SerializeObject(handle, Converters);
+            var serializedHandle = JsonConvert.SerializeObject(projectRazorJson, Converters);
 
             // Act
-            var deserializedHandle = JsonConvert.DeserializeObject<FullProjectSnapshotHandle>(serializedHandle, Converters);
+            var deserializedHandle = JsonConvert.DeserializeObject<ProjectRazorJson>(serializedHandle, Converters);
 
             // Assert
-            Assert.Equal(handle.FilePath, deserializedHandle.FilePath);
-            Assert.Equal(handle.Configuration, deserializedHandle.Configuration);
-            Assert.Equal(handle.RootNamespace, deserializedHandle.RootNamespace);
-            Assert.Equal(handle.ProjectWorkspaceState, deserializedHandle.ProjectWorkspaceState);
-            Assert.Collection(handle.Documents.OrderBy(doc => doc.FilePath),
+            Assert.Equal(projectRazorJson.FilePath, deserializedHandle.FilePath);
+            Assert.Equal(projectRazorJson.Configuration, deserializedHandle.Configuration);
+            Assert.Equal(projectRazorJson.RootNamespace, deserializedHandle.RootNamespace);
+            Assert.Equal(projectRazorJson.ProjectWorkspaceState, deserializedHandle.ProjectWorkspaceState);
+            Assert.Collection(projectRazorJson.Documents.OrderBy(doc => doc.FilePath),
                 document =>
                 {
                     Assert.Equal(legacyDocument.FilePath, document.FilePath);
@@ -141,7 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var serializedHandle = JsonConvert.SerializeObject(projectSnapshot, Converters);
 
             // Act
-            var deserializedHandle = JsonConvert.DeserializeObject<FullProjectSnapshotHandle>(serializedHandle, Converters);
+            var deserializedHandle = JsonConvert.DeserializeObject<ProjectRazorJson>(serializedHandle, Converters);
 
             // Assert
             Assert.Equal(projectSnapshot.FilePath, deserializedHandle.FilePath);

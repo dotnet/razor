@@ -20,54 +20,11 @@ using Xunit.Sdk;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
-    public class TestServiceProvider : IServiceProvider
-    {
-        public TestServiceProvider()
-        {
-        }
-
-        public object GetService(Type serviceType)
-        {
-            return new TestVsOperationProgressStatusService();
-        }
-
-        private class TestVsOperationProgressStatusService : IVsOperationProgressStatusService
-        {
-
-            public TestVsOperationProgressStatusService()
-            {
-            }
-
-            public IVsOperationProgressStageStatus GetStageStatus(string operationProgressStageId)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IVsOperationProgressStageStatusForSolutionLoad GetStageStatusForSolutionLoad(string operationProgressStageId)
-            {
-                return new TestVsOperationProgressStageStatusForSolutionLoad();
-            }
-
-            private class TestVsOperationProgressStageStatusForSolutionLoad : IVsOperationProgressStageStatusForSolutionLoad
-            {
-                public bool IsInProgress => false;
-
-                public event PropertyChangedEventHandler PropertyChanged;
-
-                public Task WaitForCompletionAsync()
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("name"));
-                    throw new NotImplementedException();
-                }
-            }
-        }
-    }
-
-    public class DefaultRazorProjectChangePublisherTest : LanguageServerTestBase
+    public class ProjectRazorJsonPublisherTest : LanguageServerTestBase
     {
         private readonly RazorLogger _razorLogger = Mock.Of<RazorLogger>(MockBehavior.Strict);
 
-        public DefaultRazorProjectChangePublisherTest()
+        public ProjectRazorJsonPublisherTest()
         {
             ProjectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
         }
@@ -89,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var initialProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.Preview));
             var expectedProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Preview));
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -125,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
             var hostDocument = new HostDocument("/path/to/file.razor", "file.razor");
             ProjectSnapshotManager.ProjectAdded(hostProject);
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
@@ -151,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var hostDocument = new HostDocument("/path/to/file.razor", "file.razor");
             ProjectSnapshotManager.ProjectAdded(hostProject);
             ProjectSnapshotManager.DocumentAdded(hostProject, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
@@ -181,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var projectSnapshot = ProjectSnapshotManager.Projects[0];
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             ProjectConfigurationFilePathStore.Set(projectSnapshot.FilePath, expectedConfigurationFilePath);
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -212,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var serializationSuccessful = false;
             var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.CSharp7_3));
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -247,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var changedProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.CSharp8));
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var aboutToChange = false;
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -293,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var attemptedToSerialize = false;
             var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
@@ -324,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var firstSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
             var secondSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new[] { "/path/to/file.cshtml" });
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -358,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var firstSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
             var secondSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new[] { "/path/to/file.cshtml" });
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -398,7 +355,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 "FileName.razor"
             });
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -428,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         public void Publish_UnsetConfigurationFilePath_Noops()
         {
             // Arrange
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger)
             {
@@ -448,7 +405,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var serializationSuccessful = false;
             var omniSharpProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -477,7 +434,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var serializationSuccessful = false;
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
 
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -512,7 +469,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var serializationSuccessful = false;
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
 
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -540,7 +497,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         public async Task ProjectRemoved_UnSetPublishFilePath_NoopsAsync()
         {
             // Arrange
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger)
             {
@@ -563,7 +520,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var serializationSuccessful = false;
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
 
-            var publisher = new TestDefaultRazorProjectChangePublisher(
+            var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
                 _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
@@ -640,7 +597,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 CancellationToken.None);
         }
 
-        private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
+        private class TestProjectRazorJsonPublisher : ProjectRazorJsonPublisher
         {
             private static readonly Mock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new(MockBehavior.Strict);
 
@@ -649,14 +606,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             private readonly bool _shouldSerialize;
             private readonly bool _useRealShouldSerialize;
 
-            static TestDefaultRazorProjectChangePublisher()
+            static TestProjectRazorJsonPublisher()
             {
                 s_lspEditorFeatureDetector
                     .Setup(t => t.IsLSPEditorAvailable())
                     .Returns(true);
             }
 
-            public TestDefaultRazorProjectChangePublisher(
+            public TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
                 RazorLogger logger,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
@@ -685,6 +642,49 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 else
                 {
                     return _shouldSerialize;
+                }
+            }
+        }
+
+        private class TestServiceProvider : IServiceProvider
+        {
+            public TestServiceProvider()
+            {
+            }
+
+            public object GetService(Type serviceType)
+            {
+                return new TestVsOperationProgressStatusService();
+            }
+
+            private class TestVsOperationProgressStatusService : IVsOperationProgressStatusService
+            {
+
+                public TestVsOperationProgressStatusService()
+                {
+                }
+
+                public IVsOperationProgressStageStatus GetStageStatus(string operationProgressStageId)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IVsOperationProgressStageStatusForSolutionLoad GetStageStatusForSolutionLoad(string operationProgressStageId)
+                {
+                    return new TestVsOperationProgressStageStatusForSolutionLoad();
+                }
+
+                private class TestVsOperationProgressStageStatusForSolutionLoad : IVsOperationProgressStageStatusForSolutionLoad
+                {
+                    public bool IsInProgress => false;
+
+                    public event PropertyChangedEventHandler PropertyChanged;
+
+                    public Task WaitForCompletionAsync()
+                    {
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("name"));
+                        throw new NotImplementedException();
+                    }
                 }
             }
         }
