@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // handle that doesn't deserialize properly it could be expected that it would be null.
                     _deserialized = true;
                     var deserializedProjectRazorJson = _jsonFileDeserializer.Deserialize<ProjectRazorJson>(ConfigurationFilePath);
-                    if (deserializedProjectRazorJson == null)
+                    if (deserializedProjectRazorJson is null)
                     {
                         projectRazorJson = null;
                         return false;
