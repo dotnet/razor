@@ -27,5 +27,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             var codeActionSet = Assert.Single(codeActions);
             Assert.Contains(codeActionSet.Actions, a => a.DisplayText.Equals($"@using {BlazorProjectName}.Shared"));
         }
+
     }
 }

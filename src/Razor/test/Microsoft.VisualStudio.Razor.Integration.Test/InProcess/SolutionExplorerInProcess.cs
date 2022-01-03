@@ -8,24 +8,20 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Razor.Integration.Test;
+using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
 using Xunit;
-using IAsyncDisposable = System.IAsyncDisposable;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal class SolutionExplorerInProcess : InProcComponent
+    internal partial class SolutionExplorerInProcess
     {
-        public SolutionExplorerInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -143,41 +139,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             }
         }
 
-        /// <summary>
-        /// Close the currently open solution without saving.
-        /// </summary>
-        public async Task CloseSolutionAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
-            if (!await IsSolutionOpenAsync(cancellationToken))
-            {
-                return;
-            }
-
-            using var semaphore = new SemaphoreSlim(1);
-            await using var solutionEvents = new SolutionEvents(JoinableTaskFactory, solution);
-
-            await semaphore.WaitAsync(cancellationToken);
-
-            void HandleAfterCloseSolution(object sender, EventArgs e)
-            {
-                semaphore.Release();
-            }
-
-            solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
-            try
-            {
-                ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
-                await semaphore.WaitAsync(cancellationToken);
-            }
-            finally
-            {
-                solutionEvents.AfterCloseSolution -= HandleAfterCloseSolution;
-            }
-        }
-
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -251,15 +212,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        private async Task<bool> IsSolutionOpenAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
-            return (bool)isOpen;
-        }
-
         private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -292,81 +244,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                     return string.Equals(project.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(project.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase);
                 });
-        }
-
-        private sealed class SolutionEvents : IVsSolutionEvents, IAsyncDisposable
-        {
-            private readonly JoinableTaskFactory _joinableTaskFactory;
-            private readonly IVsSolution _solution;
-            private readonly uint _cookie;
-
-            public SolutionEvents(JoinableTaskFactory joinableTaskFactory, IVsSolution solution)
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                _joinableTaskFactory = joinableTaskFactory;
-                _solution = solution;
-                ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _cookie));
-            }
-
-            public event EventHandler? AfterCloseSolution;
-
-            public async ValueTask DisposeAsync()
-            {
-                await _joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-                ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
-            }
-
-            public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnBeforeCloseSolution(object pUnkReserved)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int OnAfterCloseSolution(object pUnkReserved)
-            {
-                AfterCloseSolution?.Invoke(this, EventArgs.Empty);
-                return VSConstants.S_OK;
-            }
         }
     }
 }

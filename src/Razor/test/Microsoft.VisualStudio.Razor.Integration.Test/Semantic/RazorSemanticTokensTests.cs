@@ -114,6 +114,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
                 return result;
             }
         }
+
         private const char Separator = ',';
 
         private static void GenerateSemanticBaseline(IEnumerable<ClassificationSpan> actual, string baselineFileName)

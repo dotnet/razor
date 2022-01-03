@@ -6,16 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Extensibility.Testing;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 {
-    internal class ErrorListInProcess : InProcComponent
+    [TestService]
+    internal partial class ErrorListInProcess
     {
-        public ErrorListInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task<IEnumerable<IVsTaskItem>> GetErrorsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

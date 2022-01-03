@@ -3,18 +3,15 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 {
-    internal class WorkspaceInProcess : InProcComponent
+    [TestService]
+    internal partial class WorkspaceInProcess
     {
-        public WorkspaceInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public Task WaitForAsyncOperationsAsync(string featuresToWaitFor, CancellationToken cancellationToken)
             => WaitForAsyncOperationsAsync(featuresToWaitFor, waitForWorkspaceFirst: true, cancellationToken);
 

@@ -11,16 +11,13 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Razor.Integration.Test.Extensions;
+using Microsoft.VisualStudio.Extensibility.Testing;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 {
-    internal partial class EditorInProcess : InProcComponent
+    [TestService]
+    internal partial class EditorInProcess
     {
-        public EditorInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
             => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
 
