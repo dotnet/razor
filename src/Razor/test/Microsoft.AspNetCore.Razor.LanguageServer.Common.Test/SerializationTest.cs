@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private JsonConverter[] Converters { get; }
 
         [Fact]
-        public void FullProjectSnapshotHandle_InvalidSerializationFormat_SerializesToNull()
+        public void ProjectRazorJson_InvalidSerializationFormat_SerializesToNull()
         {
             // Arrange
             var projectRazorJson = new ProjectRazorJson(
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         }
 
         [Fact]
-        public void FullProjectSnapshotHandle_MissingSerializationFormat_SerializesToNull()
+        public void ProjectRazorJson_MissingSerializationFormat_SerializesToNull()
         {
             // Arrange
             var projectRazorJson = new ProjectRazorJson(
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         }
 
         [Fact]
-        public void FullProjectSnapshotHandle_CanRoundTrip()
+        public void ProjectRazorJson_CanRoundTrip()
         {
             // Arrange
             var legacyDocument = new DocumentSnapshotHandle("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
@@ -126,33 +126,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     Assert.Equal(componentDocument.TargetPath, document.TargetPath);
                     Assert.Equal(componentDocument.FileKind, document.FileKind);
                 });
-        }
-
-        [Fact]
-        public void ProjectSnapshot_CanKindOfRoundTrip()
-        {
-            // Arrange
-            var projectSnapshot = TestProjectSnapshot.Create(
-                "/path/to/project.csproj",
-                new[]
-                {
-                    "/path/to/component.razor",
-                    "/path/to/file.cshtml",
-                },
-                Configuration,
-                ProjectWorkspaceState);
-            var serializedHandle = JsonConvert.SerializeObject(projectSnapshot, Converters);
-
-            // Act
-            var deserializedHandle = JsonConvert.DeserializeObject<ProjectRazorJson>(serializedHandle, Converters);
-
-            // Assert
-            Assert.Equal(projectSnapshot.FilePath, deserializedHandle.FilePath);
-            Assert.Equal(projectSnapshot.Configuration, deserializedHandle.Configuration);
-            Assert.Equal(projectSnapshot.ProjectWorkspaceState, deserializedHandle.ProjectWorkspaceState);
-            Assert.Collection(deserializedHandle.Documents.OrderBy(doc => doc.FilePath),
-                document => Assert.Equal("/path/to/component.razor", document.FilePath),
-                document => Assert.Equal("/path/to/file.cshtml", document.FilePath));
         }
 
         [Fact]
