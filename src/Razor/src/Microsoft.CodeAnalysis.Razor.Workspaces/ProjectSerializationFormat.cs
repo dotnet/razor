@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal static class ProjectSerializationFormat
     {
-        public static string Version => "0.2";
+        public static string Version => "0.3";
     }
 }
