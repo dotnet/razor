@@ -98,6 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             return LoggerProvider.CreateLogger(categoryName);
         }
 
+        public virtual async Task<ILogger> CreateLoggerAsync(string categoryName, CancellationToken cancellationToken)
+        {
+            await InitializeLoggerAsync(cancellationToken);
+            return CreateLogger(categoryName);
+        }
+
         public TraceSource GetTraceSource()
         {
             return LoggerProvider.GetTraceSource();
