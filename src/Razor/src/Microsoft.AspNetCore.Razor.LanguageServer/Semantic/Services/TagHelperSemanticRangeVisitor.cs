@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -31,10 +32,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             TextSpan? rangeAsTextSpan = null;
             if (range is not null)
             {
-                rangeAsTextSpan = range.AsTextSpan();
+                var sourceText = razorCodeDocument.GetSourceText();
+                rangeAsTextSpan = range.AsRazorTextSpan(sourceText);
             }
 
-            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range);
+            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range, rangeAsTextSpan);
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 

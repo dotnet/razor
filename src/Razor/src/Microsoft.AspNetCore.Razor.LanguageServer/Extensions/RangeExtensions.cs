@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RangeExtensions
     {
-        public static readonly Range UndefinedRange = new Range
+        public static readonly Range UndefinedRange = new()
         {
             Start = new Position(-1, -1),
             End = new Position(-1, -1)
@@ -141,6 +141,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             return new TextSpan(start, length);
+        }
+
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
+            var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
+
+            var length = end - start;
+            if (length < 0)
+            {
+                throw new ArgumentOutOfRangeException($"{range} resolved to a negative length.");
+            }
+
+            return new Language.Syntax.TextSpan(start, length);
         }
 
         public static bool IsUndefined(this Range range)
