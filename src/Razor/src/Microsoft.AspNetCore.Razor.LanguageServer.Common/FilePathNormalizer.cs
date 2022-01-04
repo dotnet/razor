@@ -12,6 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public class FilePathNormalizer
     {
+        public static readonly FilePathNormalizer Instance = new FilePathNormalizer();
+
         public string NormalizeDirectory(string directoryFilePath)
         {
             var normalized = Normalize(directoryFilePath);

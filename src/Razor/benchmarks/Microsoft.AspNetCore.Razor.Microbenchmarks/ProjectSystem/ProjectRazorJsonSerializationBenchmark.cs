@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 {
-    public class FullProjectSnapshotHandleSerializationBenchmark
+    public class ProjectRazorJsonSerializationBenchmark
     {
         // Hardcoded expectations from `ProjectSystem\project.razor.json`
         private const string ExpectedFilePath = "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj";
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 
         private JsonSerializer Serializer { get; set; }
         private JsonReader Reader { get; set; }
-        private byte[] FullProjectSnapshotBuffer { get; set; }
+        private byte[] ProjectRazorJsonBytes { get; set; }
 
         [IterationSetup]
         public void Setup()
@@ -31,23 +31,23 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
                 current = current.Parent;
             }
 
-            var fullProjectSnapshotFilePath = Path.Combine(current.FullName, "ProjectSystem", "project.razor.json");
-            FullProjectSnapshotBuffer = File.ReadAllBytes(fullProjectSnapshotFilePath);
+            var projectRazorJsonFilePath = Path.Combine(current.FullName, "ProjectSystem", "project.razor.json");
+            ProjectRazorJsonBytes = File.ReadAllBytes(projectRazorJsonFilePath);
 
             Serializer = new JsonSerializer();
             Serializer.Converters.RegisterRazorConverters();
-            Serializer.Converters.Add(FullProjectSnapshotHandleJsonConverter.Instance);
+            Serializer.Converters.Add(ProjectRazorJsonJsonConverter.Instance);
         }
 
         [Benchmark(Description = "Razor FullProjectSnapshotHandle Roundtrip JsonConverter Serialization")]
         public void TagHelper_JsonConvert_Serialization_RoundTrip()
         {
-            var stream = new MemoryStream(FullProjectSnapshotBuffer);
+            var stream = new MemoryStream(ProjectRazorJsonBytes);
             Reader = new JsonTextReader(new StreamReader(stream));
 
             Reader.Read();
 
-            var res = FullProjectSnapshotHandleJsonConverter.Instance.ReadJson(Reader, typeof(FullProjectSnapshotHandle), null, Serializer) as FullProjectSnapshotHandle;
+            var res = ProjectRazorJsonJsonConverter.Instance.ReadJson(Reader, typeof(ProjectRazorJson), null, Serializer) as ProjectRazorJson;
 
             if (res.FilePath != ExpectedFilePath ||
                 res.ProjectWorkspaceState.TagHelpers.Count != ExpectedTagHelperCount)

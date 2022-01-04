@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     /// </summary>
     [Shared]
     [Export(typeof(ProjectSnapshotChangeTrigger))]
-    internal class DefaultRazorProjectChangePublisher : ProjectSnapshotChangeTrigger
+    internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
     {
         internal readonly Dictionary<string, Task> DeferredPublishTasks;
 
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [ImportingConstructor]
-        public DefaultRazorProjectChangePublisher(
+        public ProjectRazorJsonPublisher(
             LSPEditorFeatureDetector lSPEditorFeatureDetector,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -93,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
             _serializer.Converters.Add(RazorConfigurationJsonConverter.Instance);
-            _serializer.Converters.Add(CodeAnalysis.Razor.Workspaces.Serialization.ProjectSnapshotJsonConverter.Instance);
+            _serializer.Converters.Add(ProjectRazorJsonJsonConverter.Instance);
 
             if (serviceProvider.GetService(typeof(SVsOperationProgress)) is IVsOperationProgressStatusService service)
             {
@@ -297,7 +298,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // by the time we move the tempfile into its place
             using (var writer = tempFileInfo.CreateText())
             {
-                _serializer.Serialize(writer, projectSnapshot);
+                var projectRazorJson = new ProjectRazorJson(publishFilePath, projectSnapshot);
+                _serializer.Serialize(writer, projectRazorJson);
 
                 var fileInfo = new FileInfo(publishFilePath);
                 if (fileInfo.Exists)
