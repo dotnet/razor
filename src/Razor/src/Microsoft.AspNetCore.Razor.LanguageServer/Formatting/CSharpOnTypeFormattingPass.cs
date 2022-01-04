@@ -408,7 +408,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
             var mappingEndLineIndex = sourceMappingRange.End.Line;
 
-            var startsInCSharpContext = context.Indentations[mappingEndLineIndex].StartsInCSharpContext;
+            var indentations = context.GetIndentations();
+
+            var startsInCSharpContext = indentations[mappingEndLineIndex].StartsInCSharpContext;
 
             // If the span is on a single line, and we added a line, then end point is now on a line that does start in a C# context.
             if (!startsInCSharpContext && newLineWasAddedAtStart && sourceMappingRange.Start.Line == mappingEndLineIndex)

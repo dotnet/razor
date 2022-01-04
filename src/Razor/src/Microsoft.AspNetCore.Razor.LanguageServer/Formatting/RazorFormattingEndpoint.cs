@@ -249,7 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             using var formattingContext = FormattingContext.Create(
-                request.TextDocument.Uri, documentSnapshot, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true);
+                request.TextDocument.Uri, documentSnapshot, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
             var documentOptions = await GetDocumentOptionsAsync(request, formattingContext.CSharpWorkspaceDocument).ConfigureAwait(false);
 
             // Ask C# for formatting changes.

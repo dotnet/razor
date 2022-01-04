@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 case RazorFileChangeKind.Changed:
                     {
                         var configurationFilePath = _filePathNormalizer.Normalize(args.ConfigurationFilePath);
-                        if (!args.TryDeserialize(out var handle))
+                        if (!args.TryDeserialize(out var projectRazorJson))
                         {
                             if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var associatedProjectFilePath))
                             {
@@ -68,20 +68,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             // We found the last associated project file for the configuration file. Reset the project since we can't
                             // accurately determine its configurations.
 
-                            EnqueueUpdateProject(associatedProjectFilePath, snapshotHandle: null);
+                            EnqueueUpdateProject(associatedProjectFilePath, projectRazorJson: null);
                             return;
                         }
 
-                        var projectFilePath = _filePathNormalizer.Normalize(handle.FilePath);
+                        var projectFilePath = _filePathNormalizer.Normalize(projectRazorJson.FilePath);
                         _logger.LogInformation("Project configuration file changed for project '{0}': '{1}'", projectFilePath, configurationFilePath);
 
-                        EnqueueUpdateProject(projectFilePath, handle);
+                        EnqueueUpdateProject(projectFilePath, projectRazorJson);
                         break;
                     }
                 case RazorFileChangeKind.Added:
                     {
                         var configurationFilePath = _filePathNormalizer.Normalize(args.ConfigurationFilePath);
-                        if (!args.TryDeserialize(out var handle))
+                        if (!args.TryDeserialize(out var projectRazorJson))
                         {
                             // Given that this is the first time we're seeing this configuration file if we can't deserialize it
                             // then we have to noop.
@@ -89,12 +89,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             return;
                         }
 
-                        var projectFilePath = _filePathNormalizer.Normalize(handle.FilePath);
+                        var projectFilePath = _filePathNormalizer.Normalize(projectRazorJson.FilePath);
                         _configurationToProjectMap[configurationFilePath] = projectFilePath;
                         _projectService.AddProject(projectFilePath);
 
                         _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
-                        EnqueueUpdateProject(projectFilePath, handle);
+                        EnqueueUpdateProject(projectFilePath, projectRazorJson);
                         break;
                     }
                 case RazorFileChangeKind.Removed:
@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         var configurationFilePath = _filePathNormalizer.Normalize(args.ConfigurationFilePath);
                         if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var projectFilePath))
                         {
-                            // Failed to deserialize the initial handle on add so we can't remove the configuration file because it doesn't exist in the list.
+                            // Failed to deserialize the initial project.razor.json on add so we can't remove the configuration file because it doesn't exist in the list.
                             _logger.LogWarning("Failed to resolve associated project on configuration removed event. Configuration file path: '{0}'", configurationFilePath);
                             return;
                         }
@@ -111,30 +111,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         _logger.LogInformation("Project configuration file removed for project '{0}': '{1}'", projectFilePath, configurationFilePath);
 
-                        EnqueueUpdateProject(projectFilePath, snapshotHandle: null);
+                        EnqueueUpdateProject(projectFilePath, projectRazorJson: null);
                         break;
                     }
             }
 
-            void UpdateProject(string projectFilePath, FullProjectSnapshotHandle? handle)
+            void UpdateProject(string projectFilePath, ProjectRazorJson? projectRazorJson)
             {
                 if (projectFilePath is null)
                 {
                     throw new ArgumentNullException(nameof(projectFilePath));
                 }
 
-                if (handle is null)
+                if (projectRazorJson is null)
                 {
                     ResetProject(projectFilePath);
                     return;
                 }
 
-                var projectWorkspaceState = handle.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
-                var documents = handle.Documents ?? Array.Empty<DocumentSnapshotHandle>();
+                var projectWorkspaceState = projectRazorJson.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
+                var documents = projectRazorJson.Documents ?? Array.Empty<DocumentSnapshotHandle>();
                 _projectService.UpdateProject(
-                    handle.FilePath,
-                    handle.Configuration,
-                    handle.RootNamespace,
+                    projectRazorJson.FilePath,
+                    projectRazorJson.Configuration,
+                    projectRazorJson.RootNamespace,
                     projectWorkspaceState,
                     documents);
             }
@@ -144,10 +144,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
                 var delayedProjectInfo = ProjectInfoMap[projectFilePath];
-                UpdateProject(projectFilePath, delayedProjectInfo.FullProjectSnapshotHandle);
+                UpdateProject(projectFilePath, delayedProjectInfo.ProjectRazorJson);
             }
 
-            void EnqueueUpdateProject(string projectFilePath, FullProjectSnapshotHandle? snapshotHandle)
+            void EnqueueUpdateProject(string projectFilePath, ProjectRazorJson? projectRazorJson)
             {
                 projectFilePath = _filePathNormalizer.Normalize(projectFilePath);
                 if (!ProjectInfoMap.ContainsKey(projectFilePath))
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 var delayedProjectInfo = ProjectInfoMap[projectFilePath];
-                delayedProjectInfo.FullProjectSnapshotHandle = snapshotHandle;
+                delayedProjectInfo.ProjectRazorJson = projectRazorJson;
 
                 if (delayedProjectInfo.ProjectUpdateTask is null || delayedProjectInfo.ProjectUpdateTask.IsCompleted)
                 {
@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             public Task? ProjectUpdateTask { get; set; }
 
-            public FullProjectSnapshotHandle? FullProjectSnapshotHandle { get; set; }
+            public ProjectRazorJson? ProjectRazorJson { get; set; }
         }
     }
 }

@@ -37,8 +37,12 @@
     <RidsPublishDir>$(ArtifactsDir)LanguageServer\$(Configuration)\</RidsPublishDir>
   </PropertyGroup>
 
-  <Target Name="PublishAllRids">
+  <ItemGroup>
+    <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
+    <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
+  </ItemGroup>
 
+  <Target Name="PublishAllRids">
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
       <RuntimeIdentifierForPublish Include="$(RuntimeIdentifiers)" />

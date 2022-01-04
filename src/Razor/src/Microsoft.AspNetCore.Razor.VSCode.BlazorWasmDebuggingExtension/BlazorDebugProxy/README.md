@@ -1,1 +1,1 @@
-This directory contains the assets for the BlazorDebugProxy that needs to be launched on a users machine.
+This directory contains the assets for the BlazorDebugProxy that needs to be launched on a users machine. To obtain these assets run the `node` script located at `../scripts/retrieveDebugProxy.js`.

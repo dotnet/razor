@@ -14,7 +14,9 @@ const os = require('os');
 
 var finished = util.promisify(stream.finished);
 
-const log = (text) => console.log(`[${new Date()}] ${text}`)
+const formatLog = (text) => `[${new Date()}] ${text}`;
+const log = (text) => console.log(formatLog(text));
+const logError = (text) => console.error(formatLog(text));
 
 async function downloadProxyPackage(version) {
     var nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
@@ -32,12 +34,12 @@ async function downloadProxyPackage(version) {
     const downloadPath = path.join(tmpDirectory, versionedPackageName);
 
     // Download and save nupkg to disk
-    log(`Fetching package from ${downloadUrl}...`)
-    const response = await fetch(downloadUrl)
+    log(`Fetching package from ${downloadUrl}...`);
+    const response = await fetch(downloadUrl);
 
-    if (!response.ok)
-    {
-        log(`Failed to download ${downloadUrl}`)
+    if (!response.ok) {
+        logError(`Failed to download ${downloadUrl}`);
+        return null;
     }
     const outputStream = fs.createWriteStream(downloadPath);
     response.body.pipe(outputStream);
@@ -51,6 +53,10 @@ async function downloadProxyPackage(version) {
 
 async function copyDebugProxyAssets(version) {
     var extracted = await downloadProxyPackage(version);
+    if (!extracted) {
+        return;
+    }
+
     var srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
     var targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');

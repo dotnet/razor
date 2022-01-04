@@ -25,10 +25,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            var extensionName = string.Empty;
-
-            reader.ReadProperties(propertyName =>
+            var (_, extensionName) = reader.ReadProperties(static (propertyName, arg) =>
             {
+                var (reader, extensionName) = (arg.reader, arg.extensionName);
                 switch (propertyName)
                 {
                     case nameof(RazorExtension.ExtensionName):
@@ -39,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
                         break;
                 }
-            });
+
+                return (reader, extensionName);
+            }, (reader, extensionName: string.Empty));
 
             return new SerializedRazorExtension(extensionName);
         }

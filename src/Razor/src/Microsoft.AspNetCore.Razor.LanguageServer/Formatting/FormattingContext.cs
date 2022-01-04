@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -25,22 +24,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private Document? _csharpWorkspaceDocument;
         private AdhocWorkspace? _csharpWorkspace;
 
-        private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
+        private IReadOnlyList<FormattingSpan>? _formattingSpans;
+        private IReadOnlyDictionary<int, IndentationContext>? _indentations;
+        private RazorProjectEngine? _engine;
+        private IReadOnlyList<RazorSourceDocument>? _importSources;
+
+        private FormattingContext(AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
         {
             _workspaceFactory = workspaceFactory;
+            Uri = uri;
+            OriginalSnapshot = originalSnapshot;
+            CodeDocument = codeDocument;
+            Options = options;
+            IsFormatOnType = isFormatOnType;
+            AutomaticallyAddUsings = automaticallyAddUsings;
+        }
+
+        private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
+            : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings)
+        {
+            _engine = engine;
+            _importSources = importSources;
         }
 
         public static bool SkipValidateComponents { get; set; }
 
-        public DocumentUri Uri { get; private set; } = null!;
-
-        public DocumentSnapshot OriginalSnapshot { get; private set; } = null!;
-
-        public RazorCodeDocument CodeDocument { get; private set; } = null!;
+        public DocumentUri Uri { get; }
+        public DocumentSnapshot OriginalSnapshot { get; }
+        public RazorCodeDocument CodeDocument { get; }
+        public FormattingOptions Options { get; }
+        public bool IsFormatOnType { get; }
+        public bool AutomaticallyAddUsings { get; }
 
         public SourceText SourceText => CodeDocument.GetSourceText();
 
         public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
+
+        public string NewLineString => Environment.NewLine;
 
         public Document CSharpWorkspaceDocument
         {
@@ -77,24 +97,95 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        public FormattingOptions Options { get; private set; } = null!;
-
-        public string NewLineString => Environment.NewLine;
-
-        public bool IsFormatOnType { get; private set; }
-
-        public bool AutomaticallyAddUsings { get; private set; }
-
-        public Range Range { get; private set; } = null!;
-
         /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
         /// <remarks>
         /// Don't use this to discover the indentation level you should have, use
         /// <see cref="TryGetIndentationLevel(int, out int)"/> which operates on the position rather than just the line.
         /// </remarks>
-        public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; } = null!;
+        public IReadOnlyDictionary<int, IndentationContext> GetIndentations()
+        {
+            if (_indentations is null)
+            {
+                var sourceText = this.SourceText;
+                var indentations = new Dictionary<int, IndentationContext>();
 
-        public IReadOnlyList<FormattingSpan> FormattingSpans { get; private set; } = null!;
+                var previousIndentationLevel = 0;
+                for (var i = 0; i < sourceText.Lines.Count; i++)
+                {
+                    // Get first non-whitespace character position
+                    var nonWsPos = sourceText.Lines[i].GetFirstNonWhitespacePosition();
+                    var existingIndentation = (nonWsPos ?? sourceText.Lines[i].End) - sourceText.Lines[i].Start;
+
+                    // The existingIndentation above is measured in characters, and is used to create text edits
+                    // The below is measured in columns, so takes into account tab size. This is useful for creating
+                    // new indentation strings
+                    var existingIndentationSize = sourceText.Lines[i].GetIndentationSize(this.Options.TabSize);
+
+                    var emptyOrWhitespaceLine = false;
+                    if (nonWsPos is null)
+                    {
+                        emptyOrWhitespaceLine = true;
+                        nonWsPos = sourceText.Lines[i].Start;
+                    }
+
+                    // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
+                    if (TryGetFormattingSpan(nonWsPos.Value, out var span))
+                    {
+                        indentations[i] = new IndentationContext(firstSpan: span)
+                        {
+                            Line = i,
+                            RazorIndentationLevel = span.RazorIndentationLevel,
+                            HtmlIndentationLevel = span.HtmlIndentationLevel,
+                            RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
+                            ExistingIndentation = existingIndentation,
+                            ExistingIndentationSize = existingIndentationSize,
+                            EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
+                        };
+                        previousIndentationLevel = span.IndentationLevel;
+                    }
+                    else
+                    {
+                        // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
+                        // Let's create a 0 length span to represent this and default it to HTML.
+                        var placeholderSpan = new FormattingSpan(
+                            new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                            new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                            FormattingSpanKind.Markup,
+                            FormattingBlockKind.Markup,
+                            razorIndentationLevel: 0,
+                            htmlIndentationLevel: 0,
+                            isInClassBody: false,
+                            componentLambdaNestingLevel: 0);
+
+                        indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
+                        {
+                            Line = i,
+                            RazorIndentationLevel = 0,
+                            HtmlIndentationLevel = 0,
+                            RelativeIndentationLevel = previousIndentationLevel,
+                            ExistingIndentation = existingIndentation,
+                            ExistingIndentationSize = existingIndentation,
+                            EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
+                        };
+                    }
+                }
+
+                _indentations = indentations;
+            }
+
+            return _indentations;
+        }
+
+        private IReadOnlyList<FormattingSpan> GetFormattingSpans()
+        {
+            if (_formattingSpans is null)
+            {
+                var syntaxTree = CodeDocument.GetSyntaxTree();
+                _formattingSpans = syntaxTree.GetFormattingSpans();
+            }
+
+            return _formattingSpans;
+        }
 
         /// <summary>
         /// Generates a string of indentation based on a specific indentation level. For instance, inside of a C# method represents 1 indentation level. A method within a class would have indentaiton level of 2 by default etc.
@@ -122,29 +213,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             else
             {
                 var tabs = indentation / Options.TabSize;
-                var tabPrefix = new string('\t', (int)tabs);
+                var tabPrefix = new string('\t', tabs);
 
                 var spaces = indentation % Options.TabSize;
-                var spaceSuffix = new string(' ', (int)spaces);
+                var spaceSuffix = new string(' ', spaces);
 
                 var combined = string.Concat(tabPrefix, spaceSuffix);
                 return combined;
             }
-        }
-
-        /// <summary>
-        /// Given an offset return the corresponding indent level.
-        /// </summary>
-        /// <param name="offset">A value represents the number of spaces/tabs at the start of a line.</param>
-        /// <returns>The corresponding indent level.</returns>
-        public int GetIndentationLevelForOffset(int offset)
-        {
-            if (Options.InsertSpaces)
-            {
-                offset /= (int)Options.TabSize;
-            }
-
-            return offset;
         }
 
         /// <summary>
@@ -154,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// <returns></returns>
         public int GetIndentationOffsetForLevel(int level)
         {
-            return level * (int)Options.TabSize;
+            return level * Options.TabSize;
         }
 
         public bool TryGetIndentationLevel(int position, out int indentationLevel)
@@ -172,9 +248,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public bool TryGetFormattingSpan(int absoluteIndex, [NotNullWhen(true)] out FormattingSpan? result)
         {
             result = null;
-            for (var i = 0; i < FormattingSpans.Count; i++)
+            var formattingspans = GetFormattingSpans();
+            for (var i = 0; i < formattingspans.Count; i++)
             {
-                var formattingspan = FormattingSpans[i];
+                var formattingspan = formattingspans[i];
                 var span = formattingspan.Span;
 
                 if (span.Start <= absoluteIndex && span.End >= absoluteIndex)
@@ -210,25 +287,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(changedText));
             }
 
+            if (_engine is null)
+            {
+                await InitializeProjectEngineAsync().ConfigureAwait(false);
+            }
+
+            var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
+
+            var codeDocument = _engine!.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, _importSources, OriginalSnapshot.Project.TagHelpers);
+
+            DEBUG_ValidateComponents(CodeDocument, codeDocument);
+
+            var newContext = new FormattingContext(
+                _engine,
+                _importSources!,
+                _workspaceFactory,
+                Uri,
+                OriginalSnapshot,
+                codeDocument,
+                Options,
+                IsFormatOnType,
+                AutomaticallyAddUsings);
+
+            return newContext;
+        }
+
+        private async Task InitializeProjectEngineAsync()
+        {
             var engine = OriginalSnapshot.Project.GetProjectEngine();
             var importSources = new List<RazorSourceDocument>();
 
             var imports = OriginalSnapshot.GetImports();
             foreach (var import in imports)
             {
-                var sourceText = await import.GetTextAsync();
+                var sourceText = await import.GetTextAsync().ConfigureAwait(false);
                 var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
                 importSources.Add(source);
             }
 
-            var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
-
-            var codeDocument = engine.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, importSources, OriginalSnapshot.Project.TagHelpers);
-
-            ValidateComponents(CodeDocument, codeDocument);
-
-            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, IsFormatOnType);
-            return newContext;
+            _engine = engine;
+            _importSources = importSources;
         }
 
         /// <summary>
@@ -237,7 +335,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// Without this guarantee its hard to reason about test behaviour/failures.
         /// </summary>
         [Conditional("DEBUG")]
-        private static void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
+        private static void DEBUG_ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
         {
             if (SkipValidateComponents)
             {
@@ -255,8 +353,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            bool isFormatOnType = false,
-            bool automaticallyAddUsings = false)
+            bool isFormatOnType,
+            bool automaticallyAddUsings)
         {
             if (uri is null)
             {
@@ -283,85 +381,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var formattingSpans = syntaxTree.GetFormattingSpans();
-
-            var result = new FormattingContext(workspaceFactory)
-            {
-                Uri = uri,
-                OriginalSnapshot = originalSnapshot,
-                CodeDocument = codeDocument,
-                Options = options,
-                IsFormatOnType = isFormatOnType,
-                AutomaticallyAddUsings = automaticallyAddUsings,
-                FormattingSpans = formattingSpans
-            };
-
-            var sourceText = codeDocument.GetSourceText();
-            var indentations = new Dictionary<int, IndentationContext>();
-
-            var previousIndentationLevel = 0;
-            for (var i = 0; i < sourceText.Lines.Count; i++)
-            {
-                // Get first non-whitespace character position
-                var nonWsPos = sourceText.Lines[i].GetFirstNonWhitespacePosition();
-                var existingIndentation = (nonWsPos ?? sourceText.Lines[i].End) - sourceText.Lines[i].Start;
-
-                // The existingIndentation above is measured in characters, and is used to create text edits
-                // The below is measured in columns, so takes into account tab size. This is useful for creating
-                // new indentation strings
-                var existingIndentationSize = sourceText.Lines[i].GetIndentationSize(options.TabSize);
-
-                var emptyOrWhitespaceLine = false;
-                if (nonWsPos is null)
-                {
-                    emptyOrWhitespaceLine = true;
-                    nonWsPos = sourceText.Lines[i].Start;
-                }
-
-                // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
-                if (result.TryGetFormattingSpan(nonWsPos.Value, out var span))
-                {
-                    indentations[i] = new IndentationContext(firstSpan: span)
-                    {
-                        Line = i,
-                        RazorIndentationLevel = span.RazorIndentationLevel,
-                        HtmlIndentationLevel = span.HtmlIndentationLevel,
-                        RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentationSize,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
-                    previousIndentationLevel = span.IndentationLevel;
-                }
-                else
-                {
-                    // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
-                    // Let's create a 0 length span to represent this and default it to HTML.
-                    var placeholderSpan = new FormattingSpan(
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
-                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
-                        FormattingSpanKind.Markup,
-                        FormattingBlockKind.Markup,
-                        razorIndentationLevel: 0,
-                        htmlIndentationLevel: 0,
-                        isInClassBody: false,
-                        componentLambdaNestingLevel: 0);
-
-                    indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
-                    {
-                        Line = i,
-                        RazorIndentationLevel = 0,
-                        HtmlIndentationLevel = 0,
-                        RelativeIndentationLevel = previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentation,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
-                }
-            }
-
-            result.Indentations = indentations;
+            var result = new FormattingContext(
+                workspaceFactory,
+                uri,
+                originalSnapshot,
+                codeDocument,
+                options,
+                isFormatOnType,
+                automaticallyAddUsings
+            );
 
             return result;
         }

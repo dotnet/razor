@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
     internal static class JsonWriterExtensions
     {
-        public static void WritePropertyArray<T>(this JsonWriter writer, string propertyName, IReadOnlyList<T> collection, JsonSerializer serializer)
+        public static void WritePropertyArray<T>(this JsonWriter writer, string propertyName, IEnumerable<T> collection, JsonSerializer serializer)
         {
             writer.WritePropertyName(propertyName);
             writer.WriteStartArray();

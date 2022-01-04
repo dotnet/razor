@@ -22,7 +22,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
     {
-
         [Fact]
         public void ProjectConfigurationFileChanged_Removed_UnknownDocumentNoops()
         {
@@ -43,32 +42,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectConfigurationFileChanged_Removed_NonNormalizedPaths()
         {
             // Arrange
-            var handle = new FullProjectSnapshotHandle(
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Default,
                 rootNamespace: "TestRootNamespace",
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
                 Array.Empty<DocumentSnapshotHandle>());
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(handle.FilePath)).Verifiable();
+            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                handle.FilePath,
-                handle.Configuration,
-                handle.RootNamespace,
-                handle.ProjectWorkspaceState,
-                handle.Documents)).Verifiable();
+                projectRazorJson.FilePath,
+                projectRazorJson.Configuration,
+                projectRazorJson.RootNamespace,
+                projectRazorJson.ProjectWorkspaceState,
+                projectRazorJson.Documents)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                 handle.FilePath,
+                 projectRazorJson.FilePath,
                  null,
                  null,
                  ProjectWorkspaceState.Default,
                  Array.Empty<DocumentSnapshotHandle>())).Verifiable();
             var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = CreateJsonFileDeserializer(handle);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+            var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             WaitForEnqueueAsync(synchronizer).Wait();
-            var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
+            var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
 
             // Act
             synchronizer.ProjectConfigurationFileChanged(removeArgs);
@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<FullProjectSnapshotHandle>(It.IsAny<string>()) == null, MockBehavior.Strict);
+            var jsonFileDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
             var args = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
 
             // Act
@@ -98,23 +98,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectConfigurationFileChanged_Added_AddAndUpdatesProject()
         {
             // Arrange
-            var handle = new FullProjectSnapshotHandle(
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Default,
                 rootNamespace: "TestRootNamespace",
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
                 Array.Empty<DocumentSnapshotHandle>());
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(handle.FilePath)).Verifiable();
+            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                handle.FilePath,
-                handle.Configuration,
-                handle.RootNamespace,
-                handle.ProjectWorkspaceState,
-                handle.Documents)).Verifiable();
+                projectRazorJson.FilePath,
+                projectRazorJson.Configuration,
+                projectRazorJson.RootNamespace,
+                projectRazorJson.ProjectWorkspaceState,
+                projectRazorJson.Documents)).Verifiable();
             var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = CreateJsonFileDeserializer(handle);
-            var args = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+            var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+            var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
 
             // Act
             synchronizer.ProjectConfigurationFileChanged(args);
@@ -128,32 +129,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectConfigurationFileChanged_Removed_ResetsProject()
         {
             // Arrange
-            var handle = new FullProjectSnapshotHandle(
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Default,
                 rootNamespace: "TestRootNamespace",
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
                 Array.Empty<DocumentSnapshotHandle>());
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(handle.FilePath)).Verifiable();
+            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                handle.FilePath,
-                handle.Configuration,
-                handle.RootNamespace,
-                handle.ProjectWorkspaceState,
-                handle.Documents)).Verifiable();
+                projectRazorJson.FilePath,
+                projectRazorJson.Configuration,
+                projectRazorJson.RootNamespace,
+                projectRazorJson.ProjectWorkspaceState,
+                projectRazorJson.Documents)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                 handle.FilePath,
+                 projectRazorJson.FilePath,
                  null,
                  null,
                  ProjectWorkspaceState.Default,
                  Array.Empty<DocumentSnapshotHandle>())).Verifiable();
             var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = CreateJsonFileDeserializer(handle);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+            var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             WaitForEnqueueAsync(synchronizer).Wait();
-            var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
+            var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
 
             // Act
             synchronizer.ProjectConfigurationFileChanged(removeArgs);
@@ -167,21 +169,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectConfigurationFileChanged_Changed_UpdatesProject()
         {
             // Arrange
-            var initialHandle = new FullProjectSnapshotHandle(
+            var initialProjectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Default,
                 rootNamespace: "TestRootNamespace",
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
                 Array.Empty<DocumentSnapshotHandle>());
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(initialHandle.FilePath)).Verifiable();
+            projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                initialHandle.FilePath,
-                initialHandle.Configuration,
-                initialHandle.RootNamespace,
-                initialHandle.ProjectWorkspaceState,
-                initialHandle.Documents)).Verifiable();
-            var changedHandle = new FullProjectSnapshotHandle(
+                initialProjectRazorJson.FilePath,
+                initialProjectRazorJson.Configuration,
+                initialProjectRazorJson.RootNamespace,
+                initialProjectRazorJson.ProjectWorkspaceState,
+                initialProjectRazorJson.Documents)).Verifiable();
+            var changedProjectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Create(
                     RazorLanguageVersion.Experimental,
@@ -191,20 +195,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp6),
                 Array.Empty<DocumentSnapshotHandle>());
             projectService.Setup(service => service.UpdateProject(
-                changedHandle.FilePath,
-                changedHandle.Configuration,
-                changedHandle.RootNamespace,
-                changedHandle.ProjectWorkspaceState,
-                changedHandle.Documents)).Verifiable();
+                changedProjectRazorJson.FilePath,
+                changedProjectRazorJson.Configuration,
+                changedProjectRazorJson.RootNamespace,
+                changedProjectRazorJson.ProjectWorkspaceState,
+                changedProjectRazorJson.Documents)).Verifiable();
             var synchronizer = GetSynchronizer(projectService.Object);
-            var addDeserializer = CreateJsonFileDeserializer(initialHandle);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("path/to/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
+            var addDeserializer = CreateJsonFileDeserializer(initialProjectRazorJson);
+            var addArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
             synchronizer.ProjectConfigurationFileChanged(addArgs);
 
             WaitForEnqueueAsync(synchronizer).Wait();
 
-            var changedDeserializer = CreateJsonFileDeserializer(changedHandle);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs("path/to/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
+            var changedDeserializer = CreateJsonFileDeserializer(changedProjectRazorJson);
+            var changedArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
 
             // Act
             synchronizer.ProjectConfigurationFileChanged(changedArgs);
@@ -218,21 +222,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectConfigurationFileChanged_Changed_CantDeserialize_ResetsProject()
         {
             // Arrange
-            var initialHandle = new FullProjectSnapshotHandle(
+            var initialProjectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Default,
                 rootNamespace: "TestRootNamespace",
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
                 Array.Empty<DocumentSnapshotHandle>());
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(initialHandle.FilePath)).Verifiable();
+            projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath)).Verifiable();
             projectService.Setup(service => service.UpdateProject(
-                initialHandle.FilePath,
-                initialHandle.Configuration,
-                initialHandle.RootNamespace,
-                initialHandle.ProjectWorkspaceState,
-                initialHandle.Documents)).Verifiable();
-            var changedHandle = new FullProjectSnapshotHandle(
+                initialProjectRazorJson.FilePath,
+                initialProjectRazorJson.Configuration,
+                initialProjectRazorJson.RootNamespace,
+                initialProjectRazorJson.ProjectWorkspaceState,
+                initialProjectRazorJson.Documents)).Verifiable();
+            var changedProjectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
                 "path/to/project.csproj",
                 RazorConfiguration.Create(
                     RazorLanguageVersion.Experimental,
@@ -244,18 +250,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // This is the request that happens when the server is reset
             projectService.Setup(service => service.UpdateProject(
-                 initialHandle.FilePath,
+                 initialProjectRazorJson.FilePath,
                  null,
                  null,
                  ProjectWorkspaceState.Default,
                  Array.Empty<DocumentSnapshotHandle>())).Verifiable();
             var synchronizer = GetSynchronizer(projectService.Object);
-            var addDeserializer = CreateJsonFileDeserializer(initialHandle);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
+            var addDeserializer = CreateJsonFileDeserializer(initialProjectRazorJson);
+            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
             synchronizer.ProjectConfigurationFileChanged(addArgs);
             WaitForEnqueueAsync(synchronizer).Wait();
-            var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<FullProjectSnapshotHandle>(It.IsAny<string>()) == null, MockBehavior.Strict);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
+            var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
+            var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
 
             // Act
             synchronizer.ProjectConfigurationFileChanged(changedArgs);
@@ -271,7 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             var synchronizer = GetSynchronizer(projectService.Object);
-            var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<FullProjectSnapshotHandle>(It.IsAny<string>()) == null, MockBehavior.Strict);
+            var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
             var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
 
             // Act
@@ -286,8 +292,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectConfigurationFileChanged_RemoveThenAdd_OnlyAdds()
         {
             // Arrange
-            var handle = new FullProjectSnapshotHandle(
-            "path/to/project.csproj",
+            var projectRazorJson = new ProjectRazorJson(
+                "/path/to/obj/project.razor.json",
+                "path/to/project.csproj",
                 RazorConfiguration.Default,
                 rootNamespace: "TestRootNamespace",
                 new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
@@ -295,7 +302,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var filePath = "path/to/project.csproj";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(handle.FilePath)).Verifiable();
+            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
             projectService.Setup(p => p.UpdateProject(
                 filePath,
                 It.IsAny<RazorConfiguration>(),
@@ -304,10 +311,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()));
 
             var synchronizer = GetSynchronizer(projectService.Object);
-            var changedDeserializer = CreateJsonFileDeserializer(handle);
-            var removedArgs = new ProjectConfigurationFileChangeEventArgs(filePath, RazorFileChangeKind.Removed, changedDeserializer);
-            var addedArgs = new ProjectConfigurationFileChangeEventArgs(filePath, RazorFileChangeKind.Added, changedDeserializer);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs(filePath, RazorFileChangeKind.Changed, changedDeserializer);
+            var changedDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+            var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Removed, changedDeserializer);
+            var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Added, changedDeserializer);
+            var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Changed, changedDeserializer);
 
             // Act
             synchronizer.ProjectConfigurationFileChanged(addedArgs);
@@ -347,10 +354,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return synchronizer;
         }
 
-        private static JsonFileDeserializer CreateJsonFileDeserializer(FullProjectSnapshotHandle deserializedHandle)
+        private static JsonFileDeserializer CreateJsonFileDeserializer(ProjectRazorJson deserializedHandle)
         {
             var deserializer = new Mock<JsonFileDeserializer>(MockBehavior.Strict);
-            deserializer.Setup(deserializer => deserializer.Deserialize<FullProjectSnapshotHandle>(It.IsAny<string>()))
+            deserializer.Setup(deserializer => deserializer.Deserialize<ProjectRazorJson>(It.IsAny<string>()))
                 .Returns(deserializedHandle);
 
             return deserializer.Object;

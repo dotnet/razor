@@ -2,9 +2,15 @@
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
     "outDir": "dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": [
+      "DOM"
+    ]
 	},
 	"include": [
-	  "tests/**/*"
-	]
-  }
+	  "tests/**/*",
+	],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -55,8 +55,8 @@ export async function activate(context: vscode.ExtensionContext) {
             hostEventStream,
             /* enabledProposedApis */true);
     } else {
-        console.log('Razor workspace was not configured, extension activation skipped.');
-        console.log('To configure your workspace run the following command (ctrl+shift+p) in the experimental instance "Razor: Configure workspace for Razor extension development"');
+        console.warn('Razor workspace was not configured, extension activation skipped.');
+        console.warn('To configure your workspace run the following command (ctrl+shift+p) in the experimental instance "Razor: Configure workspace for Razor extension development"');
     }
 
     activationResolver();

@@ -4,18 +4,20 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Moq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor
 {
-    public class OOPTagHelperResolverTest
+    public class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     {
         public OOPTagHelperResolverTest()
         {
@@ -143,6 +145,69 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             await Assert.ThrowsAsync<OperationCanceledException>(async () => await resolver.GetTagHelpersAsync(WorkspaceProject, projectSnapshot, cancellationToken));
         }
 
+        [Fact]
+        public void CalculateTagHelpersFromDelta_NewProject()
+        {
+            // Arrange
+            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
+
+            // Act
+            var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
+
+            // Assert
+            Assert.Equal(Project1TagHelpers, tagHelpers);
+        }
+
+        [Fact]
+        public void CalculateTagHelpersFromDelta_DeltaFailedToApplyToKnownProject()
+        {
+            // Arrange
+            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
+            resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
+            var newTagHelperSet = new[] { TagHelper1_Project1 };
+            var failedDeltaApplication = new TagHelperDeltaResult(Delta: false, initialDelta.ResultId + 1, newTagHelperSet, Array.Empty<TagHelperDescriptor>());
+
+            // Act
+            var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, initialDelta.ResultId, failedDeltaApplication);
+
+            // Assert
+            Assert.Equal(newTagHelperSet, tagHelpers);
+        }
+
+        [Fact]
+        public void CalculateTagHelpersFromDelta_NoopResult()
+        {
+            // Arrange
+            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
+            resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
+            var noopDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId, Array.Empty<TagHelperDescriptor>(), Array.Empty<TagHelperDescriptor>());
+
+            // Act
+            var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, initialDelta.ResultId, noopDelta);
+
+            // Assert
+            Assert.Equal(Project1TagHelpers, tagHelpers);
+        }
+
+        [Fact]
+        public void CalculateTagHelpersFromDelta_ReplacedTagHelpers()
+        {
+            // Arrange
+            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
+            resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
+            var changedDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId + 1, new[] { TagHelper2_Project2 }, new[] { TagHelper2_Project1 });
+
+            // Act
+            var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, initialDelta.ResultId, changedDelta);
+
+            // Assert
+            Assert.Equal(new[] { TagHelper1_Project1, TagHelper2_Project2 }, tagHelpers.OrderBy(th => th.Name));
+        }
+
         private class TestTagHelperResolver : OOPTagHelperResolver
         {
             public TestTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
@@ -165,6 +230,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 Assert.NotNull(OnResolveInProcess);
                 return OnResolveInProcess(projectSnapshot);
             }
+
+            public IReadOnlyCollection<TagHelperDescriptor> PublicProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+                => ProduceTagHelpersFromDelta(projectFilePath, lastResultId, deltaResult);
+
+            protected override IReadOnlyCollection<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+                => base.ProduceTagHelpersFromDelta(projectFilePath, lastResultId, deltaResult);
         }
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager

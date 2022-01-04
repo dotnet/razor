@@ -8,7 +8,7 @@ import {
     getLanguageService as getHtmlLanguageService,
     LanguageService as HtmlLanguageService,
 } from 'vscode-html-languageservice';
-import { TextDocument as ServiceTextDocument } from 'vscode-languageserver-types';
+import { TextDocument as ServiceTextDocument } from 'vscode-languageserver-textdocument';
 import { IRazorDocumentManager } from '../IRazorDocumentManager';
 import { RazorLanguage } from '../RazorLanguage';
 import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
