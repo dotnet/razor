@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "Expectations changed in Preview2")]
         public async Task Components_AreColored()
         {
             // Arrange
@@ -56,9 +56,12 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         [IdeFact]
         public async Task Directives_AreColored()
         {
+            // Arrange
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
-            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
 
+            // Act and Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
             await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
         }
 
@@ -161,6 +164,61 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         {
             var semanticBaselinePath = Path.Combine(s_projectPath, "Semantic", "TestFiles", nameof(RazorSemanticTokensTests), testName + ".txt");
             return semanticBaselinePath;
+        }
+
+        private class ClassificationComparer : IEqualityComparer<ClassificationSpan>
+        {
+            public static ClassificationComparer Instance = new();
+
+            public bool Equals(ClassificationSpan x, ClassificationSpan y)
+            {
+                var spanEquals = x.Span.Equals(y.Span);
+                var classificationEquals = ClassificationTypeComparer.Instance.Equals(x.ClassificationType, y.ClassificationType);
+                return classificationEquals && spanEquals;
+            }
+
+            public int GetHashCode(ClassificationSpan obj)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ClassificationTypeComparer : IEqualityComparer<IClassificationType>
+        {
+            public static ClassificationTypeComparer Instance = new();
+
+            public bool Equals(IClassificationType x, IClassificationType y)
+            {
+                string xString;
+                string yString;
+
+                if (x is ILayeredClassificationType xLayered)
+                {
+                    var baseType = xLayered.BaseTypes.Single(b => b is ILayeredClassificationType bLayered && bLayered.Layer == ClassificationLayer.Semantic);
+                    xString = baseType.Classification;
+                }
+                else
+                {
+                    xString = x.Classification;
+                }
+
+                if (y is ILayeredClassificationType yLayered)
+                {
+                    var baseType = yLayered.BaseTypes.Single(b => b is ILayeredClassificationType bLayered && bLayered.Layer == ClassificationLayer.Semantic);
+                    yString = baseType.Classification;
+                }
+                else
+                {
+                    yString = y.Classification;
+                }
+
+                return xString.Equals(yString);
+            }
+
+            public int GetHashCode(IClassificationType obj)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class ClassificationType : IClassificationType
