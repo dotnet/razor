@@ -18,7 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var logger = new TestLogger();
             LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l =>
-                l.CreateLogger(It.IsAny<string>()) == logger && l.InitializeLoggerAsync(It.IsAny<CancellationToken>()) == Task.CompletedTask,
+                l.CreateLogger(It.IsAny<string>()) == logger &&
+                l.InitializeLoggerAsync(It.IsAny<CancellationToken>()) == Task.CompletedTask &&
+                l.CreateLoggerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()) == Task.FromResult<ILogger>(logger),
                 MockBehavior.Strict);
         }
 
