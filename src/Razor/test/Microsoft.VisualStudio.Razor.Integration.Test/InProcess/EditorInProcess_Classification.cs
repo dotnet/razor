@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <param name="expectedClassification">The classification to wait for, if any.</param>
         /// <returns>A <see cref="Task"/> which completes when classification is "ready".</returns>
-        public async Task WaitForClassificationAsync(CancellationToken cancellationToken, string? expectedClassification = null)
+        public async Task WaitForClassificationAsync(CancellationToken cancellationToken, string expectedClassification = "RazorComponentElement")
         {
             var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
             var classifier = await GetClassifierAsync(textView, cancellationToken);
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                 return classifications.Any(
                     c => c.ClassificationType.BaseTypes.Any(bT => bT is ILayeredClassificationType layered &&
                         layered.Layer == ClassificationLayer.Semantic &&
-                        (expectedClassification is null || layered.Classification == expectedClassification)));
+                        layered.Classification == expectedClassification));
             }
         }
 
@@ -74,7 +74,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             var actualArray = actualClassifications.ToArray();
             var expectedArray = expectedClassifications.ToArray();
 
-            Assert.Equal(expectedArray.Length, actualArray.Length);
             for (var i = 0; i < actualArray.Length; i++)
             {
                 var actualClassification = actualArray[i];
@@ -109,6 +108,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                         $"actual: {actualClassification.Span} {actualClassification.ClassificationType.Classification}");
                 }
             }
+            Assert.Equal(expectedArray.Length, actualArray.Length);
         }
 
         public async Task<IEnumerable<ClassificationSpan>> GetClassificationsAsync(CancellationToken cancellationToken)
