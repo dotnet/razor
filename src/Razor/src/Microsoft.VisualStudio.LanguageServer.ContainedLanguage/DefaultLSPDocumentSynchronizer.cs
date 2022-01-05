@@ -245,6 +245,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                     _onSynchronizedSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                     _cts = CancellationTokenSource.CreateLinkedTokenSource(requestCancellationToken);
+
+                    // If requestCancellationToken is already cancelled then registering
+                    // the callback will cause _cts to throw. So let's just set NotSynchronized now.
                     if (_cts.IsCancellationRequested)
                     {
                         SetSynchronized(false);
