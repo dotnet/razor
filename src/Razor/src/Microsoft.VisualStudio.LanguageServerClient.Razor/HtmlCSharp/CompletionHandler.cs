@@ -767,23 +767,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         End = translatedEndPosition,
                     };
 
-                    // Reduce the range down to the wordRange if needed. This means if we have a C# text edit that goes beyond
-                    // the original word, then we need to ensure that the edit is scoped to the word, otherwise it may remove
-                    // portions of the Razor document. This may not happen in practice, but we want to be fail-safe.
-                    //
-                    // For example, if we had the following code in the C# virtual doc:
-                    //     SomeMethod(|1|, 2);
-                    // Which corresponded to the following in a Razor file (notice '2' is not present here):
-                    //     <MyTagHelper SomeAttribute="|1|"/>
-                    // If there was a completion item that replaced '|1|, 2' with something like 'MyVariable', then without the
-                    // logic below, the TextEdit may be applied to the Razor file as:
-                    //     <MyTagHelper SomeAttribute="MyVariable>
-                    var scopedTranslatedRange = wordRange?.Overlap(translatedRange) ?? translatedRange;
-
                     var translatedText = item.TextEdit.NewText;
                     item.TextEdit = new TextEdit()
                     {
-                        Range = scopedTranslatedRange,
+                        Range = translatedRange,
                         NewText = translatedText,
                     };
                 }
