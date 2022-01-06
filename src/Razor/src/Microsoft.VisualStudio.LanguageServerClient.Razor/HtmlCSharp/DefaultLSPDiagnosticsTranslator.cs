@@ -19,7 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPRequestInvoker _requestInvoker;
-        private readonly ILogger _logger;
+        private ILogger? _logger;
+        private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
 
         [ImportingConstructor]
         public DefaultLSPDiagnosticsTranslator(
@@ -29,7 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             _documentManager = documentManager;
             _requestInvoker = requestInvoker;
-            _logger = loggerProvider.CreateLogger(nameof(DefaultLSPDiagnosticsTranslator));
+            _loggerProvider = loggerProvider;
+        }
+
+        private async Task<ILogger> GetLoggerAsync(CancellationToken cancellationToken)
+        {
+            if (_logger is null)
+            {
+                _logger = await _loggerProvider.CreateLoggerAsync(nameof(DefaultLSPDiagnosticsTranslator), cancellationToken);
+            }
+
+            return _logger;
         }
 
         public override async Task<RazorDiagnosticsResponse?> TranslateAsync(
@@ -59,8 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 RazorLSPConstants.RazorLanguageServerName,
                 diagnosticsParams,
                 cancellationToken).ConfigureAwait(false);
-
-            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorLanguageServerName, out var result))
+            var logger = await GetLoggerAsync(cancellationToken).ConfigureAwait(false);
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, logger, RazorLSPConstants.RazorLanguageServerName, out var result))
             {
                 return null;
             }

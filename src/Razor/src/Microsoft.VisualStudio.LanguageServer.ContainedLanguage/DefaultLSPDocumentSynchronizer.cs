@@ -243,12 +243,21 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                     RequiredHostDocumentVersion = requiredHostDocumentVersion;
                     RejectOnNewerParallelRequest = rejectOnNewerParallelRequest;
                     _onSynchronizedSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
                     _cts = CancellationTokenSource.CreateLinkedTokenSource(requestCancellationToken);
 
-                    // This cancellation token is the one passed in from the call-site that needs to synchronize an LSP document with a virtual document.
-                    // Meaning, if the outer token is cancelled we need to fail to synchronize.
-                    _cts.Token.Register(() => SetSynchronized(false));
-                    _cts.CancelAfter(timeout);
+                    // This might throw because the token has already been marked as cancelled
+                    try
+                    {
+                        // This cancellation token is the one passed in from the call-site that needs to synchronize an LSP document with a virtual document.
+                        // Meaning, if the outer token is cancelled we need to fail to synchronize.
+                        _cts.Token.Register(() => SetSynchronized(false));
+                        _cts.CancelAfter(timeout);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        SetSynchronized(false);
+                    }
                 }
 
                 public bool RejectOnNewerParallelRequest { get; }
