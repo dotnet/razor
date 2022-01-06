@@ -30,7 +30,15 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                     throw new InvalidOperationException("Expected a light bulb session to appear.");
                 }
 
-                return broker.IsLightBulbSessionActive(view);
+                if (broker.IsLightBulbSessionActive(view))
+                {
+                    var session = broker.GetSession(view);
+                    var hasSuggestedActions = await broker.HasSuggestedActionsAsync(session.ActionCategories, view, cancellationToken);
+
+                    return hasSuggestedActions;
+                }
+
+                return false;
             }, TimeSpan.FromMilliseconds(1), cancellationToken);
 
             if (!active)
