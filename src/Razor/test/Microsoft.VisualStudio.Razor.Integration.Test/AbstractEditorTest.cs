@@ -44,7 +44,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
                 await TestServices.SolutionExplorer.AddProjectAsync(_projectName, _projectTemplate, LanguageName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
 
-                await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
                 await ClearEditorAsync(HangMitigatingCancellationToken);
             }
         }

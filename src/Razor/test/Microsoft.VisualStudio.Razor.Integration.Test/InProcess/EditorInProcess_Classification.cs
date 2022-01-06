@@ -20,8 +20,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <param name="expectedClassification">The classification to wait for, if any.</param>
+        /// <param name="count">The number of the given classification to expect.</param>
         /// <returns>A <see cref="Task"/> which completes when classification is "ready".</returns>
-        public async Task WaitForClassificationAsync(CancellationToken cancellationToken, string expectedClassification = "RazorComponentElement")
+        public async Task WaitForClassificationAsync(CancellationToken cancellationToken, string expectedClassification = "RazorComponentElement", int count = 1)
         {
             var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
             var classifier = await GetClassifierAsync(textView, cancellationToken);
@@ -61,10 +62,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             async Task<bool> HasClassificationAsync(CancellationToken cancellationToken)
             {
                 var classifications = await GetClassificationsAsync(cancellationToken);
-                return classifications.Any(
+                return classifications.Where(
                     c => c.ClassificationType.BaseTypes.Any(bT => bT is ILayeredClassificationType layered &&
                         layered.Layer == ClassificationLayer.Semantic &&
-                        layered.Classification == expectedClassification));
+                        layered.Classification == expectedClassification)).Count() >= count;
             }
         }
 
