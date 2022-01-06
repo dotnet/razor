@@ -30,10 +30,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                     throw new InvalidOperationException("Expected a light bulb session to appear.");
                 }
 
-                // checking whether there is any suggested action is async up to editor layer and our waiter doesn't track up to that point.
-                // so here, we have no other way than sleep (with timeout) to see LB is available.
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-
                 return broker.IsLightBulbSessionActive(view);
             }, TimeSpan.FromMilliseconds(1), cancellationToken);
 
@@ -62,7 +58,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                 if (e.Status == QuerySuggestedActionCompletionStatus.InProgress)
                     return;
 
-                if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
+                if (e.Status == QuerySuggestedActionCompletionStatus.Completed || e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
                     tcs.SetResult(e.ActionSets.ToList());
                 else
                     tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));

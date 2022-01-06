@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
     public class RazorCodeActionsTests : AbstractRazorEditorTest
     {
-        [IdeFact]
+        [IdeFact(Skip = "Behavior not yet testable")]
         public async Task RazorCodeActions_Show()
         {
             // Create Warnings by removing usings
@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             // Act
             var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
+            // Assert
             var codeActionSet = Assert.Single(codeActions);
             Assert.Contains(codeActionSet.Actions, a => a.DisplayText.Equals($"@using {BlazorProjectName}.Shared"));
         }
-
     }
 }
