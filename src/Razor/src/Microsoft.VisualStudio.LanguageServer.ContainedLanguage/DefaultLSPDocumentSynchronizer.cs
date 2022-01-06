@@ -246,18 +246,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
                     _cts = CancellationTokenSource.CreateLinkedTokenSource(requestCancellationToken);
 
-                    // If requestCancellationToken is already cancelled then registering
-                    // the callback will cause _cts to throw. So let's just set NotSynchronized now.
-                    if (_cts.IsCancellationRequested)
-                    {
-                        SetSynchronized(false);
-                    }
-                    else
+                    // This might throw because the token has already been marked as cancelled
+                    try
                     {
                         // This cancellation token is the one passed in from the call-site that needs to synchronize an LSP document with a virtual document.
                         // Meaning, if the outer token is cancelled we need to fail to synchronize.
                         _cts.Token.Register(() => SetSynchronized(false));
                         _cts.CancelAfter(timeout);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        SetSynchronized(false);
                     }
                 }
 

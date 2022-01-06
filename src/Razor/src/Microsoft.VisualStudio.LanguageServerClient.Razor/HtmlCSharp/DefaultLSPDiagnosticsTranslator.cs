@@ -70,8 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 RazorLSPConstants.RazorLanguageServerName,
                 diagnosticsParams,
                 cancellationToken).ConfigureAwait(false);
-
-            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, await GetLoggerAsync(cancellationToken), RazorLSPConstants.RazorLanguageServerName, out var result))
+            var logger = await GetLoggerAsync(cancellationToken).ConfigureAwait(false);
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, logger, RazorLSPConstants.RazorLanguageServerName, out var result))
             {
                 return null;
             }
