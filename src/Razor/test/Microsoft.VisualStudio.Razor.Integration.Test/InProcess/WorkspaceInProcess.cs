@@ -3,13 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.OperationProgress;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 
-namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    [TestService]
     internal partial class WorkspaceInProcess
     {
         public Task WaitForAsyncOperationsAsync(string featuresToWaitFor, CancellationToken cancellationToken)
@@ -24,13 +21,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
 
             // TODO: This currently no-ops on the FeaturesToWaitFor portion
             // because we lack any system to wait on it with
-        }
-
-        public async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
-        {
-            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
-            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
-            await stageStatus.WaitForCompletionAsync().WithCancellation(cancellationToken);
         }
     }
 }

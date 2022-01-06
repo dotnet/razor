@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "Expectations changed in Preview2")]
+        [IdeFact]
         public async Task Components_AreColored()
         {
             // Arrange

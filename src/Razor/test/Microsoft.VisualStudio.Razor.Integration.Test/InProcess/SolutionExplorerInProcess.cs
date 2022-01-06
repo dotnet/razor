@@ -30,6 +30,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
         }
 
+        public Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
+            => AddProjectAsync(projectName, projectTemplate, groupId: null, templateId: null, languageName, cancellationToken);
+
         public async Task AddProjectAsync(string projectName, string projectTemplate, string? groupId, string? templateId, string languageName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

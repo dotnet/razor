@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
     public class RazorCodeActionsTests : AbstractRazorEditorTest
     {
-        [IdeFact(Skip = "Broken in Preveiw1")]
+        [IdeFact]
         public async Task RazorCodeActions_Show()
         {
             // Create Warnings by removing usings

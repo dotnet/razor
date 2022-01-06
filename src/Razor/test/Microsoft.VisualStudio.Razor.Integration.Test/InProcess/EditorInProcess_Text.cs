@@ -3,10 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {

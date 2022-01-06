@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
@@ -108,6 +108,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                         $"actual: {actualClassification.Span} {actualClassification.ClassificationType.Classification}");
                 }
             }
+
             Assert.Equal(expectedArray.Length, actualArray.Length);
         }
 

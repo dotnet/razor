@@ -9,18 +9,12 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Razor.Integration.Test.Extensions;
-using Microsoft.VisualStudio.Extensibility.Testing;
 
-namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    [TestService]
     internal partial class EditorInProcess
     {
-        public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
-            => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
-
         public async Task<ITextSnapshot> GetActiveSnapshotAsync(CancellationToken cancellationToken)
             => (await GetActiveTextViewAsync(cancellationToken)).TextSnapshot;
 
@@ -94,23 +88,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
                 var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
                 options.SetOptionValue(latencyGuardOptionKey, false);
             }
-        }
-
-        private async Task<IWpfTextViewHost> GetActiveTextViewHostAsync(CancellationToken cancellationToken)
-        {
-            var activeVsTextView = await GetActiveVsTextViewAsync(cancellationToken);
-            return await activeVsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
-        }
-
-        private async Task<IVsTextView> GetActiveVsTextViewAsync(CancellationToken cancellationToken)
-        {
-            // The active text view might not have finished composing yet, waiting for the application to 'idle'
-            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text
-            // view.
-            await WaitForApplicationIdleAsync(cancellationToken);
-
-            var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
-            return await vsTextManager.GetActiveViewAsync(JoinableTaskFactory, cancellationToken);
         }
     }
 }
