@@ -43,24 +43,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
                 await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.AddProjectAsync(_projectName, _projectTemplate, LanguageName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
-
-                await ClearEditorAsync(HangMitigatingCancellationToken);
             }
-        }
-
-        protected async Task ClearEditorAsync(CancellationToken cancellationToken)
-            => await SetUpEditorAsync("$$", cancellationToken);
-
-        protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken)
-        {
-            MarkupTestFile.GetPosition(markupCode, out var code, out var caretPosition);
-
-            await TestServices.Editor.DismissCompletionSessionsAsync(cancellationToken);
-            await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
-
-            await TestServices.Editor.SetTextAsync(code, cancellationToken);
-            await TestServices.Editor.MoveCaretAsync(caretPosition, cancellationToken);
-            await TestServices.Editor.ActivateAsync(cancellationToken);
         }
     }
 }
