@@ -141,6 +141,7 @@ stages:
         - _DotNetPublishToBlobFeed : false
         - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
         - _BuildArgs: ''
+        - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\Debug'
 
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -230,15 +231,6 @@ stages:
           inputs:
             pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
-        - task: PublishBuildArtifacts@1
-          displayName: Upload XUnit Logs
-          condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/log/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestLogs
             artifactType: Container
             parallel: true
         # - task: PublishTestResults@2
