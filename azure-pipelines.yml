@@ -232,6 +232,15 @@ stages:
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
             parallel: true
+        - task: PublishBuildArtifacts@1
+          displayName: Upload XUnit Logs
+          condition: always()
+          continueOnError: true
+          inputs:
+            pathtoPublish: artifacts/log/$(_BuildConfig)/
+            artifactName: $(Agent.Os)_$(Agent.JobName) TestLogs
+            artifactType: Container
+            parallel: true
         # - task: PublishTestResults@2
         #   displayName: Publish VSCode Test Results
         #   inputs:
