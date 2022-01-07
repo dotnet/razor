@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             classifier.ClassificationChanged += Classifier_ClassificationChanged;
 
             // Check that we're not ALREADY changed
-            if (await HasClassificationAsync(cancellationToken))
+            if (HasClassification(classifier, textView, expectedClassification, count))
             {
                 semaphore.Release();
                 classifier.ClassificationChanged -= Classifier_ClassificationChanged;
@@ -49,19 +49,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 classifier.ClassificationChanged -= Classifier_ClassificationChanged;
             }
 
-            async void Classifier_ClassificationChanged(object sender, ClassificationChangedEventArgs e)
+            void Classifier_ClassificationChanged(object sender, ClassificationChangedEventArgs e)
             {
-                var classifications = await GetClassificationsAsync(cancellationToken);
+                var classifications = GetClassifications(classifier, textView);
 
-                if (await HasClassificationAsync(cancellationToken))
+                if (HasClassification(classifier, textView, expectedClassification, count))
                 {
                     semaphore.Release();
                 }
             }
 
-            async Task<bool> HasClassificationAsync(CancellationToken cancellationToken)
+            static bool HasClassification(IClassifier classifier, ITextView textView, string expectedClassification, int count)
             {
-                var classifications = await GetClassificationsAsync(cancellationToken);
+                var classifications = GetClassifications(classifier, textView);
                 return classifications.Where(
                     c => c.ClassificationType.BaseTypes.Any(bT => bT is ILayeredClassificationType layered &&
                         layered.Layer == ClassificationLayer.Semantic &&
@@ -115,17 +115,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task<IEnumerable<ClassificationSpan>> GetClassificationsAsync(CancellationToken cancellationToken)
         {
-            await WaitForProjectReadyAsync(cancellationToken);
-            var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-
-            var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
-            Assert.Equal(0, selectionSpan.Length);
-            if (selectionSpan.Length == 0)
-            {
-                selectionSpan = new SnapshotSpan(textView.TextSnapshot, new Span(0, textView.TextSnapshot.Length));
-            }
-
+            var textView = await GetActiveTextViewAsync(cancellationToken);
             var classifier = await GetClassifierAsync(textView, cancellationToken);
+            return GetClassifications(classifier, textView);
+        }
+
+        private static IEnumerable<ClassificationSpan> GetClassifications(IClassifier classifier, ITextView textView)
+        {
+            var selectionSpan = new SnapshotSpan(textView.TextSnapshot, new Span(0, textView.TextSnapshot.Length));
+
             var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
             return classifiedSpans;
         }
