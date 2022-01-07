@@ -396,7 +396,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions) - 1, 0);
                 completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
-            else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
+            //if all completion items are properties then completion is requested inside initializer syntax and we don't need to add snippets
+            else if (IsWordOnEmptyLine(wordExtent, documentSnapshot) && !IsForPropertyInitializer(completionList))
             {
                 var baseIndentation = GetBaseIndentation(wordExtent, formattingOptions);
                 completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
@@ -405,6 +406,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             completionList = RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);
 
             return completionList;
+        }
+
+        private static bool IsForPropertyInitializer(CompletionList completionList)
+        {
+            for (var i = 0; i < completionList.Items.Length; i++)
+            {
+                if (completionList.Items[i].Kind != CompletionItemKind.Property)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static CompletionList IncludeCSharpSnippets(int baseIndentation, CompletionList completionList, FormattingOptions formattingOptions)
@@ -893,7 +907,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private bool IsWordOnEmptyLine(TextExtent? wordExtent, LSPDocumentSnapshot documentSnapshot)
+        private static bool IsWordOnEmptyLine(TextExtent? wordExtent, LSPDocumentSnapshot documentSnapshot)
         {
             if (wordExtent is null)
             {
