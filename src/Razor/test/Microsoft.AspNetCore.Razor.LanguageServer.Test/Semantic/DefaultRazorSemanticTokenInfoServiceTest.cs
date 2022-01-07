@@ -813,25 +813,6 @@ slf*@";
             Assert.NotEqual(previousResultId, newResultId);
         }
 
-        [Fact]
-        public async Task GetSemanticTokens_CSharp_TryGetMinimalCSharpRange()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
-            var (documentSnapshots, _) = CreateDocumentSnapshot(new string[] { txt }, new bool[] { false }, DefaultTagHelpers);
-
-            var snapshot = documentSnapshots.Dequeue();
-            var csharpDoc = await snapshot.GetGeneratedOutputAsync();
-            DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(csharpDoc, out var actualRange);
-
-            var expectedRange = new Range
-            {
-                Start = new Position(line: 12, character: 38),
-                End = new Position(line: 29, character: 11)
-            };
-
-            Assert.Equal(expectedRange, actualRange);
-        }
-
         private Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
             string txt,
             bool isRazor,
@@ -877,7 +858,7 @@ slf*@";
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
 
             // Act
-            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, location, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensRangeAsync(textDocumentIdentifier, location, CancellationToken.None);
 
             // Assert
             AssertSemanticTokensMatchesBaseline(tokens?.Data);
