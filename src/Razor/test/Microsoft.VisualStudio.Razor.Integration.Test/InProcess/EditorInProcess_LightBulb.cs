@@ -34,6 +34,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return lightbulbs;
         }
 
+        public async Task InvokeCodeActionAsync(ISuggestedAction codeAction, CancellationToken cancellationToken)
+        {
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
+
+            codeAction.Invoke(cancellationToken);
+
+            // ISuggestedAction.Invoke does not dismiss the session, so we must do it manually
+            broker.DismissSession(view);
+        }
+
         public async Task<bool> IsLightBulbSessionExpandedAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
