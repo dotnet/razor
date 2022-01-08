@@ -85,65 +85,43 @@ repository:
 
 # ----------  HTML ------------
 
+  # We can't capture the full context of a tag (e.g. <div>...</div>) because we can't tell
+  # solely using line-based regexes whether the starting tag is a self-closing tag.
+  # For example, consider:
+  # <SurveyPrompt
+  #   Title="Title"
+  # />
+  # So rather than trying to do the impossible, we'll just match tags individually
+  # and recursively include the grammar to capture everything in between.
+  # We also can't simply include text.html.basic#tags-valid because of the tag helper opt-out.
   wellformed-html:
     patterns:
-      - include: '#void-tag'
-      - include: '#balanced-open-close-tag'
-
-  void-tag:
-    name: 'meta.tag.structure.$3.void.html'
-    begin: '(?i)(<)(!?)(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)(?=\s|/?>)'
-    beginCaptures:
-      1: { name: 'punctuation.definition.tag.begin.html'}
-      2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
-      3: { name: 'entity.name.tag.html' }
-    patterns:
-      - include: 'text.html.basic#attribute'
-    end: '/?>'
-    endCaptures:
-      0: { name: 'punctuation.definition.tag.end.html' }
-
-  balanced-open-close-tag:
-    begin: (?=<([^/\s>]+))
-    patterns:
-      - include: '#balanced-open-close-tag-start'
-      - include: '#balanced-open-close-tag-end'
-      - include: '#balanced-open-close-tag-body'
-    end: (?<=(</\1>))|(/>)
-
-  balanced-open-close-tag-start:
-    begin: '(<)(?!(/))([^/\s>]+)'
-    beginCaptures:
-      1: { name: 'punctuation.definition.tag.begin.html'}
-      2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
-      3: { name: 'entity.name.tag.html' }
-    patterns:
-      - include: '#balanced-open-close-tag-attributes'
-    end: '/?>'
-    endCaptures:
-      0: { name: 'punctuation.definition.tag.end.html' }
-
-  balanced-open-close-tag-attributes:
-    begin: '(?=\s)'
-    patterns:
-      - include: '#razor-control-structures'
-      - include: 'text.html.basic#attribute'
-    end: '(?=/?>)'
-
-  balanced-open-close-tag-body:
-    begin: '(?<=([^/])>)'
-    patterns:
-      - include: '#wellformed-html'
+      - include: '#start-tag'
+      - include: '#end-tag'
       - include: '$self'
-    end: '(?=\</)'
 
-  balanced-open-close-tag-end:
-    match: '(</)(!?)([^/\s>]+)\s*(>)'
-    captures:
-      1: { name: 'punctuation.definition.tag.begin.html' }
+  start-tag:
+    name: 'meta.tag.start.html'
+    begin: '(?i)(<)(!)?([^/\\s>]+)(?=\\s|/?>)'
+    beginCaptures:
+      1: { name: 'punctuation.definition.tag.begin.html'}
       2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
       3: { name: 'entity.name.tag.html' }
-      4: { name: 'punctuation.definition.tag.end.html' }
+    patterns:
+      - include: 'text.html.basic#attribute'
+    end: '/?>'
+    endCaptures:
+      0: { name: 'punctuation.definition.tag.end.html' }
+
+  end-tag:
+    name: 'meta.tag.end.html'
+    begin: '(?i)(</)([^/\\s>]+)(?=\\s|>)'
+    beginCaptures:
+      1: { name: 'punctuation.definition.tag.begin.html'}
+      2: { name: 'entity.name.tag.html' }
+    end: '>'
+    endCaptures:
+      0: { name: 'punctuation.definition.tag.end.html' }
 
 # ----------  Explicit Expression ------------
 
