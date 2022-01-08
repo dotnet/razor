@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Razor.Integration.Test.InProcess;
 
 namespace Microsoft.VisualStudio.Razor.Integration.Test
 {
