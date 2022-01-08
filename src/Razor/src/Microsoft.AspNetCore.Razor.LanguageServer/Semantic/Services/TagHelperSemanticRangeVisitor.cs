@@ -254,10 +254,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             Visit(node.NamePrefix);
 
-            if (node.TagHelperAttributeInfo.Bound)
+            if (node.TagHelperAttributeInfo.AttributeStructure == AttributeStructure.Minimized)
             {
-                var semanticKind = GetAttributeSemanticKind(node);
-                AddSemanticRange(node.Name, semanticKind);
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
             }
         }
 
