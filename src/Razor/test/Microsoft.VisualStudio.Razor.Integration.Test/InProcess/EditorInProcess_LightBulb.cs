@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task InvokeCodeActionAsync(ISuggestedAction codeAction, CancellationToken cancellationToken)
         {
             var view = await GetActiveTextViewAsync(cancellationToken);
-            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
 
             codeAction.Invoke(cancellationToken);
 
             // ISuggestedAction.Invoke does not dismiss the session, so we must do it manually
+            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
             broker.DismissSession(view);
         }
 

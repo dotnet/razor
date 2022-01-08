@@ -26,10 +26,12 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 
             // Assert
             var codeActionSet = Assert.Single(codeActions);
-            var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals($"@using {BlazorProjectName}.Shared"));
+            var usingString = $"@using {BlazorProjectName}.Shared";
+            var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals(usingString));
 
             await TestServices.Editor.InvokeCodeActionAsync(codeAction, HangMitigatingCancellationToken);
-            // TODO: verify the results
+
+            await TestServices.Editor.VerifyTextContainsAsync(usingString, HangMitigatingCancellationToken);
         }
     }
 }
