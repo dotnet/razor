@@ -4,8 +4,6 @@
 ## Setup
 ```bash
 yarn install
-
-npm i -g jest
 ```
 
 **Note:** There are [known issues](https://github.com/nodejs/node-gyp/blob/master/macOS_Catalina.md) with MacOS Catalina for certain dependencies. Windows works well.
@@ -15,12 +13,6 @@ npm i -g jest
 [Jest Snapshot Tests](https://jestjs.io/docs/en/snapshot-testing) are utilized to test out the TextMate grammar in VS Code. As the name suggests, snapshot tests store a serialized _snapshot_ of the tokenized and parsed result of the grammar on a particular test string.
 
 ### Running Snapshot Tests
-```bash
-jest
-```
-
-or
-
 ```bash
 yarn test
 ```
@@ -36,7 +28,7 @@ yarn test
 ### Adding a Test Suite
 1. Add new test suite file in `./tests` (you can copy an existing test suite as a template).
 2. Update `./tests/GrammarTests.test.ts` with the new test suite.
-3. Run `jest --updateSnapshot`
+3. Run `yarn test --updateSnapshot`
 
 ### Adding / Updating a Test in an Existing Test Suite
 1. Ensure the grammar is functioning as expected visually using a test string within a `.cshtml` / `.razor` file.
@@ -46,5 +38,5 @@ it('[Test Name]', async () => {
     await assertMatchesSnapshot('[Test String]');
 });
 ```
-3.  Run `jest --updateSnapshot` to serialize the tokensized and parsed representation of the test string. This frozen state will be treated as the "source of truth" for future executions of the test suite, in order to identify regressions.
+3.  Run `yarn test --updateSnapshot` to serialize the tokensized and parsed representation of the test string. This frozen state will be treated as the "source of truth" for future executions of the test suite, in order to identify regressions.
 4. Ensure the `./tests/__snapshots__/GrammarTests.test.ts.snap` file is commited with your changes.
