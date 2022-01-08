@@ -253,11 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
         {
             Visit(node.NamePrefix);
-
-            if (node.TagHelperAttributeInfo.AttributeStructure == AttributeStructure.Minimized)
-            {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
-            }
+            AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
         }
 
         public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
