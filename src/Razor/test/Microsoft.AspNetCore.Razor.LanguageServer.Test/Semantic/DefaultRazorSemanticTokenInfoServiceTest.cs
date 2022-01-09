@@ -448,7 +448,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(txt, isRazor: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/5945")]
+        [Fact]
         public async Task GetSemanticTokens_MinimizedAttributeAsync()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val></test1> ";
