@@ -27,12 +27,26 @@ export class TelemetryReporter {
         this.eventStream.post(traceLevelEvent);
     }
 
-    public reportErrorOnServerStart(error: Error) {
-        this.reportError('VSCode.Razor.ErrorOnServerStart', error);
+    public reportErrorOnServerStart(error: unknown) {
+        let realError;
+        if (error instanceof Error) {
+            realError = error;
+        } else {
+            realError = Error(String(error));
+        }
+
+        this.reportError('VSCode.Razor.ErrorOnServerStart', realError);
     }
 
-    public reportErrorOnActivation(error: Error) {
-        this.reportError('VSCode.Razor.ErrorOnActivation', error);
+    public reportErrorOnActivation(error: unknown) {
+        let realError;
+        if (error instanceof Error) {
+            realError = error;
+        } else {
+            realError = Error(String(error));
+        }
+
+        this.reportError('VSCode.Razor.ErrorOnActivation', realError);
     }
 
     public reportDebugLanguageServer() {

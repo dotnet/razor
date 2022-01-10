@@ -52,13 +52,13 @@ export class RazorLogger implements vscode.Disposable {
         this.logAlways(warningPrefixedMessage);
     }
 
-    public logError(message: string, error: Error) {
-        // Always log errors
-        const errorPrefixedMessage = `(Error) ${message}
-${error.message}
-Stack Trace:
-${error.stack}`;
-        this.logAlways(errorPrefixedMessage);
+    public logError(message: string, error: unknown) {
+        if (error instanceof Error) {
+            this.logErrorInternal(message, error);
+        } else {
+            const errorMsg = String(error);
+            this.logErrorInternal(message, Error(errorMsg));
+        }
     }
 
     public logMessage(message: string) {
@@ -75,6 +75,15 @@ ${error.stack}`;
 
     public dispose() {
         this.outputChannel.dispose();
+    }
+
+    private logErrorInternal(message: string, error: Error) {
+        // Always log errors
+        const errorPrefixedMessage = `(Error) ${message}
+${error.message}
+Stack Trace:
+${error.stack}`;
+        this.logAlways(errorPrefixedMessage);
     }
 
     private logWithMarker(message: string) {

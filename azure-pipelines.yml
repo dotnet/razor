@@ -66,7 +66,7 @@ stages:
               demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
             ${{ if ne(variables['System.TeamProject'], 'public') }}:
               name: NetCore1ESPool-Internal
-              demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre
+              demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Main
           steps:
           - task: NodeTool@0
             displayName: Install Node 10.x
@@ -108,10 +108,10 @@ stages:
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Public
-            demands: ImageOverride -equals build.windows.10.amd64.vs2019.pre.open
+            demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Internal
-            demands: ImageOverride -equals build.windows.10.amd64.vs2019.pre
+            demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre
         strategy:
           matrix:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -141,6 +141,7 @@ stages:
         - _DotNetPublishToBlobFeed : false
         - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
         - _BuildArgs: ''
+        - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\Debug'
 
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
