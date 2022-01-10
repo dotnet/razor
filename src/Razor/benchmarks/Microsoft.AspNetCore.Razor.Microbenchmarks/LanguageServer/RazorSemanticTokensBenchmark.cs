@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 End = new Position
                 {
                     Line = text.Lines.Count - 1,
-                    Character = text.Lines.Last().Span.Length
+                    Character = text.Lines.Last().Span.Length - 1
                 }
             };
         }

@@ -564,7 +564,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         public async Task GetSemanticTokens_Razor_CommentAsync()
         {
             var txt = $"@* A comment *@";
-            ;
+
             await AssertSemanticTokensAsync(txt, isRazor: true);
         }
 
