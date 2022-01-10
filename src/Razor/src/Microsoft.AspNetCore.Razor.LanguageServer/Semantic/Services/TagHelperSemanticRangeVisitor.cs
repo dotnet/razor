@@ -259,6 +259,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var semanticKind = GetAttributeSemanticKind(node);
                 AddSemanticRange(node.Name, semanticKind);
             }
+            else
+            {
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
+            }
         }
 
         public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
