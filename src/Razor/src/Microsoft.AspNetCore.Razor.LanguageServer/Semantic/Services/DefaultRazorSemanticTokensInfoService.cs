@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -32,11 +31,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
-
-        // Maps (docURI -> (resultId -> tokens)). We cache per-doc instead of storing all tokens
-        // in one giant cache to improve colorization speeds when working with multiple files.
-        private const int MaxCachesPerDoc = 6;
-        private readonly MemoryCache<DocumentUri, MemoryCache<string, VersionedSemanticTokens>> _razorDocTokensCache = new();
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -79,13 +73,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var (documentSnapshot, documentVersion) = documentInfo.Value;
 
-            var tokens = await GetSemanticTokensAsync(textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
-
+            var tokens = await GetSemanticTokensRangeAsync(textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
             return tokens;
         }
 
         // Internal for testing
-        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
+        internal async Task<SemanticTokens?> GetSemanticTokensRangeAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             DocumentSnapshot documentSnapshot,
             int documentVersion,
@@ -102,11 +95,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
             IReadOnlyList<SemanticRange>? csharpSemanticRanges = null;
             string? newResultId = null;
-            var isFinalizedCSharp = false;
 
             try
             {
-                (csharpSemanticRanges, isFinalizedCSharp) = await GetCSharpSemanticRangesAsync(
+                csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
                     codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken);
             }
             catch (Exception ex)
@@ -124,8 +116,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
-
             if (newResultId is null)
             {
                 // If there's no C# in the Razor doc, we won't have a resultId returned to us.
@@ -134,27 +124,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(
-                combinedSemanticRanges, codeDocument, newResultId, isFinalizedCSharp);
-            UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, razorSemanticTokens);
+                combinedSemanticRanges, codeDocument, newResultId);
 
             return new SemanticTokens { ResultId = razorSemanticTokens.ResultId, Data = razorSemanticTokens.Data.ToImmutableArray() };
-        }
-
-        private void UpdateRazorDocCache(
-            DocumentUri documentUri,
-            VersionStamp semanticVersion,
-            string newResultId,
-            SemanticTokensResponse newTokens)
-        {
-            // Update the tokens cache associated with the given Razor doc. If the doc has no
-            // associated cache, we will create one.
-            if (!_razorDocTokensCache.TryGetValue(documentUri, out var documentCache))
-            {
-                documentCache = new MemoryCache<string, VersionedSemanticTokens>(sizeLimit: MaxCachesPerDoc);
-                _razorDocTokensCache.Set(documentUri, documentCache);
-            }
-
-            documentCache.Set(newResultId, new VersionedSemanticTokens(semanticVersion, newTokens.Data, newTokens.IsFinalizedCSharp));
         }
 
         private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
@@ -194,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal and virtual for testing only
-        internal virtual async Task<VersionedSemanticRange> GetCSharpSemanticRangesAsync(
+        internal virtual async Task<IReadOnlyList<SemanticRange>?> GetCSharpSemanticRangesAsync(
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
@@ -206,16 +178,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, range, out var csharpRange))
             {
-                return new VersionedSemanticRange(razorRanges, IsFinalizedCSharp: true);
+                return new List<SemanticRange>(razorRanges);
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
 
             // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
-            // Unrecoverable, return null to indicate no change. It will retry in a bit.
+            // Unrecoverable, return empty list to indicate no change. It will retry in a bit.
             if (csharpResponse is null)
             {
-                return VersionedSemanticRange.Default;
+                return null;
             }
 
             SemanticRange? previousSemanticRange = null;
@@ -242,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var result = razorRanges.ToImmutableList();
-            return new VersionedSemanticRange(result, csharpResponse.IsFinalizedCSharp);
+            return new List<SemanticRange>(result);
         }
 
         private async Task<SemanticTokensResponse?> GetMatchingCSharpResponseAsync(
@@ -267,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // C# doesn't return resultIds so we can return null here.
-            return new SemanticTokensResponse(ResultId: null, csharpResponse.Tokens ?? Array.Empty<int>(), csharpResponse.IsFinalized);
+            return new SemanticTokensResponse(ResultId: null, csharpResponse.Tokens ?? Array.Empty<int>());
         }
 
         private static SemanticRange DataToSemanticRange(
@@ -301,8 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private static SemanticTokensResponse ConvertSemanticRangesToSemanticTokens(
             IReadOnlyList<SemanticRange> semanticRanges,
             RazorCodeDocument razorCodeDocument,
-            string? resultId,
-            bool isFinalizedCSharp)
+            string? resultId)
         {
             SemanticRange? previousResult = null;
 
@@ -315,16 +286,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 previousResult = result;
             }
 
-            var tokensResult = new SemanticTokensResponse(resultId, data.ToArray(), isFinalizedCSharp);
+            var tokensResult = new SemanticTokensResponse(resultId, data.ToArray());
             return tokensResult;
-        }
-
-        private static async Task<VersionStamp> GetDocumentSemanticVersionAsync(DocumentSnapshot documentSnapshot)
-        {
-            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
-            var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
-
-            return semanticVersion;
         }
 
         /**
@@ -388,17 +351,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal for testing
-        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, bool IsFinalizedCSharp)
+        internal record SemanticTokensResponse(string? ResultId, int[] Data)
         {
-            public static VersionedSemanticRange Default => new(null, false);
-        }
-
-        private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens, bool IsFinalizedCSharp);
-
-        // Internal for testing
-        internal record SemanticTokensResponse(string? ResultId, int[] Data, bool IsFinalizedCSharp)
-        {
-            public static SemanticTokensResponse Default => new(null, Array.Empty<int>(), false);
+            public static SemanticTokensResponse Default => new(null, Array.Empty<int>());
         }
     }
 }
