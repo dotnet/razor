@@ -11,12 +11,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     public class DefaultProjectConfigurationFilePathStoreTest
     {
         [Fact]
+        public void Set_ResolvesRelativePaths()
+        {
+            // Arrange
+            var store = new DefaultProjectConfigurationFilePathStore();
+            var projectFilePath = @"C:\project.csproj";
+            var configurationFilePath = @"C:\project\subpath\..\obj\project.razor.json";
+            var called = false;
+            store.Changed += (sender, args) =>
+            {
+                called = true;
+                Assert.Equal(projectFilePath, args.ProjectFilePath);
+                Assert.Equal(@"C:\project\obj\project.razor.json", args.ConfigurationFilePath);
+            };
+
+            // Act
+            store.Set(projectFilePath, configurationFilePath);
+
+            // Assert
+            Assert.True(called);
+        }
+
+        [Fact]
         public void Set_InvokesChanged()
         {
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
-            var projectFilePath = "C:/project.csproj";
-            var configurationFilePath = "C:/project/obj/project.razor.json";
+            var projectFilePath = @"C:\project.csproj";
+            var configurationFilePath = @"C:\project\obj\project.razor.json";
             var called = false;
             store.Changed += (sender, args) =>
             {
@@ -37,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
-            var projectFilePath = "C:/project.csproj";
-            var configurationFilePath = "C:/project/obj/project.razor.json";
+            var projectFilePath = @"C:\project.csproj";
+            var configurationFilePath = @"C:\project\obj\project.razor.json";
             store.Set(projectFilePath, configurationFilePath);
             var called = false;
             store.Changed += (sender, args) => called = true;
@@ -55,8 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
-            var projectFilePath = "C:/project.csproj";
-            var expectedConfigurationFilePath = "C:/project/obj/project.razor.json";
+            var projectFilePath = @"C:\project.csproj";
+            var expectedConfigurationFilePath = @"C:\project\obj\project.razor.json";
             store.Set(projectFilePath, expectedConfigurationFilePath);
 
             // Act
@@ -72,11 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
-            var projectFilePath = "C:/project.csproj";
-            var expectedConfigurationFilePath = "C:/project/obj/project.razor.json";
+            var projectFilePath = @"C:\project.csproj";
+            var expectedConfigurationFilePath = @"C:\project\obj\project.razor.json";
 
             // Act
-            store.Set(projectFilePath, "C:/other/obj/project.razor.json");
+            store.Set(projectFilePath, @"C:\other\obj\project.razor.json");
             store.Set(projectFilePath, expectedConfigurationFilePath);
 
             // Assert
@@ -93,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Act
             var mappings = store.GetMappings();
-            store.Set("C:/project.csproj", "C:/project/obj/project.razor.json");
+            store.Set(@"C:\project.csproj", @"C:\project\obj\project.razor.json");
 
             // Assert
             Assert.Empty(mappings);
@@ -106,8 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var store = new DefaultProjectConfigurationFilePathStore();
             var expectedMappings = new Dictionary<string, string>()
             {
-                ["C:/project1.csproj"] = "C:/project1/obj/project.razor.json",
-                ["C:/project2.csproj"] = "C:/project2/obj/project.razor.json"
+                [@"C:\project1.csproj"] = @"C:\project1\obj\project.razor.json",
+                [@"C:\project2.csproj"] = @"C:\project2\obj\project.razor.json"
             };
             foreach (var mapping in expectedMappings)
             {
@@ -126,8 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
-            var projectFilePath = "C:/project.csproj";
-            store.Set(projectFilePath, "C:/project/obj/project.razor.json");
+            var projectFilePath = @"C:\project.csproj";
+            store.Set(projectFilePath, @"C:\project\obj\project.razor.json");
             var called = false;
             store.Changed += (sender, args) =>
             {
@@ -152,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             store.Changed += (sender, args) => called = true;
 
             // Act
-            store.Remove("C:/project.csproj");
+            store.Remove(@"C:\project.csproj");
 
             // Assert
             Assert.False(called);
@@ -163,8 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
-            var projectFilePath = "C:/project.csproj";
-            store.Set(projectFilePath, "C:/project/obj/project.razor.json");
+            var projectFilePath = @"C:\project.csproj";
+            store.Set(projectFilePath, @"C:\project\obj\project.razor.json");
 
             // Act
             store.Remove(projectFilePath);

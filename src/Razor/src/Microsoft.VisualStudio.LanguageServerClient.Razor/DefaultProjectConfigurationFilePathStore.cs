@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.IO;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -41,6 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             lock (_mappingsLock)
             {
+                // Resolve any relative pathing in the configuration path so we can talk in absolutes
+                configurationFilePath = Path.GetFullPath(configurationFilePath);
+
                 if (_mappings.TryGetValue(projectFilePath, out var existingConfigurationFilePath) &&
                     FilePathComparer.Instance.Equals(configurationFilePath, existingConfigurationFilePath))
                 {
