@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -32,9 +33,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
 
-        // Caches the last few responses we send back to the client so we can avoid recomputation.
-        private const int MaxCacheSize = 5;
-        private readonly List<SemanticTokensResponse> _cachedResponses = new();
+        // Caches the last response per-document to potentially save on computation costs.
+        private readonly MemoryCache<DocumentUri, SemanticTokensCacheResponse> _cachedResponses = new();
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
 
-        public override async Task<SemanticTokens?> GetSemanticTokensRangeAsync(
+        public override async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
             CancellationToken cancellationToken)
@@ -77,24 +77,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var (documentSnapshot, documentVersion) = documentInfo.Value;
 
-            // If we have a cached response, avoid computation and return early.
-            foreach (var response in _cachedResponses)
+            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
+
+            // If we have a matching cached response, avoid computation and return early.
+            if (_cachedResponses.TryGetValue(textDocumentIdentifier.Uri, out var response) &&
+                response.SemanticVersion == semanticVersion &&
+                response.Range == range)
             {
-                if (documentVersion == response.DocumentVersion && range.Equals(response.Range))
-                {
-                    return response.SemanticTokens;
-                }
+                return response.SemanticTokens;
             }
 
-            var tokens = await GetSemanticTokensRangeAsync(textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
+            var tokens = await GetSemanticTokensAsync(
+                textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion, range, cancellationToken);
             return tokens;
         }
 
+        private static async Task<VersionStamp> GetDocumentSemanticVersionAsync(DocumentSnapshot documentSnapshot)
+        {
+            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
+            var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
+
+            return semanticVersion;
+        }
+
         // Internal for testing
-        internal async Task<SemanticTokens?> GetSemanticTokensRangeAsync(
+        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             DocumentSnapshot documentSnapshot,
             int documentVersion,
+            VersionStamp semanticVersion,
             Range range,
             CancellationToken cancellationToken)
         {
@@ -131,14 +142,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var data = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
             var tokens = new SemanticTokens { Data = data.ToImmutableArray() };
 
-            var semanticTokensResponse = new SemanticTokensResponse(documentVersion, range, tokens);
-
             // Cache the result so we can potentially avoid recomputation next time around.
-            _cachedResponses.Add(semanticTokensResponse);
-            if (_cachedResponses.Count > MaxCacheSize)
-            {
-                _cachedResponses.RemoveAt(0);
-            }
+            var cacheResponse = new SemanticTokensCacheResponse(semanticVersion, range, tokens);
+            _cachedResponses.Set(textDocumentIdentifier.Uri, cacheResponse);
 
             return tokens;
         }
@@ -183,14 +189,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         internal virtual async Task<IReadOnlyList<SemanticRange>?> GetCSharpSemanticRangesAsync(
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
-            Range range,
+            Range razorRange,
             long documentVersion,
             CancellationToken cancellationToken,
             string? previousResultId = null)
         {
             var razorRanges = new List<SemanticRange>();
 
-            if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, range, out var csharpRange))
+            if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange))
             {
                 return new List<SemanticRange>(razorRanges);
             }
@@ -217,10 +223,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
                 if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, semanticRange.Range, out var originalRange))
                 {
-                    var razorRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
-                    if (range is null || range.OverlapsWith(razorRange.Range))
+                    var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
+                    if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
                     {
-                        razorRanges.Add(razorRange);
+                        razorRanges.Add(razorSemanticRange);
                     }
                 }
 
@@ -361,6 +367,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }, cancellationToken);
         }
 
-        private record SemanticTokensResponse(int DocumentVersion, Range Range, SemanticTokens SemanticTokens);
+        private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens);
     }
 }

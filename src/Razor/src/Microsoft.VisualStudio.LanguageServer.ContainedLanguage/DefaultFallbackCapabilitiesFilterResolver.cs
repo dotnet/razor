@@ -60,6 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 case Methods.TextDocumentDocumentHighlightName:
                     return CheckHighlightCapabilities;
                 case "textDocument/semanticTokens":
+                case Methods.TextDocumentSemanticTokensFullName:
+                case Methods.TextDocumentSemanticTokensFullDeltaName:
                 case Methods.TextDocumentSemanticTokensRangeName:
                     return CheckSemanticTokensCapabilities;
                 case Methods.TextDocumentLinkedEditingRangeName:

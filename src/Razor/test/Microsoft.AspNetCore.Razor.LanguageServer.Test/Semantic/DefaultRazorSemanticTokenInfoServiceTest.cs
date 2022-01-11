@@ -640,7 +640,7 @@ slf*@";
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
 
             // Act
-            var tokens = await service.GetSemanticTokensRangeAsync(textDocumentIdentifier, range, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, CancellationToken.None);
 
             // Assert
             AssertSemanticTokensMatchesBaseline(tokens?.Data);

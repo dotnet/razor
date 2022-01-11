@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var semanticTokens = await _semanticTokensInfoService.GetSemanticTokensRangeAsync(request.TextDocument, request.Range, cancellationToken);
+            var semanticTokens = await _semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, cancellationToken);
             var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
             _logger.LogInformation($"Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.");
