@@ -131,6 +131,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
+            if (range.Start.Line >= sourceText.Lines.Count)
+            {
+                throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
+            }
+
+            if (range.End.Line >= sourceText.Lines.Count)
+            {
+                throw new ArgumentOutOfRangeException($"Range end line {range.End.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
+            }
+
             var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
             var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
 
