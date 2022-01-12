@@ -18,13 +18,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly List<SemanticRange> _semanticRanges;
         private readonly RazorCodeDocument _razorCodeDocument;
-        private readonly Range? _range;
 
-        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range? range, TextSpan? rangeAsTextSpan) : base(rangeAsTextSpan)
+        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, TextSpan? range) : base(range)
         {
             _semanticRanges = new List<SemanticRange>();
             _razorCodeDocument = razorCodeDocument;
-            _range = range;
         }
 
         public static IReadOnlyList<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range = null)
@@ -36,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 rangeAsTextSpan = range.AsRazorTextSpan(sourceText);
             }
 
-            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range, rangeAsTextSpan);
+            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, rangeAsTextSpan);
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
@@ -486,12 +484,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             void AddRange(SemanticRange semanticRange)
             {
-                if (_range is null || semanticRange.Range.OverlapsWith(_range))
+                if (semanticRange.Range.Start != semanticRange.Range.End)
                 {
-                    if (semanticRange.Range.Start != semanticRange.Range.End)
-                    {
-                        _semanticRanges.Add(semanticRange);
-                    }
+                    _semanticRanges.Add(semanticRange);
                 }
             }
         }

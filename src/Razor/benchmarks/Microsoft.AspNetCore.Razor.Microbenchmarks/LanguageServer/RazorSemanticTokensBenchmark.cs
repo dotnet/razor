@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -135,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             }
 
             // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
-            internal override Task<IReadOnlyList<SemanticRange>> GetCSharpSemanticRangesAsync(
+            internal override Task<SemanticRangeResponse> GetCSharpSemanticRangesAsync(
                 RazorCodeDocument codeDocument,
                 TextDocumentIdentifier textDocumentIdentifier,
                 Range range,
@@ -143,8 +141,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 CancellationToken cancellationToken,
                 string previousResultId = null)
             {
-                var result = Array.Empty<SemanticRange>();
-                return Task.FromResult<IReadOnlyList<SemanticRange>>(result);
+                var result = SemanticRangeResponse.Default;
+                return Task.FromResult(result);
             }
         }
     }
