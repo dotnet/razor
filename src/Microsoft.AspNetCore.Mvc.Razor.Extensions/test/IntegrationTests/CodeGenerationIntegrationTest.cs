@@ -24,7 +24,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             new[] { new AssemblyExtension("MVC-3.0", typeof(ExtensionInitializer).Assembly) });
     }
 
-    protected override CSharpCompilation BaseCompilation => DefaultBaseCompilation;
+    protected override CSharpCompilation BaseCompilation { get; set; } = DefaultBaseCompilation;
 
     protected override RazorConfiguration Configuration { get; }
 
@@ -688,6 +688,147 @@ public class FormTagHelper : {typeof(TagHelper).FullName}
 </body>
 </html>
 ", cssScope: "TestCssScope");
+
+        // Assert
+        var intermediate = generated.CodeDocument.GetDocumentIntermediateNode();
+        var csharp = generated.CodeDocument.GetCSharpDocument();
+        AssertDocumentNodeMatchesBaseline(intermediate);
+        AssertCSharpDocumentMatchesBaseline(csharp);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void RazorView_WithNonNullableModel_NullableContextEnabled()
+    {
+        // Arrange
+        BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(NullableContextOptions.Enable));
+
+        AddCSharpSyntaxTree(@"
+namespace TestNamespace;
+
+public class TestModel
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string? Address { get; set; }
+}");
+
+        // Act
+        // This test case attempts to use all syntaxes that might interact with auto-generated attributes
+        var generated = CompileToCSharp(@"
+@using TestNamespace
+@model TestModel
+
+<h1>@Model.Name</h1>
+
+<h2>@Model.Address</h2>");
+
+        // Assert
+        var intermediate = generated.CodeDocument.GetDocumentIntermediateNode();
+        var csharp = generated.CodeDocument.GetCSharpDocument();
+        AssertDocumentNodeMatchesBaseline(intermediate);
+        AssertCSharpDocumentMatchesBaseline(csharp);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void RazorView_WithNullableModel_NullableContextEnabled()
+    {
+        // Arrange
+        BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(NullableContextOptions.Enable));
+
+        AddCSharpSyntaxTree(@"
+namespace TestNamespace;
+
+public class TestModel
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string? Address { get; set; }
+}");
+
+        // Act
+        // This test case attempts to use all syntaxes that might interact with auto-generated attributes
+        var generated = CompileToCSharp(@"
+@using TestNamespace
+@model TestModel?
+
+<h1>@Model?.Name</h1>
+
+<h2>@Model?.Address</h2>");
+
+        // Assert
+        var intermediate = generated.CodeDocument.GetDocumentIntermediateNode();
+        var csharp = generated.CodeDocument.GetCSharpDocument();
+        AssertDocumentNodeMatchesBaseline(intermediate);
+        AssertCSharpDocumentMatchesBaseline(csharp);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void RazorView_WithNullableModel_NullableContextNotEnabled()
+    {
+        // Arrange
+        BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(NullableContextOptions.Disable));
+
+        AddCSharpSyntaxTree(@"
+namespace TestNamespace;
+
+public class TestModel
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string Address { get; set; }
+}");
+
+        // Act
+        // This test case attempts to use all syntaxes that might interact with auto-generated attributes
+        var generated = CompileToCSharp(@"
+@using TestNamespace
+@model TestModel?
+
+<h1>@Model?.Name</h1>
+
+<h2>@Model?.Address</h2>");
+
+        // Assert
+        var intermediate = generated.CodeDocument.GetDocumentIntermediateNode();
+        var csharp = generated.CodeDocument.GetCSharpDocument();
+        AssertDocumentNodeMatchesBaseline(intermediate);
+        AssertCSharpDocumentMatchesBaseline(csharp);
+        var compiledAssembly = CompileToAssembly(generated, throwOnFailure: false);
+        // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+        Assert.Contains("CS8669", compiledAssembly.Compilation.GetDiagnostics().Select(d => d.Id));
+    }
+
+    [Fact]
+    public void RazorView_WithNullableBaseType_NullableContexEnabled()
+    {
+        // Arrange
+        BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(NullableContextOptions.Enable));
+
+        AddCSharpSyntaxTree(@"
+namespace TestNamespace;
+using Microsoft.AspNetCore.Mvc.Razor;
+
+public abstract class MyBasePage<TModel> : RazorPage<TModel> where TModel : class? {}
+
+public class TestModel
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string? Address { get; set; }
+}");
+
+        // Act
+        // This test case attempts to use all syntaxes that might interact with auto-generated attributes
+        var generated = CompileToCSharp(@"
+@using TestNamespace
+@inherits MyBasePage<TestModel?>
+
+<h1>@Model?.Name</h1>
+
+<h2>@Model?.Address</h2>");
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentIntermediateNode();

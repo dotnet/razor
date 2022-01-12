@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -29,8 +29,10 @@ public class InjectTargetExtensionTest
 
         // Assert
         Assert.Equal(
+            "#nullable restore" + Environment.NewLine +
             "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]" + Environment.NewLine +
-            "public PropertyType PropertyName { get; private set; }" + Environment.NewLine,
+            "public PropertyType PropertyName { get; private set; } = default!;" + Environment.NewLine +
+            "#nullable disable" + Environment.NewLine,
             context.CodeWriter.GenerateCode());
     }
 
@@ -59,8 +61,10 @@ public class InjectTargetExtensionTest
         Assert.Equal(Environment.NewLine +
             "#nullable restore" + Environment.NewLine +
             "#line 2 \"test-path\"" + Environment.NewLine +
+            "#nullable restore" + Environment.NewLine +
             "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]" + Environment.NewLine +
-            "public PropertyType<ModelType> PropertyName { get; private set; }" + Environment.NewLine + Environment.NewLine +
+            "public PropertyType<ModelType> PropertyName { get; private set; } = default!;" + Environment.NewLine +
+            "#nullable disable" + Environment.NewLine + Environment.NewLine +
             "#line default" + Environment.NewLine +
             "#line hidden" + Environment.NewLine +
             "#nullable disable" + Environment.NewLine,

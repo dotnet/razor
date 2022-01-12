@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -398,8 +399,14 @@ internal static class CodeWriterExtensions
         string name,
         string baseType,
         IList<string> interfaces,
-        IList<(string name, string constraint)> typeParameters)
+        IList<TypeParameter> typeParameters,
+        bool useNullableContext = false)
     {
+        if (useNullableContext)
+        {
+            writer.WriteLine("#nullable restore");
+        }
+
         for (var i = 0; i < modifiers.Count; i++)
         {
             writer.Write(modifiers[i]);
@@ -412,7 +419,7 @@ internal static class CodeWriterExtensions
         if (typeParameters != null && typeParameters.Count > 0)
         {
             writer.Write("<");
-            writer.Write(string.Join(", ", typeParameters.Select(tp => tp.name)));
+            writer.Write(string.Join(", ", typeParameters.Select(tp => tp.ParameterName)));
             writer.Write(">");
         }
 
@@ -444,13 +451,18 @@ internal static class CodeWriterExtensions
         {
             for (var i = 0; i < typeParameters.Count; i++)
             {
-                var constraint = typeParameters[i].constraint;
+                var constraint = typeParameters[i].Constraints;
                 if (constraint != null)
                 {
                     writer.Write(constraint);
                     writer.WriteLine();
                 }
             }
+        }
+
+        if (useNullableContext)
+        {
+            writer.WriteLine("#nullable disable");
         }
 
         return new CSharpCodeWritingScope(writer);

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -12,6 +12,8 @@ public static class CommonAnnotations
     public static readonly object PrimaryMethod = "PrimaryMethod";
 
     public static readonly object PrimaryNamespace = "PrimaryNamespace";
+
+    public static readonly object NullableContext = "NullableContext";
 
     public static class DefaultTagHelperExtension
     {

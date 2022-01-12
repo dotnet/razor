@@ -33,8 +33,8 @@ public abstract class IntegrationTestBase
     {
         var referenceAssemblyRoots = new[]
         {
-                typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
-            };
+            typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
+        };
 
         var referenceAssemblies = referenceAssemblyRoots
             .SelectMany(assembly => assembly.GetReferencedAssemblies().Concat(new[] { assembly.GetName() }))
@@ -62,7 +62,7 @@ public abstract class IntegrationTestBase
     /// <summary>
     /// Gets the <see cref="CSharpCompilation"/> that will be used as the 'app' compilation.
     /// </summary>
-    protected virtual CSharpCompilation BaseCompilation => DefaultBaseCompilation;
+    protected virtual CSharpCompilation BaseCompilation { get; set; } = DefaultBaseCompilation;
 
     /// <summary>
     /// Gets the parse options applied when using <see cref="AddCSharpSyntaxTree(string, string)"/>.
@@ -227,7 +227,7 @@ public abstract class IntegrationTestBase
         var projectEngine = CreateProjectEngine(Configuration, references, ConfigureProjectEngine);
         var codeDocument = (designTime ?? DesignTime) ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
 
-        return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: CSharpCompilationOptions), codeDocument);
+        return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: compilation.Options), codeDocument);
     }
 
     protected CompiledAssembly CompileToAssembly(string text, string path = "test.cshtml", bool? designTime = null, bool throwOnFailure = true)
