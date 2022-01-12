@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             {
                 DocumentSelector = RazorDefaults.Selector,
                 ResolveProvider = true,
-                TriggerCharacters = new Container<string>("@", "<", ":"),
+                TriggerCharacters = new Container<string>("@", "<", ":", "_"),
 
                 // NOTE: This property is *NOT* processed in O# versions < 0.16
                 // https://github.com/OmniSharp/csharp-language-server-protocol/blame/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Server/Capabilities/CompletionOptions.cs#L35-L44
