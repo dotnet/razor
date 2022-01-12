@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
 
             var length = end - start;
-            if (length <= 0)
+            if (length < 0)
             {
                 throw new ArgumentOutOfRangeException($"{range} resolved to zero or negative length.");
             }
@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
 
             var length = end - start;
-            if (length <= 0)
+            if (length < 0)
             {
                 throw new ArgumentOutOfRangeException($"{range} resolved to zero or negative length.");
             }
