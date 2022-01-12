@@ -92,8 +92,8 @@ internal class DefaultDocumentWriter : DocumentWriter
                 {
                     var supportedAlgorithms = string.Join(" ", new string[]
                     {
-                            HashAlgorithmName.SHA1.Name,
-                            HashAlgorithmName.SHA256.Name
+                        HashAlgorithmName.SHA1.Name,
+                        HashAlgorithmName.SHA256.Name
                     });
 
                     var message = Resources.FormatUnsupportedChecksumAlgorithm(
@@ -150,7 +150,8 @@ internal class DefaultDocumentWriter : DocumentWriter
                 node.ClassName,
                 node.BaseType,
                 node.Interfaces,
-                node.TypeParameters.Select(p => (p.ParameterName, p.Constraints)).ToArray()))
+                node.TypeParameters,
+                useNullableContext: !Context.Options.SuppressNullabilityEnforcement && node.Annotations[CommonAnnotations.NullableContext] is not null))
             {
                 VisitDefault(node);
             }

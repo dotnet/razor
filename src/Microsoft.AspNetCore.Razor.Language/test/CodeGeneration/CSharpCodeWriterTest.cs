@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -373,7 +374,7 @@ public class CSharpCodeWriterTest
         var writer = new CodeWriter(Environment.NewLine, options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<(string, string)>());
+        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>());
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
@@ -394,7 +395,7 @@ public class CSharpCodeWriterTest
         var writer = new CodeWriter(Environment.NewLine, options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<(string, string)>());
+        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>());
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
