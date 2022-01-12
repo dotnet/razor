@@ -167,19 +167,16 @@
     "wellformed-html": {
       "patterns": [
         {
-          "include": "#start-tag"
+          "include": "#void-tag"
         },
         {
-          "include": "#end-tag"
-        },
-        {
-          "include": "$self"
+          "include": "#non-void-tag"
         }
       ]
     },
-    "start-tag": {
-      "name": "meta.tag.start.html",
-      "begin": "(?i)(<)(!)?([^/\\\\s>]+)(?=\\\\s|/?>)",
+    "void-tag": {
+      "name": "meta.tag.structure.$3.void.html",
+      "begin": "(?i)(<)(!)?(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)(?=\\s|/?>)",
       "beginCaptures": {
         "1": {
           "name": "punctuation.definition.tag.begin.html"
@@ -203,23 +200,65 @@
         }
       }
     },
-    "end-tag": {
-      "name": "meta.tag.end.html",
-      "begin": "(?i)(</)([^/\\\\s>]+)(?=\\\\s|>)",
-      "beginCaptures": {
+    "non-void-tag": {
+      "begin": "(?=<(!)?[^/\\s>]+(\\s|/?>))",
+      "end": "(/>)|(</)([^/\\s>]+)\\s*(>)",
+      "endCaptures": {
         "1": {
-          "name": "punctuation.definition.tag.begin.html"
+          "name": "punctuation.definition.tag.end.html"
         },
         "2": {
+          "name": "punctuation.definition.tag.begin.html"
+        },
+        "3": {
           "name": "entity.name.tag.html"
-        }
-      },
-      "end": ">",
-      "endCaptures": {
-        "0": {
+        },
+        "4": {
           "name": "punctuation.definition.tag.end.html"
         }
-      }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(!)?([^/\\s>]+)(?=\\s|/?>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.html"
+            },
+            "2": {
+              "name": "constant.character.escape.razor.tagHelperOptOut"
+            },
+            "3": {
+              "name": "entity.name.tag.html"
+            }
+          },
+          "end": "(?=/?>)",
+          "patterns": [
+            {
+              "include": "#razor-control-structures"
+            },
+            {
+              "include": "text.html.basic#attribute"
+            }
+          ]
+        },
+        {
+          "begin": ">",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.tag.end.html"
+            }
+          },
+          "end": "(?=</)",
+          "patterns": [
+            {
+              "include": "#wellformed-html"
+            },
+            {
+              "include": "$self"
+            }
+          ]
+        }
+      ]
     },
     "explicit-razor-expression": {
       "name": "meta.expression.explicit.cshtml",

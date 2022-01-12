@@ -85,24 +85,16 @@ repository:
 
 # ----------  HTML ------------
 
-  # We can't capture the full context of a tag (e.g. <div>...</div>) because we can't tell
-  # solely using line-based regexes whether the starting tag is a self-closing tag.
-  # For example, consider:
-  # <SurveyPrompt
-  #   Title="Title"
-  # />
-  # So rather than trying to do the impossible, we'll just match tags individually
-  # and recursively include the grammar to capture everything in between.
-  # We also can't simply include text.html.basic#tags-valid because of the tag helper opt-out.
   wellformed-html:
     patterns:
-      - include: '#start-tag'
-      - include: '#end-tag'
-      - include: '$self'
+      - include: '#void-tag'
+      - include: '#non-void-tag'
 
-  start-tag:
-    name: 'meta.tag.start.html'
-    begin: '(?i)(<)(!)?([^/\\s>]+)(?=\\s|/?>)'
+  # Void tags are well-known tags that do not have an end tag *and* are not required to be self-closing.
+  # https://html.spec.whatwg.org/multipage/syntax.html#void-elements
+  void-tag:
+    name: 'meta.tag.structure.$3.void.html'
+    begin: '(?i)(<)(!)?(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)(?=\s|/?>)'
     beginCaptures:
       1: { name: 'punctuation.definition.tag.begin.html'}
       2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
@@ -113,15 +105,36 @@ repository:
     endCaptures:
       0: { name: 'punctuation.definition.tag.end.html' }
 
-  end-tag:
-    name: 'meta.tag.end.html'
-    begin: '(?i)(</)([^/\\s>]+)(?=\\s|>)'
-    beginCaptures:
-      1: { name: 'punctuation.definition.tag.begin.html'}
-      2: { name: 'entity.name.tag.html' }
-    end: '>'
+  # This is some complicated trickery to be able to detect & match
+  # self-closing components as well as elements with begin/end tags,
+  # more-or-less copied from microsoft/TypeScript-TmLanguage's TSX grammar.
+  # Basically - we match both ways a tag can be closed (self-closing or an end tag),
+  # and leave the inner patterns to figure out which one we matched.
+  non-void-tag:
+    begin: '(?=<(!)?[^/\s>]+(\s|/?>))'
+    end: '(/>)|(</)([^/\s>]+)\s*(>)'
     endCaptures:
-      0: { name: 'punctuation.definition.tag.end.html' }
+      1: { name: 'punctuation.definition.tag.end.html' }
+      2: { name: 'punctuation.definition.tag.begin.html' }
+      3: { name: 'entity.name.tag.html' }
+      4: { name: 'punctuation.definition.tag.end.html' }
+    patterns:
+      - begin: '(<)(!)?([^/\s>]+)(?=\s|/?>)'
+        beginCaptures:
+          1: { name: 'punctuation.definition.tag.begin.html' }
+          2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
+          3: { name: 'entity.name.tag.html' }
+        end: '(?=/?>)'
+        patterns:
+          - include: '#razor-control-structures'
+          - include: 'text.html.basic#attribute'
+      - begin: '>'
+        beginCaptures:
+          0: { name: 'punctuation.definition.tag.end.html' }
+        end: '(?=</)'
+        patterns:
+          - include: '#wellformed-html'
+          - include: '$self'
 
 # ----------  Explicit Expression ------------
 
