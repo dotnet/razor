@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken,
             string? previousResultId = null)
         {
-            // We'll try to call into the mapping service to map to the projected rnage for us. If that doesn't work,
+            // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
             // we'll try to find the minimal range ourselves.
             if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
                 !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
