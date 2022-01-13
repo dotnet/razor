@@ -63,8 +63,8 @@ repository:
     beginCaptures:
       1: { name: 'keyword.control.cshtml.transition.textTag.open' }
     patterns:
-      - include: '#balanced-open-close-tag-body'
       - include: '#wellformed-html'
+      - include: '$self'
     end: '(</text>)'
     endCaptures:
       1: { name: 'keyword.control.cshtml.transition.textTag.close' }

@@ -121,10 +121,10 @@
       },
       "patterns": [
         {
-          "include": "#balanced-open-close-tag-body"
+          "include": "#wellformed-html"
         },
         {
-          "include": "#wellformed-html"
+          "include": "$self"
         }
       ],
       "end": "(</text>)",
