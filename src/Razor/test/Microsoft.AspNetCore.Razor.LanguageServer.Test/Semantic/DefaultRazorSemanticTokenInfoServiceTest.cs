@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -470,12 +471,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(txt, isRazor: true);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/5948")]
         public async Task GetSemanticTokens_Razor_InRangeAsync()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
 
-            var startIndex = txt.IndexOf("test1", StringComparison.Ordinal);
+            var startIndex = 0;
             var endIndex = startIndex + 5;
 
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);

@@ -428,9 +428,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal for testing
-        internal record SemanticRangeResponse(SemanticRange[] SemanticRanges, bool IsCSharpFinalized)
+        internal record SemanticRangeResponse(SemanticRange[]? SemanticRanges, bool IsCSharpFinalized)
         {
-            public static SemanticRangeResponse Default => new(Array.Empty<SemanticRange>(), false);
+            public static SemanticRangeResponse Default => new(null, false);
         }
 
         private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens, bool IsCSharpFinalized);
