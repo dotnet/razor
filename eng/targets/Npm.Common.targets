@@ -31,6 +31,8 @@
     <BuildOutputFiles Include="dist\**\*.js" />
   </ItemGroup>
 
+
+
   <Target Name="_CheckForInvalidConfiguration">
     <Error Text="Missing expected property: PackageId" Condition="'$(IsPackable)' != 'false' and '$(PackageId)' == ''" />
 
@@ -126,4 +128,6 @@
     <Yarn Command="$(NpmTestArgs)" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreStandardErrorWarningFormat="true" />
   </Target>
 
+  <!-- Included to avoid crashing due to its absence -->
+  <Target Name="IntegrationTest" Condition="'$(IsTestProject)' == 'true'" />
 </Project>
