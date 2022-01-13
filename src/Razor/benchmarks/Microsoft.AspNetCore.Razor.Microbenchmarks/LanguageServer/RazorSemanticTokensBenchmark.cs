@@ -3,8 +3,8 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentSnapshot DocumentSnapshot { get; set; }
 
-        private DocumentSnapshot UpdatedDocumentSnapshot { get; set; }
+        private Range Range { get; set; }
 
         private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
@@ -44,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private string TargetPath { get; set; }
 
-        [GlobalSetup(Target = nameof(RazorSemanticTokensEditAsync))]
+        [GlobalSetup(Target = nameof(RazorSemanticTokensRangeAsync))]
         public async Task InitializeRazorSemanticAsync()
         {
             await EnsureServicesInitializedAsync();
@@ -54,26 +55,37 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             PagesDirectory = Path.Combine(projectRoot, "Components", "Pages");
             var filePath = Path.Combine(PagesDirectory, $"SemanticTokens.razor");
             TargetPath = "/Components/Pages/SemanticTokens.razor";
-            var updatedPath = Path.Combine(PagesDirectory, $"Append.extra");
 
             DocumentUri = DocumentUri.File(filePath);
             DocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
-            UpdatedDocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, updatedPath, TargetPath);
+
+            var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
+            Range = new Range
+            {
+                Start = new Position
+                {
+                    Line = 0,
+                    Character = 0
+                },
+                End = new Position
+                {
+                    Line = text.Lines.Count - 1,
+                    Character = text.Lines.Last().Span.Length - 1
+                }
+            };
         }
 
-        [Benchmark(Description = "Razor Semantic Tokens Formatting")]
-        public async Task RazorSemanticTokensEditAsync()
+        [Benchmark(Description = "Razor Semantic Tokens Range Handling")]
+        public async Task RazorSemanticTokensRangeAsync()
         {
             var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
             var cancellationToken = CancellationToken.None;
-            var firstVersion = 1;
+            var documentVersion = 1;
+            var semanticVersion = new VersionStamp();
 
-            await UpdateDocumentAsync(firstVersion, DocumentSnapshot).ConfigureAwait(false);
-            var fullResult = await RazorSemanticTokenService.GetSemanticTokensAsync(textDocumentIdentifier, DocumentSnapshot, firstVersion, range: null, cancellationToken).ConfigureAwait(false);
-
-            var secondVersion = 2;
-            await UpdateDocumentAsync(secondVersion, UpdatedDocumentSnapshot).ConfigureAwait(false);
-            _ = await RazorSemanticTokenService.GetSemanticTokensEditsAsync(UpdatedDocumentSnapshot, secondVersion, textDocumentIdentifier, fullResult.ResultId, cancellationToken).ConfigureAwait(false);
+            await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
+            await RazorSemanticTokenService.GetSemanticTokensAsync(
+                textDocumentIdentifier, DocumentSnapshot, documentVersion, semanticVersion, Range, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
@@ -121,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             }
 
             // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
-            internal override Task<VersionedSemanticRange> GetCSharpSemanticRangesAsync(
+            internal override Task<SemanticRangeResponse> GetCSharpSemanticRangesAsync(
                 RazorCodeDocument codeDocument,
                 TextDocumentIdentifier textDocumentIdentifier,
                 Range range,
@@ -129,7 +141,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 CancellationToken cancellationToken,
                 string previousResultId = null)
             {
-                return Task.FromResult(new VersionedSemanticRange(new List<SemanticRange>(), IsFinalizedCSharp: false));
+                var result = SemanticRangeResponse.Default;
+                return Task.FromResult(result);
             }
         }
     }
