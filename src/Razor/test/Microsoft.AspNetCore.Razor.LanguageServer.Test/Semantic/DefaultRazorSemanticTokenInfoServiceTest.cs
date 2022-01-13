@@ -476,7 +476,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
 
-            var startIndex = 0;
+            var startIndex = txt.IndexOf("test1", StringComparison.Ordinal); ;
             var endIndex = startIndex + 5;
 
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
