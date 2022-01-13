@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -17,18 +18,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly List<SemanticRange> _semanticRanges;
         private readonly RazorCodeDocument _razorCodeDocument;
-        private readonly Range? _range;
 
-        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range? range)
+        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, TextSpan? range) : base(range)
         {
             _semanticRanges = new List<SemanticRange>();
             _razorCodeDocument = razorCodeDocument;
-            _range = range;
         }
 
         public static IReadOnlyList<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range = null)
         {
-            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range);
+            TextSpan? rangeAsTextSpan = null;
+            if (range is not null)
+            {
+                var sourceText = razorCodeDocument.GetSourceText();
+                rangeAsTextSpan = range.AsRazorTextSpan(sourceText);
+            }
+
+            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, rangeAsTextSpan);
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
@@ -482,12 +488,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             void AddRange(SemanticRange semanticRange)
             {
-                if (_range is null || semanticRange.Range.OverlapsWith(_range))
+                if (semanticRange.Range.Start != semanticRange.Range.End)
                 {
-                    if (semanticRange.Range.Start != semanticRange.Range.End)
-                    {
-                        _semanticRanges.Add(semanticRange);
-                    }
+                    _semanticRanges.Add(semanticRange);
                 }
             }
         }
