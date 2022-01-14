@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -21,7 +23,6 @@ using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -43,21 +44,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 tokens: Array.Empty<int>(), isFinalized: true, hostDocumentSyncVersion: 1);
 
             await AssertSemanticTokensAsync(txt, isRazor: false, csharpTokens: cSharpResponse, documentMappings: null, documentVersion: 1);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokensEdits_CSharp_RazorIfNotReady()
-        {
-            var txt = $@"<p></p>@{{
-    var d = ""t"";
-}}";
-
-            var cSharpResponse = new ProvideSemanticTokensResponse(
-                tokens: Array.Empty<int>(), isFinalized: true, hostDocumentSyncVersion: 0);
-            var isRazor = true;
-
-            var response = await AssertSemanticTokensAsync(txt, isRazor, csharpTokens: cSharpResponse, documentVersion: 0);
-            _ = await AssertSemanticTokenEditsAsync(txt, expectDelta: true, isRazor, response.Item1, response.Item2);
         }
 
         [Fact]
@@ -278,68 +264,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             await AssertSemanticTokensAsync(txt, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings);
         }
-
-        [Fact]
-        public async Task GetSemanticTokens_CSharp_UsesCache()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
-
-            var csharpTokens = new int[]
-            {
-                14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
-                13, 15, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
-                12, 25, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
-                11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
-            };
-
-            var cSharpResponse = new ProvideSemanticTokensResponse(csharpTokens, isFinalized: true, hostDocumentSyncVersion: 0);
-
-            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
-               (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
-               (new OmniSharpRange(new Position(27, 15), new Position(27, 16)), new OmniSharpRange(new Position(1, 7), new Position(1, 8))),
-               (new OmniSharpRange(new Position(39, 25), new Position(39, 26)), new OmniSharpRange(new Position(1, 9), new Position(1, 10))),
-               (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
-            };
-
-            var isRazor = false;
-            var (previousResultId, service, mockClient, document) = await AssertSemanticTokensAsync(txt, isRazor, csharpTokens: cSharpResponse, documentMappings: mappings);
-
-            await AssertSemanticTokenEditsAsync(txt: null, expectDelta: true, isRazor, previousResultId: previousResultId, service: service);
-            mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()), Times.Once());
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_CSharp_RequeueOnPartialTokens()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
-
-            var csharpTokens = new int[]
-            {
-                14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
-                13, 15, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
-                12, 25, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
-                11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
-            };
-
-            var csharpResponse = new ProvideSemanticTokensResponse(csharpTokens, isFinalized: false, hostDocumentSyncVersion: 0);
-
-            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
-               (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
-               (new OmniSharpRange(new Position(27, 15), new Position(27, 16)), new OmniSharpRange(new Position(1, 7), new Position(1, 8))),
-               (new OmniSharpRange(new Position(39, 25), new Position(39, 26)), new OmniSharpRange(new Position(1, 9), new Position(1, 10))),
-               (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
-            };
-
-            var csharpFinalizedResponse = new ProvideSemanticTokensResponse(
-                tokens: Array.Empty<int>(), isFinalized: true, hostDocumentSyncVersion: 0);
-
-            var isRazor = false;
-            var (previousResultId, service, mockClient, document) = await AssertSemanticTokensAsync(
-                txt, isRazor, csharpTokens: csharpResponse, documentMappings: mappings);
-
-            await AssertSemanticTokenEditsAsync(txt: null, expectDelta: true, isRazor, previousResultId, service: service);
-            mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<ProvideSemanticTokensRangeParams>()), Times.Exactly(2));
-        }
         #endregion
 
         #region HTML
@@ -555,12 +479,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(txt, isRazor: true);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/5948")]
         public async Task GetSemanticTokens_Razor_InRangeAsync()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
 
-            var startIndex = txt.IndexOf("test1", StringComparison.Ordinal);
+            var startIndex = txt.IndexOf("test1", StringComparison.Ordinal); ;
             var endIndex = startIndex + 5;
 
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
@@ -572,7 +496,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var endPosition = new Position(endLine, endChar);
             var location = new OmniSharpRange(startPosition, endPosition);
 
-            await AssertSemanticTokensAsync(txt, isRazor: false, location: location);
+            await AssertSemanticTokensAsync(txt, isRazor: false, range: location);
         }
         #endregion DirectiveAttributes
 
@@ -673,190 +597,29 @@ slf*@";
             await AssertSemanticTokensAsync(txt, isRazor: false);
         }
 
-        [Fact]
-        public async Task GetSemanticTokens_Razor_EditTwiceAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var secondTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1>T</test1>";
-            var thirdTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1>Test</test1>";
-            var isRazor = true;
-            var (firstResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, secondTxt, thirdTxt }, new bool[] { isRazor, isRazor, isRazor });
-
-            var (secondResultId, _, _) = await AssertSemanticTokenEditsAsync(secondTxt, expectDelta: true, isRazor, previousResultId: firstResultId, service);
-
-            var (_, _, _) = await AssertSemanticTokenEditsAsync(thirdTxt, expectDelta: true, isRazor, previousResultId: secondResultId, service);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_NoDifferenceAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(txt, isRazor);
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(txt, expectDelta: true, isRazor, previousResultId: previousResultId, service: service);
-            Assert.Equal(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_RemoveTokensAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1><test1></test1><test1></test1> ";
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_OnlyDifferences_AppendAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1> ";
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service: service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_CoalesceDeleteAndAddAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 /> ";
-
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}{Environment.NewLine}<p @minimized /> ";
-
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { false, true });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor: false, previousResultId: previousResultId, service: service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_OriginallyNone_ThenSomeAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_GetEditsWithNoPreviousAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-
-            var (previousResultId, _, _) = await AssertSemanticTokenEditsAsync(txt, expectDelta: false, isRazor: false, previousResultId: null);
-            Assert.NotNull(previousResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_SomeTagHelpers_ThenNoneAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p></p> ";
-
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_OnlyDifferences_InternalAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1><test1></test1> ";
-
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_ModifyAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}" +
-                $"<test1 bool-val=\"true\" />{Environment.NewLine}" +
-                $"<test1 bool-val=\"true\" />{Environment.NewLine}" +
-                $"<test1 bool-val=\"true\" />{Environment.NewLine}";
-
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}" +
-                $"<test1 bool-va=\"true\" />{Environment.NewLine}" +
-                $"<test1 bool-val=\"true\" />{Environment.NewLine}" +
-                $"<test1 bool-val=\"true\" />{Environment.NewLine}";
-
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service: service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_Razor_OnlyDifferences_NewLinesAsync()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1> ";
-            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>{Environment.NewLine}" +
-                $"<test1></test1> ";
-
-            var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { isRazor, isRazor });
-
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
-            Assert.NotEqual(previousResultId, newResultId);
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_CSharp_TryGetMinimalCSharpRange()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
-            var (documentSnapshots, _) = CreateDocumentSnapshot(new string[] { txt }, new bool[] { false }, DefaultTagHelpers);
-
-            var snapshot = documentSnapshots.Dequeue();
-            var csharpDoc = await snapshot.GetGeneratedOutputAsync();
-            DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(csharpDoc, out var actualRange);
-
-            var expectedRange = new Range
-            {
-                Start = new Position(line: 12, character: 38),
-                End = new Position(line: 29, character: 11)
-            };
-
-            Assert.Equal(expectedRange, actualRange);
-        }
-
         private Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
             string txt,
             bool isRazor,
+            OmniSharpRange? range = null,
             RazorSemanticTokensInfoService? service = null,
-            OmniSharpRange? location = null,
             ProvideSemanticTokensResponse? csharpTokens = null,
             (OmniSharpRange, OmniSharpRange?)[]? documentMappings = null,
             int? documentVersion = 0)
         {
-            return AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, service, location, csharpTokens, documentMappings, documentVersion);
+            if (range is null)
+            {
+                var lines = txt.Split(Environment.NewLine);
+                range = new OmniSharpRange { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = lines.Length - 1, Character = lines[^1].Length } };
+            };
+
+            return AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, range, service, csharpTokens, documentMappings, documentVersion);
         }
 
         private async Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
             string[] txtArray,
             bool[] isRazorArray,
+            OmniSharpRange range,
             RazorSemanticTokensInfoService? service = null,
-            OmniSharpRange? location = null,
             ProvideSemanticTokensResponse? csharpTokens = null,
             (OmniSharpRange, OmniSharpRange?)[]? documentMappings = null,
             int? documentVersion = 0)
@@ -877,7 +640,8 @@ slf*@";
 
             if (service is null)
             {
-                (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, csharpTokens, documentMappings, documentVersion);
+                (service, serviceMock) = await GetDefaultRazorSemanticTokenInfoServiceAsync(
+                    documentSnapshots, csharpTokens, documentMappings, documentVersion).ConfigureAwait(false);
             }
 
             var outService = service;
@@ -885,7 +649,7 @@ slf*@";
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
 
             // Act
-            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, location, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, CancellationToken.None);
 
             // Assert
             AssertSemanticTokensMatchesBaseline(tokens?.Data);
@@ -893,45 +657,7 @@ slf*@";
             return (tokens?.ResultId, outService, serviceMock!, documentSnapshots);
         }
 
-        private async Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>)> AssertSemanticTokenEditsAsync(
-            string? txt,
-            bool expectDelta,
-            bool isRazor,
-            string? previousResultId,
-            RazorSemanticTokensInfoService? service = null,
-            long? documentVersion = 0)
-        {
-            // Arrange
-            var cSharpTokens = new ProvideSemanticTokensResponse(tokens: null, isFinalized: true, documentVersion);
-
-            Mock<ClientNotifierServiceBase>? clientMock = null;
-            if (service is null)
-            {
-                var (documentSnapshots, _) = CreateDocumentSnapshot(new string?[] { txt }, new bool[] { isRazor }, DefaultTagHelpers);
-                (service, clientMock) = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, cSharpTokens);
-            }
-
-            var textDocumentIdentifier = GetIdentifier(isRazor);
-
-            // Act
-            var edits = await service.GetSemanticTokensEditsAsync(textDocumentIdentifier, previousResultId, CancellationToken.None);
-
-            // Assert
-            if (expectDelta)
-            {
-                AssertSemanticTokensEditsMatchesBaseline(edits!);
-
-                return (edits!.Delta!.ResultId, service, clientMock!);
-            }
-            else
-            {
-                AssertSemanticTokensMatchesBaseline(edits!.Full!.Data);
-
-                return (edits.Full.ResultId, service, clientMock!);
-            }
-        }
-
-        private (RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>) GetDefaultRazorSemanticTokenInfoService(
+        private async Task<(RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>)> GetDefaultRazorSemanticTokenInfoServiceAsync(
             Queue<DocumentSnapshot> documentSnapshots,
             ProvideSemanticTokensResponse? csharpTokens = null,
             (OmniSharpRange, OmniSharpRange?)[]? documentMappings = null,
@@ -947,7 +673,7 @@ slf*@";
                 .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
-            if (documentMappings != null)
+            if (documentMappings is not null)
             {
                 foreach (var (cSharpRange, razorRange) in documentMappings)
                 {
@@ -955,6 +681,25 @@ slf*@";
                     documentMappingService
                         .Setup(s => s.TryMapFromProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), cSharpRange, out passingRange))
                         .Returns(razorRange != null);
+                }
+            }
+
+            foreach (var snapshot in documentSnapshots)
+            {
+                var codeDocument = await snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+                if (codeDocument is not null)
+                {
+                    var sourceText = codeDocument.GetSourceText();
+                    var lastLine = sourceText.Lines.Last();
+                    var projectedRange = new OmniSharpRange
+                    {
+                        Start = new Position(0, 0),
+                        End = new Position(sourceText.Lines.Count - 1, character: lastLine.Span.Length),
+                    };
+
+                    documentMappingService
+                        .Setup(s => s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<OmniSharpRange>(), out projectedRange))
+                        .Returns(true);
                 }
             }
 
