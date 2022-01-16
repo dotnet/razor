@@ -238,5 +238,4 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             }
         }
     }
-
 }

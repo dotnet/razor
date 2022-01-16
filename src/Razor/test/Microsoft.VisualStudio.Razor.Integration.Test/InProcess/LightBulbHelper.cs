@@ -89,5 +89,4 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test.InProcess
             return await tcs.Task.WithCancellation(cancellationToken);
         }
     }
-
 }
