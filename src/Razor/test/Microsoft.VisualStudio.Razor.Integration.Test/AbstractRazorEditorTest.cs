@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
         private static readonly string s_pagesDir = Path.Combine("Pages");
         private static readonly string s_sharedDir = Path.Combine("Shared");
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
+        internal static readonly string IndexRazorFile = Path.Combine(s_pagesDir, "Index.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
         internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
         internal static readonly string ImportsRazorFile = "_Imports.razor";

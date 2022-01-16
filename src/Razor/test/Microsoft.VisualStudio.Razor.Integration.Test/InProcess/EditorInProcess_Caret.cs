@@ -27,6 +27,33 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             view.Caret.MoveTo(point);
         }
 
+        public async Task WaitForCaretMoveAsync(CancellationToken cancellationToken)
+        {
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            using var semaphore = new SemaphoreSlim(1);
+            await semaphore.WaitAsync(cancellationToken);
+
+            view.Caret.PositionChanged += Caret_PositionChanged;
+
+            try
+            {
+                await semaphore.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                view.Caret.PositionChanged -= Caret_PositionChanged;
+            }
+
+            void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
+            {
+                if (e.NewPosition != e.OldPosition)
+                {
+                    semaphore.Release();
+                }
+            }
+        }
+
         public Task PlaceCaretAsync(string marker, int charsOffset, CancellationToken cancellationToken)
             => PlaceCaretAsync(marker, charsOffset, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
 
