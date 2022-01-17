@@ -133,9 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 // For html locations, where the requester wants to find the next C# position, we map to and from the
                 // projected document, because we only want "next" to mean "on the same line".
-                if (_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex) &&
-                    _documentMappingService.TryMapFromProjectedDocumentPosition(codeDocument, projectedIndex, out var originalPosition, out _) &&
-                    originalPosition.Line == request.Position.Line)
+                if (_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
                 {
                     languageKind = RazorLanguageKind.CSharp;
                     responsePosition = projectedPosition;
