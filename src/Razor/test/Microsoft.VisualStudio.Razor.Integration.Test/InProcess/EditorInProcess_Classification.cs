@@ -134,6 +134,5 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             return classifierService.GetClassifier(textView);
         }
-
     }
 }

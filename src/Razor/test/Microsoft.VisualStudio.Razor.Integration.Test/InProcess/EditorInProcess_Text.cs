@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             Assert.Contains(text, content);
         }
 
-        private async Task WaitForProjectReadyAsync(CancellationToken cancellationToken)
+        public async Task WaitForProjectReadyAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
