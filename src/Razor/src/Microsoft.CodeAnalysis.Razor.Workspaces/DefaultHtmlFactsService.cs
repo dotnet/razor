@@ -11,23 +11,29 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override bool TryGetElementInfo(SyntaxNode element, out SyntaxToken containingTagNameToken, out SyntaxList<RazorSyntaxNode> attributeNodes)
         {
-            if (element is MarkupStartTagSyntax startTag)
+            switch (element)
             {
-                containingTagNameToken = startTag.Name;
-                attributeNodes = startTag.Attributes;
-                return true;
+                case MarkupStartTagSyntax startTag:
+                    containingTagNameToken = startTag.Name;
+                    attributeNodes = startTag.Attributes;
+                    return true;
+                case MarkupEndTagSyntax { Parent: MarkupElementSyntax parent } endTag:
+                    containingTagNameToken = endTag.Name;
+                    attributeNodes = parent.StartTag.Attributes;
+                    return true;
+                case MarkupTagHelperStartTagSyntax startTagHelper:
+                    containingTagNameToken = startTagHelper.Name;
+                    attributeNodes = startTagHelper.Attributes;
+                    return true;
+                case MarkupTagHelperEndTagSyntax { Parent: MarkupTagHelperElementSyntax parent } endTagHelper:
+                    containingTagNameToken = endTagHelper.Name;
+                    attributeNodes = parent.StartTag.Attributes;
+                    return true;
+                default:
+                    containingTagNameToken = null;
+                    attributeNodes = default;
+                    return false;
             }
-
-            if (element is MarkupTagHelperStartTagSyntax startTagHelper)
-            {
-                containingTagNameToken = startTagHelper.Name;
-                attributeNodes = startTagHelper.Attributes;
-                return true;
-            }
-
-            containingTagNameToken = null;
-            attributeNodes = default;
-            return false;
         }
 
         public override bool TryGetAttributeInfo(
@@ -86,7 +92,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         selectedAttributeNameLocation = fullNameSpan;
                         return true;
                     }
-                case MarkupMiscAttributeContentSyntax _:
+                case MarkupMiscAttributeContentSyntax:
                     prefixLocation = null;
                     selectedAttributeName = null;
                     selectedAttributeNameLocation = null;
