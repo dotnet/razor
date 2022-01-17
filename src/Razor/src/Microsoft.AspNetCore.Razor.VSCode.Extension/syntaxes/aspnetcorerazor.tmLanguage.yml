@@ -106,17 +106,17 @@ repository:
       0: { name: 'punctuation.definition.tag.end.html' }
 
   # This is some complicated trickery to be able to detect & match
-  # self-closing components as well as elements with begin/end tags,
+  # self-closing components as well as *matching* elements with begin/end tags,
   # more-or-less copied from microsoft/TypeScript-TmLanguage's TSX grammar.
   # Basically - we match both ways a tag can be closed (self-closing or an end tag),
   # and leave the inner patterns to figure out which one we matched.
   non-void-tag:
-    begin: '(?=<(!)?[^/\s>]+(\s|/?>))'
-    end: '(/>)|(</)([^/\s>]+)\s*(>)'
+    begin: '(?=<(!)?([^/\s>]+)(\s|/?>))'
+    end: '(</)(\2)\s*(>)|(/>)' # The \2 back-references the second capture in 'begin', for matching tags
     endCaptures:
-      1: { name: 'punctuation.definition.tag.end.html' }
-      2: { name: 'punctuation.definition.tag.begin.html' }
-      3: { name: 'entity.name.tag.html' }
+      1: { name: 'punctuation.definition.tag.begin.html' }
+      2: { name: 'entity.name.tag.html' }
+      3: { name: 'punctuation.definition.tag.end.html' }
       4: { name: 'punctuation.definition.tag.end.html' }
     patterns:
       - begin: '(<)(!)?([^/\s>]+)(?=\s|/?>)'

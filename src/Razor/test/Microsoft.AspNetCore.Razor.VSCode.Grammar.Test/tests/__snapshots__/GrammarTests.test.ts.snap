@@ -5169,8 +5169,7 @@ Line:             Below is an incomplete tag
 
 Line:             </strong>
  - token from 0 to 12 (            ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 12 to 14 (</) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
- - token from 14 to 20 (strong) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 12 to 20 (</strong) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
  - token from 20 to 21 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
 
 Line:         </p>
@@ -5184,22 +5183,22 @@ Line:
 
 Line:         <text>This is not a special transition tag</text>
  - token from 0 to 8 (        ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 8 to 14 (<text>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, keyword.control.cshtml.transition.textTag.open
+ - token from 8 to 9 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
+ - token from 9 to 13 (text) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 13 to 14 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
  - token from 14 to 50 (This is not a special transition tag) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 50 to 57 (</text>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, keyword.control.cshtml.transition.textTag.close
+ - token from 50 to 52 (</) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
+ - token from 52 to 56 (text) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 56 to 57 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
 
 Line:         Hello World
- - token from 0 to 8 (        ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 8 to 13 (Hello) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, variable.other.readwrite.cs
- - token from 13 to 14 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 14 to 19 (World) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 0 to 20 (        Hello World) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
 
 Line:     </p>
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 4 to 5 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, keyword.operator.relational.cs
- - token from 5 to 6 (/) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, keyword.operator.arithmetic.cs
- - token from 6 to 7 (p) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, variable.other.readwrite.cs
- - token from 7 to 8 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, keyword.operator.relational.cs
+ - token from 4 to 6 (</) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
+ - token from 6 to 7 (p) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 7 to 8 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
 
 Line:     @: <strong> <-- This is incomplete @DateTime.Now
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
