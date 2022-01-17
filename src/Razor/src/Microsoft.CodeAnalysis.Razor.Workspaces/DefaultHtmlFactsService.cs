@@ -17,17 +17,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     containingTagNameToken = startTag.Name;
                     attributeNodes = startTag.Attributes;
                     return true;
-                case MarkupEndTagSyntax endTag:
+                case MarkupEndTagSyntax { Parent: MarkupElementSyntax parent } endTag:
                     containingTagNameToken = endTag.Name;
-                    attributeNodes = ((MarkupElementSyntax)endTag.Parent).StartTag.Attributes;
+                    attributeNodes = parent.StartTag.Attributes;
                     return true;
                 case MarkupTagHelperStartTagSyntax startTagHelper:
                     containingTagNameToken = startTagHelper.Name;
                     attributeNodes = startTagHelper.Attributes;
                     return true;
-                case MarkupTagHelperEndTagSyntax endTagHelper:
+                case MarkupTagHelperEndTagSyntax { Parent: MarkupTagHelperElementSyntax parent } endTagHelper:
                     containingTagNameToken = endTagHelper.Name;
-                    attributeNodes = ((MarkupTagHelperElementSyntax)endTagHelper.Parent).StartTag.Attributes;
+                    attributeNodes = parent.StartTag.Attributes;
                     return true;
                 default:
                     containingTagNameToken = null;
