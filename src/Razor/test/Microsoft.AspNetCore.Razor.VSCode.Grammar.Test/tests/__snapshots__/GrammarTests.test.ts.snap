@@ -5873,6 +5873,20 @@ exports[`Grammar tests Razor code blocks @{ ... } Pure C# 1`] = `
 "
 `;
 
+exports[`Grammar tests Razor code blocks @{ ... } Self-closing component 1`] = `
+"Line: @{ <SurveyPrompt /> }
+ - token from 0 to 1 (@) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.cshtml.transition
+ - token from 1 to 2 ({) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.razor.directive.codeblock.open
+ - token from 2 to 3 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
+ - token from 3 to 4 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
+ - token from 4 to 16 (SurveyPrompt) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 16 to 17 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
+ - token from 17 to 19 (/>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
+ - token from 19 to 20 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
+ - token from 20 to 21 (}) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.razor.directive.codeblock.close
+"
+`;
+
 exports[`Grammar tests Razor code blocks @{ ... } Single line local function 1`] = `
 "Line: @{ void Foo() {} }
  - token from 0 to 1 (@) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.cshtml.transition
