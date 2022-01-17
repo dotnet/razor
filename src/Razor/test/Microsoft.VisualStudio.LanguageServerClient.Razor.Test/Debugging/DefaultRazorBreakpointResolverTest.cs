@@ -21,20 +21,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     public class DefaultRazorBreakpointResolverTest
     {
+        private const string ValidBreakpointInlineCSharp = "var abc = 123;";
+        private const string ValidBreakpointCSharp = "private int foo = 123;";
+        private const string InvalidBreakpointCSharp = "private int bar;";
+
         public DefaultRazorBreakpointResolverTest()
         {
             CSHTMLDocumentUri = new Uri("file://C:/path/to/file.cshtml", UriKind.Absolute);
             DocumentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
             CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".g.cs", UriKind.Absolute);
 
-            ValidBreakpointInlineCSharp = "var abc = 123;";
-            ValidBreakpointCSharp = "private int foo = 123;";
-            InvalidBreakpointCSharp = "private int bar;";
-            var mappedCSharpText =
-$@"
-    {ValidBreakpointCSharp}
-    {InvalidBreakpointCSharp}
-";
             var csharpTextSnapshot = new StringTextSnapshot(
 $@"public class SomeRazorFile
 {{
@@ -43,7 +39,8 @@ $@"public class SomeRazorFile
         {ValidBreakpointInlineCSharp}
     }}
     
-    {mappedCSharpText}
+    {ValidBreakpointCSharp}
+    {InvalidBreakpointCSharp}
 }}");
             CSharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
@@ -52,17 +49,12 @@ $@"public class SomeRazorFile
 
 @code
 {{
-    {mappedCSharpText}
+    {ValidBreakpointCSharp}
+    {InvalidBreakpointCSharp}
 }}
 ");
             HostTextbuffer = new TestTextBuffer(textBufferSnapshot);
         }
-
-        private string ValidBreakpointInlineCSharp { get; }
-
-        private string ValidBreakpointCSharp { get; }
-
-        private string InvalidBreakpointCSharp { get; }
 
         private ITextBuffer CSharpTextBuffer { get; }
 
