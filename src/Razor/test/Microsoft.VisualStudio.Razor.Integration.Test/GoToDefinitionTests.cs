@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "Won't work until 17.1 P3")]
         public async Task GoToDefinition_ComponentAttribute()
         {
             // Open the file
