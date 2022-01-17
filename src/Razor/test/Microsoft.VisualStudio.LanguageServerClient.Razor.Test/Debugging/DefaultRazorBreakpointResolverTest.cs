@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             DocumentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
             CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".g.cs", UriKind.Absolute);
 
+            ValidBreakpointInlineCSharp = "var abc = 123;";
             ValidBreakpointCSharp = "private int foo = 123;";
             InvalidBreakpointCSharp = "private int bar;";
             var mappedCSharpText =
@@ -36,12 +37,28 @@ $@"
 ";
             var csharpTextSnapshot = new StringTextSnapshot(
 $@"public class SomeRazorFile
-{{{mappedCSharpText}}}");
+{{
+    void Render()
+    {{
+        {ValidBreakpointInlineCSharp}
+    }}
+    
+    {mappedCSharpText}
+}}");
             CSharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
-            var textBufferSnapshot = new StringTextSnapshot($"@code {{{mappedCSharpText}}}");
+            var textBufferSnapshot = new StringTextSnapshot(@$"
+<p>@{{ {ValidBreakpointInlineCSharp} }}</p>
+
+@code
+{{
+    {mappedCSharpText}
+}}
+");
             HostTextbuffer = new TestTextBuffer(textBufferSnapshot);
         }
+
+        private string ValidBreakpointInlineCSharp { get; }
 
         private string ValidBreakpointCSharp { get; }
 
@@ -262,6 +279,56 @@ $@"public class SomeRazorFile
 
             // Act
             var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, hostDocumentPosition.Line, hostDocumentPosition.Character, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(hostBreakpointRange, breakpointRange);
+        }
+
+        [Fact]
+        public async Task TryResolveBreakpointRangeAsync_InlineCSharp_ReturnsFirstCSharpCodeOnLine()
+        {
+            // Arrange
+            var hostDocumentPosition = GetPosition(ValidBreakpointInlineCSharp, HostTextbuffer);
+            var csharpDocumentPosition = GetPosition(ValidBreakpointInlineCSharp, CSharpTextBuffer);
+            var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(ValidBreakpointInlineCSharp, StringComparison.Ordinal);
+            var projectionProvider = new TestLSPProjectionProvider(
+                DocumentUri,
+                new Dictionary<Position, ProjectionResult>()
+                {
+                    [hostDocumentPosition] = new ProjectionResult()
+                    {
+                        LanguageKind = RazorLanguageKind.CSharp,
+                        HostDocumentVersion = 0,
+                        Position = csharpDocumentPosition,
+                        PositionIndex = csharpDocumentIndex,
+                    }
+                });
+            var expectedCSharpBreakpointRange = new Range()
+            {
+                Start = csharpDocumentPosition,
+                End = new Position(csharpDocumentPosition.Line, csharpDocumentPosition.Character + ValidBreakpointInlineCSharp.Length),
+            };
+            var hostBreakpointRange = new Range()
+            {
+                Start = hostDocumentPosition,
+                End = new Position(hostDocumentPosition.Line, hostDocumentPosition.Character + ValidBreakpointInlineCSharp.Length),
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(
+                new Dictionary<Range, RazorMapToDocumentRangesResponse>()
+                {
+                    [expectedCSharpBreakpointRange] = new RazorMapToDocumentRangesResponse()
+                    {
+                        HostDocumentVersion = 0,
+                        Ranges = new[]
+                        {
+                            hostBreakpointRange,
+                        },
+                    }
+                });
+            var resolver = CreateResolverWith(projectionProvider: projectionProvider, documentMappingProvider: mappingProvider);
+
+            // Act
+            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, hostDocumentPosition.Line, characterIndex: 0, CancellationToken.None);
 
             // Assert
             Assert.Equal(hostBreakpointRange, breakpointRange);
