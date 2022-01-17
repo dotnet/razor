@@ -49,5 +49,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
         public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
             => GetProjectionAsync(documentSnapshot, position, cancellationToken);
+
+        public override Task<ProjectionResult> GetNextCSharpPositionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        {
+            if (documentSnapshot.Uri != _documentUri)
+            {
+                return Task.FromResult((ProjectionResult)null);
+            }
+
+            foreach (var mapping in _mappings.OrderBy(d => d.Key))
+            {
+                if (mapping.Key.Line >= position.Line &&
+                    mapping.Key.Character >= position.Character)
+                {
+                    return Task.FromResult(mapping.Value);
+                }
+            }
+
+            return Task.FromResult((ProjectionResult)null);
+        }
     }
 }
