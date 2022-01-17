@@ -129,8 +129,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     responsePositionIndex = hostDocumentIndex;
                 }
             }
+            else if (languageKind == RazorLanguageKind.Html && request.FindNextCSharpPositionForHtml)
+            {
+                // For html locations, where the requester wants to find the next C# position, we map to and from the
+                // projected document, because we only want "next" to mean "on the same line".
+                if (_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex) &&
+                    _documentMappingService.TryMapFromProjectedDocumentPosition(codeDocument, projectedIndex, out var originalPosition, out _) &&
+                    originalPosition.Line == request.Position.Line)
+                {
+                    languageKind = RazorLanguageKind.CSharp;
+                    responsePosition = projectedPosition;
+                    responsePositionIndex = projectedIndex;
+                }
+            }
 
-            _logger.LogTrace($"Language query request for ({request.Position.Line}, {request.Position.Character}) = {languageKind} at ({responsePosition.Line}, {responsePosition.Character})");
+            _logger.LogTrace($"Language query request for ({request.Position.Line}, {request.Position.Character}) = {languageKind} at ({responsePosition.Line}, {responsePosition.Character}){(request.FindNextCSharpPositionForHtml ? " when finding next C# position" : "")}");
 
             return new RazorLanguageQueryResponse()
             {
