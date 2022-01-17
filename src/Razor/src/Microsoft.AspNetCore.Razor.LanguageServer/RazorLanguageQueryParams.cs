@@ -14,5 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public Uri Uri { get; set; }
 
         public Position Position { get; set; }
+
+        public bool FindNextCSharpPositionForHtml { get; set; }
     }
 }

@@ -13,5 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public abstract Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
 
         public abstract Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
+
+        public abstract Task<ProjectionResult?> GetNextCSharpPositionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
     }
 }

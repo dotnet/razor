@@ -13,5 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public Uri Uri { get; set; }
 
         public Position Position { get; set; }
+
+        public bool FindNextCSharpPositionForHtml { get; set; }
     }
 }

@@ -60,12 +60,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         public override Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: true, cancellationToken);
+            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: true, findNextCSharpPositionForHtml: false, cancellationToken);
 
         public override Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: false, cancellationToken);
+            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: false, findNextCSharpPositionForHtml: false, cancellationToken);
 
-        private async Task<ProjectionResult?> GetProjectionCoreAsync(LSPDocumentSnapshot documentSnapshot, Position position, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
+        public override Task<ProjectionResult?> GetNextCSharpPositionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: true, findNextCSharpPositionForHtml: true, cancellationToken);
+
+        private async Task<ProjectionResult?> GetProjectionCoreAsync(LSPDocumentSnapshot documentSnapshot, Position position, bool rejectOnNewerParallelRequest, bool findNextCSharpPositionForHtml, CancellationToken cancellationToken)
         {
             if (documentSnapshot is null)
             {
@@ -85,7 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageQueryParams = new RazorLanguageQueryParams()
             {
                 Position = position,
-                Uri = documentSnapshot.Uri
+                Uri = documentSnapshot.Uri,
+                FindNextCSharpPositionForHtml = findNextCSharpPositionForHtml
             };
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
