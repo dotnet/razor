@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -124,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             }
 
             var lspPosition = new Position(lineIndex, characterIndex);
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
+            var projectionResult = await _projectionProvider.GetNextCSharpPositionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
                 // Can't map the position, invalid breakpoint location.

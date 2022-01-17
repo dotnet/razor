@@ -281,7 +281,7 @@ $@"public class SomeRazorFile
             if (projectionProvider is null)
             {
                 projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
-                Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
+                Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetNextCSharpPositionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
                     .Returns(Task.FromResult<ProjectionResult>(null));
             }
 
