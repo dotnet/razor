@@ -354,7 +354,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
                 else if (nextCSharpPositionOnFailure)
                 {
+                    // The "next" C# location is only valid if it is on the same line in the source document
+                    // as the requested position.
                     codeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
+
                     if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
                     {
                         projectedIndex = mapping.GeneratedSpan.AbsoluteIndex;

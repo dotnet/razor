@@ -131,8 +131,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else if (languageKind == RazorLanguageKind.Html && request.FindNextCSharpPositionForHtml)
             {
-                // For html locations, where the requester wants to find the next C# position, we map to and from the
-                // projected document, because we only want "next" to mean "on the same line".
                 if (_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
                 {
                     languageKind = RazorLanguageKind.CSharp;
