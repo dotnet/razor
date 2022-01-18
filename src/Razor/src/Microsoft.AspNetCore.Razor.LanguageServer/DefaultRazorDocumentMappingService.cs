@@ -335,8 +335,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            codeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
-
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {
@@ -354,11 +352,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         return true;
                     }
                 }
-                else if (nextCSharpPositionOnFailure && mapping.OriginalSpan.LineIndex == hostDocumentLine)
+                else if (nextCSharpPositionOnFailure)
                 {
-                    projectedIndex = mapping.GeneratedSpan.AbsoluteIndex;
-                    projectedPosition = GetProjectedPosition(codeDocument, projectedIndex);
-                    return true;
+                    codeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
+                    if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
+                    {
+                        projectedIndex = mapping.GeneratedSpan.AbsoluteIndex;
+                        projectedPosition = GetProjectedPosition(codeDocument, projectedIndex);
+                        return true;
+                    }
+
+                    break;
                 }
             }
 
