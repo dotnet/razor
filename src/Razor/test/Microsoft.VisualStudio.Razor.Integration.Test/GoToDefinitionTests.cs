@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 
             // Wait for classifications to indicate Razor LSP is up and running
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("IncrementCount", -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("IncrementCount", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.InvokeGoToDefinitionAsync(HangMitigatingCancellationToken);
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 
             // Change text to refer back to Program class
             await TestServices.Editor.SetTextAsync(@"<SurveyPrompt Title=""@nameof(Program)", HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("Program", -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 
             // Wait for classifications to indicate Razor LSP is up and running
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("SurveyPrompt", -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("SurveyPrompt", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.InvokeGoToDefinitionAsync(HangMitigatingCancellationToken);
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
 
             // Wait for classifications to indicate Razor LSP is up and running
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("Title=", -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("Title=", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.InvokeGoToDefinitionAsync(HangMitigatingCancellationToken);

@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var line = view.TextBuffer.CurrentSnapshot.GetLineFromPosition(caret).GetText();
 
-            Assert.Equal(text, line.Trim());
+            Assert.Equal(text.Trim(), line.Trim());
         }
 
         public async Task WaitForActiveWindowAsync(string windowTitle, CancellationToken cancellationToken)
