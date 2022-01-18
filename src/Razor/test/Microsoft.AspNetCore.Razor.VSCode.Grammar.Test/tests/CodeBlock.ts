@@ -37,6 +37,10 @@ export function RunCodeBlockSuite() {
             await assertMatchesSnapshot('@{ <p><text>Hello</text></p> }');
         });
 
+        it('Self-closing component', async () => {
+            await assertMatchesSnapshot('@{ <SurveyPrompt /> }');
+        });
+
         it('Single line markup simple', async () => {
             await assertMatchesSnapshot(
                 `@{
