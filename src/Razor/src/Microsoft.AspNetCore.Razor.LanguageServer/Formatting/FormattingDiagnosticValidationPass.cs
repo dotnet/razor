@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -58,11 +59,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var changedContext = await context.WithTextAsync(changedText);
             var changedDiagnostics = changedContext.CodeDocument.GetSyntaxTree().Diagnostics;
 
-            if (!originalDiagnostics.SequenceEqual(changedDiagnostics))
+            // We want to ensure diagnostics didn't change, but since we're formatting things, its expected
+            // that some of them might have moved around.
+            // This is not 100% correct, as the formatting technically could still cause a compile error,
+            // but only if it also fixes one at the same time, so its probably an edge case (if indeed it's
+            // at all possible). Also worth noting the order has to be maintained in that case.
+            if (!originalDiagnostics.SequenceEqual(changedDiagnostics, LocationIgnoringDiagnosticComparer.Instance))
             {
-                // Looks like we removed some non-whitespace content as part of formatting. Oops.
-                // Discard this formatting result.
-
                 if (DebugAssertsEnabled)
                 {
                     Debug.Fail("A formatting result was rejected because the formatted text produced different diagnostics compared to the original text.");
@@ -72,6 +75,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return result;
+        }
+
+        private class LocationIgnoringDiagnosticComparer : IEqualityComparer<RazorDiagnostic>
+        {
+            public static IEqualityComparer<RazorDiagnostic> Instance = new LocationIgnoringDiagnosticComparer();
+
+            public bool Equals(RazorDiagnostic x, RazorDiagnostic y)
+                => x is not null &&
+                    y is not null &&
+                    x.Severity.Equals(y.Severity) &&
+                    x.Id.Equals(y.Id);
+
+            public int GetHashCode(RazorDiagnostic obj)
+                => obj.GetHashCode();
         }
     }
 }

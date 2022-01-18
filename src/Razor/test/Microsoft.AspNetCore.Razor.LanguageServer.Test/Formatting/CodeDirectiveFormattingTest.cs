@@ -46,6 +46,57 @@ expected: @"@code {
 
         [Theory]
         [CombinatorialData]
+        public async Task Format_DocumentWithDiagnostics(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@page
+@model BlazorApp58.Pages.Index2Model
+@{
+}
+
+<section class=""section"">
+    <div class=""container"">
+        <h1 class=""title"">Managed pohotos</h1>
+        <p class=""subtitle"">@Model.ReferenceNumber</p>
+    </div>
+</section>
+<section class=""section"">
+    <div class=""container"">
+        @foreach       (var item in Model.Images)
+        {
+            <div><div>
+        }
+    </div>
+</section>
+",
+expected: @"@page
+@model BlazorApp58.Pages.Index2Model
+@{
+}
+
+<section class=""section"">
+    <div class=""container"">
+        <h1 class=""title"">Managed pohotos</h1>
+        <p class=""subtitle"">@Model.ReferenceNumber</p>
+    </div>
+</section>
+<section class=""section"">
+    <div class=""container"">
+        @foreach (var item in Model.Images)
+        {
+            <div>
+                <div>
+                    }
+                </div>
+    </section>
+",
+            fileKind: FileKinds.Legacy,
+            allowDiagnostics: true);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task Formats_MultipleBlocksInADirective(bool useSourceTextDiffer)
         {
             await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
