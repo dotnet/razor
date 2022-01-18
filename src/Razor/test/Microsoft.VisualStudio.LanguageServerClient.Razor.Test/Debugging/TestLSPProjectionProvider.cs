@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             foreach (var mapping in _mappings.OrderBy(d => d.Key))
             {
-                if (mapping.Key.Line >= position.Line &&
+                if (mapping.Key.Line == position.Line &&
                     mapping.Key.Character >= position.Character)
                 {
                     return Task.FromResult(mapping.Value);

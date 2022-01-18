@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
     public class DefaultRazorBreakpointResolverTest
     {
         private const string ValidBreakpointInlineCSharp = "var abc = 123;";
+        private const string InvalidBreakpointInlineCSharp = "var goo = 456;";
         private const string ValidBreakpointCSharp = "private int foo = 123;";
         private const string InvalidBreakpointCSharp = "private int bar;";
 
@@ -37,6 +38,7 @@ $@"public class SomeRazorFile
     void Render()
     {{
         {ValidBreakpointInlineCSharp}
+        {InvalidBreakpointInlineCSharp}
     }}
     
     {ValidBreakpointCSharp}
@@ -46,6 +48,9 @@ $@"public class SomeRazorFile
 
             var textBufferSnapshot = new StringTextSnapshot(@$"
 <p>@{{ {ValidBreakpointInlineCSharp} }}</p>
+<p>@{{
+    {InvalidBreakpointInlineCSharp}
+}}</p>
 
 @code
 {{
@@ -324,6 +329,56 @@ $@"public class SomeRazorFile
 
             // Assert
             Assert.Equal(hostBreakpointRange, breakpointRange);
+        }
+
+        [Fact]
+        public async Task TryResolveBreakpointRangeAsync_InvalidInlineCSharp_ReturnsNull()
+        {
+            // Arrange
+            var hostDocumentPosition = GetPosition(InvalidBreakpointInlineCSharp, HostTextbuffer);
+            var csharpDocumentPosition = GetPosition(InvalidBreakpointInlineCSharp, CSharpTextBuffer);
+            var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(InvalidBreakpointInlineCSharp, StringComparison.Ordinal);
+            var projectionProvider = new TestLSPProjectionProvider(
+                DocumentUri,
+                new Dictionary<Position, ProjectionResult>()
+                {
+                    [hostDocumentPosition] = new ProjectionResult()
+                    {
+                        LanguageKind = RazorLanguageKind.CSharp,
+                        HostDocumentVersion = 0,
+                        Position = csharpDocumentPosition,
+                        PositionIndex = csharpDocumentIndex,
+                    }
+                });
+            var expectedCSharpBreakpointRange = new Range()
+            {
+                Start = csharpDocumentPosition,
+                End = new Position(csharpDocumentPosition.Line, csharpDocumentPosition.Character + InvalidBreakpointInlineCSharp.Length),
+            };
+            var hostBreakpointRange = new Range()
+            {
+                Start = hostDocumentPosition,
+                End = new Position(hostDocumentPosition.Line, hostDocumentPosition.Character + InvalidBreakpointInlineCSharp.Length),
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(
+                new Dictionary<Range, RazorMapToDocumentRangesResponse>()
+                {
+                    [expectedCSharpBreakpointRange] = new RazorMapToDocumentRangesResponse()
+                    {
+                        HostDocumentVersion = 0,
+                        Ranges = new[]
+                        {
+                            hostBreakpointRange,
+                        },
+                    }
+                });
+            var resolver = CreateResolverWith(projectionProvider: projectionProvider, documentMappingProvider: mappingProvider);
+
+            // Act
+            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, hostDocumentPosition.Line - 1, characterIndex: 0, CancellationToken.None);
+
+            // Assert
+            Assert.Null(breakpointRange);
         }
 
         private RazorBreakpointResolver CreateResolverWith(
