@@ -172,3 +172,4 @@ dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # VSTHRD100: Avoid async void methods
 dotnet_diagnostic.VSTHRD100.severity = warning
+dotnet_diagnostic.VSTHRD101.severity = warning
