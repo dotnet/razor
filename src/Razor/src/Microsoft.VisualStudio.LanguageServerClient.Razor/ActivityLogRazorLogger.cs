@@ -51,7 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Log(__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, message);
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             // This is an async void method. Catch all exceptions so it doesn't crash the process.
             try
