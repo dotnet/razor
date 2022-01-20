@@ -93,7 +93,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\..\.editorconfig = ..\..\.editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Razor.Integration.Test", "test\Microsoft.VisualStudio.Razor.Integration.Test\Microsoft.VisualStudio.Razor.Integration.Test.csproj", "{8CEC0991-259F-4313-B3EF-E398F2B40E61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Razor.IntegrationTests", "test\Microsoft.VisualStudio.Razor.IntegrationTests\Microsoft.VisualStudio.Razor.IntegrationTests.csproj", "{8CEC0991-259F-4313-B3EF-E398F2B40E61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
