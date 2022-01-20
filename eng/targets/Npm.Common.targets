@@ -31,8 +31,6 @@
     <BuildOutputFiles Include="dist\**\*.js" />
   </ItemGroup>
 
-
-
   <Target Name="_CheckForInvalidConfiguration">
     <Error Text="Missing expected property: PackageId" Condition="'$(IsPackable)' != 'false' and '$(PackageId)' == ''" />
 
