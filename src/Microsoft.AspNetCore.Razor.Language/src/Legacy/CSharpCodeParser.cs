@@ -1490,8 +1490,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                                     {
                                         if (At(SyntaxKind.Semicolon))
                                         {
-                                            // Consume the ending ';'
-                                            EatCurrentToken();
                                             break;
                                         }
 
@@ -1506,8 +1504,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             }
                             else if (At(SyntaxKind.Semicolon))
                             {
-                                // Consume the ending ';'
-                                EatCurrentToken();
+                                break;
                             }
                             else
                             {
@@ -2554,7 +2551,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         {
             return null;
         }
-
 
         return GetNodeWithSpanContext(SyntaxFactory.UnclassifiedTextLiteral(tokens));
     }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Xunit;
 
@@ -781,6 +782,30 @@ public class RazorDirectivesTest : ParserTestBase
         ParseDocumentTest(
             "@section Header { <p>F{o}o</p> }",
             new[] { SectionDirective.Directive, });
+    }
+
+    [Fact]
+    public void TypeParam_WithSemicolon()
+    {
+        ParseDocumentTest(@$"@typeparam TItem;
+<ul>
+</ul>
+@code {{
+    // something
+}}",
+            new[] { ComponentConstrainedTypeParamDirective.Directive });
+    }
+
+    [Fact]
+    public void TypeParam_WithoutSemicolon()
+    {
+        ParseDocumentTest(@$"@typeparam TItem
+<ul>
+</ul>
+@code {{
+    // something
+}}",
+            new[] { ComponentConstrainedTypeParamDirective.Directive });
     }
 
     [Fact]

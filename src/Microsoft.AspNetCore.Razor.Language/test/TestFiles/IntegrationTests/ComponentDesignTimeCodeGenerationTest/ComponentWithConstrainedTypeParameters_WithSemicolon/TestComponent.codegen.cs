@@ -108,8 +108,8 @@ void __TypeConstraints_TItem3<TItem3>() where TItem3 : Image, new()
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
-              foreach (var item2 in Items2)
+#line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
+ foreach (var item2 in Items2)
 {
     
 
@@ -125,7 +125,7 @@ __o = ChildContent(item2);
 #nullable disable
 #nullable restore
 #line 11 "x:\dir\subdir\Test\TestComponent.cshtml"
-     
+        
 }
 
 #line default
@@ -135,7 +135,7 @@ __o = ChildContent(item2);
         #pragma warning restore 1998
 #nullable restore
 #line 16 "x:\dir\subdir\Test\TestComponent.cshtml"
-    
+       
     [Parameter] public TItem1 Item1 { get; set; }
     [Parameter] public List<TItem2> Items2 { get; set; }
     [Parameter] public TItem3 Item3 { get; set; }
