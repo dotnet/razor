@@ -480,7 +480,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems)
-            => completionItems.Select(item => new CompletionItem { Label = item }).ToArray();
+            => completionItems.Select(item => new CompletionItem { Label = item, Kind = CompletionItemKind.Keyword }).ToArray();
 
         private static bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
         {
