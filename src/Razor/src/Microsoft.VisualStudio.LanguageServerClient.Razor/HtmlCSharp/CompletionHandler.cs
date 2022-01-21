@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             "BuildRenderTree"
         };
 
-        private static readonly IReadOnlyCollection<CompletionItem> s_keywordCompletionItems = GenerateCompletionItems(s_keywords);
+        private static readonly IReadOnlyCollection<CompletionItem> s_keywordCompletionItems = GenerateCompletionItems(s_keywords, CompletionItemKind.Keyword);
         private static readonly IReadOnlyCollection<CompletionItem> s_designTimeHelpersCompletionItems = GenerateCompletionItems(s_designTimeHelpers);
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
@@ -479,8 +479,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return completionList;
         }
 
-        private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems)
-            => completionItems.Select(item => new CompletionItem { Label = item, Kind = CompletionItemKind.Keyword }).ToArray();
+        private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems, CompletionItemKind completionKind = CompletionItemKind.None)
+            => completionItems.Select(item => new CompletionItem { Label = item, Kind = completionKind }).ToArray();
 
         private static bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
         {
