@@ -114,7 +114,9 @@ stages:
           - Windows
           - Source_Build_Complete
           pool:
-            vmImage: windows-latest
+            name: NetCore1ESPool-Internal
+            demands: ImageOverride -equals Build.Server.Amd64.VS2019
+
       jobs:
       - job: Windows
         enableMicrobuild: true
@@ -188,7 +190,11 @@ stages:
 
         - job: Linux
           pool:
-            vmImage: ubuntu-latest
+            ${{ if or(ne(variables['System.TeamProject'], 'internal'), in(variables['Build.Reason'], 'Manual', 'PullRequest', 'Schedule')) }}:
+              vmImage: ubuntu-latest
+            ${{ if and(eq(variables['System.TeamProject'], 'internal'), notin(variables['Build.Reason'], 'Manual', 'PullRequest', 'Schedule')) }}:
+              name: NetCore1ESPool-Internal
+              demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
           strategy:
             matrix:
               Debug:
@@ -218,4 +224,5 @@ stages:
       enableSymbolValidation: false
       enableNugetValidation: false
       pool:
-        vmImage: windows-latest
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
