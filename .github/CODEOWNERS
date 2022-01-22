@@ -3,6 +3,8 @@
 
 *                                                                                 @Pilchie
 /global.json                                                                      @dotnet/aspnet-build
+/azure-pipelines.yml                                                              @dotnet/aspnet-build
+/NuGet.config                                                                     @dotnet/aspnet-build
 /.vscode/                                                                         @dotnet/aspnet-build @TanayParikh
 /.devcontainer/                                                                   @dotnet/aspnet-build @TanayParikh
 /.github/                                                                         @dotnet/aspnet-build
