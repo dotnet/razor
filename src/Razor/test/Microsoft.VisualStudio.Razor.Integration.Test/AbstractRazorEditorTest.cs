@@ -31,6 +31,14 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
+
+            // We open the Index.razor file, and wait for the SurveyPrompt component to be classified, as that
+            // way we know the LSP server is up and running and responding
+            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: "RazorComponentElement");
+
+            // Close the file we opened, just in case, so the test can start with a clean slate
+            await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
         }
     }
 }

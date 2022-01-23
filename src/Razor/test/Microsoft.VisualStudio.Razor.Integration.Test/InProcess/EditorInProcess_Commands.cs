@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await ExecuteCommandAsync(WellKnownCommandNames.Edit_GoToDefinition, cancellationToken);
         }
 
+        public async Task CloseDocumentWindowAsync(CancellationToken cancellationToken)
+        {
+            await ExecuteCommandAsync(WellKnownCommandNames.Window_CloseDocumentWindow, cancellationToken);
+        }
+
         private async Task ExecuteCommandAsync(string commandName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

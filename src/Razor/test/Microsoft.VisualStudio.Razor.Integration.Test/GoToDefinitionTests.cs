@@ -15,8 +15,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
 
-            // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("IncrementCount", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Act
@@ -38,9 +36,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             await TestServices.Editor.SetTextAsync(@"<SurveyPrompt Title=""@nameof(Program)", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: -1, HangMitigatingCancellationToken);
 
-            // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
-
             // Act
             await TestServices.Editor.InvokeGoToDefinitionAsync(HangMitigatingCancellationToken);
 
@@ -54,8 +49,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
 
-            // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("SurveyPrompt", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Act
@@ -79,8 +72,6 @@ namespace Microsoft.VisualStudio.Razor.Integration.Test
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
 
-            // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Title=", charsOffset: -1, HangMitigatingCancellationToken);
 
             // Act
