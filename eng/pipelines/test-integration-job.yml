@@ -15,7 +15,7 @@ steps:
       -msbuildEngine dotnet
       -prepareMachine
       -integrationTest
-    name: Build and Test
+    name: BuildAndTest
     displayName: Build and Test
     condition: succeeded()
 
