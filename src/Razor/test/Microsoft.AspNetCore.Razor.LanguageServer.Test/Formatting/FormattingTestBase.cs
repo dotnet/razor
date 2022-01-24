@@ -72,7 +72,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             bool insertSpaces = true,
             string? fileKind = null,
             IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
-            bool useSourceTextDiffer = false)
+            bool useSourceTextDiffer = false,
+            bool allowDiagnostics = false)
         {
             // Arrange
             fileKind ??= FileKinds.Component;
@@ -85,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var path = "file:///path/to/Document." + fileKind;
             var uri = new Uri(path);
-            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKind);
+            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKind, allowDiagnostics);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -291,7 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return source.WithChanges(changes);
         }
 
-        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default)
+        private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default, bool allowDiagnostics = false)
         {
             fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
@@ -329,7 +330,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { importsDocument }, tagHelpers);
 
-            Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
+            if (!allowDiagnostics)
+            {
+                Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
+            }
 
             var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
             documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));

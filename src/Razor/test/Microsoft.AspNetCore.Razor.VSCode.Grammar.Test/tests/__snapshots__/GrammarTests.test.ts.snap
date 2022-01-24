@@ -4891,10 +4891,10 @@ exports[`Grammar tests Razor code blocks @{ ... } Complex HTML tag structures 1`
  - token from 2 to 3 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
  - token from 3 to 4 (p) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
- - token from 5 to 6 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
- - token from 6 to 11 (input) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
- - token from 11 to 17 (      ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 17 to 19 (/>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
+ - token from 5 to 6 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html, punctuation.definition.tag.begin.html
+ - token from 6 to 11 (input) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html, entity.name.tag.html
+ - token from 11 to 17 (      ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html
+ - token from 17 to 19 (/>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html, punctuation.definition.tag.end.html
  - token from 19 to 20 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
  - token from 20 to 26 (strong) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
  - token from 26 to 27 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
@@ -5169,8 +5169,7 @@ Line:             Below is an incomplete tag
 
 Line:             </strong>
  - token from 0 to 12 (            ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 12 to 14 (</) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
- - token from 14 to 20 (strong) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 12 to 20 (</strong) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
  - token from 20 to 21 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
 
 Line:         </p>
@@ -5874,6 +5873,20 @@ exports[`Grammar tests Razor code blocks @{ ... } Pure C# 1`] = `
 "
 `;
 
+exports[`Grammar tests Razor code blocks @{ ... } Self-closing component 1`] = `
+"Line: @{ <SurveyPrompt /> }
+ - token from 0 to 1 (@) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.cshtml.transition
+ - token from 1 to 2 ({) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.razor.directive.codeblock.open
+ - token from 2 to 3 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
+ - token from 3 to 4 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
+ - token from 4 to 16 (SurveyPrompt) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
+ - token from 16 to 17 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
+ - token from 17 to 19 (/>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
+ - token from 19 to 20 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
+ - token from 20 to 21 (}) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.razor.directive.codeblock.close
+"
+`;
+
 exports[`Grammar tests Razor code blocks @{ ... } Single line local function 1`] = `
 "Line: @{ void Foo() {} }
  - token from 0 to 1 (@) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, keyword.control.cshtml.transition
@@ -6002,10 +6015,10 @@ exports[`Grammar tests Razor templates @<p>....</p> Complex HTML tag structure n
  - token from 3 to 4 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
  - token from 4 to 5 (p) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
  - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
- - token from 6 to 7 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
- - token from 7 to 12 (input) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
- - token from 12 to 18 (      ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs
- - token from 18 to 20 (/>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html
+ - token from 6 to 7 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html, punctuation.definition.tag.begin.html
+ - token from 7 to 12 (input) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html, entity.name.tag.html
+ - token from 12 to 18 (      ) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html
+ - token from 18 to 20 (/>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, meta.tag.structure.input.void.html, punctuation.definition.tag.end.html
  - token from 20 to 21 (<) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.begin.html
  - token from 21 to 27 (strong) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, entity.name.tag.html
  - token from 27 to 28 (>) with scopes text.aspnetcorerazor, meta.structure.razor.codeblock, source.cs, punctuation.definition.tag.end.html

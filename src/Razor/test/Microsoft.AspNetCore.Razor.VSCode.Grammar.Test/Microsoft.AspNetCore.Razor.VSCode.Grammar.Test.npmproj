@@ -21,7 +21,6 @@
     <BuildOutputFiles Include="dist\infrastructure\SnapshotTests.js" />
   </ItemGroup>
 
-
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
 
 </Project>

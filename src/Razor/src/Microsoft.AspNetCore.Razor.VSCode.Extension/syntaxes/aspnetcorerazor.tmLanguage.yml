@@ -63,8 +63,8 @@ repository:
     beginCaptures:
       1: { name: 'keyword.control.cshtml.transition.textTag.open' }
     patterns:
-      - include: '#balanced-open-close-tag-body'
       - include: '#wellformed-html'
+      - include: '$self'
     end: '(</text>)'
     endCaptures:
       1: { name: 'keyword.control.cshtml.transition.textTag.close' }
@@ -88,11 +88,13 @@ repository:
   wellformed-html:
     patterns:
       - include: '#void-tag'
-      - include: '#balanced-open-close-tag'
+      - include: '#non-void-tag'
 
+  # Void tags are well-known tags that do not have an end tag *and* are not required to be self-closing.
+  # https://html.spec.whatwg.org/multipage/syntax.html#void-elements
   void-tag:
     name: 'meta.tag.structure.$3.void.html'
-    begin: '(?i)(<)(!?)(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)(?=\s|/?>)'
+    begin: '(?i)(<)(!)?(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)(?=\s|/?>)'
     beginCaptures:
       1: { name: 'punctuation.definition.tag.begin.html'}
       2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
@@ -103,47 +105,36 @@ repository:
     endCaptures:
       0: { name: 'punctuation.definition.tag.end.html' }
 
-  balanced-open-close-tag:
-    begin: (?=<([^/\s>]+))
-    patterns:
-      - include: '#balanced-open-close-tag-start'
-      - include: '#balanced-open-close-tag-end'
-      - include: '#balanced-open-close-tag-body'
-    end: (?<=(</\1>))|(/>)
-
-  balanced-open-close-tag-start:
-    begin: '(<)(?!(/))([^/\s>]+)'
-    beginCaptures:
-      1: { name: 'punctuation.definition.tag.begin.html'}
-      2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
-      3: { name: 'entity.name.tag.html' }
-    patterns:
-      - include: '#balanced-open-close-tag-attributes'
-    end: '/?>'
+  # This is some complicated trickery to be able to detect & match
+  # self-closing components as well as *matching* elements with begin/end tags,
+  # more-or-less copied from microsoft/TypeScript-TmLanguage's TSX grammar.
+  # Basically - we match both ways a tag can be closed (self-closing or an end tag),
+  # and leave the inner patterns to figure out which one we matched.
+  non-void-tag:
+    begin: '(?=<(!)?([^/\s>]+)(\s|/?>))'
+    end: '(</)(\2)\s*(>)|(/>)' # The \2 back-references the second capture in 'begin', for matching tags
     endCaptures:
-      0: { name: 'punctuation.definition.tag.end.html' }
-
-  balanced-open-close-tag-attributes:
-    begin: '(?=\s)'
-    patterns:
-      - include: '#razor-control-structures'
-      - include: 'text.html.basic#attribute'
-    end: '(?=/?>)'
-
-  balanced-open-close-tag-body:
-    begin: '(?<=([^/])>)'
-    patterns:
-      - include: '#wellformed-html'
-      - include: '$self'
-    end: '(?=\</)'
-
-  balanced-open-close-tag-end:
-    match: '(</)(!?)([^/\s>]+)\s*(>)'
-    captures:
       1: { name: 'punctuation.definition.tag.begin.html' }
-      2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
-      3: { name: 'entity.name.tag.html' }
+      2: { name: 'entity.name.tag.html' }
+      3: { name: 'punctuation.definition.tag.end.html' }
       4: { name: 'punctuation.definition.tag.end.html' }
+    patterns:
+      - begin: '(<)(!)?([^/\s>]+)(?=\s|/?>)'
+        beginCaptures:
+          1: { name: 'punctuation.definition.tag.begin.html' }
+          2: { name: 'constant.character.escape.razor.tagHelperOptOut' }
+          3: { name: 'entity.name.tag.html' }
+        end: '(?=/?>)'
+        patterns:
+          - include: '#razor-control-structures'
+          - include: 'text.html.basic#attribute'
+      - begin: '>'
+        beginCaptures:
+          0: { name: 'punctuation.definition.tag.end.html' }
+        end: '(?=</)'
+        patterns:
+          - include: '#wellformed-html'
+          - include: '$self'
 
 # ----------  Explicit Expression ------------
 
