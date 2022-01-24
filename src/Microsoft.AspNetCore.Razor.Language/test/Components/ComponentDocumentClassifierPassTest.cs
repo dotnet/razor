@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -84,7 +84,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         visitor.Visit(irDocument);
 
         // Assert
-        Assert.Equal($"{ComponentsApi.ComponentBase.FullTypeName}", visitor.Class.BaseType);
+        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", visitor.Class.BaseType);
         Assert.Equal(new[] { "public", "partial" }, visitor.Class.Modifiers);
         Assert.Equal("Test", visitor.Class.ClassName);
     }

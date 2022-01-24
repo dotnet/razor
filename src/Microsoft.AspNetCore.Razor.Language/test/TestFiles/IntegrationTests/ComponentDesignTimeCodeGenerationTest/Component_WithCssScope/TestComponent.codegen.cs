@@ -22,7 +22,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line default
 #line hidden
 #nullable disable
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -32,7 +32,7 @@ using Microsoft.AspNetCore.Components.Rendering;
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __o = 
 #nullable restore
@@ -43,19 +43,19 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line hidden
 #nullable disable
             ;
-            __builder.AddAttribute(-1, "ChildContent", (Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
+            __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              myComponentReference = default(Test.TemplatedComponent);
+                              myComponentReference = default(global::Test.TemplatedComponent);
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(TemplatedComponent);
+__o = typeof(global::Test.TemplatedComponent);
 
 #line default
 #line hidden
@@ -78,7 +78,7 @@ __o = typeof(TemplatedComponent);
 #nullable disable
                                                                                     
     
-            __o = Microsoft.AspNetCore.Components.BindConverter.FormatValue(
+            __o = global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
 #line 14 "x:\dir\subdir\Test\TestComponent.cshtml"
                               myVariable
@@ -87,7 +87,7 @@ __o = typeof(TemplatedComponent);
 #line hidden
 #nullable disable
             );
-            __o = Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, myVariable);
+            __o = global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, myVariable);
 #nullable restore
 #line 14 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                               

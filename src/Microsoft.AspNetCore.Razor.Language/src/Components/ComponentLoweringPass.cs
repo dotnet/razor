@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -29,6 +30,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
 
         // For each component *usage* we need to rewrite the tag helper node to map to the relevant component
         // APIs.
+        var usings = documentNode.FindDescendantNodes<UsingDirectiveIntermediateNode>();
         var references = documentNode.FindDescendantReferences<TagHelperIntermediateNode>();
         for (var i = 0; i < references.Count; i++)
         {
@@ -56,14 +58,80 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 }
             }
 
-            if (count >= 1)
+            if (count == 1)
             {
-                reference.Replace(RewriteAsComponent(node, node.TagHelpers.First(t => t.IsComponentTagHelper())));
+                reference.Replace(RewriteAsComponent(node, node.TagHelpers.Single(n => n.IsComponentTagHelper())));
+            }
+            else if (count > 1)
+            {
+                var tagHelper = GetTagHelperOrAddDiagnostic(node, usings);
+                if (tagHelper == null)
+                {
+                    break;
+                }
+
+                reference.Replace(RewriteAsComponent(node, tagHelper));
             }
             else
             {
                 reference.Replace(RewriteAsElement(node));
             }
+        }
+
+        // We have several tag helpers that are candidates for the same tag node. We need to disambiguate which tag helper applies to this tag
+        // since we now fully qualify the tag helper when we emit the code, and we can't rely on the compiler to error out when there are ambiguous
+        // tag helpers.
+        // We look based on the set of usings if there is only a single component for that can be applied to that tag or if we detect more than one
+        // we add a diagnostic and return null
+        static TagHelperDescriptor GetTagHelperOrAddDiagnostic(TagHelperIntermediateNode node, IReadOnlyList<UsingDirectiveIntermediateNode> usings)
+        {
+            TagHelperDescriptor candidate = null;
+            List<TagHelperDescriptor> matched = null;
+            for (var i = 0; i < node.TagHelpers.Count; i++)
+            {
+                var tagHelper = node.TagHelpers[i];
+                if (!tagHelper.IsComponentTagHelper())
+                {
+                    continue;
+                }
+
+                for (var j = 0; j < usings.Count; j++)
+                {
+                    var usingNamespace = usings[j].Content;
+                    if (string.Equals(tagHelper.ParsedTypeInfo.Value.Namespace.Value, usingNamespace, StringComparison.Ordinal))
+                    {
+                        if (candidate == null)
+                        {
+                            candidate = tagHelper;
+                        }
+                        else
+                        {
+                            matched ??= new();
+                            matched.Add(tagHelper);
+                        }
+                    }
+                }
+            }
+
+            if (matched != null)
+            {
+                matched.Add(candidate);
+                var diagnostic = ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, candidate.Name, matched);
+                // Iterate over existing diagnostics to avoid adding multiple diagnostics when we find an ambiguous tag.
+                for (var i = 0; i < node.Diagnostics.Count; i++)
+                {
+                    var existing = node.Diagnostics[i];
+                    if (diagnostic.Id == existing.Id)
+                    {
+                        return null;
+                    }
+                }
+                node.Diagnostics.Add(diagnostic);
+
+                return null;
+            }
+
+            return candidate;
         }
     }
 

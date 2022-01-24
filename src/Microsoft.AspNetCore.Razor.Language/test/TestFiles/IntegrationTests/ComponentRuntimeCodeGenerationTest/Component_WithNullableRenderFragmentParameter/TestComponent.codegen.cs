@@ -8,13 +8,13 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.OpenComponent<Test.ComponentWithNullableRenderFragment>(0);
-            __builder.AddAttribute(1, "Header", (Microsoft.AspNetCore.Components.RenderFragment)(
+            __builder.OpenComponent<global::Test.ComponentWithNullableRenderFragment>(0);
+            __builder.AddAttribute(1, "Header", (global::Microsoft.AspNetCore.Components.RenderFragment)(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                               Header

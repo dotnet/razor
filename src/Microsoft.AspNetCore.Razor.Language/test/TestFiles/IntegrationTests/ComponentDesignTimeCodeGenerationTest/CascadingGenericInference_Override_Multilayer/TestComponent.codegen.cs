@@ -8,7 +8,7 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -18,10 +18,10 @@ namespace Test
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             {
-                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0_CaptureParameters(
+                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0_CaptureParameters(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                  DateTime.Now
@@ -30,9 +30,9 @@ namespace Test
 #line hidden
 #nullable disable
                 , out var __typeInferenceArg_0___arg0);
-                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, (__builder2) => {
+                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, (__builder2) => {
                     {
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1_CaptureParameters(
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1_CaptureParameters(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                      System.Threading.Thread.CurrentThread
@@ -41,17 +41,17 @@ namespace Test
 #line hidden
 #nullable disable
                         , out var __typeInferenceArg_1___arg0);
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1(__builder2, -1, -1, __typeInferenceArg_1___arg0, -1, (__builder3) => {
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1(__builder2, -1, -1, __typeInferenceArg_1___arg0, -1, (__builder3) => {
                             {
-                                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_2___syntheticArg0);
-                                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2(__builder3, -1, __typeInferenceArg_2___syntheticArg0, -1, (__builder4) => {
+                                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_2___syntheticArg0);
+                                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2(__builder3, -1, __typeInferenceArg_2___syntheticArg0, -1, (__builder4) => {
                                     {
-                                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_3___syntheticArg0);
-                                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3(__builder4, -1, __typeInferenceArg_3___syntheticArg0);
+                                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_3___syntheticArg0);
+                                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3(__builder4, -1, __typeInferenceArg_3___syntheticArg0);
                                     }
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(TreeNode<>);
+__o = typeof(global::Test.TreeNode<>);
 
 #line default
 #line hidden
@@ -61,7 +61,7 @@ __o = typeof(TreeNode<>);
                             }
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(TreeNode<>);
+__o = typeof(global::Test.TreeNode<>);
 
 #line default
 #line hidden
@@ -71,18 +71,18 @@ __o = typeof(TreeNode<>);
                     }
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(TreeNode<>);
+__o = typeof(global::Test.TreeNode<>);
 
 #line default
 #line hidden
 #nullable disable
                     {
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4_CaptureParameters(__typeInferenceArg_0___arg0, out var __typeInferenceArg_1___syntheticArg0);
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4(__builder2, -1, __typeInferenceArg_1___syntheticArg0);
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4_CaptureParameters(__typeInferenceArg_0___arg0, out var __typeInferenceArg_1___syntheticArg0);
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4(__builder2, -1, __typeInferenceArg_1___syntheticArg0);
                     }
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(TreeNode<>);
+__o = typeof(global::Test.TreeNode<>);
 
 #line default
 #line hidden
@@ -92,7 +92,7 @@ __o = typeof(TreeNode<>);
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(TreeNode<>);
+__o = typeof(global::Test.TreeNode<>);
 
 #line default
 #line hidden

@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
@@ -2580,11 +2581,11 @@ namespace Test3
 
         if (DesignTime)
         {
-            Assert.Collection(result.Diagnostics, d =>
+            Assert.Collection(generated.Diagnostics, d =>
             {
-                Assert.Equal("CS0104", d.Id);
-                Assert.Equal(CodeAnalysis.DiagnosticSeverity.Error, d.Severity);
-                Assert.Equal("'SomeComponent' is an ambiguous reference between 'Test2.SomeComponent' and 'Test3.SomeComponent'", d.GetMessage());
+                Assert.Equal("RZ9985", d.Id);
+                Assert.Equal(RazorDiagnosticSeverity.Error, d.Severity);
+                Assert.Equal("Multiple components use the tag 'SomeComponent'. Components: Test2.SomeComponent, Test3.SomeComponent", d.GetMessage(CultureInfo.InvariantCulture));
             });
         }
     }

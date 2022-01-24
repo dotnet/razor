@@ -35,9 +35,9 @@ public sealed class ReferenceCaptureIntermediateNode : IntermediateNode
 
     public string ComponentCaptureTypeName { get; set; }
 
-    public string FieldTypeName => IsComponentCapture ? ComponentCaptureTypeName : "global::" + ComponentsApi.ElementReference.FullTypeName;
+    public string FieldTypeName => IsComponentCapture ? ComponentCaptureTypeName : $"global::{ComponentsApi.ElementReference.FullTypeName}";
 
-    public string TypeName => $"global::System.Action<{FieldTypeName}>";
+    public string TypeName => $"System.Action<{FieldTypeName}>";
 
     public override void Accept(IntermediateNodeVisitor visitor)
     {

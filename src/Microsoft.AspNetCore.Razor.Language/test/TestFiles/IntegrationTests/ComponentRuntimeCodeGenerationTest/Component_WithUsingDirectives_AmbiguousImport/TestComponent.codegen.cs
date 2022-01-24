@@ -22,16 +22,14 @@ using Test3;
 #line default
 #line hidden
 #nullable disable
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.OpenComponent<Test.MyComponent>(0);
+            __builder.OpenComponent<global::Test.MyComponent>(0);
             __builder.CloseComponent();
             __builder.AddMarkupContent(1, "\r\n");
-            __builder.OpenComponent<Test2.SomeComponent>(2);
-            __builder.CloseComponent();
         }
         #pragma warning restore 1998
     }

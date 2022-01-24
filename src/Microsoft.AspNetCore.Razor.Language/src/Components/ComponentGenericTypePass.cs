@@ -352,17 +352,17 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 else if (attribute.TypeName == null && (attribute.BoundAttribute?.IsDelegateProperty() ?? false))
                 {
                     // This is a weakly typed delegate, treat it as Action<object>
-                    attribute.TypeName = "System.Action<System.Object>";
+                    attribute.TypeName = "global::System.Action<global::System.Object>";
                 }
                 else if (attribute.TypeName == null && (attribute.BoundAttribute?.IsEventCallbackProperty() ?? false))
                 {
                     // This is a weakly typed event-callback, treat it as EventCallback (non-generic)
-                    attribute.TypeName = ComponentsApi.EventCallback.FullTypeName;
+                    attribute.TypeName = $"global::{ComponentsApi.EventCallback.FullTypeName}";
                 }
                 else if (attribute.TypeName == null)
                 {
                     // This is a weakly typed attribute, treat it as System.Object
-                    attribute.TypeName = "System.Object";
+                    attribute.TypeName = "global::System.Object";
                 }
             }
 

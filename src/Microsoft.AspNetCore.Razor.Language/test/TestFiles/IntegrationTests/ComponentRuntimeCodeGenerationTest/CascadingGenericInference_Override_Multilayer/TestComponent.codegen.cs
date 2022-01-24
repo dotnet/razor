@@ -8,13 +8,13 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             {
-                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0_CaptureParameters(
+                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0_CaptureParameters(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                  DateTime.Now
@@ -23,9 +23,9 @@ namespace Test
 #line hidden
 #nullable disable
                 , out var __typeInferenceArg_0___arg0);
-                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0(__builder, 0, 1, __typeInferenceArg_0___arg0, 2, (__builder2) => {
+                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_0(__builder, 0, 1, __typeInferenceArg_0___arg0, 2, (__builder2) => {
                     {
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1_CaptureParameters(
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1_CaptureParameters(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                      System.Threading.Thread.CurrentThread
@@ -34,13 +34,13 @@ namespace Test
 #line hidden
 #nullable disable
                         , out var __typeInferenceArg_1___arg0);
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1(__builder2, 3, 4, __typeInferenceArg_1___arg0, 5, (__builder3) => {
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_1(__builder2, 3, 4, __typeInferenceArg_1___arg0, 5, (__builder3) => {
                             {
-                                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_2___syntheticArg0);
-                                __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2(__builder3, 6, __typeInferenceArg_2___syntheticArg0, 7, (__builder4) => {
+                                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_2___syntheticArg0);
+                                global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_2(__builder3, 6, __typeInferenceArg_2___syntheticArg0, 7, (__builder4) => {
                                     {
-                                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_3___syntheticArg0);
-                                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3(__builder4, 8, __typeInferenceArg_3___syntheticArg0);
+                                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3_CaptureParameters(__typeInferenceArg_1___arg0, out var __typeInferenceArg_3___syntheticArg0);
+                                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_3(__builder4, 8, __typeInferenceArg_3___syntheticArg0);
                                         __typeInferenceArg_3___syntheticArg0 = default;
                                     }
                                 }
@@ -53,8 +53,8 @@ namespace Test
                     }
                     __builder2.AddMarkupContent(9, "\r\n    ");
                     {
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4_CaptureParameters(__typeInferenceArg_0___arg0, out var __typeInferenceArg_1___syntheticArg0);
-                        __Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4(__builder2, 10, __typeInferenceArg_1___syntheticArg0);
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4_CaptureParameters(__typeInferenceArg_0___arg0, out var __typeInferenceArg_1___syntheticArg0);
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4(__builder2, 10, __typeInferenceArg_1___syntheticArg0);
                         __typeInferenceArg_1___syntheticArg0 = default;
                     }
                 }

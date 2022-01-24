@@ -14,13 +14,13 @@ using Microsoft.AspNetCore.Components;
 #line default
 #line hidden
 #nullable disable
-    public partial class TestComponent<TItem1, TItem2, TItem3> : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent<TItem1, TItem2, TItem3> : global::Microsoft.AspNetCore.Components.ComponentBase
     where TItem1 : Image
     where TItem2 : ITag
     where TItem3 : Image, new()
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<h1>Item1</h1>");
 #nullable restore

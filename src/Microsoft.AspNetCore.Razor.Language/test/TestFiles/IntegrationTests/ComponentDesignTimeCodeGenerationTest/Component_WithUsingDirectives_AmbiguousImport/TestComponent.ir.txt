@@ -7,7 +7,7 @@ Document -
         UsingDirective - (104:5,1 [37] ) - Microsoft.AspNetCore.Components
         UsingDirective - (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Test2
         UsingDirective - (15:1,1 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Test3
-        ClassDeclaration -  - public partial - TestComponent - Microsoft.AspNetCore.Components.ComponentBase - 
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             DesignTimeDirective - 
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning disable 0414
@@ -23,4 +23,5 @@ Document -
                 Component - (28:2,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                 HtmlContent - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                Component - (45:3,0 [17] x:\dir\subdir\Test\TestComponent.cshtml) - SomeComponent
+                TagHelper - (45:3,0 [17] x:\dir\subdir\Test\TestComponent.cshtml) - SomeComponent - TagMode.SelfClosing
+                    TagHelperBody - 

@@ -181,23 +181,28 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             throw new InvalidOperationException("This attribute is not an EventCallback attribute.");
         }
 
-        if (string.Equals(TypeName, ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal))
+        return TryGetEventCallbackArgument(TypeName, out argument);
+    }
+
+    internal static bool TryGetEventCallbackArgument(string typeName, out StringSegment argument)
+    {
+        if (string.Equals(typeName, ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal))
         {
             // Non-Generic
             argument = default;
             return false;
         }
 
-        if (TypeName != null &&
-            TypeName.Length > ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length &&
-            TypeName.StartsWith(ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal) &&
-            TypeName[ComponentsApi.EventCallback.FullTypeName.Length] == '<' &&
-            TypeName[TypeName.Length - 1] == '>')
+        if (typeName != null &&
+            typeName.Length > ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length &&
+            typeName.StartsWith(ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal) &&
+            typeName[ComponentsApi.EventCallback.FullTypeName.Length] == '<' &&
+            typeName[typeName.Length - 1] == '>')
         {
             // OK this is promising.
             //
             // Chop off leading `...EventCallback<` and let the length so the ending `>` is cut off as well.
-            argument = new StringSegment(TypeName, ComponentsApi.EventCallback.FullTypeName.Length + 1, TypeName.Length - (ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length));
+            argument = new StringSegment(typeName, ComponentsApi.EventCallback.FullTypeName.Length + 1, typeName.Length - (ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length));
             return true;
         }
 

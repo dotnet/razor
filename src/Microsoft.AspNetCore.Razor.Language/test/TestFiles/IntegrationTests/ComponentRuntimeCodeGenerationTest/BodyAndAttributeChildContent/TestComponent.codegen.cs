@@ -8,10 +8,10 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -38,8 +38,8 @@ __builder2.AddContent(1, context.ToLowerInvariant());
 #line default
 #line hidden
 #nullable disable
-            __builder.OpenComponent<Test.MyComponent>(2);
-            __builder.AddAttribute(3, "Header", (Microsoft.AspNetCore.Components.RenderFragment<System.String>)(
+            __builder.OpenComponent<global::Test.MyComponent>(2);
+            __builder.AddAttribute(3, "Header", (global::Microsoft.AspNetCore.Components.RenderFragment<System.String>)(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                      header
@@ -48,7 +48,7 @@ __builder2.AddContent(1, context.ToLowerInvariant());
 #line hidden
 #nullable disable
             ));
-            __builder.AddAttribute(4, "ChildContent", (Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
+            __builder.AddAttribute(4, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 __builder2.AddMarkupContent(5, "\r\n    Some Content\r\n");
             }
             ));

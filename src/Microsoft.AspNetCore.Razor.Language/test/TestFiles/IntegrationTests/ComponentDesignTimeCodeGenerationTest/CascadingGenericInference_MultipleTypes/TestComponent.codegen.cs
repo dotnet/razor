@@ -8,7 +8,7 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -18,10 +18,10 @@ namespace Test
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             {
-                __Blazor.Test.TestComponent.TypeInference.CreateParent_0_CaptureParameters(
+                global::__Blazor.Test.TestComponent.TypeInference.CreateParent_0_CaptureParameters(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                 new System.Collections.Generic.Dictionary<int, string>()
@@ -38,8 +38,8 @@ namespace Test
 #line hidden
 #nullable disable
                 , out var __typeInferenceArg_0___arg1);
-                __Blazor.Test.TestComponent.TypeInference.CreateParent_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, __typeInferenceArg_0___arg1, -1, (__builder2) => {
-                    __Blazor.Test.TestComponent.TypeInference.CreateChild_1(__builder2, -1, __typeInferenceArg_0___arg1, __typeInferenceArg_0___arg0, __typeInferenceArg_0___arg0, -1, 
+                global::__Blazor.Test.TestComponent.TypeInference.CreateParent_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, __typeInferenceArg_0___arg1, -1, (__builder2) => {
+                    global::__Blazor.Test.TestComponent.TypeInference.CreateChild_1(__builder2, -1, __typeInferenceArg_0___arg1, __typeInferenceArg_0___arg0, __typeInferenceArg_0___arg0, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                              new[] { 'a', 'b', 'c' }
@@ -50,7 +50,7 @@ namespace Test
                     );
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(Child<,,,>);
+__o = typeof(global::Test.Child<,,,>);
 
 #line default
 #line hidden
@@ -60,7 +60,7 @@ __o = typeof(Child<,,,>);
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(Parent<,,>);
+__o = typeof(global::Test.Parent<,,>);
 
 #line default
 #line hidden

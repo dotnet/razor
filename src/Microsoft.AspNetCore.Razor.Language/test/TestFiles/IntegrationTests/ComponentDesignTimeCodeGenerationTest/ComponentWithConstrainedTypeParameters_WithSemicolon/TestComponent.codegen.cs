@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Components;
 #line default
 #line hidden
 #nullable disable
-    public partial class TestComponent<TItem1, TItem2, TItem3> : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent<TItem1, TItem2, TItem3> : global::Microsoft.AspNetCore.Components.ComponentBase
     where TItem1 : Image
     where TItem2 : ITag
     where TItem3 : Image, new()
@@ -105,7 +105,7 @@ void __TypeConstraints_TItem3<TItem3>() where TItem3 : Image, new()
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"

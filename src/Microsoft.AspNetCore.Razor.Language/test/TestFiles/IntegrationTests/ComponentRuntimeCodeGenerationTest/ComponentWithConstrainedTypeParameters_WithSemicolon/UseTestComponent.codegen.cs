@@ -15,12 +15,12 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-    public partial class UseTestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class UseTestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, 0, 1, 
+            global::__Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, 0, 1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                       item1

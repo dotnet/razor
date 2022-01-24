@@ -8,7 +8,7 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -18,9 +18,9 @@ namespace Test
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __Blazor.Test.TestComponent.TypeInference.CreateGrid_0(__builder, -1, -1, 
+            global::__Blazor.Test.TestComponent.TypeInference.CreateGrid_0(__builder, -1, -1, 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                Array.Empty<DateTime>()
@@ -29,10 +29,10 @@ namespace Test
 #line hidden
 #nullable disable
             , -1, (__builder2) => {
-                __Blazor.Test.TestComponent.TypeInference.CreateColumn_1(__builder2, -1);
+                global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_1(__builder2, -1);
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(Column<>);
+__o = typeof(global::Test.Column<>);
 
 #line default
 #line hidden
@@ -41,7 +41,7 @@ __o = typeof(Column<>);
             );
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(Grid<>);
+__o = typeof(global::Test.Grid<>);
 
 #line default
 #line hidden

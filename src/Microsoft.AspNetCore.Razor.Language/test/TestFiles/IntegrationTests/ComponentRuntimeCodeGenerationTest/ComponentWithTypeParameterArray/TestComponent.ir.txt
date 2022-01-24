@@ -5,7 +5,7 @@ Document -
         UsingDirective - (53:3,1 [19] ) - System.Linq
         UsingDirective - (73:4,1 [30] ) - System.Threading.Tasks
         UsingDirective - (1:0,1 [40] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components
-        ClassDeclaration -  - public partial - TestComponent - Microsoft.AspNetCore.Components.ComponentBase -  - TItem
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TItem
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupBlock -  - <h1>Item</h1>\n\n
                 MarkupElement - (78:5,0 [28] x:\dir\subdir\Test\TestComponent.cshtml) - p

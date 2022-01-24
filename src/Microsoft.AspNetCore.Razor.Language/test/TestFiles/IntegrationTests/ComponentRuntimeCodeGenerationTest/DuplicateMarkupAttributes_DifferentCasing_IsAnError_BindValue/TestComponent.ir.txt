@@ -6,7 +6,7 @@ Document -
         UsingDirective - (73:4,1 [30] ) - System.Threading.Tasks
         UsingDirective - (104:5,1 [39] ) - Microsoft.AspNetCore.Components
         UsingDirective - (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
-        ClassDeclaration -  - public partial - TestComponent - Microsoft.AspNetCore.Components.ComponentBase - 
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (44:1,0 [69] x:\dir\subdir\Test\TestComponent.cshtml) - div
                     MarkupElement - (53:2,2 [52] x:\dir\subdir\Test\TestComponent.cshtml) - input
@@ -18,12 +18,12 @@ Document -
                                 LazyIntermediateToken - (79:2,28 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 17
                         HtmlAttribute - (90:2,39 [5] x:\dir\subdir\Test\TestComponent.cshtml) - value=" - "
                             CSharpExpressionAttributeValue -  - 
-                                IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.BindConverter.FormatValue(
+                                IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
                                 LazyIntermediateToken - (91:2,40 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - text
                                 IntermediateToken -  - CSharp - )
                         HtmlAttribute - (90:2,39 [5] x:\dir\subdir\Test\TestComponent.cshtml) - onchange=" - "
                             CSharpExpressionAttributeValue -  - 
-                                IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => text = __value, 
+                                IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => text = __value, 
                                 IntermediateToken -  - CSharp - text
                                 IntermediateToken -  - CSharp - )
             CSharpCode - (127:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)

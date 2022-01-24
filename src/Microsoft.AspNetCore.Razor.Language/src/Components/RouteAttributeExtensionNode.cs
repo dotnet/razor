@@ -22,6 +22,7 @@ internal sealed class RouteAttributeExtensionNode : ExtensionIntermediateNode
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         context.CodeWriter.Write("[");
+        context.CodeWriter.Write("global::");
         context.CodeWriter.Write(ComponentsApi.RouteAttribute.FullTypeName);
         context.CodeWriter.Write("(\"");
         context.CodeWriter.Write(Template);

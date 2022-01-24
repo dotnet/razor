@@ -22,7 +22,7 @@ using System.Reflection;
 #line default
 #line hidden
 #nullable disable
-    public partial class Counter : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -42,14 +42,14 @@ global::System.Object __typeHelper = nameof(New.Test);
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.AddAttribute(-1, "ChildContent", (Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
+            __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
 #nullable restore
 #line 2 "x:\dir\subdir\Test\Pages/Counter.razor"
-__o = typeof(Counter2);
+__o = typeof(global::New.Test.Counter2);
 
 #line default
 #line hidden

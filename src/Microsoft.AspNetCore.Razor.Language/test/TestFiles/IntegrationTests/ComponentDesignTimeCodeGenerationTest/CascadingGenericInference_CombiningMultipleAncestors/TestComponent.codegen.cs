@@ -8,7 +8,7 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -18,10 +18,10 @@ namespace Test
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             {
-                __Blazor.Test.TestComponent.TypeInference.CreateParentOne_0_CaptureParameters(
+                global::__Blazor.Test.TestComponent.TypeInference.CreateParentOne_0_CaptureParameters(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                    int.MaxValue
@@ -30,9 +30,9 @@ namespace Test
 #line hidden
 #nullable disable
                 , out var __typeInferenceArg_0___arg0);
-                __Blazor.Test.TestComponent.TypeInference.CreateParentOne_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, (__builder2) => {
+                global::__Blazor.Test.TestComponent.TypeInference.CreateParentOne_0(__builder, -1, -1, __typeInferenceArg_0___arg0, -1, (__builder2) => {
                     {
-                        __Blazor.Test.TestComponent.TypeInference.CreateParentTwo_1_CaptureParameters(
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateParentTwo_1_CaptureParameters(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                         "Hello"
@@ -41,11 +41,11 @@ namespace Test
 #line hidden
 #nullable disable
                         , out var __typeInferenceArg_1___arg0);
-                        __Blazor.Test.TestComponent.TypeInference.CreateParentTwo_1(__builder2, -1, -1, __typeInferenceArg_1___arg0, -1, (__builder3) => {
-                            __Blazor.Test.TestComponent.TypeInference.CreateChild_2(__builder3, -1, __typeInferenceArg_0___arg0, __typeInferenceArg_1___arg0);
+                        global::__Blazor.Test.TestComponent.TypeInference.CreateParentTwo_1(__builder2, -1, -1, __typeInferenceArg_1___arg0, -1, (__builder3) => {
+                            global::__Blazor.Test.TestComponent.TypeInference.CreateChild_2(__builder3, -1, __typeInferenceArg_0___arg0, __typeInferenceArg_1___arg0);
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(Child<,>);
+__o = typeof(global::Test.Child<,>);
 
 #line default
 #line hidden
@@ -55,7 +55,7 @@ __o = typeof(Child<,>);
                     }
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(ParentTwo<>);
+__o = typeof(global::Test.ParentTwo<>);
 
 #line default
 #line hidden
@@ -65,7 +65,7 @@ __o = typeof(ParentTwo<>);
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(ParentOne<>);
+__o = typeof(global::Test.ParentOne<>);
 
 #line default
 #line hidden

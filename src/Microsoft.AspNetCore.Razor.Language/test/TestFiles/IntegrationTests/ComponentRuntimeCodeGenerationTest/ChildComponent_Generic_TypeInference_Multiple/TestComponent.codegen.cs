@@ -8,12 +8,12 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
+            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "hi"
@@ -23,7 +23,7 @@ namespace Test
 #nullable disable
             );
             __builder.AddMarkupContent(2, "\r\n");
-            __Blazor.Test.TestComponent.TypeInference.CreateMyComponent_1(__builder, 3, 4, 
+            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_1(__builder, 3, 4, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "how are you?"
@@ -33,7 +33,7 @@ namespace Test
 #nullable disable
             );
             __builder.AddMarkupContent(5, "\r\n");
-            __Blazor.Test.TestComponent.TypeInference.CreateMyComponent_2(__builder, 6, 7, 
+            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_2(__builder, 6, 7, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "bye!"

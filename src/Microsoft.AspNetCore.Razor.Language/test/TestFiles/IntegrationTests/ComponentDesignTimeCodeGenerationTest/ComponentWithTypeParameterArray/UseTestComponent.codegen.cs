@@ -15,7 +15,7 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-    public partial class UseTestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class UseTestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -25,9 +25,9 @@ using Test;
         private static System.Object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
+            global::__Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                       items1
@@ -63,7 +63,7 @@ using Test;
             );
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
-__o = typeof(TestComponent<>);
+__o = typeof(global::Test.TestComponent<>);
 
 #line default
 #line hidden

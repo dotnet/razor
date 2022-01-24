@@ -688,7 +688,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         // BindConverter.FormatValue(<code>, format: <format>, culture: <culture>)
         valueExpressionTokens.Add(new IntermediateToken()
         {
-            Content = $"{ComponentsApi.BindConverter.FormatValue}(",
+            Content = $"global::{ComponentsApi.BindConverter.FormatValue}(",
             Kind = TokenKind.CSharp
         });
         valueExpressionTokens.Add(original);
@@ -738,7 +738,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         // Note that the linemappings here are applied to the value attribute, not the change attribute.
         changeExpressionTokens.Add(new IntermediateToken()
         {
-            Content = $"{ComponentsApi.EventCallback.FactoryAccessor}.{ComponentsApi.EventCallbackFactory.CreateBinderMethod}(this, __value => {original.Content} = __value, ",
+            Content = $"global::{ComponentsApi.EventCallback.FactoryAccessor}.{ComponentsApi.EventCallbackFactory.CreateBinderMethod}(this, __value => {original.Content} = __value, ",
             Kind = TokenKind.CSharp
         });
 

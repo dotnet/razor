@@ -8,17 +8,17 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __builder.OpenComponent<Test.MyComponent>(0);
-            __builder.AddAttribute(1, "Header", (Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
+            __builder.OpenComponent<global::Test.MyComponent>(0);
+            __builder.AddAttribute(1, "Header", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 __builder2.AddContent(2, "Hi!");
             }
             ));
-            __builder.AddAttribute(3, "Footer", (Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
+            __builder.AddAttribute(3, "Footer", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
 #nullable restore
 #line (3,15)-(3,21) 25 "x:\dir\subdir\Test\TestComponent.cshtml"
 __builder2.AddContent(4, "bye!");

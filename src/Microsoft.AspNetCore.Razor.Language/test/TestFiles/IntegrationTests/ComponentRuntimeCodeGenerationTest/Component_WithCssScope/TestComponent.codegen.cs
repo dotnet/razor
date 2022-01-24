@@ -22,10 +22,10 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line default
 #line hidden
 #nullable disable
-    public partial class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<h1 TestCssScope>Element with no attributes</h1>\r\n");
             __builder.OpenElement(1, "parent");
@@ -42,8 +42,8 @@ using Microsoft.AspNetCore.Components.Rendering;
             __builder.AddAttribute(4, "TestCssScope");
             __builder.AddMarkupContent(5, "<child TestCssScope></child>\r\n    ");
             __builder.AddMarkupContent(6, "<child has multiple attributes=\"some with values\" TestCssScope>With text</child>\r\n    ");
-            __builder.OpenComponent<Test.TemplatedComponent>(7);
-            __builder.AddAttribute(8, "ChildContent", (Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
+            __builder.OpenComponent<global::Test.TemplatedComponent>(7);
+            __builder.AddAttribute(8, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 __builder2.AddMarkupContent(9, "<span id=\"hello\" TestCssScope>This is in child content</span>");
             }
             ));
@@ -86,7 +86,7 @@ using Microsoft.AspNetCore.Components.Rendering;
             __builder.OpenElement(17, "input");
             __builder.AddAttribute(18, "id", "myElem");
             __builder.AddAttribute(19, "another-attr", "Another attr value");
-            __builder.AddAttribute(20, "value", Microsoft.AspNetCore.Components.BindConverter.FormatValue(
+            __builder.AddAttribute(20, "value", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
 #nullable restore
 #line 14 "x:\dir\subdir\Test\TestComponent.cshtml"
                               myVariable
@@ -95,7 +95,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line hidden
 #nullable disable
             ));
-            __builder.AddAttribute(21, "onchange", Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, myVariable));
+            __builder.AddAttribute(21, "onchange", global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, myVariable));
             __builder.SetUpdatesAttributeName("value");
             __builder.AddAttribute(22, "TestCssScope");
             __builder.CloseElement();
