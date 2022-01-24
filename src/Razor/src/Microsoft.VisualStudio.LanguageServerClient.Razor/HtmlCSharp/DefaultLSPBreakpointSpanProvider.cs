@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _loggerProvider = loggerProvider;
         }
 
-        public async override Task<ProjectionResult?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public async override Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
             if (documentSnapshot is null)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(position));
             }
 
-            // We initialize the logger here instead of the constructor as the projection provider is constructed
+            // We initialize the logger here instead of the constructor as the breakpoint span provider is constructed
             // *before* the language server. Thus, the log hub has yet to be initialized, thus we would be unable to
             // create the logger at that time.
             await InitializeLogHubAsync(cancellationToken).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageResponse = response?.Response;
             if (languageResponse is null)
             {
-                _logHubLogger.LogInformation("The language server is still being spun up. Could not resolve the projection.");
+                _logHubLogger.LogInformation("The breakpoint position could not be mapped to a valid range.");
                 return null;
             }
 
@@ -132,16 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             }
 
-            var result = new ProjectionResult()
-            {
-                Uri = virtualDocument.Uri,
-                Position = languageResponse.Position,
-                PositionIndex = languageResponse.PositionIndex,
-                LanguageKind = languageResponse.Kind,
-                HostDocumentVersion = languageResponse.HostDocumentVersion
-            };
-
-            return result;
+            return languageResponse.Range;
         }
 
         private async Task InitializeLogHubAsync(CancellationToken cancellationToken)

@@ -11,9 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
     {
         public RazorLanguageKind Kind { get; set; }
 
-        public int PositionIndex { get; set; }
-
-        public Position Position { get; set; }
+        public Range Range { get; set; }
 
         public int? HostDocumentVersion { get; set; }
     }

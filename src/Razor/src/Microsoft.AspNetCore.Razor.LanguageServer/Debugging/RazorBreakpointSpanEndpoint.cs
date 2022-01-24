@@ -5,13 +5,18 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
@@ -62,15 +67,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorBreakpointSpanResponse> Handle(RazorBreakpointSpanParams request, CancellationToken cancellationToken)
+        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParams request, CancellationToken cancellationToken)
         {
             var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-
-            Debug.Assert(info != null, "Failed to get the document snapshot, could not map to document ranges.");
-
             if (info is null)
             {
-                throw new InvalidOperationException($"Unable to resolve document {request.Uri.GetAbsoluteOrUNCPath()}.");
+                return null;
             }
 
             var (documentSnapshot, documentVersion) = info;
@@ -79,60 +81,104 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             var sourceText = await documentSnapshot.GetTextAsync();
             var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var responsePosition = request.Position;
 
             if (codeDocument.IsUnsupported())
             {
-                // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
-                return new RazorBreakpointSpanResponse()
-                {
-                    Kind = RazorLanguageKind.Html,
-                    Position = responsePosition,
-                    PositionIndex = hostDocumentIndex,
-                    HostDocumentVersion = documentVersion,
-                };
+                return null;
             }
 
-            var responsePositionIndex = hostDocumentIndex;
-
+            var projectedIndex = hostDocumentIndex;
             var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
-            if (languageKind == RazorLanguageKind.CSharp)
+            // If we're in C#, then map to the right position in the generated document
+            if (languageKind == RazorLanguageKind.CSharp &&
+                !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
             {
-                if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
-                {
-                    // For C# locations, we attempt to return the corresponding position
-                    // within the projected document
-                    responsePosition = projectedPosition;
-                    responsePositionIndex = projectedIndex;
-                }
-                else
-                {
-                    // It no longer makes sense to think of this location as C#, since it doesn't
-                    // correspond to any position in the projected document. This should not happen
-                    // since there should be source mappings for all the C# spans.
-                    languageKind = RazorLanguageKind.Razor;
-                    responsePositionIndex = hostDocumentIndex;
-                }
+                return null;
             }
-            else if (languageKind == RazorLanguageKind.Html)
+            // Otherwise see if there is more C# on the line to map to
+            else if (languageKind == RazorLanguageKind.Html &&
+                !_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
             {
-                if (_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
-                {
-                    languageKind = RazorLanguageKind.CSharp;
-                    responsePosition = projectedPosition;
-                    responsePositionIndex = projectedIndex;
-                }
+                return null;
+            }
+            else
+            {
+                return null;
             }
 
-            _logger.LogTrace($"Breakpoint span request for ({request.Position.Line}, {request.Position.Character}) = {languageKind} at ({responsePosition.Line}, {responsePosition.Character}");
+            // Now ask Roslyn to adjust the breakpoint to a valid location in the code
+            var csharpDocument = codeDocument.GetCSharpDocument();
+            var syntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.GeneratedCode, cancellationToken: cancellationToken);
+            if (!RazorBreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectedIndex, cancellationToken, out var csharpBreakpointSpan))
+            {
+                return null;
+            }
+
+            var csharpText = codeDocument.GetCSharpSourceText();
+
+            csharpText.GetLineAndOffset(csharpBreakpointSpan.Start, out var startLineIndex, out var startCharacterIndex);
+            csharpText.GetLineAndOffset(csharpBreakpointSpan.End, out var endLineIndex, out var endCharacterIndex);
+
+            var projectedRange = new Range()
+            {
+                Start = new Position(startLineIndex, startCharacterIndex),
+                End = new Position(endLineIndex, endCharacterIndex),
+            };
+
+            // Now map that new C# location back to the host document
+            var mappingBehavior = GetMappingBehavior(codeDocument.Source.RelativePath);
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
+            {
+                return null;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _logger.LogTrace($"Breakpoint span request for ({request.Position.Line}, {request.Position.Character}) = ({hostDocumentRange.Start.Line}, {hostDocumentRange.Start.Character}");
 
             return new RazorBreakpointSpanResponse()
             {
-                Kind = languageKind,
-                Position = responsePosition,
-                PositionIndex = responsePositionIndex,
+                Kind = RazorLanguageKind.CSharp,
+                Range = hostDocumentRange,
                 HostDocumentVersion = documentVersion
             };
+        }
+
+        // Internal for testing
+        internal static MappingBehavior GetMappingBehavior(string hostDocumentPath)
+        {
+            if (hostDocumentPath.EndsWith(".cshtml", FilePathComparison.Instance))
+            {
+                // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a cshtml file:
+                //
+                //      @DateTime.Now
+                //
+                // This would render as:
+                //
+                //      #line 123 "C:/path/to/abc.cshtml"
+                //      __o = DateTime.Now;
+                //
+                //      #line default
+                //
+                // This in turn results in a breakpoint span encompassing `|__o = DateTime.Now;|`. Problem is that if we're doing "strict" mapping
+                // Razor only maps `DateTime.Now` so mapping would fail. Therefore in cshtml scenarios we fall back to inclusive mapping which allows
+                // C# mappings that intersect to be acceptable mapping locations
+                //
+                // In Blazor this isn't an issue because the above renders as:
+                //
+                //      __o =
+                //      #line 123 "C:/path/to/abc.razor"
+                //      DateTime.Now
+                //
+                //      #line default
+                //      ;
+                //
+                // Which results in a proper mapping
+
+                return MappingBehavior.Inclusive;
+            }
+
+            return MappingBehavior.Strict;
         }
 
         private Task<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
