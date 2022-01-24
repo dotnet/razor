@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
@@ -22,16 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
     {
         public RazorBreakpointSpanEndpointTest()
         {
-            var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
-            int? version = 1337;
-            documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
-                .Returns(true);
-
-            DocumentVersionCache = documentVersionCache.Object;
             MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
         }
-
-        private DocumentVersionCache DocumentVersionCache { get; }
 
         private RazorDocumentMappingService MappingService { get; }
 
@@ -40,9 +31,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
         {
             // Arrange
             var documentPath = "/path/to/document.cshtml";
+            var documentSnapshot = TestDocumentSnapshot.Create(documentPath);
 
             // Act
-            var result = RazorBreakpointSpanEndpoint.GetMappingBehavior(documentPath);
+            var result = RazorBreakpointSpanEndpoint.GetMappingBehavior(documentSnapshot);
 
             // Assert
             Assert.Equal(MappingBehavior.Inclusive, result);
@@ -53,39 +45,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
         {
             // Arrange
             var documentPath = "/path/to/document.razor";
+            var documentSnapshot = TestDocumentSnapshot.Create(documentPath);
 
             // Act
-            var result = RazorBreakpointSpanEndpoint.GetMappingBehavior(documentPath);
+            var result = RazorBreakpointSpanEndpoint.GetMappingBehavior(documentSnapshot);
 
             // Assert
             Assert.Equal(MappingBehavior.Strict, result);
-        }
-
-        [Fact]
-        public async Task Handle_DocumentVersionFailed_ReturnsNull()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var codeDocument = CreateCodeDocument(@"
-<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
-            int? version = default;
-            documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
-                .Returns(false);
-
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, documentVersionCache.Object, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
-            {
-                Uri = new Uri(documentPath),
-                Position = new Position(1, 0)
-            };
-
-            // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
-
-            // Assert
-            Assert.Null(response);
         }
 
         [Fact]
@@ -97,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@DateTime.Now</p>");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, MappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = new Uri(documentPath),
@@ -121,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@{var abc = 123;}</p>");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, MappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = new Uri(documentPath),
@@ -134,7 +100,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 
             // Assert
             Assert.Equal(expectedRange, response!.Range);
-            Assert.Equal(1337, response.HostDocumentVersion);
         }
 
         [Fact]
@@ -147,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@{var abc;}</p>");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, MappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = new Uri(documentPath),
@@ -170,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p></p>");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, MappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = new Uri(documentPath),
@@ -196,7 +161,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 }</p>");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, MappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = new Uri(documentPath),
@@ -222,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 }</p>");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(LegacyDispatcher, documentResolver, MappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = new Uri(documentPath),
@@ -243,6 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var sourceText = SourceText.From(new string(sourceTextChars));
             var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
                 document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
+                document.FileKind == codeDocument.GetFileKind() &&
                 document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
             var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
             documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))

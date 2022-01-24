@@ -9,10 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
     internal class RazorBreakpointSpanResponse
     {
-        public RazorLanguageKind Kind { get; set; }
-
         public Range Range { get; set; }
-
-        public int? HostDocumentVersion { get; set; }
     }
 }

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -24,14 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorBreakpointSpanEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
@@ -43,11 +40,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
             if (documentMappingService is null)
@@ -62,20 +54,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
         public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParams request, CancellationToken cancellationToken)
         {
-            var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-            if (info is null)
+            var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+            if (documentSnapshot is null)
             {
                 return null;
             }
-
-            var (documentSnapshot, documentVersion) = info;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var sourceText = await documentSnapshot.GetTextAsync();
@@ -101,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             {
                 return null;
             }
-            else
+            else if (languageKind == RazorLanguageKind.Razor)
             {
                 return null;
             }
@@ -126,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             };
 
             // Now map that new C# location back to the host document
-            var mappingBehavior = GetMappingBehavior(codeDocument.Source.RelativePath);
+            var mappingBehavior = GetMappingBehavior(documentSnapshot);
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
             {
                 return null;
@@ -138,16 +127,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             return new RazorBreakpointSpanResponse()
             {
-                Kind = RazorLanguageKind.CSharp,
-                Range = hostDocumentRange,
-                HostDocumentVersion = documentVersion
+                Range = hostDocumentRange
             };
         }
 
         // Internal for testing
-        internal static MappingBehavior GetMappingBehavior(string hostDocumentPath)
+        internal static MappingBehavior GetMappingBehavior(DocumentSnapshot snapshot)
         {
-            if (hostDocumentPath.EndsWith(".cshtml", FilePathComparison.Instance))
+            if (snapshot.FileKind == FileKinds.Legacy)
             {
                 // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a cshtml file:
                 //
@@ -181,22 +168,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             return MappingBehavior.Strict;
         }
 
-        private Task<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
+        private Task<DocumentSnapshot?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
         {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<DocumentSnapshotAndVersion?>(() =>
+            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<DocumentSnapshot?>(() =>
             {
                 if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
                 {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
-                    }
+                    return documentSnapshot;
                 }
 
                 return null;
             }, cancellationToken);
         }
-
-        private record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
     }
 }

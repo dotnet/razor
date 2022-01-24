@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
     {
         private readonly LSPRequestInvoker _requestInvoker;
-        private readonly LSPDocumentSynchronizer _documentSynchronizer;
-        private readonly RazorLogger _activityLogger;
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
 
         private ILogger? _logHubLogger = null;
@@ -29,23 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         [ImportingConstructor]
         public DefaultLSPBreakpointSpanProvider(
             LSPRequestInvoker requestInvoker,
-            LSPDocumentSynchronizer documentSynchronizer,
-            RazorLogger razorLogger,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
             {
                 throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (documentSynchronizer is null)
-            {
-                throw new ArgumentNullException(nameof(documentSynchronizer));
-            }
-
-            if (razorLogger is null)
-            {
-                throw new ArgumentNullException(nameof(razorLogger));
             }
 
             if (loggerProvider is null)
@@ -54,8 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             _requestInvoker = requestInvoker;
-            _documentSynchronizer = documentSynchronizer;
-            _activityLogger = razorLogger;
             _loggerProvider = loggerProvider;
         }
 
@@ -95,41 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 _logHubLogger.LogInformation("The breakpoint position could not be mapped to a valid range.");
                 return null;
-            }
-
-            VirtualDocumentSnapshot virtualDocument;
-            if (languageResponse.Kind == RazorLanguageKind.CSharp &&
-                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
-            {
-                virtualDocument = csharpDoc;
-            }
-            else if (languageResponse.Kind == RazorLanguageKind.Html &&
-                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDoc))
-            {
-                virtualDocument = htmlDoc;
-            }
-            else
-            {
-                _logHubLogger.LogInformation($"Could not find projection for {languageResponse.Kind:G}.");
-                return null;
-            }
-
-            if (languageResponse.HostDocumentVersion is null)
-            {
-                // There should always be a document version attached to an open document.
-                // Log it and move on as if it was synchronized.
-                var message = $"Could not find a document version associated with the document '{documentSnapshot.Uri}'";
-                _activityLogger.LogVerbose(message);
-                _logHubLogger.LogWarning(message);
-            }
-            else
-            {
-                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocument, rejectOnNewerParallelRequest: false, cancellationToken).ConfigureAwait(false);
-                if (!synchronized)
-                {
-                    _logHubLogger.LogInformation("Could not synchronize.");
-                    return null;
-                }
             }
 
             return languageResponse.Range;
