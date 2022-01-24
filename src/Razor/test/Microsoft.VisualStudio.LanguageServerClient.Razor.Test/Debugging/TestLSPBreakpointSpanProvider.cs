@@ -17,9 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
     internal class TestLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
     {
         private readonly Uri _documentUri;
-        private readonly IReadOnlyDictionary<Position, ProjectionResult> _mappings;
+        private readonly IReadOnlyDictionary<Position, Range> _mappings;
 
-        public TestLSPBreakpointSpanProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> mappings)
+        public TestLSPBreakpointSpanProvider(Uri documentUri, IReadOnlyDictionary<Position, Range> mappings)
         {
             if (documentUri is null)
             {
@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _mappings = mappings;
         }
 
-        public override Task<ProjectionResult> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public override Task<Range> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
             if (documentSnapshot.Uri != _documentUri)
             {
-                return Task.FromResult((ProjectionResult)null);
+                return Task.FromResult((Range)null);
             }
 
             foreach (var mapping in _mappings.OrderBy(d => d.Key))
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 }
             }
 
-            return Task.FromResult((ProjectionResult)null);
+            return Task.FromResult((Range)null);
         }
     }
 }
