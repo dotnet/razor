@@ -3,16 +3,18 @@
 
 #nullable disable
 
-using System;
-using MediatR;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
-    internal class RazorLanguageQueryParams : IRequest<RazorLanguageQueryResponse>
+    internal class RazorBreakpointSpanResponse
     {
-        public Uri Uri { get; set; }
+        public RazorLanguageKind Kind { get; set; }
+
+        public int PositionIndex { get; set; }
 
         public Position Position { get; set; }
+
+        public int? HostDocumentVersion { get; set; }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    internal class RazorLanguageQueryParams
+    internal class RazorBreakpointSpanParams
     {
         public Uri Uri { get; set; }
 

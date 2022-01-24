@@ -16,8 +16,8 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [Export(typeof(LSPProjectionProvider))]
-    internal class DefaultLSPProjectionProvider : LSPProjectionProvider
+    [Export(typeof(LSPBreakpointSpanProvider))]
+    internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private ILogger? _logHubLogger = null;
 
         [ImportingConstructor]
-        public DefaultLSPProjectionProvider(
+        public DefaultLSPBreakpointSpanProvider(
             LSPRequestInvoker requestInvoker,
             LSPDocumentSynchronizer documentSynchronizer,
             RazorLogger razorLogger,
@@ -59,13 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _loggerProvider = loggerProvider;
         }
 
-        public override Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: true, cancellationToken);
-
-        public override Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: false, cancellationToken);
-
-        private async Task<ProjectionResult?> GetProjectionCoreAsync(LSPDocumentSnapshot documentSnapshot, Position position, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
+        public async override Task<ProjectionResult?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
             if (documentSnapshot is null)
             {
@@ -82,17 +76,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // create the logger at that time.
             await InitializeLogHubAsync(cancellationToken).ConfigureAwait(false);
 
-            var languageQueryParams = new RazorLanguageQueryParams()
+            var languageQueryParams = new RazorBreakpointSpanParams()
             {
                 Position = position,
                 Uri = documentSnapshot.Uri
             };
 
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorBreakpointSpanParams, RazorBreakpointSpanResponse>(
                 documentSnapshot.Snapshot.TextBuffer,
-                LanguageServerConstants.RazorLanguageQueryEndpoint,
+                LanguageServerConstants.RazorBreakpointSpanEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
-                CheckRazorLanguageQueryCapability,
+                CheckRazorBreakpointSpanCapability,
                 languageQueryParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -130,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else
             {
-                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocument, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
+                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocument, rejectOnNewerParallelRequest: false, cancellationToken).ConfigureAwait(false);
                 if (!synchronized)
                 {
                     _logHubLogger.LogInformation("Could not synchronize.");
@@ -158,18 +152,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _logHubLogger = _loggerProvider.CreateLogger(nameof(DefaultLSPProjectionProvider));
+                _logHubLogger = _loggerProvider.CreateLogger(nameof(DefaultLSPBreakpointSpanProvider));
             }
         }
 
-        private static bool CheckRazorLanguageQueryCapability(JToken token)
+        private static bool CheckRazorBreakpointSpanCapability(JToken token)
         {
             if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
             {
                 return false;
             }
 
-            return razorCapability.LanguageQuery;
+            return razorCapability.BreakpointSpan;
         }
     }
 }

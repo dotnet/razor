@@ -4,11 +4,12 @@
 #nullable disable
 
 using System;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using MediatR;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
-    internal class RazorLanguageQueryParams
+    internal class RazorBreakpointSpanParams : IRequest<RazorBreakpointSpanResponse>
     {
         public Uri Uri { get; set; }
 

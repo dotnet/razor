@@ -135,7 +135,7 @@ $@"public class SomeRazorFile
         {
             // Arrange
             var position = new Position(line: 0, character: 2);
-            var projectionProvider = new TestLSPProjectionProvider(
+            var projectionProvider = new TestLSPBreakpointSpanProvider(
                 DocumentUri,
                 new Dictionary<Position, ProjectionResult>()
                 {
@@ -162,7 +162,7 @@ $@"public class SomeRazorFile
             var hostDocumentPosition = GetPosition(InvalidBreakpointCSharp, HostTextbuffer);
             var csharpDocumentPosition = GetPosition(InvalidBreakpointCSharp, CSharpTextBuffer);
             var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(InvalidBreakpointCSharp, StringComparison.Ordinal);
-            var projectionProvider = new TestLSPProjectionProvider(
+            var projectionProvider = new TestLSPBreakpointSpanProvider(
                 DocumentUri,
                 new Dictionary<Position, ProjectionResult>()
                 {
@@ -190,7 +190,7 @@ $@"public class SomeRazorFile
             var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, HostTextbuffer);
             var csharpDocumentPosition = GetPosition(ValidBreakpointCSharp, CSharpTextBuffer);
             var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(ValidBreakpointCSharp, StringComparison.Ordinal);
-            var projectionProvider = new TestLSPProjectionProvider(
+            var projectionProvider = new TestLSPBreakpointSpanProvider(
                 DocumentUri,
                 new Dictionary<Position, ProjectionResult>()
                 {
@@ -238,7 +238,7 @@ $@"public class SomeRazorFile
             var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, HostTextbuffer);
             var csharpDocumentPosition = GetPosition(ValidBreakpointCSharp, CSharpTextBuffer);
             var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(ValidBreakpointCSharp, StringComparison.Ordinal);
-            var projectionProvider = new TestLSPProjectionProvider(
+            var projectionProvider = new TestLSPBreakpointSpanProvider(
                 DocumentUri,
                 new Dictionary<Position, ProjectionResult>()
                 {
@@ -288,7 +288,7 @@ $@"public class SomeRazorFile
             var hostDocumentPosition = GetPosition(ValidBreakpointInlineCSharp, HostTextbuffer);
             var csharpDocumentPosition = GetPosition(ValidBreakpointInlineCSharp, CSharpTextBuffer);
             var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(ValidBreakpointInlineCSharp, StringComparison.Ordinal);
-            var projectionProvider = new TestLSPProjectionProvider(
+            var projectionProvider = new TestLSPBreakpointSpanProvider(
                 DocumentUri,
                 new Dictionary<Position, ProjectionResult>()
                 {
@@ -338,7 +338,7 @@ $@"public class SomeRazorFile
             var hostDocumentPosition = GetPosition(InvalidBreakpointInlineCSharp, HostTextbuffer);
             var csharpDocumentPosition = GetPosition(InvalidBreakpointInlineCSharp, CSharpTextBuffer);
             var csharpDocumentIndex = CSharpTextBuffer.CurrentSnapshot.GetText().IndexOf(InvalidBreakpointInlineCSharp, StringComparison.Ordinal);
-            var projectionProvider = new TestLSPProjectionProvider(
+            var projectionProvider = new TestLSPBreakpointSpanProvider(
                 DocumentUri,
                 new Dictionary<Position, ProjectionResult>()
                 {
@@ -384,7 +384,7 @@ $@"public class SomeRazorFile
         private RazorBreakpointResolver CreateResolverWith(
             FileUriProvider uriProvider = null,
             LSPDocumentManager documentManager = null,
-            LSPProjectionProvider projectionProvider = null,
+            LSPBreakpointSpanProvider projectionProvider = null,
             LSPDocumentMappingProvider documentMappingProvider = null)
         {
             var documentUri = DocumentUri;
@@ -394,8 +394,8 @@ $@"public class SomeRazorFile
             documentManager ??= Mock.Of<LSPDocumentManager>(manager => manager.TryGetDocument(DocumentUri, out documentSnapshot) == true, MockBehavior.Strict);
             if (projectionProvider is null)
             {
-                projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
-                Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetNextCSharpPositionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
+                projectionProvider = new Mock<LSPBreakpointSpanProvider>(MockBehavior.Strict).Object;
+                Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetBreakpointSpanAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
                     .Returns(Task.FromResult<ProjectionResult>(null));
             }
 
@@ -415,7 +415,7 @@ $@"public class SomeRazorFile
             return razorBreakpointResolver;
         }
 
-        private Position GetPosition(string content, ITextBuffer textBuffer)
+        private static Position GetPosition(string content, ITextBuffer textBuffer)
         {
             var index = textBuffer.CurrentSnapshot.GetText().IndexOf(content, StringComparison.Ordinal);
             if (index < 0)

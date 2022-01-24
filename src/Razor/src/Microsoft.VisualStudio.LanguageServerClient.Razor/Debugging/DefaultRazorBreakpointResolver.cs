@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
     {
         private readonly FileUriProvider _fileUriProvider;
         private readonly LSPDocumentManager _documentManager;
-        private readonly LSPProjectionProvider _projectionProvider;
+        private readonly LSPBreakpointSpanProvider _breakpointSpanProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly CodeAnalysis.Workspace? _workspace;
         private readonly MemoryCache<CacheKey, Range> _cache;
@@ -32,9 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         public DefaultRazorBreakpointResolver(
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
+            LSPBreakpointSpanProvider breakpointSpanProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            VisualStudioWorkspace workspace) : this(fileUriProvider, documentManager, projectionProvider, documentMappingProvider, (CodeAnalysis.Workspace)workspace)
+            VisualStudioWorkspace workspace) : this(fileUriProvider, documentManager, breakpointSpanProvider, documentMappingProvider, (CodeAnalysis.Workspace)workspace)
         {
             if (workspace is null)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private DefaultRazorBreakpointResolver(
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
+            LSPBreakpointSpanProvider breakpointSpanProvider,
             LSPDocumentMappingProvider documentMappingProvider,
             CodeAnalysis.Workspace? workspace)
         {
@@ -59,9 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 throw new ArgumentNullException(nameof(documentManager));
             }
 
-            if (projectionProvider is null)
+            if (breakpointSpanProvider is null)
             {
-                throw new ArgumentNullException(nameof(projectionProvider));
+                throw new ArgumentNullException(nameof(breakpointSpanProvider));
             }
 
             if (documentMappingProvider is null)
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             _fileUriProvider = fileUriProvider;
             _documentManager = documentManager;
-            _projectionProvider = projectionProvider;
+            _breakpointSpanProvider = breakpointSpanProvider;
             _documentMappingProvider = documentMappingProvider;
             _workspace = workspace;
 
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             }
 
             var lspPosition = new Position(lineIndex, characterIndex);
-            var projectionResult = await _projectionProvider.GetNextCSharpPositionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
+            var projectionResult = await _breakpointSpanProvider.GetBreakpointSpanAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
                 // Can't map the position, invalid breakpoint location.
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         public static DefaultRazorBreakpointResolver CreateTestInstance(
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
+            LSPBreakpointSpanProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider) => new(fileUriProvider, documentManager, projectionProvider, documentMappingProvider, (CodeAnalysis.Workspace?)null);
 
         private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);

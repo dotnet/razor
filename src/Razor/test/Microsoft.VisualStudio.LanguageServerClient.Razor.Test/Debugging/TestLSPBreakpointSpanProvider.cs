@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -13,12 +14,12 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
-    internal class TestLSPProjectionProvider : LSPProjectionProvider
+    internal class TestLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
     {
         private readonly Uri _documentUri;
         private readonly IReadOnlyDictionary<Position, ProjectionResult> _mappings;
 
-        public TestLSPProjectionProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> mappings)
+        public TestLSPBreakpointSpanProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> mappings)
         {
             if (documentUri is null)
             {
@@ -34,19 +35,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _mappings = mappings;
         }
 
-        public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public override Task<ProjectionResult> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
             if (documentSnapshot.Uri != _documentUri)
             {
                 return Task.FromResult((ProjectionResult)null);
             }
 
-            _mappings.TryGetValue(position, out var projectionResult);
+            foreach (var mapping in _mappings.OrderBy(d => d.Key))
+            {
+                if (mapping.Key.Line == position.Line &&
+                    mapping.Key.Character >= position.Character)
+                {
+                    return Task.FromResult(mapping.Value);
+                }
+            }
 
-            return Task.FromResult(projectionResult);
+            return Task.FromResult((ProjectionResult)null);
         }
-
-        public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            => GetProjectionAsync(documentSnapshot, position, cancellationToken);
     }
 }

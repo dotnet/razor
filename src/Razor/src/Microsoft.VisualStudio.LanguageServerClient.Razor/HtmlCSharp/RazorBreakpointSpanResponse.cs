@@ -3,15 +3,18 @@
 
 #nullable disable
 
-using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    internal class RazorLanguageQueryParams
+    internal class RazorBreakpointSpanResponse
     {
-        public Uri Uri { get; set; }
+        public RazorLanguageKind Kind { get; set; }
+
+        public int PositionIndex { get; set; }
 
         public Position Position { get; set; }
+
+        public int? HostDocumentVersion { get; set; }
     }
 }
