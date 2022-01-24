@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Razor.Integration.Test
+namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public class BreakpointSpanTests : AbstractRazorEditorTest
     {
