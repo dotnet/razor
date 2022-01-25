@@ -18,6 +18,11 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
             .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
 
+    private static readonly SymbolDisplayFormat GloballyQualifiedFullNameTypeDisplayFormat =
+        SymbolDisplayFormat.FullyQualifiedFormat
+            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)
+            .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
+
     public bool IncludeDocumentation { get; set; }
 
     public int Order { get; set; }
@@ -270,36 +275,36 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             // things like constructor constraints and not null constraints in the
             // type parameter so we create a single string representation of all the constraints
             // here.
-            var constraintString = new StringBuilder();
-            if (typeParameter.ConstraintTypes.Any())
+            var list = new List<string>();
+            for (var i = 0; i < typeParameter.ConstraintTypes.Length; i++)
             {
-                constraintString.Append(string.Join(", ", typeParameter.ConstraintTypes.Select(t => t.Name)));
-            }
-            if (typeParameter.HasConstructorConstraint)
-            {
-                constraintString.Append(", new()");
-            }
-            if (typeParameter.HasNotNullConstraint)
-            {
-                constraintString.Append(", notnull");
+                var constraintType = typeParameter.ConstraintTypes[i];
+                list.Add(constraintType.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
             }
             if (typeParameter.HasReferenceTypeConstraint)
             {
-                constraintString.Append(", class");
-            }
-            if (typeParameter.HasUnmanagedTypeConstraint)
-            {
-                constraintString.Append(", unmanaged");
+                list.Add("class");
             }
             if (typeParameter.HasValueTypeConstraint)
             {
-                constraintString.Append(", struct");
+                list.Add("struct");
+            }
+            if (typeParameter.HasNotNullConstraint)
+            {
+                list.Add("notnull");
+            }
+            if (typeParameter.HasUnmanagedTypeConstraint)
+            {
+                list.Add("unmanaged");
+            }
+            if (typeParameter.HasConstructorConstraint)
+            {
+                list.Add("new()");
             }
 
-            if (constraintString.Length > 0)
+            if (list.Count > 0)
             {
-                constraintString.Insert(0, "where " + typeParameter.Name + " : ");
-                pb.Metadata[ComponentMetadata.Component.TypeParameterConstraintsKey] = constraintString.ToString();
+                pb.Metadata[ComponentMetadata.Component.TypeParameterConstraintsKey] = $"where {typeParameter.Name} : {string.Join(", ", list)}";
             }
 
             pb.Documentation = string.Format(CultureInfo.InvariantCulture, ComponentResources.ComponentTypeParameter_Documentation, typeParameter.Name, builder.Name);

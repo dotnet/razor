@@ -77,9 +77,9 @@ namespace __Blazor.Test.UseTestComponent
     internal static class TypeInference
     {
         public static void CreateTestComponent_0<TItem1, TItem2, TItem3>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem1 __arg0, int __seq1, global::System.Collections.Generic.List<TItem2> __arg1, int __seq2, TItem3 __arg2, int __seq3, global::Microsoft.AspNetCore.Components.RenderFragment<TItem2> __arg3)
-            where TItem1 : Image
-            where TItem2 : ITag
-            where TItem3 : Image, new()
+            where TItem1 : global::Image
+            where TItem2 : global::ITag
+            where TItem3 : global::Image, new()
         {
         __builder.OpenComponent<global::Test.TestComponent<TItem1, TItem2, TItem3>>(seq);
         __builder.AddAttribute(__seq0, "Item1", __arg0);
