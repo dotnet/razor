@@ -223,6 +223,3 @@ stages:
       publishingInfraVersion: 3
       enableSymbolValidation: false
       enableNugetValidation: false
-      pool:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals Build.Server.Amd64.VS2019
