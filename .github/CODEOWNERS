@@ -8,3 +8,4 @@
 /eng/Versions.props                            @dotnet-maestro-bot
 /eng/Version.Details.xml                       @dotnet-maestro-bot
 /src/                                          @dotnet/razor-tooling @NTaylorMullen @ryanbrandenburg @allisonchou @sharwell @davidwengier
+/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension/ @dotnet/razor-tooling @dotnet/aspnet-blazor-eng @captainsafia
