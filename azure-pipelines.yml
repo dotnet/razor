@@ -225,7 +225,7 @@ stages:
           displayName: Produce Blazor WASM Debugging Extension VSIX
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
           failOnStderr: true
-          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+          condition: and(succeeded(), eq(variables['_BuildConfig'], 'Release'))
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
