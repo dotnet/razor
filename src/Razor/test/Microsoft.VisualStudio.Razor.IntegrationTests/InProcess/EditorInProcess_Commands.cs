@@ -1,12 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Xunit;
+using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -14,23 +15,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     {
         public async Task InvokeGoToDefinitionAsync(CancellationToken cancellationToken)
         {
-            await ExecuteCommandAsync(WellKnownCommandNames.Edit_GoToDefinition, cancellationToken);
+            var commandGuid = typeof(VSStd97CmdID).GUID;
+            var commandId = VSStd97CmdID.GotoDefn;
+            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
         }
 
         public async Task CloseDocumentWindowAsync(CancellationToken cancellationToken)
         {
-            await ExecuteCommandAsync(WellKnownCommandNames.Window_CloseDocumentWindow, cancellationToken);
+            var commandGuid = typeof(VSStd97CmdID).GUID;
+            var commandId = VSStd97CmdID.CloseDocument;
+            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
         }
 
-        private async Task ExecuteCommandAsync(string commandName, CancellationToken cancellationToken)
+        private async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-
-            Assert.True(dte.Commands.Item(commandName).IsAvailable);
-
-            dte.ExecuteCommand(commandName);
+            var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
         }
     }
 }

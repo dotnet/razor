@@ -8,9 +8,5 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests.InProcess
         public const string Build_BuildSolution = "Build.BuildSolution";
 
         public const string View_ErrorList = "View.ErrorList";
-
-        public const string Edit_GoToDefinition = "Edit.GoToDefinition";
-
-        public const string Window_CloseDocumentWindow = "Window.CloseDocumentWindow";
     }
 }
