@@ -20,10 +20,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Act
             await TestServices.Editor.InvokeGoToDefinitionAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Editor.WaitForCaretMoveAsync(HangMitigatingCancellationToken);
-
             // Assert
-            await TestServices.Editor.VerifyCurrentLineTextAsync("private void IncrementCount()", HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForCurrentLineTextAsync("private void IncrementCount()", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -79,7 +77,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             // Assert
             await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", HangMitigatingCancellationToken);
-            await TestServices.Editor.VerifyCurrentLineTextAsync("public string? Title { get; set; }", HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForCurrentLineTextAsync("public string? Title { get; set; }", HangMitigatingCancellationToken);
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -30,14 +31,42 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             Assert.Contains(text, content);
         }
 
-        public async Task VerifyCurrentLineTextAsync(string text, CancellationToken cancellationToken)
+        public async Task WaitForCurrentLineTextAsync(string text, CancellationToken cancellationToken)
         {
             var view = await GetActiveTextViewAsync(cancellationToken);
-            var caret = await GetCaretPositionAsync(cancellationToken);
 
+            using var semaphore = new SemaphoreSlim(1);
+            await semaphore.WaitAsync(cancellationToken);
+
+            var caret = view.Caret.Position.BufferPosition;
             var line = view.TextBuffer.CurrentSnapshot.GetLineFromPosition(caret).GetText();
+            if (line.Trim() == text.Trim())
+            {
+                semaphore.Release();
+                view.Caret.PositionChanged -= Caret_PositionChanged;
+                return;
+            }
 
-            Assert.Equal(text.Trim(), line.Trim());
+            view.Caret.PositionChanged += Caret_PositionChanged;
+
+            try
+            {
+                await semaphore.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                view.Caret.PositionChanged -= Caret_PositionChanged;
+            }
+
+            void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
+            {
+                var caret = view.Caret.Position.BufferPosition;
+                var line = view.TextBuffer.CurrentSnapshot.GetLineFromPosition(caret).GetText();
+                if (line.Trim() == text.Trim())
+                {
+                    semaphore.Release();
+                }
+            }
         }
 
         public async Task WaitForActiveWindowAsync(string windowTitle, CancellationToken cancellationToken)
