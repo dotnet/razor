@@ -224,6 +224,7 @@ stages:
             npx vsce@1.100.2 package -o $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/blazorwasm-companion-$version.vsix
           displayName: Produce Blazor WASM Debugging Extension VSIX
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
+          failOnStderr: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
