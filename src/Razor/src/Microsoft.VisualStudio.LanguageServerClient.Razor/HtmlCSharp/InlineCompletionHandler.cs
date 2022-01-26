@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            if (projectionResult.LanguageKind != RazorLanguageKind.CSharp && projectionResult.LanguageKind != RazorLanguageKind.Html)
+            if (projectionResult.LanguageKind != RazorLanguageKind.CSharp)
             {
                 _logger.LogInformation($"Inline completions not supported for {projectionResult.LanguageKind}");
                 return null;
@@ -131,12 +131,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation("Received result, remapping.");
-
             if (response?.Response == null)
             {
+                _logger.LogInformation($"Did not get any items for {projectionResult.LanguageKind}");
                 return null;
             }
+
+            _logger.LogInformation("Received result, remapping.");
 
             var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
 

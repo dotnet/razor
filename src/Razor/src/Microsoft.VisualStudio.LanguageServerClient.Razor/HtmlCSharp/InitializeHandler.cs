@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 SupportsDiagnosticRequests = true,
                 InlineCompletionOptions = new VSInternalInlineCompletionOptions
                 {
-                    Pattern = new Regex(string.Join("|", InlineCompletionHandler.CSharpKeywords))
+                    Pattern = new Regex(string.Join("|", InlineCompletionHandler.CSharpKeywords), RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1))
                 }
             }
         };
@@ -321,8 +321,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private VSInternalInlineCompletionOptions GetMergedInlineCompletionProvider()
         {
-            var regexes = _serverCapabilities.Where(s => s.Capabilities.InlineCompletionOptions != null).Select(s => s.Capabilities.InlineCompletionOptions.Pattern.ToString());
-            return new VSInternalInlineCompletionOptions { Pattern = new Regex(string.Join("|", regexes)) };
+            var regexes = _serverCapabilities.Where(s => !string.IsNullOrEmpty(s.Capabilities.InlineCompletionOptions?.Pattern?.ToString())).Select(s => s.Capabilities.InlineCompletionOptions.Pattern.ToString());
+            return new VSInternalInlineCompletionOptions { Pattern = new Regex(string.Join("|", regexes), RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1)) };
         }
 
         private async Task VerifyMergedOnAutoInsertAsync(VSInternalServerCapabilities mergedCapabilities)
