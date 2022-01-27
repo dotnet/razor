@@ -10,7 +10,6 @@
       1. An addin.info
       2. An addin binary (Microsoft.VisualStudio.Mac.RazorAddin.dll)
         a. _Manifest.addin.xml embedded
-        b. Addin assembly attributes for metadata
       3. All language service binaries
     -->
 
@@ -58,7 +57,7 @@
     </XmlPeek>
 
     <ItemGroup>
-      <AddinInfoLine Include="&lt;Addin id=&quot;$(AddinId)&quot; namespace=&quot;$(AddinNamespace)&quot; version=&quot;$(AddinVersion)&quot; name=&quot;$(AddinDetailedName)&quot; author=&quot;$(Authors)&quot; description=&quot;$(Description)&quot; category=&quot;$(AddinCategory)&quot;&gt;" />
+      <AddinInfoLine Include="&lt;Addin id=&quot;$(AddinId)&quot; namespace=&quot;$(AddinNamespace)&quot; version=&quot;$(AddinMajorVersion)&quot; name=&quot;$(AddinDetailedName)&quot; author=&quot;$(Authors)&quot; description=&quot;$(Description)&quot; category=&quot;$(AddinCategory)&quot;&gt;" />
       <AddinInfoLine Include="  &lt;Runtime&gt;" />
       <AddinInfoLine Include="    &lt;Import assembly=&quot;%(MPackAssemblyNames.Identity)&quot; /&gt;" />
       <AddinInfoLine Include="    &lt;Import assembly=&quot;$(AddinName).dll&quot; /&gt;" />
