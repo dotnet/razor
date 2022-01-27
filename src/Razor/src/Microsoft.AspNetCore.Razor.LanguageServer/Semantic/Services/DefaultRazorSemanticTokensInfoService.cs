@@ -34,8 +34,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
 
-        // (DocumentUri, SemanticVersion) -> (Ranges, Tokens)
-        private readonly MemoryCache<(DocumentUri Uri, VersionStamp SemanticVersion), MemoryCache<Range, SemanticTokens>> _cachedResponses = new(sizeLimit: 10);
+        // Cache containing semantic token range responses on a per-document + semantic version basis.
+        private readonly MemoryCache<(DocumentUri, VersionStamp), MemoryCache<Range, SemanticTokens>> _cachedResponses = new(sizeLimit: 3);
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -80,6 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
+            // See if we can use our cache to at least partially avoid recomputation.
             var cachedTokens = await GetCachedTokensAsync(
                 textDocumentIdentifier.Uri, documentSnapshot, documentVersion, semanticVersion, range, _logger, cancellationToken).ConfigureAwait(false);
             if (cachedTokens is not null)
@@ -87,6 +88,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return cachedTokens;
             }
 
+            // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
+            // results to use next time around.
             var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
                 textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
             if (isCSharpFinalized && tokens is not null)
@@ -127,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // 2) If the cache doesn't contain an exact match for the range, we can still check if there's a
-            // partial match. This allows us to reduce the range we have to compute tokens for. We aim to find
+            // partial match. This allows us to reduce the range we have to compute tokens for. We want to find
             // the cached range with the most overlap with the requested range.
             (Range Range, int NumOverlappingLines)? currentBestMatch = null;
             foreach (var rangeCandidate in documentCache.Keys)
@@ -140,8 +143,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var overlap = range.Overlap(rangeCandidate);
                 Assumes.NotNull(overlap);
 
-                // It's possible that the cached range candidate encompasses a large span that completely overlaps
-                // with the requested range. Nothing in the LSP spec explicitly prevents us from returning excess
+                // It's possible that the cached range candidate encompasses a span that completely overlaps with
+                // the requested range. Nothing in the LSP spec explicitly prevents us from returning excess
                 // tokens outside of the requested range, so if we hit this case we can return early.
                 if (overlap.Equals(range) && documentCache.TryGetValue(rangeCandidate, out cachedTokens))
                 {
@@ -150,8 +153,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 // The range candidate becomes the best range either if:
                 //     1) It is the first candidate we are analyzing
-                //     2) The # of overlapping lines exceeds the current best candidate, AND the current candidate
-                //     is not in the middle of the requested range (this complicates later computations).
+                //     2) The # of overlapping lines exceeds the current best candidate, *and* the current candidate
+                //     is not in the middle of the requested range. (We avoid the latter since it complicates later
+                //     computations.)
                 var numOverlappingLines = overlap.End.Line - overlap.Start.Line;
                 if (currentBestMatch is null ||
                     ((currentBestMatch.Value.NumOverlappingLines < numOverlappingLines) && (rangeCandidate.Start <= range.Start || rangeCandidate.End >= range.End)))
@@ -160,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            // We couldn't find a best range match. Don't use any cache values and compute normally.
+            // We couldn't find a best range match. Don't use any cache values and compute tokens normally.
             if (currentBestMatch is null)
             {
                 return null;
@@ -176,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // we need to populate the start or end of the range.
             var bestMatch = currentBestMatch.Value;
 
-            // 3a) The latter part of the range needs to be computed.
+            // 3a) The latter part of the range needs to be computed (i.e. the beginning is already cached).
             if (bestMatch.Range.Start <= range.Start)
             {
                 var tokens = await ComputeRequiredRange(computeStart: false, cachedTokens);
@@ -187,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 return tokens;
             }
-            // 3b) The beginning of the range needs to be computed.
+            // 3b) The beginning of the range needs to be computed (i.e. the end is already cached).
             else if (bestMatch.Range.End >= range.End)
             {
                 var tokens = await ComputeRequiredRange(computeStart: true, cachedTokens);
@@ -200,15 +204,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             else
             {
-                // We shouldn't ever reach this point, but if we do we'll log an error.
+                // We shouldn't ever reach this point, so if we do we'll log an error and return.
                 logger.LogError("Caching error in DefaultRazorSemanticTokensInfoService.");
                 return null;
             }
 
             async Task<SemanticTokens?> ComputeRequiredRange(bool computeStart, SemanticTokens cachedTokens)
             {
-                // We want to reduce the requested range to the part we don't have cached.
-                var modifiedRange = computeStart ? new Range(range.Start, bestMatch.Range.Start) : new Range(bestMatch.Range.End, range.End);
+                // We want to reduce the requested range to the part we don't already have cached.
+                var modifiedRange = computeStart
+                    ? new Range(range.Start, bestMatch.Range.Start)
+                    : new Range(bestMatch.Range.End, range.End);
+
                 var (partialTokens, isCSharpFinalized) = await GetSemanticTokensAsync(
                     textDocumentIdentifier, documentSnapshot, documentVersion, modifiedRange, cancellationToken);
                 if (partialTokens is null)
@@ -221,43 +228,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // remove the overlapping tokens and in doing so may need to make minor adjustments
                 // to positioning.
 
-                var beginningTokens = computeStart ? partialTokens.Data.ToArray() : cachedTokens.Data.ToArray();
-                var endingTokens = computeStart ? cachedTokens.Data.ToArray() : partialTokens.Data.ToArray();
+                var startTokens = computeStart ? partialTokens.Data.ToArray() : cachedTokens.Data.ToArray();
+                var endTokens = computeStart ? cachedTokens.Data.ToArray() : partialTokens.Data.ToArray();
 
-                // Compute the absolute ending line/character of the beginning tokens.
-                var beginningLine = 0;
-                var beginningCharacter = 0;
-                for (var i = 0; i < beginningTokens.Length; i += 5)
+                // Compute the absolute end line/character of the starting set of tokens. This helps
+                // us later determine token duplicates.
+                var startLine = 0;
+                var startCharacter = 0;
+                for (var i = 0; i < startTokens.Length; i += 5)
                 {
-                    if (beginningTokens[i] != 0)
+                    if (startTokens[i] != 0)
                     {
-                        beginningCharacter = 0;
+                        startCharacter = 0;
                     }
 
-                    beginningLine += beginningTokens[i];
-                    beginningCharacter += beginningTokens[i + 1];
+                    startLine += startTokens[i];
+                    startCharacter += startTokens[i + 1];
                 }
 
                 // Compute the absolute beginning line/character of the ending tokens.
-                // Here we also determine here which tokens are duplicates.
-                var endingLine = 0;
-                var endingCharacter = 0;
+                // This loop also determines which tokens are duplicates.
+                var endLine = 0;
+                var endCharacter = 0;
                 var tokensToSkip = 0;
-                for (var i = 0; i < endingTokens.Length; i += 5)
+                for (var i = 0; i < endTokens.Length; i += 5)
                 {
-                    if (endingTokens[i] != 0)
+                    if (endTokens[i] != 0)
                     {
-                        endingCharacter = 0;
+                        endCharacter = 0;
                     }
 
-                    endingLine += endingTokens[i];
-                    endingCharacter += endingTokens[i + 1];
+                    endLine += endTokens[i];
+                    endCharacter += endTokens[i + 1];
 
-                    if (endingLine > beginningLine)
+                    if (endLine > startLine)
                     {
                         break;
                     }
-                    else if (endingLine < beginningLine || endingCharacter <= beginningCharacter)
+                    else if (endLine < startLine || endCharacter <= startCharacter)
                     {
                         tokensToSkip += 5;
                         continue;
@@ -268,17 +276,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     }
                 }
 
+                // Skip any duplicate tokens
                 if (tokensToSkip > 0)
                 {
-                    endingTokens = endingTokens.Skip(tokensToSkip).ToArray();
+                    endTokens = endTokens.Skip(tokensToSkip).ToArray();
                 }
 
-                if (endingLine > beginningLine)
+                // The ending set of tokens will need to have its starting line modified to be relative
+                // to the end of the starting set of tokens.
+                if (endLine > startLine)
                 {
-                    endingTokens[0] = endingLine - beginningLine;
+                    endTokens[0] = endLine - startLine;
                 }
 
-                var combinedTokens = beginningTokens.Concat(endingTokens);
+                var combinedTokens = startTokens.Concat(endTokens);
                 var semanticTokens = new SemanticTokens { Data = combinedTokens.ToImmutableArray() };
 
                 if (isCSharpFinalized)
