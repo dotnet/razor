@@ -80,202 +80,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
-            if (_cachedResponses.TryGetValue((textDocumentIdentifier.Uri, semanticVersion), out var documentCache))
+            var cachedTokens = await GetCachedTokensAsync(
+                textDocumentIdentifier.Uri, documentSnapshot, documentVersion, semanticVersion, range, _logger, cancellationToken).ConfigureAwait(false);
+            if (cachedTokens is not null)
             {
-                // 1) We'll first check if the cache contains an exact match for the range, in which case we can
-                // return early.
-                if (documentCache.TryGetValue(range, out var cachedTokens))
-                {
-                    return cachedTokens;
-                }
-
-                // 2) If the cache doesn't contain an exact match for the range, we can still check if there's a
-                // partial match.
-                (Range Range, int NumOverlappingLines)? bestMatch = null;
-                foreach (var rangeCandidate in documentCache.Keys)
-                {
-                    if (range.OverlapsWith(rangeCandidate))
-                    {
-                        var overlap = range.Overlap(rangeCandidate);
-                        Assumes.NotNull(overlap);
-
-                        if (overlap.Equals(range) && documentCache.TryGetValue(rangeCandidate, out cachedTokens))
-                        {
-                            // We can return excess
-                            return cachedTokens;
-                        }
-
-                        var numOverlappingLines = overlap.End.Line - overlap.Start.Line;
-                        if (bestMatch is null || ((bestMatch.Value.NumOverlappingLines < numOverlappingLines) &&
-                            (rangeCandidate.Start <= range.Start || rangeCandidate.End >= range.End)))
-                        {
-                            bestMatch = (rangeCandidate, numOverlappingLines);
-                        }
-                    }
-                }
-
-                if (bestMatch is not null && bestMatch.Value.Range.Start <= range.Start && documentCache.TryGetValue(bestMatch.Value.Range, out cachedTokens))
-                {
-                    var modifiedRange = new Range(bestMatch.Value.Range.End, range.End);
-                    var (partialTokens, isCSharpFinalized2) = await GetSemanticTokensAsync(
-                        textDocumentIdentifier, documentSnapshot, documentVersion, modifiedRange, cancellationToken);
-                    if (partialTokens is null)
-                    {
-                        return null;
-                    }
-
-                    var line = 0;
-                    var character = 0;
-                    for (var i = 0; i < cachedTokens.Data.Length; i += 5)
-                    {
-                        if (cachedTokens.Data[i] != 0)
-                        {
-                            character = 0;
-                        }
-
-                        line += cachedTokens.Data[i];
-                        character += cachedTokens.Data[i + 1];
-                    }
-
-                    // Get rid of overlapping tokens
-                    var newLine = 0;
-                    var newCharacter = 0;
-                    var tokensToSkip = 0;
-                    for (var i = 0; i < partialTokens.Data.Length; i += 5)
-                    {
-                        if (partialTokens.Data[i] != 0)
-                        {
-                            newCharacter = 0;
-                        }
-
-                        newLine += partialTokens.Data[i];
-                        newCharacter += partialTokens.Data[i + 1];
-
-                        if (newLine < line)
-                        {
-                            tokensToSkip += 5;
-                            continue;
-                        }
-
-                        if (newLine > line)
-                        {
-                            break;
-                        }
-
-                        if (newCharacter <= character)
-                        {
-                            tokensToSkip += 5;
-                            continue;
-                        }
-
-                        break;
-                    }
-
-                    if (tokensToSkip > 0)
-                    {
-                        partialTokens = new SemanticTokens { Data = partialTokens.Data.Skip(tokensToSkip).ToImmutableArray() };
-                    }
-
-                    if (newLine > line)
-                    {
-                        var array = partialTokens.Data.ToArray();
-                        array[0] = array[0] + (newLine - line);
-                        partialTokens = new SemanticTokens { Data = array.ToImmutableArray() };
-                    }
-
-                    var combinedTokens = cachedTokens.Data.AddRange(partialTokens.Data);
-                    var finalTokens = new SemanticTokens { Data = combinedTokens };
-
-                    if (isCSharpFinalized2)
-                    {
-                        var combinedRange = new Range(bestMatch.Value.Range.Start, range.End);
-                        CacheTokens(textDocumentIdentifier.Uri, semanticVersion, combinedRange, finalTokens);
-                    }
-                    
-                    return finalTokens;
-                }
-                else if (bestMatch is not null && bestMatch.Value.Range.End >= range.End && documentCache.TryGetValue(bestMatch.Value.Range, out cachedTokens))
-                {
-                    var modifiedRange = new Range(range.Start, bestMatch.Value.Range.Start);
-                    var (partialTokens, isCSharpFinalized2) = await GetSemanticTokensAsync(
-                        textDocumentIdentifier, documentSnapshot, documentVersion, modifiedRange, cancellationToken);
-                    if (partialTokens is null)
-                    {
-                        return null;
-                    }
-
-                    var line = 0;
-                    var character = 0;
-                    for (var i = 0; i < partialTokens.Data.Length; i += 5)
-                    {
-                        if (partialTokens.Data[i] != 0)
-                        {
-                            character = 0;
-                        }
-
-                        line += partialTokens.Data[i];
-                        character += partialTokens.Data[i + 1];
-                    }
-
-                    // Get rid of overlapping tokens
-                    var newLine = 0;
-                    var newCharacter = 0;
-                    var tokensToSkip = 0;
-                    for (var i = 0; i < cachedTokens.Data.Length; i += 5)
-                    {
-                        if (cachedTokens.Data[i] != 0)
-                        {
-                            newCharacter = 0;
-                        }
-
-                        newLine += cachedTokens.Data[i];
-                        newCharacter += cachedTokens.Data[i + 1];
-
-                        if (newLine < line)
-                        {
-                            tokensToSkip += 5;
-                            continue;
-                        }
-
-                        if (newLine > line)
-                        {
-                            break;
-                        }
-
-                        if (newCharacter <= character)
-                        {
-                            tokensToSkip += 5;
-                            continue;
-                        }
-
-                        break;
-                    }
-
-                    if (tokensToSkip > 0)
-                    {
-                        cachedTokens = new SemanticTokens { Data = cachedTokens.Data.Skip(tokensToSkip).ToImmutableArray() };
-                    }
-
-                    // newLine : 729
-                    // line: 728
-                    if (newLine > line)
-                    {
-                        var array = cachedTokens.Data.ToArray();
-                        array[0] = array[0] + (newLine - line);
-                        cachedTokens = new SemanticTokens { Data = array.ToImmutableArray() };
-                    }
-
-                    var combinedTokens = partialTokens.Data.AddRange(cachedTokens.Data);
-                    var finalTokens = new SemanticTokens { Data = combinedTokens };
-
-                    if (isCSharpFinalized2)
-                    {
-                        var combinedRange = new Range(range.Start, bestMatch.Value.Range.End);
-                        CacheTokens(textDocumentIdentifier.Uri, semanticVersion, combinedRange, finalTokens);
-                    }
-
-                    return finalTokens;
-                }
+                return cachedTokens;
             }
 
             var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
@@ -296,7 +105,197 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticVersion;
         }
 
-        private void CacheTokens(DocumentUri uri, VersionStamp semanticVersion, Range range, SemanticTokens tokens)
+        private async Task<SemanticTokens?> GetCachedTokensAsync(
+            TextDocumentIdentifier textDocumentIdentifier,
+            DocumentSnapshot documentSnapshot,
+            int documentVersion,
+            VersionStamp semanticVersion,
+            Range range,
+            ILogger logger,
+            CancellationToken cancellationToken)
+        {
+            if (!_cachedResponses.TryGetValue((textDocumentIdentifier.Uri, semanticVersion), out var documentCache))
+            {
+                return null;
+            }
+
+            // 1) We'll first check if the cache contains an exact match for the range, in which case we can
+            // return early.
+            if (documentCache.TryGetValue(range, out var cachedTokens))
+            {
+                return cachedTokens;
+            }
+
+            // 2) If the cache doesn't contain an exact match for the range, we can still check if there's a
+            // partial match. This allows us to reduce the range we have to compute tokens for. We aim to find
+            // the cached range with the most overlap with the requested range.
+            (Range Range, int NumOverlappingLines)? currentBestMatch = null;
+            foreach (var rangeCandidate in documentCache.Keys)
+            {
+                if (!range.OverlapsWith(rangeCandidate))
+                {
+                    continue;
+                }
+
+                var overlap = range.Overlap(rangeCandidate);
+                Assumes.NotNull(overlap);
+
+                // It's possible that the cached range candidate encompasses a large span that completely overlaps
+                // with the requested range. Nothing in the LSP spec explicitly prevents us from returning excess
+                // tokens outside of the requested range, so if we hit this case we can return early.
+                if (overlap.Equals(range) && documentCache.TryGetValue(rangeCandidate, out cachedTokens))
+                {
+                    return cachedTokens;
+                }
+
+                // The range candidate becomes the best range either if:
+                //     1) It is the first candidate we are analyzing
+                //     2) The # of overlapping lines exceeds the current best candidate, AND the current candidate
+                //     is not in the middle of the requested range (this complicates later computations).
+                var numOverlappingLines = overlap.End.Line - overlap.Start.Line;
+                if (currentBestMatch is null ||
+                    ((currentBestMatch.Value.NumOverlappingLines < numOverlappingLines) && (rangeCandidate.Start <= range.Start || rangeCandidate.End >= range.End)))
+                {
+                    currentBestMatch = (rangeCandidate, numOverlappingLines);
+                }
+            }
+
+            // We couldn't find a best range match. Don't use any cache values and compute normally.
+            if (currentBestMatch is null)
+            {
+                return null;
+            }
+
+            if (!documentCache.TryGetValue(currentBestMatch.Value.Range, out cachedTokens))
+            {
+                logger.LogError("Could not find the expected cached tokens.");
+                return null;
+            }
+
+            // 3) We've found the best range match. There are now two paths to consider depending on whether
+            // we need to populate the start or end of the range.
+            var bestMatch = currentBestMatch.Value;
+
+            // 3a) The latter part of the range needs to be computed.
+            if (bestMatch.Range.Start <= range.Start)
+            {
+                var tokens = await ComputeRequiredRange(computeStart: false, cachedTokens);
+                if (tokens is null)
+                {
+                    return null;
+                }
+
+                return tokens;
+            }
+            // 3b) The beginning of the range needs to be computed.
+            else if (bestMatch.Range.End >= range.End)
+            {
+                var tokens = await ComputeRequiredRange(computeStart: true, cachedTokens);
+                if (tokens is null)
+                {
+                    return null;
+                }
+
+                return tokens;
+            }
+            else
+            {
+                // We shouldn't ever reach this point, but if we do we'll log an error.
+                logger.LogError("Caching error in DefaultRazorSemanticTokensInfoService.");
+                return null;
+            }
+
+            async Task<SemanticTokens?> ComputeRequiredRange(bool computeStart, SemanticTokens cachedTokens)
+            {
+                // We want to reduce the requested range to the part we don't have cached.
+                var modifiedRange = computeStart ? new Range(range.Start, bestMatch.Range.Start) : new Range(bestMatch.Range.End, range.End);
+                var (partialTokens, isCSharpFinalized) = await GetSemanticTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, documentVersion, modifiedRange, cancellationToken);
+                if (partialTokens is null)
+                {
+                    return null;
+                }
+
+                // Now we want to combine the ranges. It's possible for the two ranges to have
+                // duplicate tokens, so we can't just combine them automatically. We need to
+                // remove the overlapping tokens and in doing so may need to make minor adjustments
+                // to positioning.
+
+                var beginningTokens = computeStart ? partialTokens.Data.ToArray() : cachedTokens.Data.ToArray();
+                var endingTokens = computeStart ? cachedTokens.Data.ToArray() : partialTokens.Data.ToArray();
+
+                // Compute the absolute ending line/character of the beginning tokens.
+                var beginningLine = 0;
+                var beginningCharacter = 0;
+                for (var i = 0; i < beginningTokens.Length; i += 5)
+                {
+                    if (beginningTokens[i] != 0)
+                    {
+                        beginningCharacter = 0;
+                    }
+
+                    beginningLine += beginningTokens[i];
+                    beginningCharacter += beginningTokens[i + 1];
+                }
+
+                // Compute the absolute beginning line/character of the ending tokens.
+                // Here we also determine here which tokens are duplicates.
+                var endingLine = 0;
+                var endingCharacter = 0;
+                var tokensToSkip = 0;
+                for (var i = 0; i < endingTokens.Length; i += 5)
+                {
+                    if (endingTokens[i] != 0)
+                    {
+                        endingCharacter = 0;
+                    }
+
+                    endingLine += endingTokens[i];
+                    endingCharacter += endingTokens[i + 1];
+
+                    if (endingLine > beginningLine)
+                    {
+                        break;
+                    }
+                    else if (endingLine < beginningLine || endingCharacter <= beginningCharacter)
+                    {
+                        tokensToSkip += 5;
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (tokensToSkip > 0)
+                {
+                    endingTokens = endingTokens.Skip(tokensToSkip).ToArray();
+                }
+
+                if (endingLine > beginningLine)
+                {
+                    endingTokens[0] = endingLine - beginningLine;
+                }
+
+                var combinedTokens = beginningTokens.Concat(endingTokens);
+                var semanticTokens = new SemanticTokens { Data = combinedTokens.ToImmutableArray() };
+
+                if (isCSharpFinalized)
+                {
+                    var combinedRange = computeStart ? new Range(range.Start, bestMatch.Range.End) : new Range(bestMatch.Range.Start, range.End);
+                    CacheTokens(textDocumentIdentifier.Uri, semanticVersion, combinedRange, semanticTokens);
+                }
+
+                return semanticTokens;
+            }
+        }
+
+        private void CacheTokens(
+            DocumentUri uri,
+            VersionStamp semanticVersion,
+            Range range,
+            SemanticTokens tokens)
         {
             if (!_cachedResponses.TryGetValue((uri, semanticVersion), out var documentCache))
             {
