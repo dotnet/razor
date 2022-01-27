@@ -523,5 +523,35 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return response;
         }
+
+        public override async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(VSInternalInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
+        {
+            if (inlineCompletionParams is null)
+            {
+                throw new ArgumentNullException(nameof(inlineCompletionParams));
+            }
+
+            if (!_documentManager.TryGetDocument(inlineCompletionParams.TextDocument.Uri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
+            {
+                return null;
+            }
+
+            inlineCompletionParams.TextDocument.Uri = csharpDoc.Uri;
+
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
+            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>(
+                textBuffer,
+                VSInternalMethods.TextDocumentInlineCompletionName,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
+                inlineCompletionParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return request?.Response;
+        }
     }
 }

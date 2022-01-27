@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent.Value))
+                /*if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent.Value))
                 {
                     var csharpPolyfilledCompletionList = new CompletionList()
                     {
@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     };
                     csharpPolyfilledCompletionList = IncludeCSharpKeywords(csharpPolyfilledCompletionList);
                     return csharpPolyfilledCompletionList;
-                }
+                }*/
 
                 return null;
             }
@@ -390,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
                 completionList = RemovePreselection(completionList);
-                completionList = IncludeCSharpKeywords(completionList);
+                //completionList = IncludeCSharpKeywords(completionList);
 
                 // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
                 var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions) - 1, 0);

@@ -48,10 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 ImplementationProvider = true,
                 SupportsDiagnosticRequests = true,
-                InlineCompletionOptions = new VSInternalInlineCompletionOptions
-                {
-                    Pattern = new Regex(string.Join("|", InlineCompletionHandler.CSharpKeywords), RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1))
-                }
             }
         };
         private readonly JoinableTaskFactory _joinableTaskFactory;
@@ -164,7 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 ReferencesProvider = GetMergedReferencesProvider(),
                 RenameProvider = GetMergedRenameProvider(),
                 DocumentOnTypeFormattingProvider = GetMergedOnTypeFormattingProvider(),
-                InlineCompletionOptions = GetMergedInlineCompletionProvider(),
             };
 
             return serverCapabilities;
@@ -317,12 +312,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private bool GetMergedRenameProvider()
         {
             return _serverCapabilities.Any(s => s.Capabilities.RenameProvider?.Value is bool isRenameSupported && isRenameSupported);
-        }
-
-        private VSInternalInlineCompletionOptions GetMergedInlineCompletionProvider()
-        {
-            var regexes = _serverCapabilities.Where(s => !string.IsNullOrEmpty(s.Capabilities.InlineCompletionOptions?.Pattern?.ToString())).Select(s => s.Capabilities.InlineCompletionOptions.Pattern.ToString());
-            return new VSInternalInlineCompletionOptions { Pattern = new Regex(string.Join("|", regexes), RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1)) };
         }
 
         private async Task VerifyMergedOnAutoInsertAsync(VSInternalServerCapabilities mergedCapabilities)
