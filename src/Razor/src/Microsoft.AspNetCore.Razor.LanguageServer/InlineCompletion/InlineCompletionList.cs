@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class InlineCompletionList
+internal class InlineCompletionList
 {
     /// <summary>
     /// Gets or sets the inline completion items.

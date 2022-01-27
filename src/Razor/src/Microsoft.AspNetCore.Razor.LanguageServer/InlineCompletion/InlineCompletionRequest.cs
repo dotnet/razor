@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// <summary>
 /// Corresponds to https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=/src/product/Protocol/LanguageServer.Protocol.Internal/VSInternalInlineCompletionRequest.cs
 /// </summary>
-public class InlineCompletionRequest : ITextDocumentIdentifierParams, IRequest<InlineCompletionList>, IBaseRequest
+internal class InlineCompletionRequest : ITextDocumentIdentifierParams, IRequest<InlineCompletionList>, IBaseRequest
 {
     [DataMember(Name = "_vs_textDocument")]
     [JsonProperty(Required = Required.Always)]

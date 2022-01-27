@@ -11,7 +11,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class InlineCompletionOptions : ITextDocumentRegistrationOptions
+internal class InlineCompletionOptions : ITextDocumentRegistrationOptions
 {
     /// <summary>
     /// Gets or sets a regex used by the client to determine when to ask the server for snippets.

@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// <summary>
 /// Corresponds to https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=/src/product/Protocol/LanguageServer.Protocol.Internal/VSInternalSelectedCompletionInfo.cs
 /// </summary>
-public class SelectedCompletionInfo
+internal class SelectedCompletionInfo
 {
     [DataMember(Name = "_vs_range")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// Corresponds to https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=/src/product/Protocol/LanguageServer.Protocol.Internal/VSInternalInlineCompletionTriggerKind.cs
 /// </summary>
 [DataContract]
-public enum InlineCompletionTriggerKind
+internal enum InlineCompletionTriggerKind
 {
     Automatic = 0,
 

@@ -150,8 +150,8 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
 
         request.Position = projectedPosition;
         var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorInlineCompletionEndpoint, request).ConfigureAwait(false);
-        var list = await response.Returning<InlineCompletionList>(cancellationToken);
-        if (list == null)
+        var list = await response.Returning<InlineCompletionList>(cancellationToken).ConfigureAwait(false);
+        if (list == null || !list.Items.Any())
         {
             _logger.LogInformation($"Did not get any inline completions from delegation.");
             return null;
@@ -186,7 +186,13 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
             items.Add(remappedItem);
         }
 
-        _logger.LogInformation($"Returning items.");
+        if (items.Count == 0)
+        {
+            _logger.LogInformation($"Could not format / map the items from delegation.");
+            return null;
+        }
+
+        _logger.LogInformation($"Returning {items.Count} items.");
         return new InlineCompletionList
         {
             Items = items.ToArray()
@@ -211,8 +217,8 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         // Adjust each line, skipping the first since it must start at the snippet keyword.
         foreach (var line in snippetSourceText.Lines.Skip(1))
         {
-            var text = snippetSourceText.GetSubText(line.Span).ToString();
-            if (string.IsNullOrEmpty(text))
+            var lineText = snippetSourceText.GetSubText(line.Span);
+            if (lineText.Length == 0)
             {
                 // We just have an empty line, nothing to do.
                 continue;
