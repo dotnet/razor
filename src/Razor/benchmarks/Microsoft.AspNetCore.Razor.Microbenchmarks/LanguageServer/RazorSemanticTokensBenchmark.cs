@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,11 +80,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
-            var semanticVersion = new VersionStamp();
 
             await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
             await RazorSemanticTokenService.GetSemanticTokensAsync(
-                textDocumentIdentifier, DocumentSnapshot, documentVersion, semanticVersion, Range, cancellationToken).ConfigureAwait(false);
+                textDocumentIdentifier, DocumentSnapshot, documentVersion, Range, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
