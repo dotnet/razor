@@ -34,8 +34,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
 
-        // Caches the last response per-document to potentially save on computation costs.
-        private readonly MemoryCache<DocumentUri, SemanticTokensCacheResponse> _cachedResponses = new();
+        // (DocumentUri, SemanticVersion) -> (Ranges, Tokens)
+        private readonly MemoryCache<(DocumentUri Uri, VersionStamp SemanticVersion), MemoryCache<Range, SemanticTokens>> _cachedResponses = new(sizeLimit: 10);
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -80,17 +80,211 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
-            // If we have a matching cached response, avoid computation and return early.
-            if (_cachedResponses.TryGetValue(textDocumentIdentifier.Uri, out var response) &&
-                response.IsCSharpFinalized &&
-                response.SemanticVersion == semanticVersion &&
-                response.Range == range)
+            if (_cachedResponses.TryGetValue((textDocumentIdentifier.Uri, semanticVersion), out var documentCache))
             {
-                return response.SemanticTokens;
+                // 1) We'll first check if the cache contains an exact match for the range, in which case we can
+                // return early.
+                if (documentCache.TryGetValue(range, out var cachedTokens))
+                {
+                    return cachedTokens;
+                }
+
+                // 2) If the cache doesn't contain an exact match for the range, we can still check if there's a
+                // partial match.
+                (Range Range, int NumOverlappingLines)? bestMatch = null;
+                foreach (var rangeCandidate in documentCache.Keys)
+                {
+                    if (range.OverlapsWith(rangeCandidate))
+                    {
+                        var overlap = range.Overlap(rangeCandidate);
+                        Assumes.NotNull(overlap);
+
+                        if (overlap.Equals(range) && documentCache.TryGetValue(rangeCandidate, out cachedTokens))
+                        {
+                            // We can return excess
+                            return cachedTokens;
+                        }
+
+                        var numOverlappingLines = overlap.End.Line - overlap.Start.Line;
+                        if (bestMatch is null || ((bestMatch.Value.NumOverlappingLines < numOverlappingLines) &&
+                            (rangeCandidate.Start <= range.Start || rangeCandidate.End >= range.End)))
+                        {
+                            bestMatch = (rangeCandidate, numOverlappingLines);
+                        }
+                    }
+                }
+
+                if (bestMatch is not null && bestMatch.Value.Range.Start <= range.Start && documentCache.TryGetValue(bestMatch.Value.Range, out cachedTokens))
+                {
+                    var modifiedRange = new Range(bestMatch.Value.Range.End, range.End);
+                    var (partialTokens, isCSharpFinalized2) = await GetSemanticTokensAsync(
+                        textDocumentIdentifier, documentSnapshot, documentVersion, modifiedRange, cancellationToken);
+                    if (partialTokens is null)
+                    {
+                        return null;
+                    }
+
+                    var line = 0;
+                    var character = 0;
+                    for (var i = 0; i < cachedTokens.Data.Length; i += 5)
+                    {
+                        if (cachedTokens.Data[i] != 0)
+                        {
+                            character = 0;
+                        }
+
+                        line += cachedTokens.Data[i];
+                        character += cachedTokens.Data[i + 1];
+                    }
+
+                    // Get rid of overlapping tokens
+                    var newLine = 0;
+                    var newCharacter = 0;
+                    var tokensToSkip = 0;
+                    for (var i = 0; i < partialTokens.Data.Length; i += 5)
+                    {
+                        if (partialTokens.Data[i] != 0)
+                        {
+                            newCharacter = 0;
+                        }
+
+                        newLine += partialTokens.Data[i];
+                        newCharacter += partialTokens.Data[i + 1];
+
+                        if (newLine < line)
+                        {
+                            tokensToSkip += 5;
+                            continue;
+                        }
+
+                        if (newLine > line)
+                        {
+                            break;
+                        }
+
+                        if (newCharacter <= character)
+                        {
+                            tokensToSkip += 5;
+                            continue;
+                        }
+
+                        break;
+                    }
+
+                    if (tokensToSkip > 0)
+                    {
+                        partialTokens = new SemanticTokens { Data = partialTokens.Data.Skip(tokensToSkip).ToImmutableArray() };
+                    }
+
+                    if (newLine > line)
+                    {
+                        var array = partialTokens.Data.ToArray();
+                        array[0] = array[0] + (newLine - line);
+                        partialTokens = new SemanticTokens { Data = array.ToImmutableArray() };
+                    }
+
+                    var combinedTokens = cachedTokens.Data.AddRange(partialTokens.Data);
+                    var finalTokens = new SemanticTokens { Data = combinedTokens };
+
+                    if (isCSharpFinalized2)
+                    {
+                        var combinedRange = new Range(bestMatch.Value.Range.Start, range.End);
+                        CacheTokens(textDocumentIdentifier.Uri, semanticVersion, combinedRange, finalTokens);
+                    }
+                    
+                    return finalTokens;
+                }
+                else if (bestMatch is not null && bestMatch.Value.Range.End >= range.End && documentCache.TryGetValue(bestMatch.Value.Range, out cachedTokens))
+                {
+                    var modifiedRange = new Range(range.Start, bestMatch.Value.Range.Start);
+                    var (partialTokens, isCSharpFinalized2) = await GetSemanticTokensAsync(
+                        textDocumentIdentifier, documentSnapshot, documentVersion, modifiedRange, cancellationToken);
+                    if (partialTokens is null)
+                    {
+                        return null;
+                    }
+
+                    var line = 0;
+                    var character = 0;
+                    for (var i = 0; i < partialTokens.Data.Length; i += 5)
+                    {
+                        if (partialTokens.Data[i] != 0)
+                        {
+                            character = 0;
+                        }
+
+                        line += partialTokens.Data[i];
+                        character += partialTokens.Data[i + 1];
+                    }
+
+                    // Get rid of overlapping tokens
+                    var newLine = 0;
+                    var newCharacter = 0;
+                    var tokensToSkip = 0;
+                    for (var i = 0; i < cachedTokens.Data.Length; i += 5)
+                    {
+                        if (cachedTokens.Data[i] != 0)
+                        {
+                            newCharacter = 0;
+                        }
+
+                        newLine += cachedTokens.Data[i];
+                        newCharacter += cachedTokens.Data[i + 1];
+
+                        if (newLine < line)
+                        {
+                            tokensToSkip += 5;
+                            continue;
+                        }
+
+                        if (newLine > line)
+                        {
+                            break;
+                        }
+
+                        if (newCharacter <= character)
+                        {
+                            tokensToSkip += 5;
+                            continue;
+                        }
+
+                        break;
+                    }
+
+                    if (tokensToSkip > 0)
+                    {
+                        cachedTokens = new SemanticTokens { Data = cachedTokens.Data.Skip(tokensToSkip).ToImmutableArray() };
+                    }
+
+                    // newLine : 729
+                    // line: 728
+                    if (newLine > line)
+                    {
+                        var array = cachedTokens.Data.ToArray();
+                        array[0] = array[0] + (newLine - line);
+                        cachedTokens = new SemanticTokens { Data = array.ToImmutableArray() };
+                    }
+
+                    var combinedTokens = partialTokens.Data.AddRange(cachedTokens.Data);
+                    var finalTokens = new SemanticTokens { Data = combinedTokens };
+
+                    if (isCSharpFinalized2)
+                    {
+                        var combinedRange = new Range(range.Start, bestMatch.Value.Range.End);
+                        CacheTokens(textDocumentIdentifier.Uri, semanticVersion, combinedRange, finalTokens);
+                    }
+
+                    return finalTokens;
+                }
             }
 
-            var tokens = await GetSemanticTokensAsync(
-                textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion, range, cancellationToken);
+            var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
+                textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
+            if (isCSharpFinalized && tokens is not null)
+            {
+                CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens);
+            }
+
             return tokens;
         }
 
@@ -102,12 +296,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticVersion;
         }
 
+        private void CacheTokens(DocumentUri uri, VersionStamp semanticVersion, Range range, SemanticTokens tokens)
+        {
+            if (!_cachedResponses.TryGetValue((uri, semanticVersion), out var documentCache))
+            {
+                documentCache = new MemoryCache<Range, SemanticTokens>(sizeLimit: 1000);
+                _cachedResponses.Set((uri, semanticVersion), documentCache);
+            }
+
+            documentCache.Set(range, tokens);
+        }
+
         // Internal for testing
-        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
+        internal async Task<(SemanticTokens? Tokens, bool IsCSharpFinalized)> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             DocumentSnapshot documentSnapshot,
             int documentVersion,
-            VersionStamp semanticVersion,
             Range range,
             CancellationToken cancellationToken)
         {
@@ -139,17 +343,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
             if (combinedSemanticRanges is null)
             {
-                return null;
+                return (null, isCSharpFinalized);
             }
 
             var data = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
             var tokens = new SemanticTokens { Data = data };
 
-            // Cache the result so we can potentially avoid recomputation next time around.
-            var cacheResponse = new SemanticTokensCacheResponse(semanticVersion, range, tokens, isCSharpFinalized);
-            _cachedResponses.Set(textDocumentIdentifier.Uri, cacheResponse);
-
-            return tokens;
+            return (tokens, isCSharpFinalized);
         }
 
         private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
@@ -433,6 +633,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             public static SemanticRangeResponse Default => new(null, false);
         }
 
-        private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens, bool IsCSharpFinalized);
+        private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens);
     }
 }

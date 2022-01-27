@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Razor
             _compactLock = new object();
         }
 
+        public ICollection<TKey> Keys => _dict.Keys;
+
         public bool TryGetValue(TKey key, out TValue result)
         {
             var entryFound = _dict.TryGetValue(key, out var value);
