@@ -35,7 +35,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly ILogger _logger;
 
         // Cache containing semantic token range responses on a per-document + semantic version basis.
-        private readonly MemoryCache<(DocumentUri, VersionStamp), MemoryCache<Range, SemanticTokens>> _cachedResponses = new(sizeLimit: 3);
+        // Stores URIs mapping to semantic versions, which in turn map to ranges and tokens.
+        private const int MaxSemanticVersionsPerDoc = 5;
+        private const int MaxRangesPerSemanticVersion = 1000;
+        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, MemoryCache<Range, SemanticTokens>>> _cachedResponses = new();
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -117,7 +120,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            if (!_cachedResponses.TryGetValue((textDocumentIdentifier.Uri, semanticVersion), out var documentCache))
+            if (!_cachedResponses.TryGetValue(textDocumentIdentifier.Uri, out var semanticVersionCache) ||
+                !semanticVersionCache.TryGetValue(semanticVersion, out var documentCache))
             {
                 return null;
             }
@@ -308,13 +312,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range range,
             SemanticTokens tokens)
         {
-            if (!_cachedResponses.TryGetValue((uri, semanticVersion), out var documentCache))
+            if (!_cachedResponses.TryGetValue(uri, out var semanticVersionCache))
             {
-                documentCache = new MemoryCache<Range, SemanticTokens>(sizeLimit: 1000);
-                _cachedResponses.Set((uri, semanticVersion), documentCache);
+                semanticVersionCache = new MemoryCache<VersionStamp, MemoryCache<Range, SemanticTokens>>(sizeLimit: MaxSemanticVersionsPerDoc);
+                _cachedResponses.Set(uri, semanticVersionCache);
             }
 
-            documentCache.Set(range, tokens);
+            if (!semanticVersionCache.TryGetValue(semanticVersion, out var tokensCache))
+            {
+                tokensCache = new MemoryCache<Range, SemanticTokens>(sizeLimit: MaxRangesPerSemanticVersion);
+                semanticVersionCache.Set(semanticVersion, tokensCache);
+            }
+
+            tokensCache.Set(range, tokens);
         }
 
         // Internal for testing
