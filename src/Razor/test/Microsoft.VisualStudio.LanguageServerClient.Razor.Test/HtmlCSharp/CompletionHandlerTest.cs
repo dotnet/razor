@@ -58,94 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private readonly string _languageClient = "languageClient";
 
-        [Theory]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        [InlineData("if")]
-        [InlineData("using")]
-        [InlineData("foreach")]
-        [InlineData("try")]
-        public void IsRazorCompilerBugWithCSharpKeywords_ReturnsTrue(string keyword)
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords($"@|{keyword}|");
-
-            //  Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        public void IsRazorCompilerBugWithCSharpKeywords_Invoked_ReturnsFalse()
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@|using| SomeNamespace.Foo", CompletionTriggerKind.Invoked);
-
-            //  Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        public void IsRazorCompilerBugWithCSharpKeywords_MoreThanKeyword_ReturnsFalse()
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@|usingMore|");
-
-            //  Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        public void IsRazorCompilerBugWithCSharpKeywords_Other_ReturnsFalse()
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@|unrelated|");
-
-            //  Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        public void IsRazorCompilerBugWithCSharpKeywords_NonSignificant_ReturnsFalse()
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@using |  |");
-
-            //  Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        public void IsRazorCompilerBugWithCSharpKeywords_Empty_ReturnsFalse()
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@usin||g");
-
-            //  Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
-        public void IsRazorCompilerBugWithCSharpKeywords_Subset_ReturnsFalse()
-        {
-            // Arrange & Act
-            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@u|sin|g");
-
-            //  Assert
-            Assert.False(result);
-        }
-
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
@@ -1942,20 +1854,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             navigatorSelector.Setup(selector => selector.GetTextStructureNavigator(It.IsAny<ITextBuffer>()))
                 .Returns(navigator.Object);
             return navigatorSelector.Object;
-        }
-
-        private static bool RunTest_IsRazorCompilerBugWithCSharpKeywords(string input, CompletionTriggerKind? triggerKind = null)
-        {
-            var request = new CompletionParams()
-            {
-                Context = new CompletionContext()
-                {
-                    TriggerKind = triggerKind ?? CompletionTriggerKind.TriggerForIncompleteCompletions,
-                }
-            };
-            var wordExtent = GetWordExtent(input);
-            var result = CompletionHandler.IsRazorCompilerBugWithCSharpKeywords(request, wordExtent);
-            return result;
         }
 
         private static TextExtent GetWordExtent(string input)

@@ -32,11 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Concat(s_razorTriggerCharacters))
             .ToArray();
 
-        private static readonly IReadOnlyCollection<string> s_keywords = new string[] {
-            "for", "foreach", "while", "switch", "lock",
-            "case", "if", "try", "do", "using"
-        };
-
         private static readonly IReadOnlyCollection<string> s_designTimeHelpers = new string[]
         {
             "__builder",
@@ -49,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             "BuildRenderTree"
         };
 
-        private static readonly IReadOnlyCollection<CompletionItem> s_keywordCompletionItems = GenerateCompletionItems(s_keywords);
         private static readonly IReadOnlyCollection<CompletionItem> s_designTimeHelpersCompletionItems = GenerateCompletionItems(s_designTimeHelpers);
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
@@ -272,62 +266,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 return true;
             }
-        }
-
-        // Internal for testing
-        internal static bool IsRazorCompilerBugWithCSharpKeywords(CompletionParams request, TextExtent wordExtent)
-        {
-            // This was originally found when users would attempt to type out `@using` in an _Imports.razor file and get 0 completion items at the `g` of `using`.
-            // After lots of investigation it turns out that the Razor compiler will generate 0 C# source for an incomplete using directive. This in turn results
-            // in 0 C# information at `@using|`. This is tracked here: https://github.com/dotnet/aspnetcore/issues/37568
-            //
-            // The entire purpose of this method is to encapsulate this compiler bug and try and make users experiences a little better in a low-risk fashion.
-            return request.Context!.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions &&
-                WordSpanMatchesCSharpPolyfills(wordExtent);
-        }
-
-        private static bool WordSpanMatchesCSharpPolyfills(TextExtent? wordExtent)
-        {
-            if (wordExtent is null || !wordExtent.Value.IsSignificant)
-            {
-                return false;
-            }
-
-            var wordSpan = wordExtent.Value.Span;
-
-            foreach (var keyword in s_keywords)
-            {
-                if (wordSpan.Length != keyword.Length)
-                {
-                    // Word can't match, different length
-                    continue;
-                }
-
-                var allCharactersMatch = true;
-                for (var j = 0; j < keyword.Length; j++)
-                {
-                    var wordSpanIndex = wordSpan.Start.Position + j;
-                    if (wordSpanIndex >= wordSpan.Snapshot.Length)
-                    {
-                        // Don't think this is technically possible but being extra cautious to stay low-risk.
-                        break;
-                    }
-
-                    var wordCharacter = wordSpan.Snapshot[wordSpanIndex];
-                    if (keyword[j] != wordCharacter)
-                    {
-                        allCharactersMatch = false;
-                        break;
-                    }
-                }
-
-                if (allCharactersMatch)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out TextExtent? wordExtent)
