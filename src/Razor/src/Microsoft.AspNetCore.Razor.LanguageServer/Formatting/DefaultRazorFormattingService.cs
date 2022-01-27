@@ -94,47 +94,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override Task<TextEdit[]> FormatCodeActionAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
             => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
 
-        public override async Task<TextEdit[]> FormatSnippetAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-        {
-            if (kind == RazorLanguageKind.CSharp)
-            {
-                WrapCSharpSnippets(formattedEdits);
-            }
-
-            var edits = await ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: false, cancellationToken: cancellationToken);
-
-            if (kind == RazorLanguageKind.CSharp)
-            {
-                UnwrapCSharpSnippets(edits);
-            }
-
-            return edits;
-
-            static void WrapCSharpSnippets(TextEdit[] snippetEdits)
-            {
-                for (var i = 0; i < snippetEdits.Length; i++)
-                {
-                    var snippetEdit = snippetEdits[i];
-
-                    // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
-                    // So, let's avoid the error by wrapping the cursor marker in a comment.
-                    var wrappedText = snippetEdit.NewText.Replace("$0", "/*$0*/");
-                    snippetEdits[i] = snippetEdit with { NewText = wrappedText };
-                }
-            }
-
-            static void UnwrapCSharpSnippets(TextEdit[] snippetEdits)
-            {
-                for (var i = 0; i < snippetEdits.Length; i++)
-                {
-                    var snippetEdit = snippetEdits[i];
-
-                    // Unwrap the cursor marker.
-                    var unwrappedText = snippetEdit.NewText.Replace("/*$0*/", "$0");
-                    snippetEdits[i] = snippetEdit with { NewText = unwrappedText };
-                }
-            }
-        }
+        public override Task<TextEdit[]> FormatSnippetAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
         private async Task<TextEdit[]> ApplyFormattedEditsAsync(
             DocumentUri uri,

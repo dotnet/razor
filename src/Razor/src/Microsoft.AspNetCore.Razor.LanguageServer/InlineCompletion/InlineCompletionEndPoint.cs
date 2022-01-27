@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -42,7 +44,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
     private readonly DocumentResolver _documentResolver;
     private readonly RazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
-    private readonly RazorFormattingService _formattingService;
+    private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
     private readonly ILogger _logger;
 
     [ImportingConstructor]
@@ -51,7 +53,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         DocumentResolver documentResolver,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
-        RazorFormattingService razorFormattingService,
+        AdhocWorkspaceFactory adhocWorkspaceFactory,
         ILoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
@@ -74,9 +76,9 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
             throw new ArgumentNullException(nameof(languageServer));
         }
 
-        if (razorFormattingService is null)
+        if (adhocWorkspaceFactory is null)
         {
-            throw new ArgumentNullException(nameof(razorFormattingService));
+            throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
         }
 
         if (loggerFactory is null)
@@ -88,7 +90,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         _documentResolver = documentResolver;
         _documentMappingService = documentMappingService;
         _languageServer = languageServer;
-        _formattingService = razorFormattingService;
+        _adhocWorkspaceFactory = adhocWorkspaceFactory;
         _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
     }
 
@@ -156,34 +158,29 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         }
 
         var items = new List<InlineCompletionItem>();
+        var csharpDocOptions = codeDocument.GetCSharpDocument();
         foreach (var item in list.Items)
         {
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
             var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
 
-            var textEdit = new TextEdit { NewText = item.Text, Range = range };
-
-            // Remaps the text edits from the generated C# to the razor file,
-            // as well as applying appropriate formatting.
-            var formattedEdits = await _formattingService.FormatSnippetAsync(
-                request.TextDocument.Uri,
-                document,
-                RazorLanguageKind.CSharp,
-                new[] { textEdit },
-                s_defaultFormattingOptions,
-                cancellationToken);
-
-            if (!formattedEdits.Any())
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var rangeInRazorDoc))
             {
-                _logger.LogInformation("Discarding inline completion item after remapping");
+                _logger.LogWarning($"Could not remap projected range {range} to razor document");
+                continue;
+            }
+
+            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, s_defaultFormattingOptions, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
+            if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
+            {
                 continue;
             }
 
             var remappedItem = new InlineCompletionItem
             {
                 Command = item.Command,
-                Range = formattedEdits.Single().Range,
-                Text = formattedEdits.Single().NewText,
+                Range = rangeInRazorDoc,
+                Text = newSnippetText.ToString(),
                 TextFormat = item.TextFormat,
             };
             items.Add(remappedItem);
@@ -194,6 +191,50 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         {
             Items = items.ToArray()
         };
+    }
+
+    private static bool TryGetSnippetWithAdjustedIndentation(FormattingContext formattingContext, string snippetText, int hostDocumentIndex, [NotNullWhen(true)] out string? newSnippetText)
+    {
+        newSnippetText = null;
+        if (!formattingContext.TryGetFormattingSpan(hostDocumentIndex, out var formattingSpan))
+        {
+            return false;
+        }
+
+        // Take the amount of indentation razor and html are adding, then remove the amount of C# indentation that is 'hidden'.
+        // This should give us the desired base indentation that must be applied to each line.
+        var razorAndHtmlContributionsToIndentation = formattingSpan.RazorIndentationLevel + formattingSpan.HtmlIndentationLevel;
+        var amountToAddToCSharpIndentation = razorAndHtmlContributionsToIndentation - formattingSpan.MinCSharpIndentLevel;
+
+        var snippetSourceText = SourceText.From(snippetText);
+        List<TextChange> indentationChanges = new();
+        // Adjust each line, skipping the first since it must start at the snippet keyword.
+        foreach (var line in snippetSourceText.Lines.Skip(1))
+        {
+            var text = snippetSourceText.GetSubText(line.Span).ToString();
+            if (string.IsNullOrEmpty(text))
+            {
+                // We just have an empty line, nothing to do.
+                continue;
+            }
+
+            // Get the indentation of the line in the C# document based on what options the C# document was generated with.
+            var csharpLineIndentationSize = line.GetIndentationSize(formattingContext.Options.TabSize);
+            var csharpIndentationLevel = csharpLineIndentationSize / formattingContext.Options.TabSize;
+
+            // Get the new indentation level based on the context in the razor document.
+            var newIndentationLevel = csharpIndentationLevel + amountToAddToCSharpIndentation;
+            var newIndentationString = formattingContext.GetIndentationLevelString(newIndentationLevel);
+
+            // Replace the current indentation with the new indentation.
+            var spanToReplace = new TextSpan(line.Start, line.GetFirstNonWhitespaceOffset() ?? line.Span.End);
+            var textChange = new TextChange(spanToReplace, newIndentationString);
+            indentationChanges.Add(textChange);
+        }
+
+        var newSnippetSourceText = snippetSourceText.WithChanges(indentationChanges);
+        newSnippetText = newSnippetSourceText.ToString();
+        return true;
     }
 }
 

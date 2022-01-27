@@ -246,7 +246,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else if (request.TextEditKind == TextEditKind.Snippet)
             {
+                if (request.Kind == RazorLanguageKind.CSharp)
+                {
+                    WrapCSharpSnippets(request.ProjectedTextEdits);
+                }
+
                 var mappedEdits = await _razorFormattingService.FormatSnippetAsync(request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
+
+                if (request.Kind == RazorLanguageKind.CSharp)
+                {
+                    UnwrapCSharpSnippets(mappedEdits);
+                }
 
                 return new RazorMapToDocumentEditsResponse()
                 {
@@ -289,6 +299,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 TextEdits = edits.ToArray(),
                 HostDocumentVersion = documentVersion,
             };
+
+            static void WrapCSharpSnippets(TextEdit[] snippetEdits)
+            {
+                for (var i = 0; i < snippetEdits.Length; i++)
+                {
+                    var snippetEdit = snippetEdits[i];
+
+                    // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
+                    // So, let's avoid the error by wrapping the cursor marker in a comment.
+                    var wrappedText = snippetEdit.NewText.Replace("$0", "/*$0*/");
+                    snippetEdits[i] = snippetEdit with { NewText = wrappedText };
+                }
+            }
+
+            static void UnwrapCSharpSnippets(TextEdit[] snippetEdits)
+            {
+                for (var i = 0; i < snippetEdits.Length; i++)
+                {
+                    var snippetEdit = snippetEdits[i];
+
+                    // Unwrap the cursor marker.
+                    var unwrappedText = snippetEdit.NewText.Replace("/*$0*/", "$0");
+                    snippetEdits[i] = snippetEdit with { NewText = unwrappedText };
+                }
+            }
         }
     }
 }

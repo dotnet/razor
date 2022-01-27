@@ -304,17 +304,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return Task.FromResult<WrapWithTagResponse?>(null);
         }
 
-        [JsonRpcMethod(VSInternalMethods.TextDocumentInlineCompletionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalInlineCompletionList?> InlineCompletionAsync(VSInternalInlineCompletionRequest inlineCompletionRequest, CancellationToken cancellationToken)
-        {
-            if (inlineCompletionRequest is null)
-            {
-                throw new ArgumentNullException(nameof(inlineCompletionRequest));
-            }
-
-            return ExecuteRequestAsync<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>(VSInternalMethods.TextDocumentInlineCompletionName, inlineCompletionRequest, ClientCapabilities, cancellationToken);
-        }
-
         // Internal for testing
         internal Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,

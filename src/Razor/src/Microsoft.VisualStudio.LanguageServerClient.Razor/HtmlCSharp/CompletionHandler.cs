@@ -159,17 +159,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                /*if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent.Value))
-                {
-                    var csharpPolyfilledCompletionList = new CompletionList()
-                    {
-                        Items = Array.Empty<CompletionItem>(),
-                        IsIncomplete = true,
-                    };
-                    csharpPolyfilledCompletionList = IncludeCSharpKeywords(csharpPolyfilledCompletionList);
-                    return csharpPolyfilledCompletionList;
-                }*/
-
                 return null;
             }
 
@@ -390,7 +379,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
                 completionList = RemovePreselection(completionList);
-                //completionList = IncludeCSharpKeywords(completionList);
 
                 // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
                 var baseIndentation = Math.Max(GetBaseIndentation(wordExtent, formattingOptions) - 1, 0);
@@ -732,17 +720,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 item.Preselect = false;
             }
-
-            return completionList;
-        }
-
-        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets.
-        // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
-        // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
-        private static CompletionList IncludeCSharpKeywords(CompletionList completionList)
-        {
-            var newList = completionList.Items.Union(s_keywordCompletionItems, CompletionItemComparer.Instance);
-            completionList.Items = newList.ToArray();
 
             return completionList;
         }
