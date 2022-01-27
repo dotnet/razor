@@ -7,6 +7,6 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
 {
     public static class RazorAddin
     {
-        public const string Version = "8.0";
+        public const string Version = "17.0";
     }
 }
