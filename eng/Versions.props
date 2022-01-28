@@ -35,7 +35,8 @@
   -->
   <PropertyGroup>
     <VsixVersionPrefix>17.0.0</VsixVersionPrefix>
-    <AddinVersion>8.0</AddinVersion>
+    <AddinMajorVersion>17.0</AddinMajorVersion>
+    <AddinVersion>$(AddinMajorVersion)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' != ''">$(AddinVersion).$(OfficialBuildId)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' == ''">$(AddinVersion).42424242.42</AddinVersion>
   </PropertyGroup>
@@ -50,12 +51,12 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>6.0.2-1.22056.2</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>6.0.2-1.22056.2</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
+    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>6.0.2-1.22076.3</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>6.0.2-1.22076.3</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
     <MicrosoftAspNetCoreTestingPackageVersion>6.0.2-servicing.22063.3</MicrosoftAspNetCoreTestingPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>6.0.2-1.22056.2</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>6.0.2-1.22056.2</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>6.0.2-1.22056.2</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>6.0.2-1.22076.3</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>6.0.2-1.22076.3</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>6.0.2-1.22076.3</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>6.0.0</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>6.0.0</MicrosoftExtensionsConfigurationPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>6.0.0</MicrosoftExtensionsLoggingPackageVersion>
