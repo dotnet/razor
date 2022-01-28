@@ -20,11 +20,11 @@ internal class InlineCompletionItem
 
     [DataMember(Name = "_vs_range")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public Range? Range { get; set; }
+    public Range Range { get; set; }
 
     [DataMember(Name = "_vs_command")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public Command? Command { get; set; }
+    public Command Command { get; set; }
 
     [DataMember(Name = "_vs_insertTextFormat")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]

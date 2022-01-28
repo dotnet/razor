@@ -19,5 +19,5 @@ internal class InlineCompletionContext
 
     [DataMember(Name = "_vs_selectedCompletionInfo")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public SelectedCompletionInfo? SelectedCompletionInfo { get; set; }
+    public SelectedCompletionInfo SelectedCompletionInfo { get; set; }
 }
