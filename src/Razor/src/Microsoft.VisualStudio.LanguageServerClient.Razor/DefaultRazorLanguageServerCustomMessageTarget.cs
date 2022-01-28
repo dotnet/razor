@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -20,6 +21,7 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
@@ -524,14 +526,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(VSInternalInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
+        public override async Task<InlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
         {
             if (inlineCompletionParams is null)
             {
                 throw new ArgumentNullException(nameof(inlineCompletionParams));
             }
 
-            if (!_documentManager.TryGetDocument(inlineCompletionParams.TextDocument.Uri, out var documentSnapshot))
+            var hostDocumentUri = inlineCompletionParams.TextDocument.Uri.ToUri();
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {
                 return null;
             }
@@ -541,14 +544,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            inlineCompletionParams.TextDocument.Uri = csharpDoc.Uri;
+            var csharpRequest = new InlineCompletionRequest
+            {
+                Context = inlineCompletionParams.Context,
+                Position = inlineCompletionParams.Position,
+                TextDocument = DocumentUri.From(csharpDoc.Uri),
+            };
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
-            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>(
+            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<InlineCompletionRequest, InlineCompletionList?>(
                 textBuffer,
                 VSInternalMethods.TextDocumentInlineCompletionName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                inlineCompletionParams,
+                csharpRequest,
                 cancellationToken).ConfigureAwait(false);
 
             return request?.Response;

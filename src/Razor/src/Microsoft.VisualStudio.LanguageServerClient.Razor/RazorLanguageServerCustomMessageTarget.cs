@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
@@ -60,6 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // Called by the Razor Language Server to provide inline completions from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(VSInternalInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
+        public abstract Task<InlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
     }
 }

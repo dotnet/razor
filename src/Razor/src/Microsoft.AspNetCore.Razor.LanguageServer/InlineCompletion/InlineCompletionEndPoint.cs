@@ -148,8 +148,16 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
             return null;
         }
 
+        var razorRequest = new RazorInlineCompletionRequest
+        {
+            TextDocument = request.TextDocument,
+            Context = request.Context,
+            Position = projectedPosition,
+            Kind = languageKind,
+        };
+
         request.Position = projectedPosition;
-        var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorInlineCompletionEndpoint, request).ConfigureAwait(false);
+        var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorInlineCompletionEndpoint, razorRequest).ConfigureAwait(false);
         var list = await response.Returning<InlineCompletionList>(cancellationToken).ConfigureAwait(false);
         if (list == null || !list.Items.Any())
         {
