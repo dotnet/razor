@@ -20,7 +20,7 @@ resources:
     endpoint: dnceng/internal dotnet-razor-tooling
     type: git
     name: internal/dotnet-razor-tooling
-    ref: $(Build.SourceBranchName)
+    ref: $(Build.SourceVersion)
     trigger:
     - main
 
