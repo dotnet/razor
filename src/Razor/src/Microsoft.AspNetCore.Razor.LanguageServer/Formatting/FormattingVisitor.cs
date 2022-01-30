@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -141,6 +142,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override void VisitMarkupElement(MarkupElementSyntax node)
         {
+            // If this is the direct child of a @section directive then we add a Razor indent to essentially
+            // set the baseline one level in.
+            // Note: "Direct child" in a little poetic license, as the structure is actually:
+            //     MarkupElement -> MarkupBlock -> CSharpCodeBlock (¯\_(ツ)_/¯) -> RazorDirectiveBody -> RazorDirective
+            var inSectionDirective = (node.Parent?.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
+                directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive);
+
+            if (inSectionDirective)
+            {
+                _currentRazorIndentationLevel++;
+            }
+
             Visit(node.StartTag);
 
             // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
@@ -161,6 +174,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             Visit(node.EndTag);
+
+            if (inSectionDirective)
+            {
+                _currentRazorIndentationLevel--;
+            }
         }
 
         public override void VisitMarkupStartTag(MarkupStartTagSyntax node)

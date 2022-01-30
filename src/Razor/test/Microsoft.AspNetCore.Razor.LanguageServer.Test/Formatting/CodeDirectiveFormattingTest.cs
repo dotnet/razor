@@ -247,7 +247,7 @@ fileKind: FileKinds.Legacy);
 
         [Theory]
         [CombinatorialData]
-        public async Task DoesNotFormat_SectionDirectiveBlock(bool useSourceTextDiffer)
+        public async Task Format_SectionDirectiveBlock1(bool useSourceTextDiffer)
         {
             await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
 input: @"
@@ -269,7 +269,75 @@ expected: @"@functions {
 }
 
 @section Scripts {
-<script></script>
+    <script></script>
+}
+",
+fileKind: FileKinds.Legacy);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Format_SectionDirectiveBlock2(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@functions {
+ public class Foo{
+void Method() {  }
+    }
+}
+
+@section Scripts {
+<script>
+    function f() {
+    }
+</script>
+}
+",
+expected: @"@functions {
+    public class Foo
+    {
+        void Method() { }
+    }
+}
+
+@section Scripts {
+    <script>
+        function f() {
+        }
+    </script>
+}
+",
+fileKind: FileKinds.Legacy);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Format_SectionDirectiveBlock3(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@functions {
+ public class Foo{
+void Method() {  }
+    }
+}
+
+@section Scripts {
+<p>this is a para</p>
+<p>and so is this</p>
+}
+",
+expected: @"@functions {
+    public class Foo
+    {
+        void Method() { }
+    }
+}
+
+@section Scripts {
+    <p>this is a para</p>
+    <p>and so is this</p>
 }
 ",
 fileKind: FileKinds.Legacy);
