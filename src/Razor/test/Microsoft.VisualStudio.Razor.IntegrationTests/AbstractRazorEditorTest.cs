@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         private static readonly string s_pagesDir = Path.Combine("Pages");
         private static readonly string s_sharedDir = Path.Combine("Shared");
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
+        internal static readonly string IndexRazorFile = Path.Combine(s_pagesDir, "Index.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
         internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
         internal static readonly string ImportsRazorFile = "_Imports.razor";
@@ -30,6 +31,14 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
+
+            // We open the Index.razor file, and wait for the SurveyPrompt component to be classified, as that
+            // way we know the LSP server is up and running and responding
+            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: "RazorComponentElement");
+
+            // Close the file we opened, just in case, so the test can start with a clean slate
+            await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
         }
     }
 }
