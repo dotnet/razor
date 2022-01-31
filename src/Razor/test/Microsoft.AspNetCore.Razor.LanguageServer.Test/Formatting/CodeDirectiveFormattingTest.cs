@@ -325,7 +325,10 @@ void Method() {  }
 
 @section Scripts {
 <p>this is a para</p>
+@if(true)
+{
 <p>and so is this</p>
+}
 }
 ",
 expected: @"@functions {
@@ -337,7 +340,10 @@ expected: @"@functions {
 
 @section Scripts {
     <p>this is a para</p>
-    <p>and so is this</p>
+    @if (true)
+    {
+        <p>and so is this</p>
+    }
 }
 ",
 fileKind: FileKinds.Legacy);
