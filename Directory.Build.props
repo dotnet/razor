@@ -12,6 +12,7 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Default</AnalysisMode>
     <LangVersion>Latest</LangVersion>
+    <Nullable>enable</Nullable>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <!-- Disable XLIFF tasks -->
     <UsingToolXliff>false</UsingToolXliff>

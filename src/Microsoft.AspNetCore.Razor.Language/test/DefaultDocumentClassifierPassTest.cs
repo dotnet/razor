@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 
+#nullable disable
+
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
