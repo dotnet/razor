@@ -129,7 +129,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var responseBody = default(TOut);
             if (response.Response is not null)
             {
-                responseBody = response.Response.ToObject<TOut>(_serializer);
+                if (typeof(TOut) == typeof(JToken))
+                {
+                    responseBody = (TOut)(object)response.Response;
+                }
+                else
+                {
+                    responseBody = response.Response.ToObject<TOut>(_serializer);
+                }
             }
 
             var reinvocationResponse = new ReinvocationResponse<TOut>(response.LanguageClientName, responseBody);

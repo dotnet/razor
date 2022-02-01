@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -10,18 +11,21 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentImplementationName)]
-    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, Location[]>
+    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, object>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly ILogger _logger;
+        private readonly JsonSerializer _serializer;
 
         [ImportingConstructor]
         public GoToImplementationHandler(
@@ -62,9 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _documentMappingProvider = documentMappingProvider;
 
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
+
+            _serializer = new JsonSerializer();
+            _serializer.AddVSInternalExtensionConverters();
         }
 
-        public async Task<Location[]?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<object?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -110,32 +117,57 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting {languageServerName} implementation for {projectionResult.Uri}.");
 
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, JToken>(
                 textBuffer,
                 Methods.TextDocumentImplementationName,
                 languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var locations))
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var jToken))
             {
                 return null;
             }
 
-            if (locations.Length == 0)
-            {
-                _logger.LogInformation("Received no results.");
-                return locations;
-            }
-
-            _logger.LogInformation($"Received {locations.Length} results, remapping.");
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
+            // From some language servers we get VSInternalReferenceItem results, and from some we get Location results.
+            // We check for the _vs_id property, which is required in VSInternalReferenceItem, to know which is which.
+            if (jToken.Type == JTokenType.Array)
+            {
+                var jArray = (JArray)jToken;
+                if (jArray.Any())
+                {
+                    _logger.LogInformation($"Received {jArray.Count} results, remapping.");
 
-            _logger.LogInformation($"Returning {remappedLocations?.Length} locations.");
-            return remappedLocations;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (jArray.First?["_vs_id"] is not null)
+                    {
+                        var referenceItems = jArray.ToObject<VSInternalReferenceItem[]>(_serializer);
+
+                        var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, cancellationToken).ConfigureAwait(false);
+
+                        _logger.LogInformation($"Returning {remappedLocations?.Length} internal reference items.");
+                        return remappedLocations;
+                    }
+                    else
+                    {
+                        var locations = jArray.ToObject<Location[]>(_serializer);
+                        if (locations is not null)
+                        {
+                            var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
+
+                            _logger.LogInformation($"Returning {remappedLocations?.Length} locations.");
+
+                            return remappedLocations;
+                        }
+                    }
+                }
+            }
+
+            _logger.LogInformation("Received no results.");
+            return Array.Empty<VSInternalReferenceItem>();
         }
     }
 }

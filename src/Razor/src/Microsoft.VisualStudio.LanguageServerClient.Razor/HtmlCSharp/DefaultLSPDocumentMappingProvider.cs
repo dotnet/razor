@@ -143,13 +143,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var remappedLocation = new Location()
-                {
-                    Uri = razorDocumentUri,
-                    Range = remappedRange,
-                };
+                location.Uri = razorDocumentUri;
+                location.Range = remappedRange;
 
-                remappedLocations.Add(remappedLocation);
+                remappedLocations.Add(location);
             }
 
             return remappedLocations.ToArray();
