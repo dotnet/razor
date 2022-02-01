@@ -1,8 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -16,6 +14,21 @@ namespace Microsoft.AspNetCore.Razor.Language;
 // not all characters in the document are included in the ClassifiedSpans.
 internal class RazorHtmlWriter : SyntaxWalker
 {
+    private readonly Action<RazorCommentBlockSyntax> _baseVisitRazorCommentBlock;
+    private readonly Action<RazorMetaCodeSyntax> _baseVisitRazorMetaCode;
+    private readonly Action<MarkupTransitionSyntax> _baseVisitMarkupTransition;
+    private readonly Action<CSharpTransitionSyntax> _baseVisitCSharpTransition;
+    private readonly Action<CSharpEphemeralTextLiteralSyntax> _baseVisitCSharpEphemeralTextLiteral;
+    private readonly Action<CSharpExpressionLiteralSyntax> _baseVisitCSharpExpressionLiteral;
+    private readonly Action<CSharpStatementLiteralSyntax> _baseVisitCSharpStatementLiteral;
+    private readonly Action<MarkupStartTagSyntax> _baseVisitMarkupStartTag;
+    private readonly Action<MarkupEndTagSyntax> _baseVisitMarkupEndTag;
+    private readonly Action<MarkupTagHelperStartTagSyntax> _baseVisitMarkupTagHelperStartTag;
+    private readonly Action<MarkupTagHelperEndTagSyntax> _baseVisitMarkupTagHelperEndTag;
+    private readonly Action<MarkupEphemeralTextLiteralSyntax> _baseVisitMarkupEphemeralTextLiteral;
+    private readonly Action<MarkupTextLiteralSyntax> _baseVisitMarkupTextLiteral;
+    private readonly Action<UnclassifiedTextLiteralSyntax> _baseVisitUnclassifiedTextLiteral;
+
     private bool _isHtml;
 
     private RazorHtmlWriter(RazorSourceDocument source)
@@ -28,13 +41,28 @@ internal class RazorHtmlWriter : SyntaxWalker
         Source = source;
         Builder = new StringBuilder(Source.Length);
         _isHtml = true;
+
+        _baseVisitRazorCommentBlock = base.VisitRazorCommentBlock;
+        _baseVisitRazorMetaCode = base.VisitRazorMetaCode;
+        _baseVisitMarkupTransition = base.VisitMarkupTransition;
+        _baseVisitCSharpTransition = base.VisitCSharpTransition;
+        _baseVisitCSharpEphemeralTextLiteral = base.VisitCSharpEphemeralTextLiteral;
+        _baseVisitCSharpExpressionLiteral = base.VisitCSharpExpressionLiteral;
+        _baseVisitCSharpStatementLiteral = base.VisitCSharpStatementLiteral;
+        _baseVisitMarkupStartTag = base.VisitMarkupStartTag;
+        _baseVisitMarkupEndTag = base.VisitMarkupEndTag;
+        _baseVisitMarkupTagHelperStartTag = base.VisitMarkupTagHelperStartTag;
+        _baseVisitMarkupTagHelperEndTag = base.VisitMarkupTagHelperEndTag;
+        _baseVisitMarkupEphemeralTextLiteral = base.VisitMarkupEphemeralTextLiteral;
+        _baseVisitMarkupTextLiteral = base.VisitMarkupTextLiteral;
+        _baseVisitUnclassifiedTextLiteral = base.VisitUnclassifiedTextLiteral;
     }
 
     public RazorSourceDocument Source { get; }
 
     public StringBuilder Builder { get; }
 
-    public static RazorHtmlDocument GetHtmlDocument(RazorCodeDocument codeDocument)
+    public static RazorHtmlDocument? GetHtmlDocument(RazorCodeDocument codeDocument)
     {
         var options = codeDocument.GetCodeGenerationOptions();
         if (options == null || !options.DesignTime)
@@ -59,72 +87,72 @@ internal class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitRazorCommentBlock);
+        WriteNode(node, isHtml: false, _baseVisitRazorCommentBlock);
     }
 
     public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitRazorMetaCode);
+        WriteNode(node, isHtml: false, _baseVisitRazorMetaCode);
     }
 
     public override void VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitMarkupTransition);
+        WriteNode(node, isHtml: false, _baseVisitMarkupTransition);
     }
 
     public override void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitCSharpTransition);
+        WriteNode(node, isHtml: false, _baseVisitCSharpTransition);
     }
 
     public override void VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitCSharpEphemeralTextLiteral);
+        WriteNode(node, isHtml: false, _baseVisitCSharpEphemeralTextLiteral);
     }
 
     public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitCSharpExpressionLiteral);
+        WriteNode(node, isHtml: false, _baseVisitCSharpExpressionLiteral);
     }
 
     public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-        WriteNode(node, isHtml: false, base.VisitCSharpStatementLiteral);
+        WriteNode(node, isHtml: false, _baseVisitCSharpStatementLiteral);
     }
 
     public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitMarkupStartTag);
+        WriteNode(node, isHtml: true, _baseVisitMarkupStartTag);
     }
 
     public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitMarkupEndTag);
+        WriteNode(node, isHtml: true, _baseVisitMarkupEndTag);
     }
 
     public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitMarkupTagHelperStartTag);
+        WriteNode(node, isHtml: true, _baseVisitMarkupTagHelperStartTag);
     }
 
     public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitMarkupTagHelperEndTag);
+        WriteNode(node, isHtml: true, _baseVisitMarkupTagHelperEndTag);
     }
 
     public override void VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitMarkupEphemeralTextLiteral);
+        WriteNode(node, isHtml: true, _baseVisitMarkupEphemeralTextLiteral);
     }
 
     public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitMarkupTextLiteral);
+        WriteNode(node, isHtml: true, _baseVisitMarkupTextLiteral);
     }
 
     public override void VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: true, base.VisitUnclassifiedTextLiteral);
+        WriteNode(node, isHtml: true, _baseVisitUnclassifiedTextLiteral);
     }
 
     public override void VisitToken(SyntaxToken token)
