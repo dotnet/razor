@@ -162,11 +162,17 @@ internal abstract class AbstractFileWriter
     protected static string GetElementType(string typeName)
     {
         if (!typeName.Contains("<"))
+        {
             return string.Empty;
+        }
+
         var iStart = typeName.IndexOf('<');
         var iEnd = typeName.IndexOf('>', iStart + 1);
         if (iEnd < iStart)
+        {
             return string.Empty;
+        }
+
         var sub = typeName.Substring(iStart + 1, iEnd - iStart - 1);
         return sub;
     }
@@ -179,7 +185,10 @@ internal abstract class AbstractFileWriter
     protected bool IsDerivedType(string typeName, string derivedTypeName)
     {
         if (typeName == derivedTypeName)
+        {
             return true;
+        }
+
         if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out var baseType))
         {
             return IsDerivedType(typeName, baseType);

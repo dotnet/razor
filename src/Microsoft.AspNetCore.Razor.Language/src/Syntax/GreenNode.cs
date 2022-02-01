@@ -120,7 +120,9 @@ internal abstract class GreenNode
         {
             var child = GetSlot(i);
             if (child != null)
+            {
                 offset += child.FullWidth;
+            }
         }
 
         return offset;

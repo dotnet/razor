@@ -44,7 +44,10 @@ internal class SyntaxListBuilder
 
     public void Add(GreenNode item)
     {
-        if (item == null) return;
+        if (item == null)
+        {
+            return;
+        }
 
         if (item.IsList)
         {
@@ -136,7 +139,10 @@ internal class SyntaxListBuilder
         var currentSize = _nodes.Length;
         var requiredSize = Count + additionalCount;
 
-        if (requiredSize <= currentSize) return;
+        if (requiredSize <= currentSize)
+        {
+            return;
+        }
 
         var newSize =
             requiredSize < 8 ? 8 :

@@ -13,6 +13,7 @@
     <AnalysisMode>Default</AnalysisMode>
     <LangVersion>Latest</LangVersion>
     <Nullable>enable</Nullable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <!-- Disable XLIFF tasks -->
     <UsingToolXliff>false</UsingToolXliff>
