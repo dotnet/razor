@@ -297,7 +297,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
                 IsImplicitOrExplicitExpression() ||
-                IsInSectionDirective() ||
+                IsInSectionDirectiveCloseBrace() ||
                 (!allowImplicitStatements && IsImplicitStatementStart()))
             {
                 return false;
@@ -379,10 +379,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
             }
 
-            bool IsInSectionDirective()
+            bool IsInSectionDirectiveCloseBrace()
             {
-                var directive = owner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
-                if (directive != null &&
+                // @section Scripts {
+                //     <script></script>
+                // }
+                //
+                // We are fine to format these, but due to how they are generated (inside a multi-line lambda)
+                // we want to exlude the final close brace from being formatted, or it will be indented by one
+                // level due to the lambda. The rest we don't need to worry about, because the one level indent
+                // is actually desirable.
+                if (owner is MarkupTextLiteralSyntax &&
+                    owner.Parent is MarkupBlockSyntax block &&
+                    owner == block.Children[block.Children.Count - 1] &&
+                    // MarkupBlock -> CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
+                    block.Parent.Parent.Parent is RazorDirectiveSyntax directive &&
                     directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
                 {
                     return true;
