@@ -1,7 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +7,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class AllowedChildTagDescriptorComparer : IEqualityComparer<AllowedChildTagDescriptor>
+internal sealed class AllowedChildTagDescriptorComparer : IEqualityComparer<AllowedChildTagDescriptor?>
 {
     /// <summary>
     /// A default instance of the <see cref="AllowedChildTagDescriptorComparer"/>.
@@ -22,16 +20,20 @@ internal class AllowedChildTagDescriptorComparer : IEqualityComparer<AllowedChil
     }
 
     /// <inheritdoc />
-    public virtual bool Equals(
-        AllowedChildTagDescriptor descriptorX,
-        AllowedChildTagDescriptor descriptorY)
+    public bool Equals(
+        AllowedChildTagDescriptor? descriptorX,
+        AllowedChildTagDescriptor? descriptorY)
     {
         if (object.ReferenceEquals(descriptorX, descriptorY))
         {
             return true;
         }
 
-        if (descriptorX == null ^ descriptorY == null)
+        if (descriptorX is null)
+        {
+            return descriptorY is null;
+        }
+        else if (descriptorY is null)
         {
             return false;
         }
@@ -42,8 +44,13 @@ internal class AllowedChildTagDescriptorComparer : IEqualityComparer<AllowedChil
     }
 
     /// <inheritdoc />
-    public virtual int GetHashCode(AllowedChildTagDescriptor descriptor)
+    public int GetHashCode(AllowedChildTagDescriptor? descriptor)
     {
+        if (descriptor is null)
+        {
+            return 0;
+        }
+
         var hash = HashCodeCombiner.Start();
         hash.Add(descriptor.Name, StringComparer.Ordinal);
 

@@ -1,16 +1,13 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class BoundAttributeParameterDescriptorComparer : IEqualityComparer<BoundAttributeParameterDescriptor>
+internal sealed class BoundAttributeParameterDescriptorComparer : IEqualityComparer<BoundAttributeParameterDescriptor?>
 {
     /// <summary>
     /// A default instance of the <see cref="BoundAttributeParameterDescriptorComparer"/>.
@@ -21,14 +18,18 @@ internal class BoundAttributeParameterDescriptorComparer : IEqualityComparer<Bou
     {
     }
 
-    public virtual bool Equals(BoundAttributeParameterDescriptor descriptorX, BoundAttributeParameterDescriptor descriptorY)
+    public bool Equals(BoundAttributeParameterDescriptor? descriptorX, BoundAttributeParameterDescriptor? descriptorY)
     {
-        if (object.ReferenceEquals(descriptorX, descriptorY))
+        if (ReferenceEquals(descriptorX, descriptorY))
         {
             return true;
         }
 
-        if (descriptorX == null ^ descriptorY == null)
+        if (descriptorX is null)
+        {
+            return descriptorY is null;
+        }
+        else if (descriptorY is null)
         {
             return false;
         }
@@ -40,16 +41,14 @@ internal class BoundAttributeParameterDescriptorComparer : IEqualityComparer<Bou
             string.Equals(descriptorX.TypeName, descriptorY.TypeName, StringComparison.Ordinal) &&
             string.Equals(descriptorX.Documentation, descriptorY.Documentation, StringComparison.Ordinal) &&
             string.Equals(descriptorX.DisplayName, descriptorY.DisplayName, StringComparison.Ordinal) &&
-            Enumerable.SequenceEqual(
-                descriptorX.Metadata.OrderBy(propertyX => propertyX.Key, StringComparer.Ordinal),
-                descriptorY.Metadata.OrderBy(propertyY => propertyY.Key, StringComparer.Ordinal));
+            ComparerUtilities.Equals(descriptorX.Metadata, descriptorY.Metadata, StringComparer.Ordinal, StringComparer.Ordinal);
     }
 
-    public virtual int GetHashCode(BoundAttributeParameterDescriptor descriptor)
+    public int GetHashCode(BoundAttributeParameterDescriptor? descriptor)
     {
         if (descriptor == null)
         {
-            throw new ArgumentNullException(nameof(descriptor));
+            return 0;
         }
 
         var hash = HashCodeCombiner.Start();

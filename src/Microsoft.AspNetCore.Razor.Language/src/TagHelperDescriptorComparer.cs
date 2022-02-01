@@ -1,16 +1,13 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperDescriptor>
+internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperDescriptor?>
 {
     /// <summary>
     /// A default instance of the <see cref="TagHelperDescriptorComparer"/>.
@@ -21,14 +18,18 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
     {
     }
 
-    public bool Equals(TagHelperDescriptor descriptorX, TagHelperDescriptor descriptorY)
+    public bool Equals(TagHelperDescriptor? descriptorX, TagHelperDescriptor? descriptorY)
     {
         if (object.ReferenceEquals(descriptorX, descriptorY))
         {
             return true;
         }
 
-        if (descriptorX == null ^ descriptorY == null)
+        if (descriptorX is null)
+        {
+            return descriptorY is null;
+        }
+        else if (descriptorY is null)
         {
             return false;
         }
@@ -48,29 +49,26 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
             return false;
         }
 
-        if (!Enumerable.SequenceEqual(
-            descriptorX.BoundAttributes.OrderBy(attribute => attribute.Name, StringComparer.Ordinal),
-            descriptorY.BoundAttributes.OrderBy(attribute => attribute.Name, StringComparer.Ordinal),
+        if (!ComparerUtilities.Equals(
+            descriptorX.BoundAttributes,
+            descriptorY.BoundAttributes,
             BoundAttributeDescriptorComparer.Default))
         {
             return false;
         }
 
-        if (!Enumerable.SequenceEqual(
-            descriptorX.TagMatchingRules.OrderBy(rule => rule.TagName, StringComparer.Ordinal),
-            descriptorY.TagMatchingRules.OrderBy(rule => rule.TagName, StringComparer.Ordinal),
+        if (!ComparerUtilities.Equals(
+            descriptorX.TagMatchingRules,
+            descriptorY.TagMatchingRules,
             TagMatchingRuleDescriptorComparer.Default))
         {
             return false;
         }
 
-        if (!(descriptorX.AllowedChildTags == descriptorY.AllowedChildTags ||
-            (descriptorX.AllowedChildTags != null &&
-            descriptorY.AllowedChildTags != null &&
-            Enumerable.SequenceEqual(
-                descriptorX.AllowedChildTags.OrderBy(childTag => childTag.Name, StringComparer.Ordinal),
-                descriptorY.AllowedChildTags.OrderBy(childTag => childTag.Name, StringComparer.Ordinal),
-                AllowedChildTagDescriptorComparer.Default))))
+        if (!ComparerUtilities.Equals(
+            descriptorX.AllowedChildTags,
+            descriptorY.AllowedChildTags,
+            AllowedChildTagDescriptorComparer.Default))
         {
             return false;
         }
@@ -95,14 +93,12 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
             return false;
         }
 
-        if (!Enumerable.SequenceEqual(descriptorX.Diagnostics, descriptorY.Diagnostics))
+        if (!ComparerUtilities.Equals(descriptorX.Diagnostics, descriptorY.Diagnostics, EqualityComparer<RazorDiagnostic>.Default))
         {
             return false;
         }
 
-        if (!Enumerable.SequenceEqual(
-            descriptorX.Metadata.OrderBy(metadataX => metadataX.Key, StringComparer.Ordinal),
-            descriptorY.Metadata.OrderBy(metadataY => metadataY.Key, StringComparer.Ordinal)))
+        if (!ComparerUtilities.Equals(descriptorX.Metadata, descriptorY.Metadata, StringComparer.Ordinal, StringComparer.Ordinal))
         {
             return false;
         }
@@ -111,11 +107,11 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
     }
 
     /// <inheritdoc />
-    public int GetHashCode(TagHelperDescriptor descriptor)
+    public int GetHashCode(TagHelperDescriptor? descriptor)
     {
         if (descriptor == null)
         {
-            throw new ArgumentNullException(nameof(descriptor));
+            return 0;
         }
 
         var hash = HashCodeCombiner.Start();
@@ -125,58 +121,11 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
         hash.Add(descriptor.DisplayName, StringComparer.Ordinal);
         hash.Add(descriptor.CaseSensitive ? 1 : 0);
 
-        if (descriptor.BoundAttributes != null)
-        {
-            for (var i = 0; i < descriptor.BoundAttributes.Count; i++)
-            {
-                hash.Add(descriptor.BoundAttributes[i]);
-            }
-        }
-
-        if (descriptor.TagMatchingRules != null)
-        {
-            for (var i = 0; i < descriptor.TagMatchingRules.Count; i++)
-            {
-                hash.Add(descriptor.TagMatchingRules[i]);
-            }
-        }
-
-        if (descriptor.AllowedChildTags != null)
-        {
-            for (var i = 0; i < descriptor.AllowedChildTags.Count; i++)
-            {
-                hash.Add(descriptor.AllowedChildTags[i]);
-            }
-        }
-
-        if (descriptor.Diagnostics != null)
-        {
-            for (var i = 0; i < descriptor.Diagnostics.Count; i++)
-            {
-                hash.Add(descriptor.Diagnostics[i]);
-            }
-        }
-
-        if (descriptor.Metadata != null)
-        {
-            // 🐇 Avoid enumerator allocations for Dictionary<TKey, TValue>
-            if (descriptor.Metadata is Dictionary<string, string> metadata)
-            {
-                foreach (var kvp in metadata)
-                {
-                    hash.Add(kvp.Key, StringComparer.Ordinal);
-                    hash.Add(kvp.Value, StringComparer.Ordinal);
-                }
-            }
-            else
-            {
-                foreach (var kvp in descriptor.Metadata)
-                {
-                    hash.Add(kvp.Key, StringComparer.Ordinal);
-                    hash.Add(kvp.Value, StringComparer.Ordinal);
-                }
-            }
-        }
+        ComparerUtilities.AddToHash(ref hash, descriptor.BoundAttributes ?? Array.Empty<BoundAttributeDescriptor>(), BoundAttributeDescriptorComparer.Default);
+        ComparerUtilities.AddToHash(ref hash, descriptor.TagMatchingRules ?? Array.Empty<TagMatchingRuleDescriptor>(), TagMatchingRuleDescriptorComparer.Default);
+        ComparerUtilities.AddToHash(ref hash, descriptor.AllowedChildTags ?? Array.Empty<AllowedChildTagDescriptor>(), AllowedChildTagDescriptorComparer.Default);
+        ComparerUtilities.AddToHash(ref hash, descriptor.Diagnostics ?? Array.Empty<RazorDiagnostic>(), EqualityComparer<RazorDiagnostic>.Default);
+        ComparerUtilities.AddToHash(ref hash, descriptor.Metadata, StringComparer.Ordinal, StringComparer.Ordinal);
 
         return hash.CombinedHash;
     }

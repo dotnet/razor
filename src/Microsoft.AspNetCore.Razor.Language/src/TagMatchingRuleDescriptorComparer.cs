@@ -1,16 +1,13 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class TagMatchingRuleDescriptorComparer : IEqualityComparer<TagMatchingRuleDescriptor>
+internal sealed class TagMatchingRuleDescriptorComparer : IEqualityComparer<TagMatchingRuleDescriptor?>
 {
     /// <summary>
     /// A default instance of the <see cref="TagMatchingRuleDescriptorComparer"/>.
@@ -21,14 +18,18 @@ internal class TagMatchingRuleDescriptorComparer : IEqualityComparer<TagMatching
     {
     }
 
-    public virtual bool Equals(TagMatchingRuleDescriptor ruleX, TagMatchingRuleDescriptor ruleY)
+    public bool Equals(TagMatchingRuleDescriptor? ruleX, TagMatchingRuleDescriptor? ruleY)
     {
         if (object.ReferenceEquals(ruleX, ruleY))
         {
             return true;
         }
 
-        if (ruleX == null ^ ruleY == null)
+        if (ruleX is null)
+        {
+            return ruleY is null;
+        }
+        else if (ruleY is null)
         {
             return false;
         }
@@ -38,27 +39,21 @@ internal class TagMatchingRuleDescriptorComparer : IEqualityComparer<TagMatching
             string.Equals(ruleX.ParentTag, ruleY.ParentTag, StringComparison.Ordinal) &&
             ruleX.CaseSensitive == ruleY.CaseSensitive &&
             ruleX.TagStructure == ruleY.TagStructure &&
-            Enumerable.SequenceEqual(ruleX.Attributes, ruleY.Attributes, RequiredAttributeDescriptorComparer.Default);
+            ComparerUtilities.Equals(ruleX.Attributes, ruleY.Attributes, RequiredAttributeDescriptorComparer.Default);
     }
 
-    public virtual int GetHashCode(TagMatchingRuleDescriptor rule)
+    public int GetHashCode(TagMatchingRuleDescriptor? rule)
     {
         if (rule == null)
         {
-            throw new ArgumentNullException(nameof(rule));
+            return 0;
         }
 
         var hash = HashCodeCombiner.Start();
         hash.Add(rule.TagName, StringComparer.Ordinal);
         hash.Add(rule.ParentTag, StringComparer.Ordinal);
 
-        if (rule.Attributes != null)
-        {
-            for (var i = 0; i < rule.Attributes.Count; ++i)
-            {
-                hash.Add(rule.Attributes[i]);
-            }
-        }
+        ComparerUtilities.AddToHash(ref hash, rule.Attributes ?? Array.Empty<RequiredAttributeDescriptor>(), RequiredAttributeDescriptorComparer.Default);
 
         return hash.CombinedHash;
     }

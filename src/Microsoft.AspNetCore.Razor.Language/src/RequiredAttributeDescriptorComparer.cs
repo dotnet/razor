@@ -1,8 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Internal;
@@ -13,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// An <see cref="IEqualityComparer{TagHelperRequiredAttributeDescriptor}"/> used to check equality between
 /// two <see cref="RequiredAttributeDescriptor"/>s.
 /// </summary>
-internal class RequiredAttributeDescriptorComparer : IEqualityComparer<RequiredAttributeDescriptor>
+internal sealed class RequiredAttributeDescriptorComparer : IEqualityComparer<RequiredAttributeDescriptor?>
 {
     /// <summary>
     /// A default instance of the <see cref="RequiredAttributeDescriptorComparer"/>.
@@ -26,16 +24,20 @@ internal class RequiredAttributeDescriptorComparer : IEqualityComparer<RequiredA
     }
 
     /// <inheritdoc />
-    public virtual bool Equals(
-        RequiredAttributeDescriptor descriptorX,
-        RequiredAttributeDescriptor descriptorY)
+    public bool Equals(
+        RequiredAttributeDescriptor? descriptorX,
+        RequiredAttributeDescriptor? descriptorY)
     {
         if (object.ReferenceEquals(descriptorX, descriptorY))
         {
             return true;
         }
 
-        if (descriptorX == null ^ descriptorY == null)
+        if (descriptorX is null)
+        {
+            return descriptorY is null;
+        }
+        else if (descriptorY is null)
         {
             return false;
         }
@@ -50,11 +52,11 @@ internal class RequiredAttributeDescriptorComparer : IEqualityComparer<RequiredA
     }
 
     /// <inheritdoc />
-    public virtual int GetHashCode(RequiredAttributeDescriptor descriptor)
+    public int GetHashCode(RequiredAttributeDescriptor? descriptor)
     {
         if (descriptor == null)
         {
-            throw new ArgumentNullException(nameof(descriptor));
+            return 0;
         }
 
         var hash = HashCodeCombiner.Start();

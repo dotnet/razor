@@ -369,6 +369,12 @@ public class DefaultTagHelperDescriptorFactoryTest
                             .TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName("nested-enum"))
                             .BoundAttributeDescriptor(builder =>
                                 builder
+                                    .Name("nested-enum-property")
+                                    .PropertyName(nameof(NestedEnumTagHelper.NestedEnumProperty))
+                                    .TypeName($"{typeof(NestedEnumTagHelper).FullName}.{nameof(NestedEnumTagHelper.NestedEnum)}")
+                                    .AsEnum())
+                            .BoundAttributeDescriptor(builder =>
+                                builder
                                     .Name("non-enum-property")
                                     .PropertyName(nameof(NestedEnumTagHelper.NonEnumProperty))
                                     .TypeName(typeof(int).FullName))
@@ -377,12 +383,6 @@ public class DefaultTagHelperDescriptorFactoryTest
                                     .Name("enum-property")
                                     .PropertyName(nameof(NestedEnumTagHelper.EnumProperty))
                                     .TypeName(typeof(CustomEnum).FullName)
-                                    .AsEnum())
-                            .BoundAttributeDescriptor(builder =>
-                                builder
-                                    .Name("nested-enum-property")
-                                    .PropertyName(nameof(NestedEnumTagHelper.NestedEnumProperty))
-                                    .TypeName($"{typeof(NestedEnumTagHelper).FullName}.{nameof(NestedEnumTagHelper.NestedEnum)}")
                                     .AsEnum())
                             .Build()
                     },
