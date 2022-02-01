@@ -206,6 +206,76 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(invokedLSPRequest);
             Assert.True(invokedRemapRequest);
 
+            Assert.IsType<Location[]>(result);
+
+            // Actual remapping behavior is tested elsewhere.
+        }
+
+        [Fact]
+        public async Task HandleRequestAsync_CSharpProjection_ReturningVSInternalReferenceItem_InvokesCSharpLanguageServer()
+        {
+            // Arrange
+            var invokedLSPRequest = false;
+            var invokedRemapRequest = false;
+            var expectedLocation = GetLocation(5, 5, 5, 5, Uri);
+
+            var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
+            var csharpLocation = GetVSInternalReferenceItem(100, 100, 100, 100, virtualCSharpUri);
+            var csharpLocationToken = JToken.FromObject(new[] { csharpLocation });
+
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, JToken>(
+                    It.IsAny<ITextBuffer>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TextDocumentPositionParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<ITextBuffer, string, string, TextDocumentPositionParams, CancellationToken>((textBuffer, method, clientName, implementationParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentImplementationName, method);
+                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
+                    invokedLSPRequest = true;
+                })
+                .Returns(Task.FromResult(new ReinvocationResponse<JToken>("LanguageClientName", csharpLocationToken)));
+
+            var projectionResult = new ProjectionResult()
+            {
+                LanguageKind = RazorLanguageKind.CSharp,
+            };
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
+            projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
+
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            documentMappingProvider
+                .Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, It.IsAny<Uri>(), new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>()))
+                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
+                {
+                    Assert.Equal(csharpLocation.Location.Range, ranges[0]);
+                    invokedRemapRequest = true;
+                })
+                .Returns(Task.FromResult(new RazorMapToDocumentRangesResponse()
+                {
+                    HostDocumentVersion = 1,
+                    Ranges = new[] { csharpLocation.Location.Range }
+                }));
+
+            var implementationHandler = new GoToImplementationHandler(requestInvoker.Object, DocumentManager, projectionProvider.Object, documentMappingProvider.Object, LoggerProvider);
+            var implementationRequest = new TextDocumentPositionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Position = new Position(10, 5)
+            };
+
+            // Act
+            var result = await implementationHandler.HandleRequestAsync(implementationRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(invokedLSPRequest);
+            Assert.True(invokedRemapRequest);
+
+            Assert.IsType<VSInternalReferenceItem[]>(result);
+
             // Actual remapping behavior is tested elsewhere.
         }
 
@@ -222,6 +292,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             return location;
+        }
+
+        private static VSInternalReferenceItem GetVSInternalReferenceItem(int startLine, int startCharacter, int endLine, int endCharacter, Uri uri)
+        {
+            var item = new VSInternalReferenceItem()
+            {
+                Location = GetLocation(startLine, startCharacter, endLine, endCharacter, uri),
+                DisplayPath = uri.AbsolutePath,
+                Text = "Reference",
+            };
+
+            return item;
         }
     }
 }
