@@ -9,9 +9,9 @@
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>427991ec87d4df83fdb7a24425c3cce550cf2423</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="6.0.2-servicing.22063.3">
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="6.0.3-servicing.22101.14">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>ef499fe9c33a00bb5b1ef67b14ef7acbd8b74e24</Sha>
+      <Sha>f427a33b1befec89c14b715e56c95b22838ba248</Sha>
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="7.0.0-preview.2.22081.4">
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
