@@ -323,6 +323,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+            => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
+
+        public override bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+            => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
+
+        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         {
             if (codeDocument is null)
             {
@@ -341,18 +347,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var distanceIntoOriginalSpan = absoluteIndex - originalAbsoluteIndex;
                     if (distanceIntoOriginalSpan <= originalSpan.Length)
                     {
-                        var generatedSource = codeDocument.GetCSharpSourceText();
                         projectedIndex = mapping.GeneratedSpan.AbsoluteIndex + distanceIntoOriginalSpan;
-                        var generatedLinePosition = generatedSource.Lines.GetLinePosition(projectedIndex);
-                        projectedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
+                        projectedPosition = GetProjectedPosition(codeDocument, projectedIndex);
                         return true;
                     }
+                }
+                else if (nextCSharpPositionOnFailure)
+                {
+                    // The "next" C# location is only valid if it is on the same line in the source document
+                    // as the requested position.
+                    codeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
+
+                    if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
+                    {
+                        projectedIndex = mapping.GeneratedSpan.AbsoluteIndex;
+                        projectedPosition = GetProjectedPosition(codeDocument, projectedIndex);
+                        return true;
+                    }
+
+                    break;
                 }
             }
 
             projectedPosition = default;
             projectedIndex = default;
             return false;
+
+            static Position GetProjectedPosition(RazorCodeDocument codeDocument, int projectedIndex)
+            {
+                var generatedSource = codeDocument.GetCSharpSourceText();
+                var generatedLinePosition = generatedSource.Lines.GetLinePosition(projectedIndex);
+                var projectedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
+                return projectedPosition;
+            }
         }
 
         public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex)

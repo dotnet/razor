@@ -21,6 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
+        public const string RazorBreakpointSpanEndpoint = "razor/breakpointSpan";
+
         public const string RazorMonitorProjectConfigurationFilePathEndpoint = "razor/monitorProjectConfigurationFilePath";
 
         public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
@@ -47,6 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorProvideSemanticTokensRangeEndpoint = "razor/provideSemanticTokensRange";
 
         public const string RazorServerReadyEndpoint = "razor/serverReady";
+
+        public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
 
         // This needs to be the same as in Web Tools, that is used by the HTML editor, because
         // we actually respond to the Web Tools "Wrap With Div" command handler, which sends this message

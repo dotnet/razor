@@ -232,42 +232,5 @@ $@"public class SomeRazorFile
             textBuffer.CurrentSnapshot.GetLineAndCharacter(index, out var lineIndex, out var characterIndex);
             return new Position(lineIndex, characterIndex);
         }
-
-        private class TestLSPProjectionProvider : LSPProjectionProvider
-        {
-            private readonly Uri _documentUri;
-            private readonly IReadOnlyDictionary<Position, ProjectionResult> _mappings;
-
-            public TestLSPProjectionProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> mappings)
-            {
-                if (documentUri is null)
-                {
-                    throw new ArgumentNullException(nameof(documentUri));
-                }
-
-                if (mappings is null)
-                {
-                    throw new ArgumentNullException(nameof(mappings));
-                }
-
-                _documentUri = documentUri;
-                _mappings = mappings;
-            }
-
-            public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            {
-                if (documentSnapshot.Uri != _documentUri)
-                {
-                    return Task.FromResult((ProjectionResult)null);
-                }
-
-                _mappings.TryGetValue(position, out var projectionResult);
-
-                return Task.FromResult(projectionResult);
-            }
-
-            public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-                => GetProjectionAsync(documentSnapshot, position, cancellationToken);
-        }
     }
 }
