@@ -104,8 +104,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         /// <summary>
         /// Attempts to retrieve the cached tokens for a given document/semanticVersion/range. If the cache does
-        /// not have complete tokens for the range, it's possible for only tokens associated with part of the
-        /// range to be returned.
+        /// not have complete tokens for the range, it's possible to return only tokens associated with a portion
+        /// of the range.
         /// </summary>
         /// <param name="uri">The URI associated with the cached tokens.</param>
         /// <param name="semanticVersion">The semantic version associated with the cached tokens.</param>

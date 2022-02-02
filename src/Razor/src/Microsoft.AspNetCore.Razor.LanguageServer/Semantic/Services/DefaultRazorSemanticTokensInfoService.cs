@@ -123,93 +123,79 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             var tokenList = new List<int>();
             var absoluteLine = 0;
-            for (var line = range.Start.Line; line <= range.End.Line; line++)
+
+            // There are 3 scenarios:
+            //    1) The cached results are at the start of the range
+            //    2) The cached results are in the middle of the range
+            //    3) The cached results are at the end of the range
+            // For 1) and 3), we need to send one request to the Razor/C# language servers for the missing range's tokens.
+            // For 2), we need to send two requests (one for the missing start range, and one for the missing end range).
+
+            // 1) Before processing the cached portion of the range, we might have to compute tokens for the
+            // start of the range -> start of the cached range.
+            if (cachedRange.Start.Line != range.Start.Line)
             {
-                // We've reached the cached portion of the range.
-                if (line == cachedRange.Start.Line)
+                var partialRange = new Range { Start = range.Start, End = cachedRange.Start };
+                var tokens = await ComputeAndCacheTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
+                    partialRange, cancellationToken).ConfigureAwait(false);
+
+                // Add the partially computed range to the results. We need to also keep track of the current
+                // absolute line index to use later when combining results.
+                var firstToken = true;
+                for (var tokenIndex = 0; tokenIndex < tokens.Data.Length; tokenIndex += 5)
                 {
-                    // Before processing the cached portion of the range, we might have to compute tokens for the
-                    // start of the range -> start of the cached range.
-                    if (line != range.Start.Line)
+                    absoluteLine += tokens.Data[tokenIndex];
+
+                    // Skip tokens that are out of the range
+                    if (absoluteLine < range.Start.Line || absoluteLine >= cachedRange.Start.Line)
                     {
-                        var partialRange = new Range { Start = range.Start, End = cachedRange.Start };
-                        var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
-                            textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken, partialTokens: true);
-
-                        Assumes.NotNull(tokens);
-
-                        if (isCSharpFinalized)
-                        {
-                            _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
-                        }
-
-                        // Add the partially computed range to the results. We need to also keep track of the current
-                        // absolute line index to use later when combining results.
-                        var firstToken = true;
-                        for (var tokenIndex = 0; tokenIndex < tokens.Data.Length; tokenIndex += 5)
-                        {
-                            absoluteLine += tokens.Data[tokenIndex];
-
-                            // Skip tokens that are out of the range
-                            if (absoluteLine < range.Start.Line || absoluteLine >= cachedRange.Start.Line)
-                            {
-                                continue;
-                            }
-
-                            if (firstToken)
-                            {
-                                tokenList.Add(absoluteLine);
-                                firstToken = false;
-                            }
-                            else
-                            {
-                                tokenList.Add(tokens.Data[tokenIndex]);
-                            }
-
-                            tokenList.Add(tokens.Data[tokenIndex + 1]);
-                            tokenList.Add(tokens.Data[tokenIndex + 2]);
-                            tokenList.Add(tokens.Data[tokenIndex + 3]);
-                            tokenList.Add(tokens.Data[tokenIndex + 4]);
-                        }
+                        continue;
                     }
 
-                    for (var cachedTokenIndex = 0; cachedTokenIndex < cachedTokens.Count; cachedTokenIndex++)
+                    if (firstToken)
                     {
-                        if (cachedTokenIndex == 0)
-                        {
-                            tokenList.Add(cachedTokens[0] - absoluteLine);
-                            absoluteLine = cachedTokens[0];
-                        }
-                        else
-                        {
-                            tokenList.Add(cachedTokens[cachedTokenIndex]);
-
-                            if (cachedTokenIndex % 5 == 0)
-                            {
-                                absoluteLine += cachedTokens[cachedTokenIndex];
-                            }
-                        }
+                        tokenList.Add(absoluteLine);
+                        firstToken = false;
+                    }
+                    else
+                    {
+                        tokenList.Add(tokens.Data[tokenIndex]);
                     }
 
-                    line = cachedRange.End.Line;
+                    tokenList.Add(tokens.Data[tokenIndex + 1]);
+                    tokenList.Add(tokens.Data[tokenIndex + 2]);
+                    tokenList.Add(tokens.Data[tokenIndex + 3]);
+                    tokenList.Add(tokens.Data[tokenIndex + 4]);
                 }
             }
 
+            // 2) Add the cached range tokens to the results.
+            for (var cachedTokenIndex = 0; cachedTokenIndex < cachedTokens.Count; cachedTokenIndex++)
+            {
+                if (cachedTokenIndex == 0)
+                {
+                    tokenList.Add(cachedTokens[0] - absoluteLine);
+                    absoluteLine = cachedTokens[0];
+                }
+                else
+                {
+                    tokenList.Add(cachedTokens[cachedTokenIndex]);
+
+                    if (cachedTokenIndex % 5 == 0)
+                    {
+                        absoluteLine += cachedTokens[cachedTokenIndex];
+                    }
+                }
+            }
+
+            // 3) Compute the ending range tokens (if applicable).
             if (range.End.Line != cachedRange.End.Line)
             {
                 var partialRange = new Range { Start = cachedRange.End, End = range.End };
-                var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken, partialTokens: true);
-
-                if (tokens is null)
-                {
-                    return null;
-                }
-
-                if (isCSharpFinalized)
-                {
-                    _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
-                }
+                var tokens = await ComputeAndCacheTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
+                    partialRange, cancellationToken).ConfigureAwait(false);
 
                 var firstToken = true;
                 var endAbsoluteLine = 0;
@@ -248,6 +234,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return new SemanticTokens { Data = tokenList.ToImmutableArray() };
+
+            async Task<SemanticTokens> ComputeAndCacheTokensAsync(
+                TextDocumentIdentifier textDocumentIdentifier,
+                DocumentSnapshot documentSnapshot,
+                int documentVersion,
+                VersionStamp semanticVersion,
+                Range partialRange,
+                CancellationToken cancellationToken)
+            {
+                var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken);
+
+                // Tokens might be null if there are no Razor/C# elements in the range. We don't want this
+                // to prevent the display of the rest of the tokens, so we just assume that range is empty.
+                if (tokens is null)
+                {
+                    tokens = new SemanticTokens { Data = ImmutableArray<int>.Empty };
+                }
+
+                if (isCSharpFinalized)
+                {
+                    _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, partialRange, tokens.Data.ToArray());
+                }
+
+                return tokens;
+            }
         }
 
         private static async Task<VersionStamp> GetDocumentSemanticVersionAsync(DocumentSnapshot documentSnapshot)
@@ -264,8 +276,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             DocumentSnapshot documentSnapshot,
             int documentVersion,
             Range range,
-            CancellationToken cancellationToken,
-            bool partialTokens = false)
+            CancellationToken cancellationToken)
         {
             var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
             if (codeDocument is null)
@@ -289,11 +300,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
-            if (combinedSemanticRanges is null && partialTokens)
-            {
-                return (new SemanticTokens { Data = ImmutableArray<int>.Empty }, isCSharpFinalized);
-            }
 
+            // We return null when we have an incomplete view of the document.
+            // Likely CSharp ahead of us in terms of document versions.
+            // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
+            // It is also possible that the range contains no C#/Razor tokens.
             if (combinedSemanticRanges is null)
             {
                 return (null, isCSharpFinalized);
@@ -355,7 +366,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
                 !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {
-                return SemanticRangeResponse.Default;
+                // This probably means there's no C# in the range.
+                return new SemanticRangeResponse(null, IsCSharpFinalized: true);
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
