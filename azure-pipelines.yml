@@ -320,7 +320,12 @@ stages:
           image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-14.04-cross-0cd4667-20170319080304
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
-          vmImage: ubuntu-18.04
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
+            vmImage: ubuntu-18.04
+          ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+            name: NetCore1ESPool-Internal
+            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+
         variables:
         - LC_ALL: 'en_US.UTF-8'
         - LANG: 'en_US.UTF-8'
