@@ -26,6 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
+        private const int TokenSize = 5;
+
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -178,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // Add the partially computed range to the results. We need to also keep track of the current
                 // absolute line index to use later when combining results.
                 var firstToken = true;
-                for (var tokenIndex = 0; tokenIndex < tokens.Data.Length; tokenIndex += 5)
+                for (var tokenIndex = 0; tokenIndex < tokens.Data.Length; tokenIndex += TokenSize)
                 {
                     absoluteLine += tokens.Data[tokenIndex];
 
@@ -220,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     tokenList.Add(cachedTokens[cachedTokenIndex]);
 
-                    if (cachedTokenIndex % 5 == 0)
+                    if (cachedTokenIndex % TokenSize == 0)
                     {
                         absoluteLine += cachedTokens[cachedTokenIndex];
                     }
@@ -240,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 var firstToken = true;
                 var endAbsoluteLine = 0;
-                for (var tokenIndex = 0; tokenIndex < tokens.Data.Length; tokenIndex += 5)
+                for (var tokenIndex = 0; tokenIndex < tokens.Data.Length; tokenIndex += TokenSize)
                 {
                     if (tokenIndex == 0)
                     {
@@ -416,7 +418,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var razorRanges = new List<SemanticRange>();
 
             SemanticRange? previousSemanticRange = null;
-            for (var i = 0; i < csharpResponse.Data.Length; i += 5)
+            for (var i = 0; i < csharpResponse.Data.Length; i += TokenSize)
             {
                 var lineDelta = csharpResponse.Data[i];
                 var charDelta = csharpResponse.Data[i + 1];
