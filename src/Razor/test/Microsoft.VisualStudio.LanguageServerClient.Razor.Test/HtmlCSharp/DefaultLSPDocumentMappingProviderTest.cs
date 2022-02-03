@@ -91,6 +91,58 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
+        public async Task RemapLocationsAsync_ReturnsModifiedInstance()
+        {
+            // Arrange
+            var uri = new Uri("file:///some/folder/to/file.razor.g.cs");
+
+            var response = new RazorMapToDocumentRangesResponse()
+            {
+                Ranges = new[] {
+                    new Range()
+                    {
+                        Start = new Position(1, 1),
+                        End = new Position(3, 3),
+                    }
+                },
+                HostDocumentVersion = 1
+            };
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(
+                    It.IsAny<ITextBuffer>(),
+                    LanguageServerConstants.RazorMapToDocumentRangesEndpoint,
+                    RazorLSPConstants.RazorLanguageServerName,
+                    It.IsAny<Func<JToken, bool>>(),
+                    It.IsAny<RazorMapToDocumentRangesParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorMapToDocumentRangesResponse>("TestLanguageClient", response)));
+
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, DocumentManager);
+            var projected= new VSInternalLocation()
+            {
+                Uri = uri,
+                Range = new Range()
+                {
+                    Start = new Position(10, 10),
+                    End = new Position(15, 15)
+                }
+            };
+
+            // Act
+            var result = await mappingProvider.RemapLocationsAsync(new[] { projected }, CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.NotNull(result);
+            var actualRange = result[0].Range;
+            Assert.Equal(new Position(1, 1), actualRange.Start);
+            Assert.Equal(new Position(3, 3), actualRange.End);
+
+            // Ensuring the same type is returned ensures we don't lose any extra information
+            Assert.IsType<VSInternalLocation>(result[0]);
+        }
+
+        [Fact]
         public async Task RemapWorkspaceEditAsync_RemapsEditsAsExpected()
         {
             // Arrange
