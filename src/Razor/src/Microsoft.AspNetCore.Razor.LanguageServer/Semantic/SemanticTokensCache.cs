@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -21,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private const int MaxSemanticVersionPerDoc = 4;
 
         // Nested cache mapping (URI -> (semanticVersion -> (line #s -> tokens on line)))
-        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, List<int>>>> _cache = new();
+        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, IReadOnlyList<int>>>> _cache = new();
 
         /// <summary>
         /// Caches tokens on a per-line basis. If the given line has already been cached for the document
@@ -39,13 +40,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (!_cache.TryGetValue(uri, out var documentCache))
             {
-                documentCache = new MemoryCache<VersionStamp, Dictionary<int, List<int>>>(sizeLimit: MaxSemanticVersionPerDoc);
+                documentCache = new MemoryCache<VersionStamp, Dictionary<int, IReadOnlyList<int>>>(sizeLimit: MaxSemanticVersionPerDoc);
                 _cache.Set(uri, documentCache);
             }
 
             if (!documentCache.TryGetValue(semanticVersion, out var lineToTokensDict))
             {
-                lineToTokensDict = new Dictionary<int, List<int>>();
+                lineToTokensDict = new Dictionary<int, IReadOnlyList<int>>();
                 documentCache.Set(semanticVersion, lineToTokensDict);
             }
 
@@ -57,9 +58,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 absoluteLine += tokens[tokenIndex];
 
                 // Don't cache tokens outside of the given range
-                if (absoluteLine < range.Start.Line || absoluteLine > range.End.Line)
+                if (absoluteLine < range.Start.Line)
                 {
                     continue;
+                }
+
+                if (absoluteLine >= range.End.Line)
+                {
+                    break;
                 }
 
                 if (lineToTokensDict.TryGetValue(absoluteLine, out _))
@@ -79,9 +85,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     lineTokens.Add(tokens[tokenIndex + 3]);
                     lineTokens.Add(tokens[tokenIndex + 4]);
 
-                    if (tokens[tokenIndex + 5] != 0)
+                    if (tokenIndex + 5 >= tokens.Length || tokens[tokenIndex + 5] != 0)
                     {
-                        // We've hit the next line
+                        // We've hit the next line or the end of the tokens
                         break;
                     }
 
@@ -97,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 if (!lineToTokensDict.TryGetValue(lineIndex, out _))
                 {
-                    lineToTokensDict.Add(lineIndex, new List<int>());
+                    lineToTokensDict.Add(lineIndex, Array.Empty<int>());
                 }
             }
         }
