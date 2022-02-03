@@ -78,6 +78,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
+            // The LSP client shouldn't send us ranges that start or end midway through a line, but we'll be
+            // defensive here since our tokens cache is only meant to be used with complete lines.
+            if (range.Start.Character != 0 || range.End.Character != 0)
+            {
+                _logger.LogWarning($"Requested range starts or ends midway through a line: {range}");
+                var (tokens, _) = await GetSemanticTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
+
+                return tokens;
+            }
+
             // See if we can use our cache to at least partially avoid recomputation.
             if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, out var cachedResult))
             {
@@ -299,7 +310,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range");
             }
 
-            var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
+            var combinedSemanticRanges = razorSemanticRanges is not null && csharpSemanticRanges is not null
+                ? CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges)
+                : razorSemanticRanges is not null
+                    ? razorSemanticRanges
+                    : csharpSemanticRanges;
 
             // We return null when we have an incomplete view of the document.
             // Likely CSharp ahead of us in terms of document versions.
@@ -367,7 +382,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {
                 // This probably means there's no C# in the range.
-                return new SemanticRangeResponse(null, IsCSharpFinalized: true);
+                return new SemanticRangeResponse(SemanticRanges: null, IsCSharpFinalized: true);
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
