@@ -142,14 +142,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // For 1) and 3), we need to send one request to the Razor/C# language servers for the missing range's tokens.
             // For 2), we need to send two requests (one for the missing start range, and one for the missing end range).
 
-            // a) Before processing the cached portion of the range, we might have to compute tokens for the
-            // start of the range -> start of the cached range.
+            // Try to concurrently process requests if there are multiple
+            var startTokens = Task.FromResult<SemanticTokens?>(null);
             if (cachedRange.Start.Line != range.Start.Line)
             {
                 var partialRange = new Range { Start = range.Start, End = cachedRange.Start };
-                var tokens = await ComputeAndCacheTokensAsync(
+                startTokens = ComputeAndCacheTokensAsync(
                     textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                    partialRange, cancellationToken).ConfigureAwait(false);
+                    partialRange, cancellationToken);
+            }
+
+            var endTokens = Task.FromResult<SemanticTokens?>(null);
+            if (range.End.Line != cachedRange.End.Line)
+            {
+                var partialRange = new Range { Start = cachedRange.End, End = range.End };
+                endTokens = ComputeAndCacheTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
+                    partialRange, cancellationToken);
+            }
+
+            await Task.WhenAll(startTokens, endTokens).ConfigureAwait(false);
+
+            // a) Before processing the cached portion of the range, we might have to process tokens for the
+            // start of the range -> start of the cached range.
+            if (cachedRange.Start.Line != range.Start.Line)
+            {
+                Assumes.NotNull(startTokens);
+                var tokens = await startTokens;
 
                 if (tokens is null)
                 {
@@ -208,13 +227,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            // c) Compute the ending range tokens (if applicable).
+            // c) Process the ending range tokens (if applicable).
             if (range.End.Line != cachedRange.End.Line)
             {
-                var partialRange = new Range { Start = cachedRange.End, End = range.End };
-                var tokens = await ComputeAndCacheTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                    partialRange, cancellationToken).ConfigureAwait(false);
+                Assumes.NotNull(endTokens);
+                var tokens = await endTokens;
 
                 if (tokens is null)
                 {
@@ -269,7 +286,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 CancellationToken cancellationToken)
             {
                 var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken);
+                    textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken).ConfigureAwait(false);
 
                 if (isCSharpFinalized && tokens is not null)
                 {
