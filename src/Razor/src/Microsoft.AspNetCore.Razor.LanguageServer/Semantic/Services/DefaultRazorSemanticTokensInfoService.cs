@@ -142,7 +142,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // For 1) and 3), we need to send one request to the Razor/C# language servers for the missing range's tokens.
             // For 2), we need to send two requests (one for the missing start range, and one for the missing end range).
 
-            // Before processing the cached portion of the range, we might have to compute tokens for the
+            // a) Before processing the cached portion of the range, we might have to compute tokens for the
             // start of the range -> start of the cached range.
             if (cachedRange.Start.Line != range.Start.Line)
             {
@@ -150,6 +150,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var tokens = await ComputeAndCacheTokensAsync(
                     textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
                     partialRange, cancellationToken).ConfigureAwait(false);
+
+                if (tokens is null)
+                {
+                    return null;
+                }
 
                 // Add the partially computed range to the results. We need to also keep track of the current
                 // absolute line index to use later when combining results.
@@ -164,6 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         continue;
                     }
 
+                    // First token of the starting set should be relative to the start of the document
                     if (firstToken)
                     {
                         tokenList.Add(absoluteLine);
@@ -181,9 +187,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            // Add the cached range tokens to the results.
+            // b) Add the cached range tokens to the results.
             for (var cachedTokenIndex = 0; cachedTokenIndex < cachedTokens.Count; cachedTokenIndex++)
             {
+                // First token of the cached token set should be relative to either the start of the
+                // document or the tokens from part (a) (if applicable)
                 if (cachedTokenIndex == 0)
                 {
                     tokenList.Add(cachedTokens[0] - absoluteLine);
@@ -200,13 +208,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            // Compute the ending range tokens (if applicable).
+            // c) Compute the ending range tokens (if applicable).
             if (range.End.Line != cachedRange.End.Line)
             {
                 var partialRange = new Range { Start = cachedRange.End, End = range.End };
                 var tokens = await ComputeAndCacheTokensAsync(
                     textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
                     partialRange, cancellationToken).ConfigureAwait(false);
+
+                if (tokens is null)
+                {
+                    return null;
+                }
 
                 var firstToken = true;
                 var endAbsoluteLine = 0;
@@ -227,6 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         continue;
                     }
 
+                    // First token of the ending set should be relative to the cached tokens
                     if (firstToken)
                     {
                         tokenList.Add(endAbsoluteLine - absoluteLine);
@@ -246,7 +260,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             return new SemanticTokens { Data = tokenList.ToImmutableArray() };
 
-            async Task<SemanticTokens> ComputeAndCacheTokensAsync(
+            async Task<SemanticTokens?> ComputeAndCacheTokensAsync(
                 TextDocumentIdentifier textDocumentIdentifier,
                 DocumentSnapshot documentSnapshot,
                 int documentVersion,
@@ -257,14 +271,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
                     textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken);
 
-                // Tokens might be null if there are no Razor/C# elements in the range. We don't want this
-                // to prevent the display of the rest of the tokens, so we just assume that range is empty.
-                if (tokens is null)
-                {
-                    tokens = new SemanticTokens { Data = ImmutableArray<int>.Empty };
-                }
-
-                if (isCSharpFinalized)
+                if (isCSharpFinalized && tokens is not null)
                 {
                     _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, partialRange, tokens.Data.ToArray());
                 }
@@ -310,16 +317,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range");
             }
 
-            var combinedSemanticRanges = razorSemanticRanges is not null && csharpSemanticRanges is not null
-                ? CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges)
-                : razorSemanticRanges is not null
-                    ? razorSemanticRanges
-                    : csharpSemanticRanges;
+            var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
 
             // We return null when we have an incomplete view of the document.
             // Likely CSharp ahead of us in terms of document versions.
             // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
-            // It is also possible that the range contains no C#/Razor tokens.
             if (combinedSemanticRanges is null)
             {
                 return (null, isCSharpFinalized);
@@ -382,7 +384,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {
                 // This probably means there's no C# in the range.
-                return new SemanticRangeResponse(SemanticRanges: null, IsCSharpFinalized: true);
+                return new SemanticRangeResponse(SemanticRanges: Array.Empty<SemanticRange>(), IsCSharpFinalized: true);
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
@@ -426,8 +428,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range? csharpRange)
         {
-            var minIndex = -1;
-            var maxIndex = -1;
             SourceSpan? minGeneratedSpan = null;
             SourceSpan? maxGeneratedSpan = null;
 
@@ -442,15 +442,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 if (textSpan.OverlapsWith(mappedTextSpan))
                 {
-                    if (minIndex == -1 || mapping.OriginalSpan.AbsoluteIndex < minIndex)
+                    if (minGeneratedSpan is null || mapping.GeneratedSpan.AbsoluteIndex < minGeneratedSpan.Value.AbsoluteIndex)
                     {
-                        minIndex = mapping.OriginalSpan.AbsoluteIndex;
                         minGeneratedSpan = mapping.GeneratedSpan;
                     }
 
-                    if (maxIndex == -1 || mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length > maxIndex)
+                    var mappingEndIndex = mapping.GeneratedSpan.AbsoluteIndex + mapping.GeneratedSpan.Length;
+                    if (maxGeneratedSpan is null || mappingEndIndex > maxGeneratedSpan.Value.AbsoluteIndex + maxGeneratedSpan.Value.Length)
                     {
-                        maxIndex = mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length;
                         maxGeneratedSpan = mapping.GeneratedSpan;
                     }
                 }
@@ -464,6 +463,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var endRange = maxGeneratedSpan.Value.AsTextSpan().AsRange(csharpSourceText);
 
                 csharpRange = new Range { Start = startRange.Start, End = endRange.End };
+
                 return true;
             }
 
