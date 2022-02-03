@@ -19,10 +19,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// </remarks>
     internal sealed class SemanticTokensCache
     {
+        private const int TokenSize = 5;
         private const int MaxSemanticVersionPerDoc = 4;
 
+        // Multiple cache requests or updates may be received concurrently. We need this lock to
+        // ensure we aren't making concurrent modifications to the cache's underlying dictionary.
+        private readonly object _dictLock = new();
+
         // Nested cache mapping (URI -> (semanticVersion -> (line #s -> tokens on line)))
-        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, IReadOnlyList<int>>>> _cache = new();
+        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, IReadOnlyList<int>>>> _cache = new(sizeLimit: 50);
 
         /// <summary>
         /// Caches tokens on a per-line basis. If the given line has already been cached for the document
@@ -32,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="semanticVersion">The document's semantic version associated with the passed-in tokens.</param>
         /// <param name="range">The range associated with the passed-in tokens.</param>
         /// <param name="tokens">The complete set of tokens for the passed-in range.</param>
-        internal void CacheTokens(
+        public void CacheTokens(
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range range,
@@ -50,60 +55,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 documentCache.Set(semanticVersion, lineToTokensDict);
             }
 
-            var absoluteLine = 0;
-
-            // Cache the tokens associated with each line
-            for (var tokenIndex = 0; tokenIndex < tokens.Length; tokenIndex += 5)
-            {
-                absoluteLine += tokens[tokenIndex];
-
-                // Don't cache tokens outside of the given range
-                if (absoluteLine < range.Start.Line)
-                {
-                    continue;
-                }
-
-                if (absoluteLine >= range.End.Line)
-                {
-                    break;
-                }
-
-                if (lineToTokensDict.TryGetValue(absoluteLine, out _))
-                {
-                    // This line is already cached, so we can skip it
-                    continue;
-                }
-
-                var lineTokens = new List<int>();
-
-                // Cache the line's tokens
-                while (tokenIndex < tokens.Length)
-                {
-                    lineTokens.Add(tokens[tokenIndex]);
-                    lineTokens.Add(tokens[tokenIndex + 1]);
-                    lineTokens.Add(tokens[tokenIndex + 2]);
-                    lineTokens.Add(tokens[tokenIndex + 3]);
-                    lineTokens.Add(tokens[tokenIndex + 4]);
-
-                    if (tokenIndex + 5 >= tokens.Length || tokens[tokenIndex + 5] != 0)
-                    {
-                        // We've hit the next line or the end of the tokens
-                        break;
-                    }
-
-                    tokenIndex += 5;
-                }
-
-                lineToTokensDict.Add(absoluteLine, lineTokens);
-            }
+            CacheTokensPerLine(range, tokens, lineToTokensDict);
 
             // Fill in the gaps for empty lines. When looking up tokens later, this helps us differentiate
-            // between empty lines vs. lines we don't have cached tokens for
+            // between empty lines vs. lines we don't have cached tokens for.
             for (var lineIndex = range.Start.Line; lineIndex < range.End.Line; lineIndex++)
             {
-                if (!lineToTokensDict.TryGetValue(lineIndex, out _))
+                lock (_dictLock)
                 {
-                    lineToTokensDict.Add(lineIndex, Array.Empty<int>());
+                    if (!lineToTokensDict.TryGetValue(lineIndex, out _))
+                    {
+                        lineToTokensDict.Add(lineIndex, Array.Empty<int>());
+                    }
                 }
             }
         }
@@ -118,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="requestedRange">The requested range for the desired tokens.</param>
         /// <param name="cachedTokens">If found, contains the cached range and cached tokens.</param>
         /// <returns></returns>
-        internal bool TryGetCachedTokens(
+        public bool TryGetCachedTokens(
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range requestedRange,
@@ -144,25 +107,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var emptyLineCount = 0;
 
             // Retrieve the cached tokens associated with the passed-in range
-            for (var line = requestedRange.Start.Line; line < requestedRange.End.Line; line++)
+            for (var currentLineNumber = requestedRange.Start.Line; currentLineNumber < requestedRange.End.Line; currentLineNumber++)
             {
-                if (!lineToTokensDict.TryGetValue(line, out var lineTokens))
+                IReadOnlyList<int>? lineTokens = null;
+                lock (_dictLock)
                 {
-                    if (tokens.Count != 0)
+                    if (!lineToTokensDict.TryGetValue(currentLineNumber, out lineTokens))
                     {
-                        // We already have some sort of cached results, but we've now reached
-                        // a gap in the cache which we have no tokens for.
-                        // Since we only want to return a continuous range, we'll exit early.
-                        break;
+                        if (tokens.Count != 0)
+                        {
+                            // We already have some sort of cached results, but we've now reached
+                            // a gap in the cache which we have no tokens for.
+                            // Since we only want to return a continuous range, we'll exit early.
+                            break;
+                        }
+
+                        continue;
                     }
-
-                    continue;
                 }
 
-                if (cachedRangeStart is null)
-                {
-                    cachedRangeStart = new Position { Line = line, Character = 0 };
-                }
+                cachedRangeStart ??= new Position { Line = currentLineNumber, Character = 0 };
 
                 cachedRangeNumLines++;
 
@@ -174,23 +138,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 // We've found a non-empty cached line. Go through and process it.
-                for (var lineTokenIndex = 0; lineTokenIndex < lineTokens.Count; lineTokenIndex++)
+                for (var currentLineTokenIndex = 0; currentLineTokenIndex < lineTokens.Count; currentLineTokenIndex++)
                 {
                     // If we're at the start of the cached range, the line offset should be relative
                     // to the start of the document.
                     if (tokens.Count == 0)
                     {
-                        tokens.Add(line);
+                        tokens.Add(currentLineNumber);
                     }
                     // If we're not at start at the cached range but we're at the start of a line,
                     // the line offset should be relative to the end of the last cached line.
-                    else if (lineTokenIndex == 0)
+                    else if (currentLineTokenIndex == 0)
                     {
                         tokens.Add(1 + emptyLineCount);
                     }
                     else
                     {
-                        tokens.Add(lineTokens[lineTokenIndex]);
+                        tokens.Add(lineTokens[currentLineTokenIndex]);
                     }
                 }
 
@@ -211,6 +175,63 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             cachedTokens = (range, tokens);
             return true;
+        }
+
+        private void CacheTokensPerLine(Range range, int[] tokens, Dictionary<int, IReadOnlyList<int>> lineToTokensDict)
+        {
+            var absoluteLine = 0;
+
+            // Cache the tokens associated with each line
+            for (var tokenIndex = 0; tokenIndex < tokens.Length; tokenIndex += TokenSize)
+            {
+                absoluteLine += tokens[tokenIndex];
+
+                // Don't cache tokens outside of the given range
+                if (absoluteLine < range.Start.Line)
+                {
+                    continue;
+                }
+
+                if (absoluteLine >= range.End.Line)
+                {
+                    break;
+                }
+
+                lock (_dictLock)
+                {
+                    if (lineToTokensDict.TryGetValue(absoluteLine, out _))
+                    {
+                        // This line is already cached, so we can skip it
+                        continue;
+                    }
+                }
+
+                var lineTokens = new List<int>();
+
+                // Cache until we hit the next line or the end of the tokens
+                while (tokenIndex < tokens.Length)
+                {
+                    lineTokens.Add(tokens[tokenIndex]);
+                    lineTokens.Add(tokens[tokenIndex + 1]);
+                    lineTokens.Add(tokens[tokenIndex + 2]);
+                    lineTokens.Add(tokens[tokenIndex + 3]);
+                    lineTokens.Add(tokens[tokenIndex + 4]);
+
+                    var nextTokenIndex = tokenIndex + TokenSize;
+                    if (nextTokenIndex >= tokens.Length || tokens[nextTokenIndex] != 0)
+                    {
+                        // We've hit the next line or the end of the tokens
+                        break;
+                    }
+
+                    tokenIndex += TokenSize;
+                }
+
+                lock (_dictLock)
+                {
+                    lineToTokensDict.Add(absoluteLine, lineTokens);
+                }
+            }
         }
     }
 }
