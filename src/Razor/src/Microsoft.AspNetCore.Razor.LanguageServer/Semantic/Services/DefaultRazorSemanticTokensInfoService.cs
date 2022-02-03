@@ -136,13 +136,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var absoluteLine = 0;
 
             // There are 3 scenarios:
-            //    1) The cached results are at the start of the range
-            //    2) The cached results are in the middle of the range
-            //    3) The cached results are at the end of the range
+            //    1) The cached result is at the start of the range
+            //    2) The cached result is in the middle of the range
+            //    3) The cached result is at the end of the range
             // For 1) and 3), we need to send one request to the Razor/C# language servers for the missing range's tokens.
             // For 2), we need to send two requests (one for the missing start range, and one for the missing end range).
 
-            // 1) Before processing the cached portion of the range, we might have to compute tokens for the
+            // Before processing the cached portion of the range, we might have to compute tokens for the
             // start of the range -> start of the cached range.
             if (cachedRange.Start.Line != range.Start.Line)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            // 2) Add the cached range tokens to the results.
+            // Add the cached range tokens to the results.
             for (var cachedTokenIndex = 0; cachedTokenIndex < cachedTokens.Count; cachedTokenIndex++)
             {
                 if (cachedTokenIndex == 0)
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            // 3) Compute the ending range tokens (if applicable).
+            // Compute the ending range tokens (if applicable).
             if (range.End.Line != cachedRange.End.Line)
             {
                 var partialRange = new Range { Start = cachedRange.End, End = range.End };
