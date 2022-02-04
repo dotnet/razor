@@ -337,11 +337,11 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             foreach (var attribute in node.Attributes)
             {
-                string globallyQualifiedTypeName = null;
+                var globallyQualifiedTypeName = attribute.BoundAttribute.GetGloballyQualifiedTypeName();
 
                 if (attribute.TypeName != null)
                 {
-                    globallyQualifiedTypeName = rewriter.Rewrite(attribute.TypeName);
+                    globallyQualifiedTypeName = rewriter.Rewrite(globallyQualifiedTypeName ?? attribute.TypeName);
                     attribute.GloballyQualifiedTypeName = globallyQualifiedTypeName;
                 }
 
@@ -350,6 +350,18 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     // If we know the type name, then replace any generic type parameter inside it with
                     // the known types.
                     attribute.TypeName = globallyQualifiedTypeName;
+                    // This is a special case in which we are dealing with a property TItem.
+                    // Given that TItem can have been defined explicitly by the user to a partially
+                    // qualified type, (like MyType), we check if the globally qualified type name
+                    // contains "global::" which will be the case in all cases as we've computed
+                    // this information from the Roslyn symbol except for when the symbol is a generic
+                    // type parameter. In which case, we mark it with an additional annotation to
+                    // acount for that during code generation and avoid trying to fully qualify
+                    // the type name.
+                    if (!globallyQualifiedTypeName.StartsWith("global::", StringComparison.Ordinal))
+                    {
+                        attribute.Annotations.Add(ComponentMetadata.Component.ExplicitTypeNameKey, true);
+                    }
                 }
                 else if (attribute.TypeName == null && (attribute.BoundAttribute?.IsDelegateProperty() ?? false))
                 {

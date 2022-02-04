@@ -131,6 +131,7 @@ namespace Test
         // which is trivial. Verifying it once in detail and then ignoring it.
         Assert.Collection(
             attribute.Metadata.OrderBy(kvp => kvp.Key),
+            kvp => { Assert.Equal(TagHelperMetadata.Common.GloballyQualifiedTypeName, kvp.Key); Assert.Equal("global::System.String", kvp.Value); },
             kvp => { Assert.Equal(TagHelperMetadata.Common.PropertyName, kvp.Key); Assert.Equal("MyProperty", kvp.Value); });
     }
 

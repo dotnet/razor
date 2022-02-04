@@ -714,7 +714,15 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 {
                     context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
                     context.CodeWriter.Write("<");
-                    TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+                    var explicitType = (bool?)node.Annotations[ComponentMetadata.Component.ExplicitTypeNameKey];
+                    if (explicitType == true)
+                    {
+                        context.CodeWriter.Write(node.TypeName);
+                    }
+                    else
+                    {
+                        TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+                    }
                     context.CodeWriter.Write(">");
                     context.CodeWriter.Write("(");
                 }

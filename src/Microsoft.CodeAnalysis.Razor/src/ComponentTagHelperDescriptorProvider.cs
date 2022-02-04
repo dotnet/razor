@@ -181,7 +181,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             pb.TypeName = property.Type.ToDisplayString(FullNameTypeDisplayFormat);
             pb.SetPropertyName(property.Name);
             pb.IsEditorRequired = property.GetAttributes().Any(a => a.AttributeClass.ToDisplayString() == "Microsoft.AspNetCore.Components.EditorRequiredAttribute");
-
+            pb.SetGloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
             if (kind == PropertyKind.Enum)
             {
                 pb.IsEnum = true;

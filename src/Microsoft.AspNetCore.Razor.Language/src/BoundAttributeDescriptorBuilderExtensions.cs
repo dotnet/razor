@@ -96,4 +96,14 @@ public static class BoundAttributeDescriptorBuilderExtensions
 
         return null;
     }
+
+    public static void SetGloballyQualifiedTypeName(this BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName)
+    {
+        builder.Metadata[TagHelperMetadata.Common.GloballyQualifiedTypeName] = globallyQualifiedTypeName;
+    }
+
+    public static string GetGloballyQualifiedTypeName(this BoundAttributeDescriptor descriptor)
+    {
+        return descriptor?.Metadata[TagHelperMetadata.Common.GloballyQualifiedTypeName];
+    }
 }

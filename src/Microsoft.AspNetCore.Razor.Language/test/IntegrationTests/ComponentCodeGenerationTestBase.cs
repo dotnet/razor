@@ -3711,6 +3711,36 @@ namespace Test
     }
 
     [Fact]
+    public void GenericComponent_NonPrimitiveType()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter] public TItem Item { get; set; }
+    }
+
+    public class CustomType
+    {
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent TItem=""CustomType"" Item=""new CustomType()""/>");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ChildComponent_Generic_TypeInference()
     {
         // Arrange

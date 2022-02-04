@@ -294,7 +294,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
                     typeName = attribute.TypeName;
                     if (attribute.BoundAttribute != null && !attribute.BoundAttribute.IsGenericTypedProperty())
                     {
-                        typeName = "global::" + typeName;
+                        typeName = typeName.StartsWith("global::", StringComparison.Ordinal) ? typeName : $"global::{typeName}";
                     }
                 }
 
