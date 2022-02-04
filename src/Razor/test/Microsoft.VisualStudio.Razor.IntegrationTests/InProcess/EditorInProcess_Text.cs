@@ -23,6 +23,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             view.TextBuffer.Replace(replacementSpan, text);
         }
 
+        public async Task WaitForTextAsync(string text, CancellationToken cancellationToken)
+        {
+
+            await Helper.RetryAsync(async ct =>
+                {
+                    var view = await GetActiveTextViewAsync(cancellationToken);
+                    var content = view.TextBuffer.CurrentSnapshot.GetText();
+
+                    return text == content;
+                },
+                TimeSpan.FromMilliseconds(50),
+                cancellationToken);
+        }
+
         public async Task VerifyTextContainsAsync(string text, CancellationToken cancellationToken)
         {
             var view = await GetActiveTextViewAsync(cancellationToken);
