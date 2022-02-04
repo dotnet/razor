@@ -24,17 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class InlineCompletionEndpoint : IInlineCompletionHandler
 {
-    // Usually when we need to format code, we utilize the formatting options provided
-    // by the platform. Similar to DefaultCSharpCodeActionResolver we do not have any, so use defaults.
-    private static readonly FormattingOptions s_defaultFormattingOptions = new FormattingOptions()
-    {
-        TabSize = 4,
-        InsertSpaces = true,
-        TrimTrailingWhitespace = true,
-        InsertFinalNewline = true,
-        TrimFinalNewlines = true
-    };
-
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
         "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
@@ -154,6 +143,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
             Context = request.Context,
             Position = projectedPosition,
             Kind = languageKind,
+            Options = request.Options,
         };
 
         request.Position = projectedPosition;
@@ -178,7 +168,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
                 continue;
             }
 
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, s_defaultFormattingOptions, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
+            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;
