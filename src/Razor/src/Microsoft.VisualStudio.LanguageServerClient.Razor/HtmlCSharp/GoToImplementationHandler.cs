@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly ILogger _logger;
-        private readonly JsonSerializer _serializer;
 
         [ImportingConstructor]
         public GoToImplementationHandler(
@@ -64,9 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _documentMappingProvider = documentMappingProvider;
 
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
-
-            _serializer = new JsonSerializer();
-            _serializer.AddVSInternalExtensionConverters();
         }
 
         public async Task<SumType<Location[]?, VSInternalReferenceItem[]?>> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
