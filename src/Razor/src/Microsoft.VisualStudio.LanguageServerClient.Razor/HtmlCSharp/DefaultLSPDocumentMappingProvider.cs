@@ -143,6 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
+                // We update the deserialized object, rather than create a new one, in case one of the JSON converters
+                // gave us a different type that is a superset of Location
                 location.Uri = razorDocumentUri;
                 location.Range = remappedRange;
 
