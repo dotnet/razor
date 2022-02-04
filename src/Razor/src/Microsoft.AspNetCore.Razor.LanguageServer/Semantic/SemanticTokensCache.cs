@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol;
@@ -56,19 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             CacheTokensPerLine(range, tokens, lineToTokensDict);
-
-            // Fill in the gaps for empty lines. When looking up tokens later, this helps us differentiate
-            // between empty lines vs. lines we don't have cached tokens for.
-            for (var lineIndex = range.Start.Line; lineIndex < range.End.Line; lineIndex++)
-            {
-                lock (_dictLock)
-                {
-                    if (!lineToTokensDict.TryGetValue(lineIndex, out _))
-                    {
-                        lineToTokensDict.Add(lineIndex, Array.Empty<int>());
-                    }
-                }
-            }
+            FillInEmptyLineGaps(range, lineToTokensDict);
         }
 
         /// <summary>
@@ -80,7 +69,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="semanticVersion">The semantic version associated with the cached tokens.</param>
         /// <param name="requestedRange">The requested range for the desired tokens.</param>
         /// <param name="cachedTokens">If found, contains the cached range and cached tokens.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// True if at least a partial match for the range was found. The 'Range' out var specifies the subset of
+        /// the requested range that was found, and the 'Tokens' out var contains the tokens for that subset range.
+        /// </returns>
         public bool TryGetCachedTokens(
             DocumentUri uri,
             VersionStamp semanticVersion,
@@ -95,72 +87,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            var tokens = new List<int>();
-
             // Keep track of where the cached range begins
             Position? cachedRangeStart = null;
 
-            // Keep track of where the cached range ends
-            var cachedRangeNumLines = 0;
+            // Keep track of the length of the cached range
+            var cachedRangeLength = 0;
 
-            // Keeps track of the current empty line count (needed for calculating line offsets)
-            var emptyLineCount = 0;
-
-            // Retrieve the cached tokens associated with the passed-in range
-            for (var currentLineNumber = requestedRange.Start.Line; currentLineNumber < requestedRange.End.Line; currentLineNumber++)
-            {
-                IReadOnlyList<int>? lineTokens = null;
-                lock (_dictLock)
-                {
-                    if (!lineToTokensDict.TryGetValue(currentLineNumber, out lineTokens))
-                    {
-                        if (tokens.Count != 0)
-                        {
-                            // We already have some sort of cached results, but we've now reached
-                            // a gap in the cache which we have no tokens for.
-                            // Since we only want to return a continuous range, we'll exit early.
-                            break;
-                        }
-
-                        continue;
-                    }
-                }
-
-                cachedRangeStart ??= new Position { Line = currentLineNumber, Character = 0 };
-
-                cachedRangeNumLines++;
-
-                // If a line's List is empty, it means the line has no tokens
-                if (lineTokens.Count == 0)
-                {
-                    emptyLineCount++;
-                    continue;
-                }
-
-                // We've found a non-empty cached line. Go through and process it.
-                for (var currentLineTokenIndex = 0; currentLineTokenIndex < lineTokens.Count; currentLineTokenIndex++)
-                {
-                    // If we're at the start of the cached range, the line offset should be relative
-                    // to the start of the document.
-                    if (tokens.Count == 0)
-                    {
-                        tokens.Add(currentLineNumber);
-                    }
-                    // If we're not at start at the cached range but we're at the start of a line,
-                    // the line offset should be relative to the end of the last cached line.
-                    else if (currentLineTokenIndex == 0)
-                    {
-                        tokens.Add(1 + emptyLineCount);
-                    }
-                    else
-                    {
-                        tokens.Add(lineTokens[currentLineTokenIndex]);
-                    }
-                }
-
-                emptyLineCount = 0;
-            }
-
+            var tokens = GetCachedTokens(requestedRange, lineToTokensDict, ref cachedRangeStart, ref cachedRangeLength);
             if (tokens.Count == 0)
             {
                 // We couldn't find any tokens associated with the passed-in range
@@ -170,7 +103,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             Assumes.NotNull(cachedRangeStart);
 
-            var endPosition = new Position { Line = cachedRangeStart.Line + cachedRangeNumLines, Character = 0 };
+            // We can potentially return a partial range match if we can't find a full range match.
+            var endPosition = new Position { Line = cachedRangeStart.Line + cachedRangeLength, Character = 0 };
             var range = new Range { Start = cachedRangeStart, End = endPosition };
 
             cachedTokens = (range, tokens);
@@ -232,6 +166,112 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     lineToTokensDict.Add(absoluteLine, lineTokens);
                 }
             }
+        }
+
+        private void FillInEmptyLineGaps(Range range, Dictionary<int, IReadOnlyList<int>> lineToTokensDict)
+        {
+            // Fill in the gaps for empty lines. When looking up tokens later, this helps us differentiate
+            // between empty lines vs. lines we don't have cached tokens for.
+            for (var lineIndex = range.Start.Line; lineIndex < range.End.Line; lineIndex++)
+            {
+                lock (_dictLock)
+                {
+                    if (!lineToTokensDict.TryGetValue(lineIndex, out _))
+                    {
+                        lineToTokensDict.Add(lineIndex, Array.Empty<int>());
+                    }
+                }
+            }
+        }
+
+        private List<int> GetCachedTokens(
+            Range requestedRange,
+            Dictionary<int, IReadOnlyList<int>> lineToTokensDict,
+            ref Position? cachedRangeStart,
+            ref int cachedRangeLength)
+        {
+            var tokens = new List<int>();
+
+            // Keeps track of the current empty line count since the last line of tokens (needed for calculating line offsets)
+            var currentEmptyLineCount = 0;
+
+            // Retrieve the cached tokens associated with the passed-in range
+            for (var currentLineNumber = requestedRange.Start.Line; currentLineNumber < requestedRange.End.Line; currentLineNumber++)
+            {
+                IReadOnlyList<int>? lineTokens = null;
+                lock (_dictLock)
+                {
+                    if (!lineToTokensDict.TryGetValue(currentLineNumber, out lineTokens))
+                    {
+                        if (tokens.Count != 0)
+                        {
+                            // We already have some sort of cached results, but we've now reached
+                            // a gap in the cache which we have no tokens for.
+                            // For ease of computation, we only want to return a continuous range.
+                            // We'll keep our current set of cached results and exit the loop early.
+                            break;
+                        }
+
+                        // We don't have cached tokens for the line. We'll check other lines in the
+                        // requested range to see if we might have cached tokens for those.
+                        continue;
+                    }
+                }
+
+                cachedRangeStart ??= new Position { Line = currentLineNumber, Character = 0 };
+                cachedRangeLength++;
+
+                // If a line's List is empty, it means the line has no tokens. However, we still want
+                // to keep track of empty lines in order to later compute line offsets.
+                if (lineTokens.Count == 0)
+                {
+                    currentEmptyLineCount++;
+                    continue;
+                }
+
+                // We've found a non-empty cached line. Go through and process it.
+                ProcessCachedLine(tokens, currentEmptyLineCount, currentLineNumber, lineTokens);
+
+                currentEmptyLineCount = 0;
+            }
+
+            return tokens;
+        }
+
+        private static List<int> ProcessCachedLine(
+            List<int> tokens,
+            int currentEmptyLineCount,
+            int currentLineNumber,
+            IReadOnlyList<int> lineTokens)
+        {
+            // If we're at the start of the cached range (i.e. we've found no prior tokens in
+            // the range up til now), the line offset should be relative to the start of the
+            // document.
+            if (tokens.Count == 0)
+            {
+                tokens.Add(currentLineNumber);
+            }
+            // If we've already found prior cached tokens in the requested range, the line
+            // offset should be relative to the end of the last cached non-empty line.
+            // Example 1:
+            //     token1
+            //     token2
+            // `token2` should have a line offset of 1.
+            // Example 2:
+            //     token1
+            //     [empty line]
+            //     [empty line]
+            //     token2
+            // `token2` should have a line offset of 3 since we need to take empty lines
+            // into account.
+            else
+            {
+                tokens.Add(1 + currentEmptyLineCount);
+            }
+
+            // Add the rest of the tokens in the line and return.
+            tokens.AddRange(lineTokens.Skip(1));
+            return tokens;
         }
     }
 }
