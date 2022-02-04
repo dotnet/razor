@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
@@ -59,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await implementationHandler.HandleRequestAsync(implementationRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result);
+            Assert.Null(result.Value);
         }
 
         [Fact]
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await implementationHandler.HandleRequestAsync(implementationRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result);
+            Assert.Null(result.Value);
         }
 
         [Fact]
@@ -95,11 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var virtualHtmlUri = new Uri("C:/path/to/file.razor__virtual.html");
             var htmlLocation = GetLocation(100, 100, 100, 100, virtualHtmlUri);
-            var htmlLocationToken = JToken.FromObject(new[] { htmlLocation });
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, JToken>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(
                     It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -111,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new ReinvocationResponse<JToken>("LanguageClientName", htmlLocationToken)));
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>>("LanguageClientName", new(new[] { htmlLocation }))));
 
             var projectionResult = new ProjectionResult()
             {
@@ -157,11 +155,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var csharpLocation = GetLocation(100, 100, 100, 100, virtualCSharpUri);
-            var csharpLocationToken = JToken.FromObject(new[] { csharpLocation });
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, JToken>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(
                     It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -173,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new ReinvocationResponse<JToken>("LanguageClientName", csharpLocationToken)));
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>>("LanguageClientName", new(new[] { csharpLocation }))));
 
             var projectionResult = new ProjectionResult()
             {
@@ -206,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(invokedLSPRequest);
             Assert.True(invokedRemapRequest);
 
-            Assert.IsType<Location[]>(result);
+            Assert.IsType<Location[]>(result.Value);
 
             // Actual remapping behavior is tested elsewhere.
         }
@@ -221,11 +218,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var csharpLocation = GetVSInternalReferenceItem(100, 100, 100, 100, virtualCSharpUri);
-            var csharpLocationToken = JToken.FromObject(new[] { csharpLocation });
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, JToken>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(
                     It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -237,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new ReinvocationResponse<JToken>("LanguageClientName", csharpLocationToken)));
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>>("LanguageClientName", new(new[] { csharpLocation }))));
 
             var projectionResult = new ProjectionResult()
             {
@@ -274,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(invokedLSPRequest);
             Assert.True(invokedRemapRequest);
 
-            Assert.IsType<VSInternalReferenceItem[]>(result);
+            Assert.IsType<VSInternalReferenceItem[]>(result.Value);
 
             // Actual remapping behavior is tested elsewhere.
         }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,13 +11,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentImplementationName)]
-    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, object>
+    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -71,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _serializer.AddVSInternalExtensionConverters();
         }
 
-        public async Task<object?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<SumType<Location[]?, VSInternalReferenceItem[]?>> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -88,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
-                return null;
+                return new();
             }
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(
@@ -97,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                return null;
+                return new();
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -117,53 +115,36 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting {languageServerName} implementation for {projectionResult.Uri}.");
 
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, JToken>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(
                 textBuffer,
                 Methods.TextDocumentImplementationName,
                 languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var jToken))
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var result))
             {
-                return null;
+                return new();
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // From some language servers we get VSInternalReferenceItem results, and from some we get Location results.
             // We check for the _vs_id property, which is required in VSInternalReferenceItem, to know which is which.
-            if (jToken.Type == JTokenType.Array)
+            if (result.Value is VSInternalReferenceItem[] referenceItems)
             {
-                var jArray = (JArray)jToken;
-                if (jArray.Any())
-                {
-                    _logger.LogInformation($"Received {jArray.Count} results, remapping.");
+                var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, cancellationToken).ConfigureAwait(false);
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                _logger.LogInformation($"Returning {remappedLocations?.Length} internal reference items.");
+                return remappedLocations;
+            }
+            else if (result.Value is Location[] locations)
+            {
+                var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
 
-                    if (jArray.First?["_vs_id"] is not null)
-                    {
-                        var referenceItems = jArray.ToObject<VSInternalReferenceItem[]>(_serializer);
+                _logger.LogInformation($"Returning {remappedLocations?.Length} locations.");
 
-                        var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, cancellationToken).ConfigureAwait(false);
-
-                        _logger.LogInformation($"Returning {remappedLocations?.Length} internal reference items.");
-                        return remappedLocations;
-                    }
-                    else
-                    {
-                        var locations = jArray.ToObject<Location[]>(_serializer);
-                        if (locations is not null)
-                        {
-                            var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
-
-                            _logger.LogInformation($"Returning {remappedLocations?.Length} locations.");
-
-                            return remappedLocations;
-                        }
-                    }
-                }
+                return remappedLocations;
             }
 
             _logger.LogInformation("Received no results.");
