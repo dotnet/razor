@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -385,6 +386,40 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // Assert
             Assert.Equal(expectedDescriptors, descriptors, TagHelperDescriptorComparer.Default);
+        }
+
+        [Fact]
+        public void GetNearestAncestorTagHelperBinding_WithoutTagHelperParent()
+        {            // Arrange
+            var expectedDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("TestType", "TestAssembly")
+                    .TagMatchingRuleDescriptor(
+                        rule => rule
+                            .RequireTagName("p")
+                            .RequireParentTag("div"))
+                    .Build()
+            };
+            var documentDescriptors = new[]
+            {
+                expectedDescriptors[0],
+                TagHelperDescriptorBuilder.Create("TestType2", "TestAssembly")
+                    .TagMatchingRuleDescriptor(
+                        rule => rule
+                            .RequireTagName("strong")
+                            .RequireParentTag("p"))
+                    .Build()
+            };
+            var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
+            var service = new DefaultTagHelperFactsService();
+            var ancestors = new List<SyntaxNode>() {
+            };
+
+            // Act
+            var binding = service.GetNearestAncestorTagHelperBinding(ancestors);
+
+            // Assert
+            Assert.Null(binding);
         }
     }
 }

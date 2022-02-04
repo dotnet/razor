@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -1340,10 +1341,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string containingTagName,
             string containingParentTagName = "body",
             bool containingParentIsTagHelper = false,
-            string tagHelperPrefix = "")
+            string tagHelperPrefix = "",
+            SyntaxNode containingElement = null)
         {
             var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
             var completionContext = new ElementCompletionContext(
+                containingElement,
                 documentContext,
                 existingCompletions,
                 containingTagName,

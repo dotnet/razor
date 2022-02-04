@@ -6,12 +6,14 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public sealed class ElementCompletionContext
     {
-        public ElementCompletionContext(
+        internal ElementCompletionContext(
+            SyntaxNode containingElement,
             TagHelperDocumentContext documentContext,
             IEnumerable<string> existingCompletions,
             string containingTagName,
@@ -35,6 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(inHTMLSchema));
             }
 
+            ContainingElement = containingElement;
             DocumentContext = documentContext;
             ExistingCompletions = existingCompletions;
             ContainingTagName = containingTagName;
@@ -47,6 +50,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public TagHelperDocumentContext DocumentContext { get; }
 
         public IEnumerable<string> ExistingCompletions { get; }
+
+        internal SyntaxNode ContainingElement { get;}
 
         public string ContainingTagName { get; }
 

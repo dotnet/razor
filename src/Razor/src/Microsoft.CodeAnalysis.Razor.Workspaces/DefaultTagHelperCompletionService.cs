@@ -277,12 +277,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
 
-            var binding = _tagHelperFactsService.GetTagHelperBinding(
-                completionContext.DocumentContext,
-                completionContext.ContainingTagName,
-                completionContext.Attributes,
-                completionContext.ContainingParentTagName,
-                completionContext.ContainingParentIsTagHelper);
+            var binding = _tagHelperFactsService.GetNearestAncestorTagHelperBinding(completionContext.ContainingElement.Ancestors());
 
             if (binding is null)
             {
