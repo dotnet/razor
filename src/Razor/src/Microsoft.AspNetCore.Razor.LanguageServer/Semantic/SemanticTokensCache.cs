@@ -140,9 +140,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 }
 
-                var lineTokens = new List<int>();
-
                 // Cache until we hit the next line or the end of the tokens
+                var lineTokens = GetLineTokens(tokens, ref tokenIndex);
+
+                lock (_dictLock)
+                {
+                    lineToTokensDict.Add(absoluteLine, lineTokens);
+                }
+            }
+
+            static List<int> GetLineTokens(int[] tokens, ref int tokenIndex)
+            {
+                var lineTokens = new List<int>();
                 while (tokenIndex < tokens.Length)
                 {
                     lineTokens.Add(tokens[tokenIndex]);
@@ -161,10 +170,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     tokenIndex += TokenSize;
                 }
 
-                lock (_dictLock)
-                {
-                    lineToTokensDict.Add(absoluteLine, lineTokens);
-                }
+                return lineTokens;
             }
         }
 
