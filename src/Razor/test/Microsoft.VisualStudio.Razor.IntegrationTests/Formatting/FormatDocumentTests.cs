@@ -17,6 +17,21 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     {
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(FormatDocumentTests), useCurrentDirectory: true);
 
+        // To add new formatting tests create a sample file of the "before" state
+        // and place it in the TestFiles\Input folder.
+        // If you know the "after" state then you can place that in a file of the same
+        // name in the TestFiles\Expected folder, and run tests as normal.
+        // If you want to generate the "after" state simple run the test without
+        // creating the expected file, and it will be generated for you.
+        //
+        // Things that aren't (yet?) supported:
+        //   * Formatting must change the input state or the test will hang
+        //     ie. these tests cannot be used for pure validation
+        //   * Test input is always placed in a .razor file, so .cshtml specific
+        //     quirks can't be validated
+        //
+        // You'll just have to write tests for those ones :P
+
         [IdeTheory]
         [MemberData(nameof(GetFormattingInputFiles))]
         public async Task FormattingDocument(string inputResourceName, string expectedResourceName)
