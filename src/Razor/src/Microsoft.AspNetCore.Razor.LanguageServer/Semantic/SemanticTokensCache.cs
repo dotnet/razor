@@ -116,13 +116,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var absoluteLine = 0;
 
             // Cache the tokens associated with each line
-            for (var tokenIndex = 0; tokenIndex < tokens.Length; tokenIndex += TokenSize)
+            var tokenIndex = 0;
+            while (tokenIndex < tokens.Length)
             {
                 absoluteLine += tokens[tokenIndex];
 
                 // Don't cache tokens outside of the given range
                 if (absoluteLine < range.Start.Line)
                 {
+                    tokenIndex += TokenSize;
                     continue;
                 }
 
@@ -136,23 +138,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     if (lineToTokensDict.TryGetValue(absoluteLine, out _))
                     {
                         // This line is already cached, so we can skip it
+                        tokenIndex += TokenSize;
                         continue;
                     }
                 }
 
                 // Cache until we hit the next line or the end of the tokens
-                var lineTokens = GetLineTokens(tokens, ref tokenIndex);
-
-                lock (_dictLock)
-                {
-                    lineToTokensDict.Add(absoluteLine, lineTokens);
-                }
-            }
-
-            static List<int> GetLineTokens(int[] tokens, ref int tokenIndex)
-            {
                 var lineTokens = new List<int>();
-                while (tokenIndex < tokens.Length)
+                do
                 {
                     lineTokens.Add(tokens[tokenIndex]);
                     lineTokens.Add(tokens[tokenIndex + 1]);
@@ -160,17 +153,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     lineTokens.Add(tokens[tokenIndex + 3]);
                     lineTokens.Add(tokens[tokenIndex + 4]);
 
-                    var nextTokenIndex = tokenIndex + TokenSize;
-                    if (nextTokenIndex >= tokens.Length || tokens[nextTokenIndex] != 0)
-                    {
-                        // We've hit the next line or the end of the tokens
-                        break;
-                    }
-
-                    tokenIndex += TokenSize;
+                    tokenIndex += 5;
                 }
+                while (tokenIndex < tokens.Length && tokens[tokenIndex] == 0);
 
-                return lineTokens;
+                lock (_dictLock)
+                {
+                    lineToTokensDict.Add(absoluteLine, lineTokens);
+                }
             }
         }
 
