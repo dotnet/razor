@@ -86,45 +86,5 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 }
             }
         }
-
-        [IdeFact]
-        public async Task FormatDocument_BasicCSharpFormatting()
-        {
-            var input = @"@page ""/counter""
-
-@code{
-                                    private int currentCount = 0;
-
-private void IncrementCount()
-{
-currentCount++;
-}
-}
-";
-
-            var expected = @"@page ""/counter""
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-";
-            // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
-
-            await TestServices.Editor.SetTextAsync(input, HangMitigatingCancellationToken);
-
-            // Act
-            await TestServices.Editor.InvokeFormatDocumentAsync(HangMitigatingCancellationToken);
-
-            // Assert
-            var actual = await TestServices.Editor.WaitForTextChangeAsync(input, HangMitigatingCancellationToken);
-
-            Assert.Equal(expected, actual);
-        }
     }
 }
