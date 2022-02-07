@@ -178,7 +178,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
                 continue;
             }
 
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, s_defaultFormattingOptions, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
+            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, s_defaultFormattingOptions, _adhocWorkspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;

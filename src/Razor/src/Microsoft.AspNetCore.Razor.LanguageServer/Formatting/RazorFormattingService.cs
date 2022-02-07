@@ -25,6 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
            RazorLanguageKind kind,
            TextEdit[] formattedEdits,
            FormattingOptions options,
+           int hostDocumentIndex,
+           char triggerCharacter,
            CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatCodeActionAsync(

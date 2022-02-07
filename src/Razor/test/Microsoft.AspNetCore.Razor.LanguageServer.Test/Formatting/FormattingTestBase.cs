@@ -15,8 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
@@ -131,22 +129,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
 
-            if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var projectedIndex))
-            {
-                throw new InvalidOperationException("Could not map from Razor document to generated document");
-            }
-
-            var projectedEdits = Array.Empty<TextEdit>();
-            if (languageKind == RazorLanguageKind.CSharp)
-            {
-                projectedEdits = await GetFormattedCSharpEditsAsync(
-                    codeDocument, triggerCharacter, projectedIndex, insertSpaces, tabSize).ConfigureAwait(false);
-            }
-            else if (languageKind == RazorLanguageKind.Html)
-            {
-                throw new NotImplementedException("OnTypeFormatting is not yet supported for HTML in Razor.");
-            }
-
             var formattingService = CreateFormattingService(codeDocument);
             var options = new FormattingOptions()
             {
@@ -155,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             // Act
-            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
+            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, CancellationToken.None);
 
             // Assert
             if (input.Equals(expected))
@@ -231,41 +213,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(startLine, startChar, endLine, endChar),
                 NewText = newText
             };
-
-        private static async Task<TextEdit[]> GetFormattedCSharpEditsAsync(
-            RazorCodeDocument codeDocument,
-            char typedChar,
-            int position,
-            bool insertSpaces,
-            int tabSize)
-        {
-            var generatedCode = codeDocument.GetCSharpDocument().GeneratedCode;
-            var csharpSourceText = SourceText.From(generatedCode);
-            var document = GenerateRoslynCSharpDocument(csharpSourceText);
-            var documentOptions = await GetDocumentOptionsAsync(document, insertSpaces, tabSize);
-            var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                document, typedChar, position, documentOptions, CancellationToken.None).ConfigureAwait(false);
-
-            var textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpSourceText)).ToArray();
-            return textEdits;
-
-            Document GenerateRoslynCSharpDocument(SourceText csharpSourceText)
-            {
-                var workspace = TestWorkspace.Create();
-                var project = workspace.CurrentSolution.AddProject("TestProject", "TestAssembly", LanguageNames.CSharp);
-                var document = project.AddDocument("TestDocument", csharpSourceText);
-                return document;
-            }
-
-            async Task<DocumentOptionSet> GetDocumentOptionsAsync(Document document, bool insertSpaces, int tabSize)
-            {
-                var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
-                documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, tabSize)
-                    .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, tabSize)
-                    .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !insertSpaces);
-                return documentOptions;
-            }
-        }
 
         private RazorFormattingService CreateFormattingService(RazorCodeDocument codeDocument)
         {
