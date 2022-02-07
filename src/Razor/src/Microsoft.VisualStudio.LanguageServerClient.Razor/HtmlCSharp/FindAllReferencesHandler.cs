@@ -208,7 +208,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             progress.Report(remappedResults);
         }
 
-        private async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, CancellationToken cancellationToken)
+        private Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, CancellationToken cancellationToken)
+            => RemapReferenceItemsAsync(result, _documentMappingProvider, _documentManager, cancellationToken);
+
+        public static async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, LSPDocumentMappingProvider documentMappingProvider, LSPDocumentManager documentManager, CancellationToken cancellationToken)
         {
             var remappedLocations = new List<VSInternalReferenceItem>();
 
@@ -237,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
                 var languageKind = RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
-                var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
+                var mappingResult = await documentMappingProvider.MapToDocumentRangesAsync(
                     languageKind,
                     razorDocumentUri,
                     new[] { referenceItem.Location.Range },
@@ -245,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (mappingResult is null ||
                     mappingResult.Ranges[0].IsUndefined() ||
-                    (_documentManager.TryGetDocument(razorDocumentUri, out var mappedDocumentSnapshot) &&
+                    (documentManager.TryGetDocument(razorDocumentUri, out var mappedDocumentSnapshot) &&
                     mappingResult.HostDocumentVersion != mappedDocumentSnapshot.Version))
                 {
                     // Couldn't remap the location or the document changed in the meantime. Discard this location.
