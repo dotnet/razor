@@ -549,6 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Context = inlineCompletionParams.Context,
                 Position = inlineCompletionParams.Position,
                 TextDocument = DocumentUri.From(csharpDoc.Uri),
+                Options = inlineCompletionParams.Options,
             };
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;

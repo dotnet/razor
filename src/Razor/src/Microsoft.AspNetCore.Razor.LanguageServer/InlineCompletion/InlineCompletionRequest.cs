@@ -26,4 +26,7 @@ internal class InlineCompletionRequest : ITextDocumentIdentifierParams, IRequest
     [DataMember(Name = "_vs_context")]
     [JsonProperty(Required = Required.Always)]
     public InlineCompletionContext Context { get; set; }
+
+    [DataMember(Name = "_vs_options")]
+    public FormattingOptions Options { get; set; }
 }
