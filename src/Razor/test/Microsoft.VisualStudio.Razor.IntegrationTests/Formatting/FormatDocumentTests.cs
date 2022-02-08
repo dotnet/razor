@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             return true;
         }
 
-        private static IEnumerable<object[]> GetFormattingInputFiles()
+        public static IEnumerable<object[]> GetFormattingInputFiles()
         {
             var type = typeof(FormatDocumentTests);
             var assembly = type.Assembly;
