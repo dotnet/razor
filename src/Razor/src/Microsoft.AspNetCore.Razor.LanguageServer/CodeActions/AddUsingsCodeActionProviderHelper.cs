@@ -8,12 +8,11 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal static class AddUsingsCodeActionProviderFactory
+    internal static class AddUsingsCodeActionProviderHelper
     {
         internal static readonly Regex AddUsingVSCodeAction = new Regex("^using (.+);$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
@@ -31,12 +30,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return namespaceName.Value;
         }
 
-        internal static RazorCodeAction CreateAddUsingCodeAction(string fullyQualifiedName, DocumentUri uri)
+        internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, DocumentUri uri, out string @namespace, out RazorCodeActionResolutionParams resolutionParams)
         {
-            var @namespace = GetNamespaceFromFQN(fullyQualifiedName);
+            @namespace = GetNamespaceFromFQN(fullyQualifiedName);
             if (string.IsNullOrEmpty(@namespace))
             {
-                return null;
+                @namespace = null;
+                resolutionParams = null;
+                return false;
             }
 
             var actionParams = new AddUsingsCodeActionParams
@@ -45,18 +46,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Namespace = @namespace
             };
 
-            var resolutionParams = new RazorCodeActionResolutionParams
+            resolutionParams = new RazorCodeActionResolutionParams
             {
                 Action = LanguageServerConstants.CodeActions.AddUsing,
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = actionParams,
             };
 
-            return new RazorCodeAction()
-            {
-                Title = $"@using {@namespace}",
-                Data = JToken.FromObject(resolutionParams)
-            };
+            return true;
         }
 
         /// <summary>

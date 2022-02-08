@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -107,12 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = actionParams,
             };
 
-            var codeAction = new RazorCodeAction()
-            {
-                Title = RazorLS.Resources.ExtractTo_CodeBehind_Title,
-                Data = JToken.FromObject(resolutionParams)
-            };
-
+            var codeAction = RazorCodeActionFactory.CreateExtractToCodeBehind(resolutionParams);
             var codeActions = new List<RazorCodeAction> { codeAction };
 
             return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);

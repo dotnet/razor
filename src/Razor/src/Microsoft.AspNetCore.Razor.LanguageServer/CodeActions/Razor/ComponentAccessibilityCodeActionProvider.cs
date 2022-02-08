@@ -14,10 +14,10 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -120,11 +120,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = actionParams,
             };
 
-            container.Add(new RazorCodeAction()
-            {
-                Title = RazorLS.Resources.Create_Component_FromTag_Title,
-                Data = JToken.FromObject(resolutionParams)
-            });
+            var codeAction = RazorCodeActionFactory.CreateComponentFromTag(resolutionParams);
+            container.Add(codeAction);
         }
 
         private void AddComponentAccessFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorCodeAction> container)
@@ -142,20 +139,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 var fullyQualifiedName = tagHelperPair._short.Name;
 
                 // Insert @using
-                var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
-                    fullyQualifiedName,
-                    context.Request.TextDocument.Uri);
-                if (addUsingCodeAction != null)
+                if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
                 {
+                    var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, resolutionParams);
                     container.Add(addUsingCodeAction);
                 }
 
                 // Fully qualify
-                container.Add(new RazorCodeAction()
-                {
-                    Title = $"{fullyQualifiedName}",
-                    Edit = CreateRenameTagEdit(context, startTag, fullyQualifiedName),
-                });
+                var renameTagWorkspaceEdit = CreateRenameTagEdit(context, startTag, fullyQualifiedName);
+                var fullyQualifiedCodeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(fullyQualifiedName, renameTagWorkspaceEdit);
+                container.Add(fullyQualifiedCodeAction);
             }
         }
 

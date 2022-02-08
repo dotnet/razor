@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -144,9 +145,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
                     typeAccessibilityCodeActions.Add(fqnCodeAction);
 
-                    var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fqn, context.Request.TextDocument.Uri);
-                    if (addUsingCodeAction != null)
+                    if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
                     {
+                        var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, resolutionParams);
                         typeAccessibilityCodeActions.Add(addUsingCodeAction);
                     }
                 }
@@ -192,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 // For add using suggestions, the code action title is of the form:
                 // `using System.Net;`
                 else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
-                    AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
+                    AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
                     var newCodeAction = codeAction with { Title = $"@using {@namespace}" };
                     typeAccessibilityCodeActions.Add(newCodeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
@@ -256,11 +257,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
             };
 
-            return new RazorCodeAction()
-            {
-                Title = codeAction.Title,
-                Edit = fqnWorkspaceEdit
-            };
+            var codeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(codeAction.Title, fqnWorkspaceEdit);
+            return codeAction;
         }
     }
 }
