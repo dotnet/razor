@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>$(DefaultNetCoreWindowsTargetFramework)</TargetFrameworks>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
@@ -24,6 +24,19 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Web" Version="$(MicrosoftVisualStudioWebPackageVersion)" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.WebTools.Shared" Version="$(MicrosoftWebToolsSharedPackageVersion)" NoWarn="NU1701" />
+
+    <!--
+        Nuget changed behaviour and now validates transitive references, so the NU1701 suppressions above don't affect those
+        packages dependencies. We reference them here directly in order to do so, and set ExcludeAssets and PrivateAssets so
+        the references have no other affect on build etc.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioShellPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Css" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Css.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
   </ItemGroup>
 
   <ItemGroup>
