@@ -246,8 +246,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range? csharpRange)
         {
-            var minIndex = -1;
-            var maxIndex = -1;
             SourceSpan? minGeneratedSpan = null;
             SourceSpan? maxGeneratedSpan = null;
 
@@ -262,15 +260,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 if (textSpan.OverlapsWith(mappedTextSpan))
                 {
-                    if (minIndex == -1 || mapping.OriginalSpan.AbsoluteIndex < minIndex)
+                    if (minGeneratedSpan is null || mapping.GeneratedSpan.AbsoluteIndex < minGeneratedSpan.Value.AbsoluteIndex)
                     {
-                        minIndex = mapping.OriginalSpan.AbsoluteIndex;
                         minGeneratedSpan = mapping.GeneratedSpan;
                     }
 
-                    if (maxIndex == -1 || mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length > maxIndex)
+                    var mappingEndIndex = mapping.GeneratedSpan.AbsoluteIndex + mapping.GeneratedSpan.Length;
+                    if (maxGeneratedSpan is null || mappingEndIndex > maxGeneratedSpan.Value.AbsoluteIndex + maxGeneratedSpan.Value.Length)
                     {
-                        maxIndex = mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length;
                         maxGeneratedSpan = mapping.GeneratedSpan;
                     }
                 }
@@ -284,6 +281,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var endRange = maxGeneratedSpan.Value.AsTextSpan().AsRange(csharpSourceText);
 
                 csharpRange = new Range { Start = startRange.Start, End = endRange.End };
+                Debug.Assert(csharpRange.Start <= csharpRange.End, "Range.Start should not be larger than Range.End");
+
                 return true;
             }
 
