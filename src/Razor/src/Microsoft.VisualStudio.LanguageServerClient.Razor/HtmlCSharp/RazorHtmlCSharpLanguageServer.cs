@@ -261,14 +261,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Location[]?> GoToImplementationAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
+        public Task<SumType<Location[]?, VSInternalReferenceItem[]?>> GoToImplementationAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
             if (positionParams is null)
             {
                 throw new ArgumentNullException(nameof(positionParams));
             }
 
-            return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, ClientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(Methods.TextDocumentImplementationName, positionParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
