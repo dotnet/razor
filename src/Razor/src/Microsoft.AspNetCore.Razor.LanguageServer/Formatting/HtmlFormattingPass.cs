@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var originalText = context.SourceText;
 
             var htmlEdits = context.IsFormatOnType
-                ? await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
+                ? await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false)
                 : await HtmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
 
             // Allow benchmarks to specify a different diff algorithm
