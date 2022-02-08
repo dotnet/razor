@@ -26,7 +26,7 @@
     <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <DotNetFinalVersionKind Condition="'$(StabilizePackageVersion)' == 'true'">release</DotNetFinalVersionKind>
     <DefaultNetCoreTargetFramework>net5.0</DefaultNetCoreTargetFramework>
-  <DefaultNetCoreWindowsTargetFramework>net5.0-windows</DefaultNetCoreWindowsTargetFramework>
+    <DefaultNetCoreWindowsTargetFramework>net5.0-windows</DefaultNetCoreWindowsTargetFramework>
   </PropertyGroup>
   <!--
     Versioning for tooling releases.
