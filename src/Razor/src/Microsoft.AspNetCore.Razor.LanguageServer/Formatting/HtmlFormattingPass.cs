@@ -48,15 +48,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
         {
-            if (context.IsFormatOnType)
-            {
-                // We don't want to handle OnTypeFormatting here.
-                return result;
-            }
-
             var originalText = context.SourceText;
 
-            var htmlEdits = await HtmlFormatter.FormatAsync(context, cancellationToken);
+            var htmlEdits = context.IsFormatOnType
+                ? await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
+                : await HtmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
 
             // Allow benchmarks to specify a different diff algorithm
             if (!context.Options.TryGetValue("UseSourceTextDiffer", out var useSourceTextDiffer))

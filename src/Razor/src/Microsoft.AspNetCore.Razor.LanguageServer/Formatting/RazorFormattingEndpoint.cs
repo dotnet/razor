@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly ILogger _logger;
 
         private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
-        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = Array.Empty<string>();
+        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = new[] { "\n", "{", "}", ";" };
         private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
         public RazorFormattingEndpoint(
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
-            if (triggerCharacterKind is not RazorLanguageKind.CSharp)
+            if (triggerCharacterKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
             {
                 _logger.LogInformation($"Unsupported trigger character language {triggerCharacterKind:G}.");
                 return null;

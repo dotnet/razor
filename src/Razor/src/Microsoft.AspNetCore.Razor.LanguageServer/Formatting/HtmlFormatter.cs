@@ -53,5 +53,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
+
+        public async Task<TextEdit[]> FormatOnTypeAsync(
+           FormattingContext context,
+           CancellationToken cancellationToken)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            context.SourceText.GetLineAndOffset(context.HostDocumentIndex, out var line, out var col);
+            var @params = new DocumentOnTypeFormattingParams()
+            {
+                Position = new Position(line, col),
+                Character = context.TriggerCharacter.ToString(),
+                TextDocument = new TextDocumentIdentifier { Uri = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                Options = context.Options
+            };
+
+            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+
+            return result?.Edits ?? Array.Empty<TextEdit>();
+        }
     }
 }
