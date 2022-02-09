@@ -70,6 +70,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _documents.TryAdd("/" + path, codeDocument);
         }
 
+        private RazorDocumentFormattingResponse Format(DocumentOnTypeFormattingParams @params)
+        {
+            var response = new RazorDocumentFormattingResponse();
+
+            response.Edits = Array.Empty<TextEdit>();
+
+            // TODO: Update WebTools dependency and call via reflection
+
+            return response;
+        }
+
         private RazorDocumentFormattingResponse Format(DocumentFormattingParams @params)
         {
             var options = @params.Options;
@@ -250,6 +261,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
             {
                 var response = Format(formattingParams);
+
+                return Task.FromResult(Convert(response));
+            }
+            else if (@params is DocumentOnTypeFormattingParams onTypeFormattingParams &&
+                string.Equals(method, "textDocument/onTypeFormatting", StringComparison.Ordinal))
+            {
+                var response = Format(onTypeFormattingParams);
 
                 return Task.FromResult(Convert(response));
             }
