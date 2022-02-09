@@ -54,7 +54,7 @@
   <PropertyGroup Label="Automated">
     <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.2.22081.4</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
     <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.2.22081.4</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
-    <MicrosoftAspNetCoreTestingPackageVersion>6.0.3-servicing.22107.5</MicrosoftAspNetCoreTestingPackageVersion>
+    <MicrosoftAspNetCoreTestingPackageVersion>6.0.3-servicing.22107.7</MicrosoftAspNetCoreTestingPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.2.22081.4</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>7.0.0-preview.2.22081.4</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>7.0.0-preview.2.22081.4</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
@@ -94,7 +94,7 @@
     <MicrosoftVisualStudioShellPackagesVersion>17.0.31723.112</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.0.487</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.1.0-1.21471.13</RoslynPackageVersion>
-    <VisualStudioLanguageServerProtocolVersion>17.1.8</VisualStudioLanguageServerProtocolVersion>
+    <VisualStudioLanguageServerProtocolVersion>17.1.11</VisualStudioLanguageServerProtocolVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>5.0.0-preview.4.20205.1</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
