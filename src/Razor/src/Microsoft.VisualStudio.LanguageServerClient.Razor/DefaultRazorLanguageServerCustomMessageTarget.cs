@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<RazorDocumentRangeFormattingResponse> RazorDocumentOnTypeFormattingAsync(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+        public override async Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {
             var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
