@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     continue;
                 }
 
-                if (absoluteLine >= range.End.Line)
+                if (absoluteLine > range.End.Line)
                 {
                     break;
                 }

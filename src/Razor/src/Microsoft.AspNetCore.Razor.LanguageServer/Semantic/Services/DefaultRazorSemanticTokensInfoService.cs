@@ -347,8 +347,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticVersion;
         }
 
-        // Internal for testing
-        internal async Task<(SemanticTokens? Tokens, bool IsCSharpFinalized)> GetSemanticTokensAsync(
+        private async Task<(SemanticTokens? Tokens, bool IsCSharpFinalized)> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             DocumentSnapshot documentSnapshot,
             int documentVersion,
