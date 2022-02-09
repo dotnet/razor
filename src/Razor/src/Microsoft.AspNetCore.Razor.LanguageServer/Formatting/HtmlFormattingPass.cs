@@ -50,9 +50,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var originalText = context.SourceText;
 
-            var htmlEdits = context.IsFormatOnType
-                ? await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false)
-                : await HtmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
+            TextEdit[] htmlEdits;
+
+            if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html)
+            {
+                htmlEdits = await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+            else if (!context.IsFormatOnType)
+            {
+                htmlEdits = await HtmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // We don't want to handle on type formatting requests for other languages
+                return result;
+            }
 
             // Allow benchmarks to specify a different diff algorithm
             if (!context.Options.TryGetValue("UseSourceTextDiffer", out var useSourceTextDiffer))
