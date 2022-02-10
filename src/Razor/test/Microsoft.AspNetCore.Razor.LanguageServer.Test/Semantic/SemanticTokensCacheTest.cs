@@ -37,7 +37,7 @@ public class SemanticTokensCacheTest
             throw new NotImplementedException();
         }
 
-        Assert.Equal<int>(tokens, cachedResult.Value.Tokens);
+        Assert.Equal(tokens, cachedResult.Value.Tokens);
         Assert.Equal(new Range(0, 0, 6, 0), cachedResult.Value.Range);
     }
 
@@ -65,7 +65,7 @@ public class SemanticTokensCacheTest
             throw new NotImplementedException();
         }
 
-        Assert.Equal<int>(new int[] {
+        Assert.Equal(new int[] {
             2, 2, 3, 6, 1,
             4, 0, 10, 50, 5,
         }, cachedResult.Value.Tokens);
@@ -101,26 +101,50 @@ public class SemanticTokensCacheTest
     }
 
     [Fact]
-    public void TryGetCachedTokens_HandlesMissingLines()
+    public void TryGetCachedTokens_WhenBeginingMissing()
     {
-        throw new NotImplementedException();
-    }
+        // Arrange
+        var semanticTokensCache = GetSemanticTokensCache();
+        var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
+        var semanticVersion = new VersionStamp();
 
-    [Fact]
-    public void TryGetCachedTokens_AtEndOfFileWithoutNewline()
-    {
-        throw new NotImplementedException();
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(4, 0, 4, 20), new int[] { 4, 5, 6, 7, 0, });
+
+        // Act
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(0, 0, 8, 20), out var cachedResult))
+        {
+            Assert.True(false, "Cached Tokens were not found");
+            throw new NotImplementedException();
+        }
+
+        Assert.Equal(new[] { 4, 5, 6, 7, 0, }, cachedResult.Value.Tokens);
+
+        // If there's a gap between any of our results only take the first (complete).
+        Assert.Equal(new Range(4, 0, 5, 0), cachedResult.Value.Range);
     }
 
     [Fact]
     public void TryGetCachedTokens_PastEndOfFile()
     {
-        throw new NotImplementedException();
+        // Arrange
+        var semanticTokensCache = GetSemanticTokensCache();
+        var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
+        var semanticVersion = new VersionStamp();
+
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(4, 0, 4, 20), new int[] { 4, 5, 6, 7, 0, });
+
+        // Act
+        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(6, 0, 8, 20), out var cachedResult))
+        {
+            Assert.True(false, "Cached Tokens were found but should not have been.");
+            throw new NotImplementedException();
+        }
     }
 
     [Fact]
     public void TryGetCachedTokens_MultipleNonContiguousMissingLines()
-    {        // Arrange
+    {
+        // Arrange
         var semanticTokensCache = GetSemanticTokensCache();
         var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
         var semanticVersion = new VersionStamp();
@@ -147,7 +171,7 @@ public class SemanticTokensCacheTest
 
         Assert.Equal<int>(tokens.Take(5), cachedResult.Value.Tokens);
 
-        // If there's a gap between any of our results only take the first (complete).
+        // If there's a gap between any of our results only take the first (complete) range.
         Assert.Equal(new Range(0, 0, 1, 0), cachedResult.Value.Range);
     }
 

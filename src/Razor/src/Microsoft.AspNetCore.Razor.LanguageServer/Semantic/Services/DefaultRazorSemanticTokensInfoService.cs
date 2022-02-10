@@ -82,6 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             // Today the LSP client doesn't send us ranges that start or end midway through a line, but we'll be
             // defensive here since our tokens cache is only meant to be used with complete lines.
+            // The one exception is if you're at the end of a document which does not have a trailing newline.
             if (range.Start.Character != 0 || range.End.Character != 0)
             {
                 _logger.LogWarning($"Requested range starts or ends midway through a line: {range}");
