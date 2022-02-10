@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -24,9 +25,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
     {
         private RazorLanguageServer RazorLanguageServer { get; set; }
 
-        private DefaultRazorSemanticTokensInfoService? RazorSemanticTokenService { get; set; }
+        private DefaultRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
-        private DocumentVersionCache? VersionCache { get; set; }
+        private DocumentVersionCache VersionCache { get; set; }
 
         private DocumentUri DocumentUri { get; set; }
 
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private Range Range { get; set; }
 
-        private ProjectSnapshotManagerDispatcher? ProjectSnapshotManagerDispatcher { get; set; }
+        private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
         private string PagesDirectory { get; set; }
 

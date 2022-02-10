@@ -134,7 +134,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(4, 0, 4, 20), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(6, 0, 8, 20), out var cachedResult))
+        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(6, 0, 8, 20), out var _))
         {
             Assert.True(false, "Cached Tokens were found but should not have been.");
             throw new NotImplementedException();
