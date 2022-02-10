@@ -80,6 +80,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
+            return await GetSemanticTokensAsync(textDocumentIdentifier, range, documentSnapshot, documentVersion, semanticVersion, cancellationToken);
+        }
+
+        // Internal for benchmarks
+        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
+            TextDocumentIdentifier textDocumentIdentifier,
+            Range range,
+            DocumentSnapshot documentSnapshot,
+            int documentVersion,
+            VersionStamp semanticVersion,
+            CancellationToken cancellationToken)
+        {
             // Today the LSP client doesn't send us ranges that start or end midway through a line, but we'll be
             // defensive here since our tokens cache is only meant to be used with complete lines.
             // The one exception is if you're at the end of a document which does not have a trailing newline.
@@ -126,6 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 range, cachedRange, cachedTokens, cancellationToken).ConfigureAwait(false);
 
             return filledInRange;
+
         }
 
         /// <summary>
@@ -348,7 +361,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticVersion;
         }
 
-        private async Task<(SemanticTokens? Tokens, bool IsCSharpFinalized)> GetSemanticTokensAsync(
+        // Internal for benchmarks
+        internal async Task<(SemanticTokens? Tokens, bool IsCSharpFinalized)> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             DocumentSnapshot documentSnapshot,
             int documentVersion,
