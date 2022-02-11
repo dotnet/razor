@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         {
             // Arrange
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(MainLayoutContent, HangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement", 3);
@@ -230,7 +231,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             public string Classification { get; }
 
-            public IEnumerable<IClassificationType> BaseTypes => throw new System.NotImplementedException();
+            public IEnumerable<IClassificationType> BaseTypes => Array.Empty<IClassificationType>();
 
             public bool IsOfType(string type)
             {

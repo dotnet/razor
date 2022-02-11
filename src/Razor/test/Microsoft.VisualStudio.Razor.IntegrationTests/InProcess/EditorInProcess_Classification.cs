@@ -82,20 +82,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
                 if (actualClassification.ClassificationType.BaseTypes.Count() > 1)
                 {
-                    Assert.Equal(expectedClassification.Span, actualClassification.Span);
-                    var semanticBaseTypes = actualClassification.ClassificationType.BaseTypes.Where(t => t is ILayeredClassificationType layered && layered.Layer == ClassificationLayer.Semantic);
-                    if (semanticBaseTypes.Count() == 1)
-                    {
-                        Assert.Equal(expectedClassification.ClassificationType.Classification, semanticBaseTypes.First().Classification);
-                    }
-                    else if (semanticBaseTypes.Count() > 1)
-                    {
-                        Assert.Contains(expectedClassification.ClassificationType.Classification, semanticBaseTypes.Select(s => s.Classification));
-                    }
-                    else
-                    {
-                        Assert.True(false, "Did not have semantic basetype");
-                    }
+                    Assert.Equal(expectedClassification, actualClassification, ClassificationTypeComparer.Instance);
+
                 }
                 else if (!expectedClassification.Span.Span.Equals(actualClassification.Span.Span)
                     || !string.Equals(expectedClassification.ClassificationType.Classification, actualClassification.ClassificationType.Classification))
@@ -133,6 +121,37 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var classifierService = await GetComponentModelServiceAsync<IViewClassifierAggregatorService>(cancellationToken);
 
             return classifierService.GetClassifier(textView);
+        }
+
+        private class ClassificationTypeComparer : IEqualityComparer<ClassificationSpan>
+        {
+            public static ClassificationTypeComparer Instance { get; } = new();
+
+            public bool Equals(ClassificationSpan x, ClassificationSpan y)
+            {
+                if (x.Span.Equals(y.Span))
+                {
+                    var actualClassification = !x.ClassificationType.BaseTypes.Any() ? y : x;
+                    var expectedClassification = !x.ClassificationType.BaseTypes.Any() ? x : y;
+                    var semanticBaseTypes = actualClassification.ClassificationType.BaseTypes.Where(t => t is ILayeredClassificationType layered && layered.Layer == ClassificationLayer.Semantic);
+                    if (semanticBaseTypes.Count() == 1)
+                    {
+                        return string.Equals(semanticBaseTypes.First().Classification, expectedClassification.ClassificationType.Classification);
+                    }
+                    else if (semanticBaseTypes.Count() > 1)
+                    {
+                        return semanticBaseTypes.Select(s => s.Classification).Contains(expectedClassification.ClassificationType.Classification);
+                    }
+                    // Did not have semantic basetype
+                }
+
+                return false;
+            }
+
+            public int GetHashCode(ClassificationSpan obj)
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }
