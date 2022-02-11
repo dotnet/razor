@@ -40,6 +40,7 @@ using OmniSharp.Extensions.LanguageServer.Server;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -137,6 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<WrapWithTagEndpoint>()
                     .WithHandler<InlineCompletionEndpoint>()
                     .WithHandler<RazorBreakpointSpanEndpoint>()
+                    .WithHandler<DocumentColorEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder
