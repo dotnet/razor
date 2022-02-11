@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         }
 
 
-        [OSSkipConditionFact(new[] { "WINDOWS" })]
+        [OSSkipConditionFact(new[] { "Windows" })]
         public void Normalize_NonWindows_AddsLeadingForwardSlash()
         {
             // Arrange

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     public class UriExtensionsTest
     {
-        [OSSkipConditionFact(new[] { "OSX", "LINUX" })]
+        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
         public void GetAbsoluteOrUNCPath_ReturnsAbsolutePath()
         {
             // Arrange
