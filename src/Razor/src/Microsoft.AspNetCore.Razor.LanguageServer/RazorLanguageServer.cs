@@ -41,6 +41,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -139,6 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<InlineCompletionEndpoint>()
                     .WithHandler<RazorBreakpointSpanEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
+                    .WithHandler<FoldingRangeEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder

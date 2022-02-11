@@ -66,5 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Called by the Razor Language Server to provide document colors from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<IReadOnlyList<ColorInformation>> ProvideHtmlDocumentColorAsync(DocumentColorParams documentColorParams, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(LanguageServerConstants.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<IReadOnlyList<FoldingRange>> ProfideFoldingRangesAsync(FoldingRangeParams foldingRangeParams, CancellationToken cancellationToken);
     }
 }

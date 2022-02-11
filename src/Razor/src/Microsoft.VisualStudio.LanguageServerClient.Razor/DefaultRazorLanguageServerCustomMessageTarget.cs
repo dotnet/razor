@@ -625,5 +625,49 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return request?.Response;
         }
+
+        public override async Task<IReadOnlyList<FoldingRange>> ProfideFoldingRangesAsync(FoldingRangeParams foldingRangeParams, CancellationToken cancellationToken)
+        {
+            if (foldingRangeParams is null)
+            {
+                throw new ArgumentNullException(nameof(foldingRangeParams));
+            }
+
+            if (!_documentManager.TryGetDocument(foldingRangeParams.TextDocument.Uri, out var document))
+            {
+                return Array.Empty<FoldingRange>();
+            }
+
+            var buffer = document.Snapshot.TextBuffer;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<FoldingRangeParams, FoldingRange[]>(
+                buffer,
+                Methods.TextDocumentFoldingRange.Name,
+                SupportsFoldingRange,
+                foldingRangeParams,
+                cancellationToken).ConfigureAwait(false);
+
+            var foldingRanges = new List<FoldingRange>();
+
+            await foreach (var response in requests)
+            {
+                if (response.Response is not null)
+                {
+                    foldingRanges.AddRange(response.Response);
+                }
+            }
+
+            return foldingRanges;
+        }
+
+        private static bool SupportsFoldingRange(JToken token)
+        {
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
+
+            var supportsFoldingRange = serverCapabilities?.FoldingRangeProvider?.Match(
+                boolValue => boolValue,
+                options => options is not null) ?? false;
+
+            return supportsFoldingRange;
+        }
     }
 }
