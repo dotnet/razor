@@ -18,19 +18,16 @@ const log = (text) => console.log(formatLog(text));
 const logError = (text) => console.error(formatLog(text));
 
 async function downloadProxyPackage(version) {
-    const nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
-    const packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer';
-
     const tmpDirectory = path.join(os.tmpdir(), 'blazorwasm-companion-tmp');
     if (!fs.existsSync(tmpDirectory)){
         fs.mkdirSync(tmpDirectory);
     }
-    const extractTarget = path.join(tmpDirectory, `extracted-${packageName}.${version}`);
 
-    const versionedPackageName = `${packageName.toLowerCase()}.${version}.nupkg`;
     // nuget.org requires the package name be lower-case
-    const downloadUrl = `${nugetUrl}/${packageName.toLowerCase()}/${version}/${versionedPackageName}`;
-    const downloadPath = path.join(tmpDirectory, versionedPackageName);
+    const nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
+    const packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer'.toLowerCase();
+    const versionedPackageName = `${packageName}.${version}.nupkg`;
+    const downloadUrl = `${nugetUrl}/${packageName}/${version}/${versionedPackageName}`;
 
     // Download and save nupkg to disk
     log(`Fetching package from ${downloadUrl}...`);
@@ -40,12 +37,15 @@ async function downloadProxyPackage(version) {
         logError(`Failed to download ${downloadUrl}`);
         throw new Error(`Unable to download BlazorDebugProxy: ${response.status} ${response.statusText}`);
     }
+
+    const downloadPath = path.join(tmpDirectory, versionedPackageName);
     const outputStream = fs.createWriteStream(downloadPath);
     response.body.pipe(outputStream);
+    await finished(outputStream);
 
     // Extract nupkg to extraction directory
     log(`Extracting NuGet package with directory...`)
-    await finished(outputStream);
+    const extractTarget = path.join(tmpDirectory, `extracted-${packageName}.${version}`);
     await extract(downloadPath, { dir: extractTarget });
     return extractTarget;
 }
@@ -66,8 +66,6 @@ async function copyDebugProxyAssets(version) {
     }
 
     const extracted = await downloadProxyPackage(version);
-
-    fs.rmSync(targetDirectory, { recursive: true, force: true });
 
     log(`Using ${targetDirectory} as targetDirectory...`);
     log(`Cleaning ${targetDirectory}...`);
