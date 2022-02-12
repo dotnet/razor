@@ -9,7 +9,6 @@ const extract = require('extract-zip');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
-const { spawn } = require("child_process");
 const os = require('os');
 
 const finished = util.promisify(stream.finished);
