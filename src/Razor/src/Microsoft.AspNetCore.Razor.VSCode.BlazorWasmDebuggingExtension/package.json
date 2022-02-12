@@ -42,7 +42,7 @@
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "clean": "rimraf dist",
-    "build": "yarn run clean && yarn run lint && yarn run compile",
+    "build": "yarn run clean && yarn run lint && yarn run compile && node scripts/retrieveDebugProxy.js",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
