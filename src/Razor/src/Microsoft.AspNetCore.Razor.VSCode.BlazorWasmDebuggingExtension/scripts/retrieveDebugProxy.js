@@ -12,15 +12,15 @@ const path = require('path');
 const { spawn } = require("child_process");
 const os = require('os');
 
-var finished = util.promisify(stream.finished);
+const finished = util.promisify(stream.finished);
 
 const formatLog = (text) => `[${new Date()}] ${text}`;
 const log = (text) => console.log(formatLog(text));
 const logError = (text) => console.error(formatLog(text));
 
 async function downloadProxyPackage(version) {
-    var nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
-    var packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer';
+    const nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
+    const packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer';
 
     const tmpDirectory = path.join(os.tmpdir(), 'blazorwasm-companion-tmp');
     if (!fs.existsSync(tmpDirectory)){
@@ -52,7 +52,7 @@ async function downloadProxyPackage(version) {
 }
 
 async function copyDebugProxyAssets(version) {
-    var targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
+    const targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
     const versionMarkerFile = path.join(targetDirectory, '_version');
     if (fs.existsSync(targetDirectory) && fs.existsSync(versionMarkerFile)) {
         const cachedVersion = fs.readFileSync(versionMarkerFile, { encoding: 'utf-8' });
@@ -66,7 +66,7 @@ async function copyDebugProxyAssets(version) {
         log(`No existing BlazorDebugProxy version found, downloading...`);
     }
 
-    var extracted = await downloadProxyPackage(version);
+    const extracted = await downloadProxyPackage(version);
     if (!extracted) {
         return;
     }
@@ -78,10 +78,9 @@ async function copyDebugProxyAssets(version) {
     fs.rmSync(targetDirectory, { recursive: true, force: true });
     fs.mkdirSync(targetDirectory);
 
-    var srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
+    const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
-    var exists = fs.existsSync(srcDirectory);
-    if (exists) {
+    if (fs.existsSync(srcDirectory)) {
         log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
         fs.readdirSync(srcDirectory).forEach(function(file) {
             log(`Copying ${file} to target directory...`);
