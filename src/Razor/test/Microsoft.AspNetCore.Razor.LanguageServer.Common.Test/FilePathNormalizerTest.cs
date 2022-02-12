@@ -3,15 +3,13 @@
 
 #nullable disable
 
-using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public class FilePathNormalizerTest
     {
-        [ConditionalFact]
-        [OSSkipCondition(OperatingSystems.MacOSX | OperatingSystems.Linux, SkipReason = "Test only valid on Windows boxes")]
+        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
         public void Normalize_Windows_StripsPrecedingSlash()
         {
             // Arrange
@@ -151,8 +149,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             Assert.Equal("/", normalized);
         }
 
-        [ConditionalFact]
-        [OSSkipCondition(OperatingSystems.Windows, SkipReason = "Test only valid on non-Windows boxes")]
+
+        [OSSkipConditionFact(new[] { "Windows" })]
         public void Normalize_NonWindows_AddsLeadingForwardSlash()
         {
             // Arrange
