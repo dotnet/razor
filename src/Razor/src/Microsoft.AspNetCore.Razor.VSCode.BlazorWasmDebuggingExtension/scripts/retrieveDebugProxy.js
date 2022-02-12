@@ -38,7 +38,7 @@ async function downloadProxyPackage(version) {
 
     if (!response.ok) {
         logError(`Failed to download ${downloadUrl}`);
-        return null;
+        throw new Error(`Unable to download BlazorDebugProxy: ${response.status} ${response.statusText}`);
     }
     const outputStream = fs.createWriteStream(downloadPath);
     response.body.pipe(outputStream);
@@ -66,9 +66,6 @@ async function copyDebugProxyAssets(version) {
     }
 
     const extracted = await downloadProxyPackage(version);
-    if (!extracted) {
-        return;
-    }
 
     fs.rmSync(targetDirectory, { recursive: true, force: true });
 
@@ -78,16 +75,13 @@ async function copyDebugProxyAssets(version) {
     fs.mkdirSync(targetDirectory);
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
-    log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
-    if (fs.existsSync(srcDirectory)) {
-        log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
-        fs.readdirSync(srcDirectory).forEach(function(file) {
-            log(`Copying ${file} to target directory...`);
-            fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
-        });
+    log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
+    fs.readdirSync(srcDirectory).forEach(function(file) {
+        log(`Copying ${file} to target directory...`);
+        fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
+    });
 
-        fs.writeFileSync(versionMarkerFile, version, { encoding: 'utf-8' });
-    }
+    fs.writeFileSync(versionMarkerFile, version, { encoding: 'utf-8' });
 }
 
 const debugProxyVersion = require('../package.json').debugProxyVersion;
