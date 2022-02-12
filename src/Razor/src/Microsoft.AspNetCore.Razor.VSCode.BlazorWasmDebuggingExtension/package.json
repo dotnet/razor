@@ -40,7 +40,7 @@
   },
   "contributes": {},
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
+    "vscode:prepublish": "yarn run build",
     "clean": "rimraf dist",
     "build": "yarn run clean && yarn run lint && yarn run compile && node scripts/retrieveDebugProxy.js",
     "compile": "tsc -p ./",
