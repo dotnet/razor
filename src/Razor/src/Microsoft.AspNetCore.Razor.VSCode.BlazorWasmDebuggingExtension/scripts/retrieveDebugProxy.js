@@ -52,15 +52,34 @@ async function downloadProxyPackage(version) {
 }
 
 async function copyDebugProxyAssets(version) {
+    var targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
+    const versionMarkerFile = path.join(targetDirectory, '_version');
+    if (fs.existsSync(targetDirectory) && fs.existsSync(versionMarkerFile)) {
+        const cachedVersion = fs.readFileSync(versionMarkerFile, { encoding: 'utf-8' });
+        if (cachedVersion === version) {
+            log(`Found up-to-date BlazorDebugProxy ${version}, nothing to do.`);
+            return;
+        }
+
+        log(`Cached BlazorDebugProxy ${cachedVersion} is not ${version}, downloading...`);
+    } else {
+        log(`No existing BlazorDebugProxy version found, downloading...`);
+    }
+
     var extracted = await downloadProxyPackage(version);
     if (!extracted) {
         return;
     }
 
+    fs.rmSync(targetDirectory, { recursive: true, force: true });
+
+    log(`Using ${targetDirectory} as targetDirectory...`);
+    log(`Cleaning ${targetDirectory}...`);
+    fs.rmSync(targetDirectory, { recursive: true, force: true });
+    fs.mkdirSync(targetDirectory);
+
     var srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
-    var targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
-    log(`Using ${targetDirectory} as targetDirectory...`);
     var exists = fs.existsSync(srcDirectory);
     if (exists) {
         log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
@@ -68,6 +87,8 @@ async function copyDebugProxyAssets(version) {
             log(`Copying ${file} to target directory...`);
             fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
         });
+
+        fs.writeFileSync(versionMarkerFile, version, { encoding: 'utf-8' });
     }
 }
 
