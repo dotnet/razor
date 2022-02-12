@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -20,15 +20,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// </remarks>
     internal sealed class SemanticTokensCache
     {
-        private const int TokenSize = 5;
+        // A semantic token is composed of 5 integers: deltaLine, deltaStart, length, tokenType, tokenModifiers
+        private const int IntegersPerToken = 5;
+
+        // This number is picked on a gut-feeling of what we imagine might be performant
         private const int MaxSemanticVersionPerDoc = 4;
+
+        private const int MaxDocumentLimit = 50;
 
         // Multiple cache requests or updates may be received concurrently. We need this lock to
         // ensure we aren't making concurrent modifications to the cache's underlying dictionary.
         private readonly object _dictLock = new();
 
         // Nested cache mapping (URI -> (semanticVersion -> (line #s -> tokens on line)))
-        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, IReadOnlyList<int>>>> _cache = new(sizeLimit: 50);
+        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>> _cache = new(MaxDocumentLimit);
 
         /// <summary>
         /// Caches tokens on a per-line basis. If the given line has already been cached for the document
@@ -46,13 +51,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (!_cache.TryGetValue(uri, out var documentCache))
             {
-                documentCache = new MemoryCache<VersionStamp, Dictionary<int, IReadOnlyList<int>>>(sizeLimit: MaxSemanticVersionPerDoc);
+                documentCache = new MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>(sizeLimit: MaxSemanticVersionPerDoc);
                 _cache.Set(uri, documentCache);
             }
 
             if (!documentCache.TryGetValue(semanticVersion, out var lineToTokensDict))
             {
-                lineToTokensDict = new Dictionary<int, IReadOnlyList<int>>();
+                lineToTokensDict = new Dictionary<int, ImmutableArray<int>>();
                 documentCache.Set(semanticVersion, lineToTokensDict);
             }
 
@@ -77,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range requestedRange,
-            [NotNullWhen(true)] out (Range Range, List<int> Tokens)? cachedTokens)
+            [NotNullWhen(true)] out (Range Range, ImmutableArray<int> Tokens)? cachedTokens)
         {
             if (!_cache.TryGetValue(uri, out var documentCache) ||
                 !documentCache.TryGetValue(semanticVersion, out var lineToTokensDict))
@@ -94,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var cachedRangeLength = 0;
 
             var tokens = GetCachedTokens(requestedRange, lineToTokensDict, ref cachedRangeStart, ref cachedRangeLength);
-            if (tokens.Count == 0)
+            if (tokens.Length == 0)
             {
                 // We couldn't find any tokens associated with the passed-in range
                 cachedTokens = null;
@@ -111,7 +116,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        private void CacheTokensPerLine(Range range, int[] tokens, Dictionary<int, IReadOnlyList<int>> lineToTokensDict)
+        /// <summary>
+        /// Given the tokens, place them in the lineToTokensDict according to the line they belong on.
+        /// </summary>
+        /// <param name="range">The range within the document that these tokens represent.</param>
+        /// <param name="tokens">The tokens for the document within the given range. line count begins at the begining of the document regardless of the area the range represents</param>
+        /// <param name="lineToTokensDict">A dictionary onto which to add tokens.</param>
+        private void CacheTokensPerLine(Range range, int[] tokens, Dictionary<int, ImmutableArray<int>> lineToTokensDict)
         {
             var absoluteLine = 0;
 
@@ -124,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // Don't cache tokens outside of the given range
                 if (absoluteLine < range.Start.Line)
                 {
-                    tokenIndex += TokenSize;
+                    tokenIndex += IntegersPerToken;
                     continue;
                 }
 
@@ -138,20 +149,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     if (lineToTokensDict.TryGetValue(absoluteLine, out _))
                     {
                         // This line is already cached, so we can skip it
-                        tokenIndex += TokenSize;
+                        tokenIndex += IntegersPerToken;
                         continue;
                     }
                 }
 
                 // Cache until we hit the next line or the end of the tokens
-                var lineTokens = new List<int>();
+                var lineArrayBuilder = ImmutableArray.CreateBuilder<int>();
                 do
                 {
-                    lineTokens.Add(tokens[tokenIndex]);
-                    lineTokens.Add(tokens[tokenIndex + 1]);
-                    lineTokens.Add(tokens[tokenIndex + 2]);
-                    lineTokens.Add(tokens[tokenIndex + 3]);
-                    lineTokens.Add(tokens[tokenIndex + 4]);
+                    lineArrayBuilder.AddRange(
+                        tokens[tokenIndex],
+                        tokens[tokenIndex + 1],
+                        tokens[tokenIndex + 2],
+                        tokens[tokenIndex + 3],
+                        tokens[tokenIndex + 4]);
 
                     tokenIndex += 5;
                 }
@@ -159,12 +171,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 lock (_dictLock)
                 {
-                    lineToTokensDict.Add(absoluteLine, lineTokens);
+                    lineToTokensDict[absoluteLine] = lineArrayBuilder.ToImmutableArray();
                 }
             }
         }
 
-        private void FillInEmptyLineGaps(Range range, Dictionary<int, IReadOnlyList<int>> lineToTokensDict)
+        private void FillInEmptyLineGaps(Range range, Dictionary<int, ImmutableArray<int>> lineToTokensDict)
         {
             // Fill in the gaps for empty lines. When looking up tokens later, this helps us differentiate
             // between empty lines vs. lines we don't have cached tokens for.
@@ -174,19 +186,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     if (!lineToTokensDict.TryGetValue(lineIndex, out _))
                     {
-                        lineToTokensDict.Add(lineIndex, Array.Empty<int>());
+                        lineToTokensDict.Add(lineIndex, ImmutableArray<int>.Empty);
                     }
                 }
             }
         }
 
-        private List<int> GetCachedTokens(
+        private ImmutableArray<int> GetCachedTokens(
             Range requestedRange,
-            Dictionary<int, IReadOnlyList<int>> lineToTokensDict,
+            Dictionary<int, ImmutableArray<int>> lineToTokensDict,
             ref Position? cachedRangeStart,
             ref int cachedRangeLength)
         {
-            var tokens = new List<int>();
+            var tokens = ImmutableArray.CreateBuilder<int>();
 
             // Keeps track of the current empty line count since the last line of tokens (needed for calculating line offsets)
             var currentEmptyLineCount = 0;
@@ -194,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Retrieve the cached tokens associated with the passed-in range
             for (var currentLineNumber = requestedRange.Start.Line; currentLineNumber < requestedRange.End.Line; currentLineNumber++)
             {
-                IReadOnlyList<int>? lineTokens = null;
+                ImmutableArray<int> lineTokens;
                 lock (_dictLock)
                 {
                     if (!lineToTokensDict.TryGetValue(currentLineNumber, out lineTokens))
@@ -219,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 // If a line's List is empty, it means the line has no tokens. However, we still want
                 // to keep track of empty lines in order to later compute line offsets.
-                if (lineTokens.Count == 0)
+                if (lineTokens.Length == 0)
                 {
                     currentEmptyLineCount++;
                     continue;
@@ -231,11 +243,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 currentEmptyLineCount = 0;
             }
 
-            return tokens;
+            return tokens.ToImmutableArray();
         }
 
-        private static List<int> ProcessCachedLine(
-            List<int> tokens,
+        private static ImmutableArray<int>.Builder ProcessCachedLine(
+            ImmutableArray<int>.Builder tokens,
             int currentEmptyLineCount,
             int currentLineNumber,
             IReadOnlyList<int> lineTokens)

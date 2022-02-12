@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // The cache returned to us an exact match for the range we're looking for, so we can return early.
             if (cachedRange.Equals(range))
             {
-                return new SemanticTokens { Data = cachedTokens.ToImmutableArray() };
+                return new SemanticTokens { Data = cachedTokens };
             }
 
             // The cache returned to us only a partial match for the range. We'll need to compute the rest by
@@ -152,10 +152,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             VersionStamp semanticVersion,
             Range requestedRange,
             Range cachedRange,
-            List<int> cachedTokens,
+            ImmutableArray<int> cachedTokens,
             CancellationToken cancellationToken)
         {
-            var finalTokens = new List<int>();
+            var finalTokens = ImmutableArray.CreateBuilder<int>();
 
             // There are 3 scenarios:
             //    1) The cached result is at the start of the range
@@ -175,12 +175,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // start of the range -> start of the cached range (if applicable).
             if (cachedRange.Start.Line != requestedRange.Start.Line)
             {
-                if (startTokens is null)
-                {
-                    return null;
-                }
+                Debug.Assert(startTokens is not null);
 
-                absoluteLine = AddStartingTokens(requestedRange, cachedRange, finalTokens, startTokens);
+                absoluteLine = AddStartingTokens(requestedRange, cachedRange, finalTokens, startTokens!);
             }
 
             // b) Add the cached range tokens to the results.
@@ -189,12 +186,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // c) Process the ending range tokens (if applicable).
             if (requestedRange.End.Line != cachedRange.End.Line)
             {
-                if (endTokens is null)
-                {
-                    return null;
-                }
+                Debug.Assert(endTokens is not null);
 
-                AddEndingTokens(requestedRange, cachedRange, finalTokens, absoluteLine, endTokens);
+                AddEndingTokens(requestedRange, cachedRange, finalTokens, absoluteLine, endTokens!);
             }
 
             // We should now have all the tokens for the requested range (a combination of computed results and cached results).
@@ -213,24 +207,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (cachedRange.Start.Line != requestedRange.Start.Line)
                 {
                     var partialRange = new Range { Start = requestedRange.Start, End = cachedRange.Start };
-                    startTokensTask = ComputeAndCacheTokensAsync(
+                    startTokensTask = Task.Run(() => ComputeAndCacheTokensAsync(
                         textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                        partialRange, cancellationToken);
+                        partialRange, cancellationToken));
                 }
 
                 var endTokensTask = Task.FromResult<SemanticTokens?>(null);
                 if (requestedRange.End.Line != cachedRange.End.Line)
                 {
                     var partialRange = new Range { Start = cachedRange.End, End = requestedRange.End };
-                    endTokensTask = ComputeAndCacheTokensAsync(
+                    endTokensTask = Task.Run(() => ComputeAndCacheTokensAsync(
                         textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                        partialRange, cancellationToken);
+                        partialRange, cancellationToken));
                 }
 
-                await Task.WhenAll(startTokensTask, endTokensTask).ConfigureAwait(false);
-
-                var startTokens = await startTokensTask;
-                var endTokens = await endTokensTask;
+                var startTokens = await startTokensTask.ConfigureAwait(false);
+                var endTokens = await endTokensTask.ConfigureAwait(false);
 
                 return (startTokens, endTokens);
             }
@@ -259,7 +251,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             static int AddStartingTokens(
                 Range requestedRange,
                 Range cachedRange,
-                List<int> finalTokens,
+                ImmutableArray<int>.Builder finalTokens,
                 SemanticTokens startingTokens)
             {
                 // Add the partially computed range to the results. We need to also keep track of the current
@@ -295,14 +287,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return absoluteLine;
             }
 
-            static int AddCachedTokens(List<int> cachedTokens, List<int> finalTokens, int absoluteLine)
+            static int AddCachedTokens(ImmutableArray<int> cachedTokens, ImmutableArray<int>.Builder finalTokens, int absoluteLine)
             {
                 // First token of the cached token set should be relative to either the start of the document
                 // (if the current line is the first tokens line) or the previous line containing tokens
                 finalTokens.Add(cachedTokens[0] - absoluteLine);
                 absoluteLine = cachedTokens[0];
 
-                for (var cachedTokenIndex = 1; cachedTokenIndex < cachedTokens.Count; cachedTokenIndex++)
+                for (var cachedTokenIndex = 1; cachedTokenIndex < cachedTokens.Length; cachedTokenIndex++)
                 {
                     finalTokens.Add(cachedTokens[cachedTokenIndex]);
 
@@ -319,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             static void AddEndingTokens(
                 Range requestedRange,
                 Range cachedRange,
-                List<int> finalTokens,
+                ImmutableArray<int>.Builder finalTokens,
                 int cachedTokensEndAbsoluteLine,
                 SemanticTokens endingTokens)
             {
@@ -329,7 +321,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     // The first int of each token represents the line offset. We use this info to keep track of the
                     // absolute line for use later on when computing relative token positions.
-                    if (tokenIndex % 5 == 0)
+                    if (tokenIndex % TokenSize == 0)
                     {
                         absoluteLine = tokenIndex == 0 ? endingTokens.Data[0] : absoluteLine + endingTokens.Data[tokenIndex];
 
