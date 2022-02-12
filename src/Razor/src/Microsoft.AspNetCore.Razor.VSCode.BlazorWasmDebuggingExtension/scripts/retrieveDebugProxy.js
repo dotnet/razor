@@ -70,14 +70,10 @@ async function copyDebugProxyAssets(version) {
     log(`Using ${targetDirectory} as targetDirectory...`);
     log(`Cleaning ${targetDirectory}...`);
     fs.rmSync(targetDirectory, { recursive: true, force: true });
-    fs.mkdirSync(targetDirectory);
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
-    log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
-    fs.readdirSync(srcDirectory).forEach(function(file) {
-        log(`Copying ${file} to target directory...`);
-        fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
-    });
+    log(`Moving BlazorDebugProxy assets from ${srcDirectory} to ${targetDirectory}...`);
+    fs.renameSync(srcDirectory, targetDirectory);
 
     fs.writeFileSync(versionMarkerFile, version, { encoding: 'utf-8' });
 }
