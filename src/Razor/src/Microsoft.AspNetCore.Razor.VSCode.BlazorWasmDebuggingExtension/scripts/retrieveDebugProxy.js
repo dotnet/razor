@@ -69,7 +69,7 @@ async function copyDebugProxyAssets(version) {
 
     log(`Using ${targetDirectory} as targetDirectory...`);
     log(`Cleaning ${targetDirectory}...`);
-    fs.rmSync(targetDirectory, { recursive: true, force: true });
+    fs.rmdirSync(targetDirectory);
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Moving BlazorDebugProxy assets from ${srcDirectory} to ${targetDirectory}...`);
