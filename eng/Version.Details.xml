@@ -21,26 +21,14 @@
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>ca1728b83851de4211477ab37a2460bf567544d3</Sha>
     </Dependency>
-    <Dependency Name="System.Resources.Extensions" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Extensions.DependencyModel" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.NETCore.BrowserDebugHost.Transport" Version="6.0.1-servicing.21567.5" CoherentParentDependency="Microsoft.AspNetCore.Testing">
+    <Dependency Name="Microsoft.NETCore.BrowserDebugHost.Transport" Version="6.0.1-servicing.21567.5">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="6.0.1" CoherentParentDependency="Microsoft.AspNetCore.Testing">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="6.0.1">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>
