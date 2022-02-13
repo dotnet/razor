@@ -75,9 +75,10 @@ async function copyDebugProxyAssets(version) {
     if (fs.existsSync(targetDirectory)) {
         fs.rmdirSync(targetDirectory);
     }
+    fs.mkdirSync(targetDirectory);
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
-    log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
+    log(`Copying BlazorDebugProxy assets from ${srcDirectory} to ${targetDirectory}...`);
     fs.readdirSync(srcDirectory).forEach(function(file) {
         log(`Copying ${file} to target directory...`);
         fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
