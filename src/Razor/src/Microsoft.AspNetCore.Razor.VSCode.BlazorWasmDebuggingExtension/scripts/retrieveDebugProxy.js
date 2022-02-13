@@ -77,8 +77,11 @@ async function copyDebugProxyAssets(version) {
     }
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
-    log(`Moving BlazorDebugProxy assets from ${srcDirectory} to ${targetDirectory}...`);
-    fs.renameSync(srcDirectory, targetDirectory);
+    log(`Copying BlazorDebugProxy assets from ${srcDirectory} to bundle...`);
+    fs.readdirSync(srcDirectory).forEach(function(file) {
+        log(`Copying ${file} to target directory...`);
+        fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
+    });
 
     fs.writeFileSync(versionMarkerFile, version, { encoding: 'utf-8' });
 }
