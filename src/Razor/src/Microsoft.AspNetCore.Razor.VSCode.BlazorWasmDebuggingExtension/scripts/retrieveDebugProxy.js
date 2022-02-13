@@ -69,7 +69,12 @@ async function copyDebugProxyAssets(version) {
 
     log(`Using ${targetDirectory} as targetDirectory...`);
     log(`Cleaning ${targetDirectory}...`);
-    fs.rmdirSync(targetDirectory);
+
+    // TODO: This can be replaced by fs.rmSync(targetDirectory, { recursive: true, force: true })
+    // on Node 14+. No existsSync check needed.
+    if (fs.existsSync(targetDirectory)) {
+        fs.rmdirSync(targetDirectory);
+    }
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Moving BlazorDebugProxy assets from ${srcDirectory} to ${targetDirectory}...`);
