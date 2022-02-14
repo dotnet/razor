@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         }
 
         private static string GetResourceName(string name, string suffix)
-            => $"{typeof(FormatDocumentTests).Namespace}.Formatting.TestFiles.{suffix}";
+            => $"{typeof(FormatDocumentTests).Namespace}.Formatting.TestFiles.{name}.{suffix}";
 
         private static bool TryGetResource(string name, [NotNullWhen(true)] out string? value)
         {
