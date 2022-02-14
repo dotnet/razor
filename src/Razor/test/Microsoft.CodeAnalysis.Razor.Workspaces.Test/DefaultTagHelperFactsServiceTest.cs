@@ -390,7 +390,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         [Fact]
         public void GetNearestAncestorTagHelperBinding_WithoutTagHelperParent()
-        {            // Arrange
+        {
+            // Arrange
             var expectedDescriptors = new[]
             {
                 TagHelperDescriptorBuilder.Create("TestType", "TestAssembly")
@@ -412,7 +413,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
             var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
             var service = new DefaultTagHelperFactsService();
-            var ancestors = new List<SyntaxNode>() {
+            var ancestors = new List<SyntaxNode>()
+            {
+
             };
 
             // Act
