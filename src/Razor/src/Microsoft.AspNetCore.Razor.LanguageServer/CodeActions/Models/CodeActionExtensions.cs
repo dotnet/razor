@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             };
             razorCodeAction = razorCodeAction with { Data = JToken.FromObject(resolutionParams) };
 
-            if (razorCodeAction.Children?.Length != 0)
+            if (razorCodeAction.Children != null)
             {
                 for (var i = 0; i < razorCodeAction.Children.Length; i++)
                 {

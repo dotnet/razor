@@ -397,7 +397,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             using var streamReader = new StreamReader(stream);
             using var reader = new JsonTextReader(streamReader);
 
-            return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
+            return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader)!;
         }
     }
 }

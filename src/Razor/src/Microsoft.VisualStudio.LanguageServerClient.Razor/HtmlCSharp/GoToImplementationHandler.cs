@@ -10,12 +10,13 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentImplementationName)]
-    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, Location[]>
+    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
         }
 
-        public async Task<Location[]?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<SumType<Location[]?, VSInternalReferenceItem[]?>> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
-                return null;
+                return new();
             }
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(
@@ -90,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                return null;
+                return new();
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -110,32 +111,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting {languageServerName} implementation for {projectionResult.Uri}.");
 
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(
                 textBuffer,
                 Methods.TextDocumentImplementationName,
                 languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var locations))
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var result))
             {
-                return null;
+                return new();
             }
-
-            if (locations.Length == 0)
-            {
-                _logger.LogInformation("Received no results.");
-                return locations;
-            }
-
-            _logger.LogInformation($"Received {locations.Length} results, remapping.");
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
+            // From some language servers we get VSInternalReferenceItem results, and from some we get Location results.
+            // We check for the _vs_id property, which is required in VSInternalReferenceItem, to know which is which.
+            if (result.Value is VSInternalReferenceItem[] referenceItems)
+            {
+                var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Returning {remappedLocations?.Length} locations.");
-            return remappedLocations;
+                _logger.LogInformation($"Returning {remappedLocations?.Length} internal reference items.");
+                return remappedLocations;
+            }
+            else if (result.Value is Location[] locations)
+            {
+                var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
+
+                _logger.LogInformation($"Returning {remappedLocations?.Length} locations.");
+
+                return remappedLocations;
+            }
+
+            _logger.LogInformation("Received no results.");
+            return Array.Empty<VSInternalReferenceItem>();
         }
     }
 }
