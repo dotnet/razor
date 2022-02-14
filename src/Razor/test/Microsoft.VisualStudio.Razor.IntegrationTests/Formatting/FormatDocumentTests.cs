@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -33,9 +32,25 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         // You'll just have to write tests for those ones :P
 
         [IdeTheory]
-        [MemberData(nameof(GetFormattingInputFiles))]
-        public async Task FormattingDocument(string inputResourceName, string expectedResourceName)
+        [InlineData("BadlyFormattedCounter.razor")]
+        [InlineData("FormatAndUndo.cshtml")]
+        [InlineData("FormatCommentWithKeyword.cshtml")]
+        [InlineData("FormatDocument.cshtml")]
+        [InlineData("FormatDocumentAfterEdit.cshtml")]
+        [InlineData("FormatDocumentWithTextAreaAttributes.cshtml")]
+        [InlineData("FormatIfBlockInsideForBlock.cshtml")]
+        [InlineData("FormatOnPaste.cshtml")]
+        [InlineData("FormatOnPasteContainedLanguageCode.cshtml")]
+        [InlineData("FormatRazorAttribute.cshtml")]
+        [InlineData("FormatSelection.cshtml")]
+        [InlineData("FormatSelectionStartingWithContainedLanguageCode.cshtml")]
+        [InlineData("FormatSwitchCaseBlock.cshtml")]
+        [InlineData("RazorInCssClassAttribute.cshtml")]
+        public async Task FormattingDocument(string testFileName)
         {
+            var inputResourceName = GetResourceName(testFileName, "Input");
+            var expectedResourceName = GetResourceName(testFileName, "Expected");
+
             if (!TryGetResource(inputResourceName, out var input))
             {
                 throw new Exception($"Could not get input resource data for '{inputResourceName}'");
@@ -67,6 +82,9 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             Assert.Equal(expected, actual);
         }
 
+        private static string GetResourceName(string name, string suffix)
+            => $"{typeof(FormatDocumentTests).Namespace}.Formatting.TestFiles.{suffix}";
+
         private static bool TryGetResource(string name, [NotNullWhen(true)] out string? value)
         {
             try
@@ -83,23 +101,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             return true;
-        }
-
-        public static IEnumerable<object[]> GetFormattingInputFiles()
-        {
-            var type = typeof(FormatDocumentTests);
-            var assembly = type.Assembly;
-
-            var basePath = $"{type.Namespace}.Formatting.TestFiles.Input";
-
-            foreach (var name in assembly.GetManifestResourceNames())
-            {
-                if (name.StartsWith(basePath))
-                {
-                    var expectedStreamName = name.Replace(".Input.", ".Expected.");
-                    yield return new[] { name, expectedStreamName };
-                }
-            }
         }
     }
 }
