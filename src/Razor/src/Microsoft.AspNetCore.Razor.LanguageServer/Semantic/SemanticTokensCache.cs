@@ -38,7 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         /// <summary>
         /// Caches tokens on a per-line basis. If the given line has already been cached for the document
-        /// and its semantic version, the line's tokens will be ignored.
+        /// and its semantic version, the line's tokens will be ignored. Note caching will not occur if the
+        /// range contains partial lines.
         /// </summary>
         /// <param name="uri">The URI associated with the passed-in tokens.</param>
         /// <param name="semanticVersion">The document's semantic version associated with the passed-in tokens.</param>
@@ -50,6 +51,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Range range,
             int[] tokens)
         {
+            // For the most part, today the LSP client doesn't send us ranges that start or end midway through a line.
+            // The exception to this is if the user is at the end of the document which does not have a new line.
+            // Handling this caching case would require adding a significant amount of logic, so for now we'll skip
+            // this scenario since it's most common in smaller files for which using the cache isn't as important.
+            if (range.Start.Character != 0 || range.End.Character != 0)
+            {
+                return;
+            }
+
             if (!_cache.TryGetValue(uri, out var documentCache))
             {
                 documentCache = new MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>(sizeLimit: MaxSemanticVersionPerDoc);
@@ -78,6 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <returns>
         /// True if at least a partial match for the range was found. The 'Range' out var specifies the subset of
         /// the requested range that was found, and the 'Tokens' out var contains the tokens for that subset range.
+        /// No results will be returned if the requested range contains partial lines.
         /// </returns>
         public bool TryGetCachedTokens(
             DocumentUri uri,
@@ -85,6 +96,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Range requestedRange,
             [NotNullWhen(true)] out (Range Range, ImmutableArray<int> Tokens)? cachedTokens)
         {
+            // Don't return results for partial lines, we don't handle them currently due to
+            // the need for extra logic and computation.
+            if (requestedRange.Start.Character != 0 || requestedRange.End.Character != 0)
+            {
+                cachedTokens = null;
+                return false;
+            }
+
             if (!_cache.TryGetValue(uri, out var documentCache) ||
                 !documentCache.TryGetValue(semanticVersion, out var lineToTokensDict))
             {
@@ -93,13 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            // Keep track of where the cached range begins
-            Position? cachedRangeStart = null;
-
-            // Keep track of the length of the cached range
-            var cachedRangeLength = 0;
-
-            var tokens = GetCachedTokens(requestedRange, lineToTokensDict, ref cachedRangeStart, ref cachedRangeLength);
+            var tokens = GetCachedTokens(requestedRange, lineToTokensDict, out var cachedRangeStart, out var numLinesInCachedRange);
             if (tokens.Length == 0)
             {
                 // We couldn't find any tokens associated with the passed-in range
@@ -110,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assumes.NotNull(cachedRangeStart);
 
             // We can potentially return a partial range match if we can't find a full range match.
-            var endPosition = new Position { Line = cachedRangeStart.Line + cachedRangeLength, Character = 0 };
+            var endPosition = new Position { Line = cachedRangeStart.Line + numLinesInCachedRange, Character = 0 };
             var range = new Range { Start = cachedRangeStart, End = endPosition };
 
             cachedTokens = (range, tokens);
@@ -166,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         tokens[tokenIndex + 3],
                         tokens[tokenIndex + 4]);
 
-                    tokenIndex += 5;
+                    tokenIndex += IntegersPerToken;
                 }
                 while (tokenIndex < tokens.Length && tokens[tokenIndex] == 0);
 
@@ -181,9 +194,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Fill in the gaps for empty lines. When looking up tokens later, this helps us differentiate
             // between empty lines vs. lines we don't have cached tokens for.
-            for (var lineIndex = range.Start.Line; lineIndex < range.End.Line; lineIndex++)
+            lock (_dictLock)
             {
-                lock (_dictLock)
+                for (var lineIndex = range.Start.Line; lineIndex < range.End.Line; lineIndex++)
                 {
                     if (!lineToTokensDict.TryGetValue(lineIndex, out _))
                     {
@@ -196,10 +209,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private ImmutableArray<int> GetCachedTokens(
             Range requestedRange,
             Dictionary<int, ImmutableArray<int>> lineToTokensDict,
-            ref Position? cachedRangeStart,
-            ref int cachedRangeLength)
+            out Position? cachedRangeStart,
+            out int numLinesInCachedRange)
         {
             var tokens = ImmutableArray.CreateBuilder<int>();
+
+            // Keep track of where the cached range begins
+            cachedRangeStart = null;
+
+            // Keep track of the number of lines in the cached range
+            numLinesInCachedRange = 0;
 
             // Keeps track of the current empty line count since the last line of tokens (needed for calculating line offsets)
             var currentEmptyLineCount = 0;
@@ -228,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 cachedRangeStart ??= new Position { Line = currentLineNumber, Character = 0 };
-                cachedRangeLength++;
+                numLinesInCachedRange++;
 
                 // If a line's List is empty, it means the line has no tokens. However, we still want
                 // to keep track of empty lines in order to later compute line offsets.

@@ -78,9 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var (documentSnapshot, documentVersion) = documentInfo.Value;
 
-            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
-
-            return await GetSemanticTokensAsync(textDocumentIdentifier, range, documentSnapshot, documentVersion, semanticVersion, cancellationToken);
+            return await GetSemanticTokensAsync(textDocumentIdentifier, range, documentSnapshot, documentVersion, cancellationToken);
         }
 
         // Internal for benchmarks
@@ -89,35 +87,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range range,
             DocumentSnapshot documentSnapshot,
             int documentVersion,
-            VersionStamp semanticVersion,
             CancellationToken cancellationToken)
         {
-            // Today the LSP client doesn't send us ranges that start or end midway through a line, but we'll be
-            // defensive here since our tokens cache is only meant to be used with complete lines.
-            // The one exception is if you're at the end of a document which does not have a trailing newline.
-            if (range.Start.Character != 0 || range.End.Character != 0)
-            {
-                _logger.LogWarning($"Requested range starts or ends midway through a line: {range}");
-                var (tokens, _) = await GetSemanticTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
-
-                return tokens;
-            }
+            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
             // See if we can use our cache to at least partially avoid recomputation.
             if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, out var cachedResult))
             {
                 // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
                 // results to use next time around.
-                var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
-
-                // Only cache tokens if C# has finalized their tokens (meaning they were computed using
-                // a full semantic model rather than a partial one)
-                if (isCSharpFinalized && tokens is not null)
-                {
-                    _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
-                }
+                var tokens = await GetSemanticTokensAsync(
+                    textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, range, cancellationToken);
 
                 return tokens;
             }
@@ -165,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // For 2), we need to send two requests (one for the missing start range, and one for the missing end range).
 
             // Try to concurrently process requests if there are multiple
-            var (startTokens, endTokens) = await ComputeAndCacheTokensInParallelAsync(
+            var (startTokens, endTokens) = await ComputeTokensInParallelAsync(
                 textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
                 requestedRange, cachedRange, cancellationToken).ConfigureAwait(false);
 
@@ -194,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // We should now have all the tokens for the requested range (a combination of computed results and cached results).
             return new SemanticTokens { Data = finalTokens.ToImmutableArray() };
 
-            async Task<(SemanticTokens? StartTokens, SemanticTokens? EndTokens)> ComputeAndCacheTokensInParallelAsync(
+            async Task<(SemanticTokens? StartTokens, SemanticTokens? EndTokens)> ComputeTokensInParallelAsync(
                 TextDocumentIdentifier textDocumentIdentifier,
                 DocumentSnapshot documentSnapshot,
                 int documentVersion,
@@ -207,45 +187,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (cachedRange.Start.Line != requestedRange.Start.Line)
                 {
                     var partialRange = new Range { Start = requestedRange.Start, End = cachedRange.Start };
-                    startTokensTask = Task.Run(() => ComputeAndCacheTokensAsync(
-                        textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                        partialRange, cancellationToken));
+                    startTokensTask = Task.Run(() => GetSemanticTokensAsync(
+                        textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, partialRange, cancellationToken));
                 }
 
                 var endTokensTask = Task.FromResult<SemanticTokens?>(null);
                 if (requestedRange.End.Line != cachedRange.End.Line)
                 {
                     var partialRange = new Range { Start = cachedRange.End, End = requestedRange.End };
-                    endTokensTask = Task.Run(() => ComputeAndCacheTokensAsync(
-                        textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                        partialRange, cancellationToken));
+                    endTokensTask = Task.Run(() => GetSemanticTokensAsync(
+                        textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, partialRange, cancellationToken));
                 }
 
                 var startTokens = await startTokensTask.ConfigureAwait(false);
                 var endTokens = await endTokensTask.ConfigureAwait(false);
 
                 return (startTokens, endTokens);
-            }
-
-            async Task<SemanticTokens?> ComputeAndCacheTokensAsync(
-                TextDocumentIdentifier textDocumentIdentifier,
-                DocumentSnapshot documentSnapshot,
-                int documentVersion,
-                VersionStamp semanticVersion,
-                Range partialRange,
-                CancellationToken cancellationToken)
-            {
-                var (tokens, isCSharpFinalized) = await GetSemanticTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, documentVersion, partialRange, cancellationToken).ConfigureAwait(false);
-
-                // Only cache tokens if C# has finalized their tokens (meaning they were computed using
-                // a full semantic model rather than a partial one)
-                if (isCSharpFinalized && tokens is not null)
-                {
-                    _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, partialRange, tokens.Data.ToArray());
-                }
-
-                return tokens;
             }
 
             static int AddStartingTokens(
@@ -312,7 +269,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 Range requestedRange,
                 Range cachedRange,
                 ImmutableArray<int>.Builder finalTokens,
-                int cachedTokensEndAbsoluteLine,
+                int cachedTokensAbsoluteEndLine,
                 SemanticTokens endingTokens)
             {
                 var isFirstTokenInRange = true;
@@ -334,7 +291,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         // First token of the ending set should be relative to the end line of the cached tokens set
                         if (isFirstTokenInRange)
                         {
-                            finalTokens.Add(absoluteLine - cachedTokensEndAbsoluteLine);
+                            finalTokens.Add(absoluteLine - cachedTokensAbsoluteEndLine);
                             isFirstTokenInRange = false;
                             continue;
                         }
@@ -354,9 +311,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal for benchmarks
-        internal async Task<(SemanticTokens? Tokens, bool IsCSharpFinalized)> GetSemanticTokensAsync(
+        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             DocumentSnapshot documentSnapshot,
+            VersionStamp semanticVersion,
             int documentVersion,
             Range range,
             CancellationToken cancellationToken)
@@ -389,13 +347,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
             if (combinedSemanticRanges is null)
             {
-                return (null, isCSharpFinalized);
+                return null;
             }
 
             var data = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
             var tokens = new SemanticTokens { Data = data };
 
-            return (tokens, isCSharpFinalized);
+            if (isCSharpFinalized && tokens is not null)
+            {
+                _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
+            }
+
+            return tokens;
         }
 
         private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
