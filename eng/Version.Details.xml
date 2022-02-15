@@ -9,10 +9,6 @@
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>427991ec87d4df83fdb7a24425c3cce550cf2423</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="6.0.3-servicing.22110.12">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>00d34c3bd7e6eaedb3e90bb553486900f8ef94d4</Sha>
-    </Dependency>
     <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="7.0.0-preview.2.22081.4">
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>427991ec87d4df83fdb7a24425c3cce550cf2423</Sha>
@@ -25,39 +21,15 @@
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>427991ec87d4df83fdb7a24425c3cce550cf2423</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Configuration" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
     <Dependency Name="Microsoft.NET.Sdk.Razor" Version="6.0.0-alpha.1.21072.5">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>20b6779cf3af2fed6a8fe64a0865cfab50b776bb</Sha>
-    </Dependency>
-    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="System.Resources.Extensions" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Extensions.DependencyModel" Version="6.0.0" CoherentParentDependency="Microsoft.AspNetCore.Testing">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>4822e3c3aa77eb82b2fb33c9321f923cf11ddde6</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NETCore.App.Ref" Version="6.0.2" CoherentParentDependency="Microsoft.AspNetCore.Testing">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>839cdfb0ecca5e0be3dbccd926e7651ef50fdf10</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NETCore.BrowserDebugHost.Transport" Version="6.0.2-servicing.22064.6" CoherentParentDependency="Microsoft.AspNetCore.Testing">
+    <Dependency Name="Microsoft.NETCore.BrowserDebugHost.Transport" Version="6.0.2-servicing.22064.6">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>839cdfb0ecca5e0be3dbccd926e7651ef50fdf10</Sha>
     </Dependency>
@@ -72,7 +44,7 @@
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="6.0.1" CoherentParentDependency="Microsoft.AspNetCore.Testing">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="6.0.1">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>

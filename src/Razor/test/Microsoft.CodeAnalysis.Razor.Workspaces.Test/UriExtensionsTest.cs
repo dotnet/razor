@@ -4,15 +4,14 @@
 #nullable disable
 
 using System;
-using Microsoft.AspNetCore.Testing;
+using Microsoft.AspNetCore.Razor;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
     public class UriExtensionsTest
     {
-        [Fact]
-        [OSSkipCondition(OperatingSystems.MacOSX | OperatingSystems.Linux, SkipReason = "Test only valid on Windows boxes")]
+        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
         public void GetAbsoluteOrUNCPath_ReturnsAbsolutePath()
         {
             // Arrange
