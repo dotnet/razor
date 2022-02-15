@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,7 +84,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
 
             var documentLineCount = Range.End.Line;
-            var semanticVersion = VersionStamp.Create();
 
             var lineCount = 0;
             while (lineCount != documentLineCount)
@@ -97,7 +95,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                     range,
                     DocumentSnapshot,
                     documentVersion,
-                    semanticVersion,
                     cancellationToken);
 
                 lineCount = newLineCount;
