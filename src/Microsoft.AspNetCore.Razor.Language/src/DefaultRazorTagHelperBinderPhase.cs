@@ -265,8 +265,7 @@ internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTa
                 {
                     // If this is a child content tag helper, we want to add it if it's original type is in scope.
                     // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in scope.
-                    TrySplitNamespaceAndType(tagHelper, out var typeNamespace);
-                    if (!typeNamespace.IsEmpty && IsTypeInScope(typeNamespace, currentNamespace))
+                    if (IsTypeInScope(tagHelper, currentNamespace))
                     {
                         Matches.Add(tagHelper);
                     }
@@ -352,8 +351,7 @@ internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTa
                         {
                             // If this is a child content tag helper, we want to add it if it's original type is in scope of the given namespace.
                             // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in this namespace.
-                            TrySplitNamespaceAndType(tagHelper, out var typeName);
-                            if (!typeName.IsEmpty && IsTypeInNamespace(typeName, @namespace))
+                            if (IsTypeInNamespace(tagHelper, @namespace))
                             {
                                 Matches.Add(tagHelper);
                             }
@@ -368,26 +366,15 @@ internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTa
             }
         }
 
-        internal static bool IsTypeInNamespace(StringSegment typeName, string @namespace)
-        {
-            if (!TrySplitNamespaceAndType(typeName, out var typeNamespace, out var _) || typeNamespace.IsEmpty)
-            {
-                // Either the typeName is not the full type name or this type is at the top level.
-                return true;
-            }
-
-            return typeNamespace.Equals(@namespace, StringComparison.Ordinal);
-        }
-
         internal static bool IsTypeInNamespace(TagHelperDescriptor tagHelper, string @namespace)
         {
-            if (!TrySplitNamespaceAndType(tagHelper, out var typeNamespace) || typeNamespace.IsEmpty)
+            return IsTypeInNamespace(tagHelper.GetTypeNamespace(), @namespace);
+
+            static bool IsTypeInNamespace(string typeNamespace, string @namespace)
             {
                 // Either the typeName is not the full type name or this type is at the top level.
-                return true;
+                return string.IsNullOrEmpty(typeNamespace) || typeNamespace.Equals(@namespace, StringComparison.Ordinal);
             }
-
-            return typeNamespace.Equals(@namespace, StringComparison.Ordinal);
         }
 
         // Check if the given type is already in scope given the namespace of the current document.
@@ -397,34 +384,18 @@ internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTa
         // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
         internal static bool IsTypeInScope(TagHelperDescriptor descriptor, string currentNamespace)
         {
-            if (!TrySplitNamespaceAndType(descriptor, out var typeNamespace, out _) || typeNamespace.IsEmpty)
+            return IsTypeInScopeCore(currentNamespace, descriptor.GetTypeNamespace());
+        }
+
+        private static bool IsTypeInScopeCore(string currentNamespace, string typeNamespace)
+        {
+            if (string.IsNullOrEmpty(typeNamespace))
             {
                 // Either the typeName is not the full type name or this type is at the top level.
                 return true;
             }
 
-            return IsTypeInScopeCore(currentNamespace, typeNamespace);
-        }
-
-        // Check if the given type is already in scope given the namespace of the current document.
-        // E.g,
-        // If the namespace of the document is `MyComponents.Components.Shared`,
-        // then the types `MyComponents.FooComponent`, `MyComponents.Components.BarComponent`, `MyComponents.Components.Shared.BazComponent` are all in scope.
-        // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
-        internal static bool IsTypeInScope(StringSegment typeName, string currentNamespace)
-        {
-            if (!TrySplitNamespaceAndType(typeName, out var typeNamespace, out _) || typeNamespace.IsEmpty)
-            {
-                // Either the typeName is not the full type name or this type is at the top level.
-                return true;
-            }
-
-            return IsTypeInScopeCore(currentNamespace, typeNamespace);
-        }
-
-        private static bool IsTypeInScopeCore(string currentNamespace, StringSegment typeNamespace)
-        {
-            if (!new StringSegment(currentNamespace).StartsWith(typeNamespace, StringComparison.Ordinal))
+            if (!currentNamespace.StartsWith(typeNamespace, StringComparison.Ordinal))
             {
                 // typeName: MyComponents.Shared.SomeCoolNamespace
                 // currentNamespace: MyComponents.Shared
@@ -445,83 +416,7 @@ internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTa
         // open file in the editor. We mangle the class name for its generated code, so using that here to filter these out.
         internal static bool IsTagHelperFromMangledClass(TagHelperDescriptor tagHelper)
         {
-            StringSegment className;
-            if (tagHelper.IsChildContentTagHelper())
-            {
-                // If this is a child content tag helper, we want to look at it's original type.
-                // E.g, if the type name is `Test.__generated__MyComponent.ChildContent`, we want to look at `Test.__generated__MyComponent`.
-                TrySplitNamespaceAndType(tagHelper, out var typeNamespace);
-                return TrySplitNamespaceAndType(typeNamespace, out var _, out className)
-                    && ComponentMetadata.IsMangledClass(className);
-            }
-
-            return TrySplitNamespaceAndType(tagHelper, out var _, out className) &&
-                ComponentMetadata.IsMangledClass(className);
-        }
-
-        internal static bool TrySplitNamespaceAndType(TagHelperDescriptor tagHelperDescriptor, out StringSegment @namespace)
-            => TrySplitNamespaceAndType(tagHelperDescriptor, out @namespace, out _);
-
-        internal static bool TrySplitNamespaceAndType(TagHelperDescriptor tagHelperDescriptor, out StringSegment @namespace, out StringSegment typeName)
-        {
-            if (tagHelperDescriptor.ParsedTypeInfo is { } value)
-            {
-                @namespace = value.Namespace;
-                typeName = value.TypeName;
-                return value.Success;
-            }
-
-            var success = TrySplitNamespaceAndType(tagHelperDescriptor.GetTypeName(), out @namespace, out typeName);
-            tagHelperDescriptor.ParsedTypeInfo = new(success, @namespace, typeName);
-            return success;
-        }
-
-        // Internal for testing.
-        internal static bool TrySplitNamespaceAndType(StringSegment fullTypeName, out StringSegment @namespace, out StringSegment typeName)
-        {
-            @namespace = StringSegment.Empty;
-            typeName = StringSegment.Empty;
-
-            if (fullTypeName.IsEmpty)
-            {
-                return false;
-            }
-
-            var nestingLevel = 0;
-            var splitLocation = -1;
-            for (var i = fullTypeName.Length - 1; i >= 0; i--)
-            {
-                var c = fullTypeName[i];
-                if (c == Type.Delimiter && nestingLevel == 0)
-                {
-                    splitLocation = i;
-                    break;
-                }
-                else if (c == '>')
-                {
-                    nestingLevel++;
-                }
-                else if (c == '<')
-                {
-                    nestingLevel--;
-                }
-            }
-
-            if (splitLocation == -1)
-            {
-                typeName = fullTypeName;
-                return true;
-            }
-
-            @namespace = fullTypeName.Subsegment(0, splitLocation);
-
-            var typeNameStartLocation = splitLocation + 1;
-            if (typeNameStartLocation < fullTypeName.Length)
-            {
-                typeName = fullTypeName.Subsegment(typeNameStartLocation, fullTypeName.Length - typeNameStartLocation);
-            }
-
-            return true;
+            return ComponentMetadata.IsMangledClass(tagHelper.GetTypeNameIdentifier());
         }
     }
 }

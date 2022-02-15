@@ -47,7 +47,7 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
     private int? _hashCode;
     internal bool? IsComponentFullyQualifiedNameMatchCache { get; set; }
     internal bool? IsChildContentTagHelperCache { get; set; }
-    internal ParsedTypeInformation? ParsedTypeInfo { get; set; }
+
     internal BoundAttributeDescriptor[] EditorRequiredAttributes
     {
         get

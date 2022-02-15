@@ -21,6 +21,28 @@ public static class TagHelperDescriptorExtensions
         return typeName;
     }
 
+    public static string GetTypeNamespace(this TagHelperDescriptor tagHelper)
+    {
+        if (tagHelper == null)
+        {
+            throw new ArgumentNullException(nameof(tagHelper));
+        }
+
+        tagHelper.Metadata.TryGetValue(TagHelperMetadata.Common.TypeNamespace, out var typeNamespace);
+        return typeNamespace;
+    }
+
+    public static string GetTypeNameIdentifier(this TagHelperDescriptor tagHelper)
+    {
+        if (tagHelper == null)
+        {
+            throw new ArgumentNullException(nameof(tagHelper));
+        }
+
+        tagHelper.Metadata.TryGetValue(TagHelperMetadata.Common.TypeNameIdentifier, out var typeNameIdentifier);
+        return typeNameIdentifier;
+    }
+
     public static bool IsDefaultKind(this TagHelperDescriptor tagHelper)
     {
         if (tagHelper == null)

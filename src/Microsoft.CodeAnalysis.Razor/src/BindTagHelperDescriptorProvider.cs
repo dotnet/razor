@@ -144,6 +144,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
         // a C# property will crash trying to create the toolips.
         builder.SetTypeName("Microsoft.AspNetCore.Components.Bind");
+        builder.SetTypeNamespace("Microsoft.AspNetCore.Components");
+        builder.SetTypeNameIdentifier("Bind");
 
         builder.TagMatchingRule(rule =>
         {
@@ -248,6 +250,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     results.Add(new ElementBindData(
                         type.ContainingAssembly.Name,
                         type.ToDisplayString(),
+                        type.ContainingNamespace.ToDisplayString(),
+                        type.Name,
                         (string)attribute.ConstructorArguments[0].Value,
                         null,
                         (string)attribute.ConstructorArguments[1].Value,
@@ -259,6 +263,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     results.Add(new ElementBindData(
                         type.ContainingAssembly.Name,
                         type.ToDisplayString(),
+                        type.ContainingNamespace.ToDisplayString(),
+                        type.Name,
                         "input",
                         (string)attribute.ConstructorArguments[0].Value,
                         (string)attribute.ConstructorArguments[1].Value,
@@ -270,6 +276,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     results.Add(new ElementBindData(
                         type.ContainingAssembly.Name,
                         type.ToDisplayString(),
+                        type.ContainingNamespace.ToDisplayString(),
+                        type.Name,
                         "input",
                         (string)attribute.ConstructorArguments[0].Value,
                         (string)attribute.ConstructorArguments[1].Value,
@@ -333,6 +341,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
             // a C# property will crash trying to create the toolips.
             builder.SetTypeName(entry.TypeName);
+            builder.SetTypeNamespace(entry.TypeNamespace);
+            builder.SetTypeNameIdentifier(entry.TypeNameIdentifier);
 
             builder.TagMatchingRule(rule =>
             {
@@ -501,6 +511,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the toolips.
                 builder.SetTypeName(tagHelper.GetTypeName());
+                builder.SetTypeNamespace(tagHelper.GetTypeNamespace());
+                builder.SetTypeNameIdentifier(tagHelper.GetTypeNameIdentifier());
 
                 // Match the component and attribute name
                 builder.TagMatchingRule(rule =>
@@ -549,6 +561,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         public ElementBindData(
             string assembly,
             string typeName,
+            string typeNamespace,
+            string typeNameIdentifier,
             string element,
             string typeAttribute,
             string suffix,
@@ -559,6 +573,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         {
             Assembly = assembly;
             TypeName = typeName;
+            TypeNamespace = typeNamespace;
+            TypeNameIdentifier = typeNameIdentifier;
             Element = element;
             TypeAttribute = typeAttribute;
             Suffix = suffix;
@@ -570,6 +586,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         public string Assembly { get; }
         public string TypeName { get; }
+        public string TypeNamespace { get; }
+        public string TypeNameIdentifier { get; }
         public string Element { get; }
         public string TypeAttribute { get; }
         public string Suffix { get; }

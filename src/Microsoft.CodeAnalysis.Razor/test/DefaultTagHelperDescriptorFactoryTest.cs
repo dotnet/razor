@@ -329,6 +329,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(EnumTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(EnumTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(EnumTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(EnumTagHelper).FullName.Substring(0, typeof(EnumTagHelper).FullName.Length - nameof(EnumTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(EnumTagHelper))
                             .TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName("enum"))
                             .BoundAttributeDescriptor(builder =>
                                 builder
@@ -347,6 +349,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultiEnumTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(MultiEnumTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(MultiEnumTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultiEnumTagHelper).FullName.Substring(0, typeof(MultiEnumTagHelper).FullName.Length - nameof(MultiEnumTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultiEnumTagHelper))
                             .TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName("p"))
                             .TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName("input"))
                             .BoundAttributeDescriptor(builder =>
@@ -366,6 +370,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(NestedEnumTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(NestedEnumTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(NestedEnumTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(NestedEnumTagHelper).FullName.Substring(0, typeof(NestedEnumTagHelper).FullName.Length - nameof(NestedEnumTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(NestedEnumTagHelper))
                             .TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName("nested-enum"))
                             .BoundAttributeDescriptor(builder =>
                                 builder
@@ -418,6 +424,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(RequiredParentTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(RequiredParentTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(RequiredParentTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(RequiredParentTagHelper).FullName.Substring(0, typeof(RequiredParentTagHelper).FullName.Length - nameof(RequiredParentTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(RequiredParentTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("input").RequireParentTag("div"))
                             .Build()
                     },
@@ -425,6 +433,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultiSpecifiedRequiredParentTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(MultiSpecifiedRequiredParentTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(MultiSpecifiedRequiredParentTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultiSpecifiedRequiredParentTagHelper).FullName.Substring(0, typeof(MultiSpecifiedRequiredParentTagHelper).FullName.Length - nameof(MultiSpecifiedRequiredParentTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultiSpecifiedRequiredParentTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("p").RequireParentTag("div"))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("input").RequireParentTag("section"))
                             .Build()
@@ -433,6 +443,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultiWithUnspecifiedRequiredParentTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName.Substring(0, typeof(MultiWithUnspecifiedRequiredParentTagHelper).FullName.Length - nameof(MultiWithUnspecifiedRequiredParentTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultiWithUnspecifiedRequiredParentTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("p"))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("input").RequireParentTag("div"))
                             .Build()
@@ -469,6 +481,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(RestrictChildrenTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(RestrictChildrenTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(RestrictChildrenTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(RestrictChildrenTagHelper).FullName.Substring(0, typeof(RestrictChildrenTagHelper).FullName.Length - nameof(RestrictChildrenTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(RestrictChildrenTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("restrict-children"))
                             .AllowChildTag("p")
                             .Build()
@@ -477,6 +491,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(DoubleRestrictChildrenTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(DoubleRestrictChildrenTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(DoubleRestrictChildrenTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(DoubleRestrictChildrenTagHelper).FullName.Substring(0, typeof(DoubleRestrictChildrenTagHelper).FullName.Length - nameof(DoubleRestrictChildrenTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(DoubleRestrictChildrenTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("double-restrict-children"))
                             .AllowChildTag("p")
                             .AllowChildTag("strong")
@@ -486,6 +502,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultiTargetRestrictChildrenTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(MultiTargetRestrictChildrenTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(MultiTargetRestrictChildrenTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultiTargetRestrictChildrenTagHelper).FullName.Substring(0, typeof(MultiTargetRestrictChildrenTagHelper).FullName.Length - nameof(MultiTargetRestrictChildrenTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultiTargetRestrictChildrenTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("p"))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("div"))
                             .AllowChildTag("p")
@@ -525,6 +543,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(TagStructureTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(TagStructureTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(TagStructureTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(TagStructureTagHelper).FullName.Substring(0, typeof(TagStructureTagHelper).FullName.Length - nameof(TagStructureTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(TagStructureTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder
                                 .RequireTagName("input")
                                 .RequireTagStructure(TagStructure.WithoutEndTag))
@@ -534,6 +554,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultiSpecifiedTagStructureTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(MultiSpecifiedTagStructureTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(MultiSpecifiedTagStructureTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultiSpecifiedTagStructureTagHelper).FullName.Substring(0, typeof(MultiSpecifiedTagStructureTagHelper).FullName.Length - nameof(MultiSpecifiedTagStructureTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultiSpecifiedTagStructureTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder
                                 .RequireTagName("p")
                                 .RequireTagStructure(TagStructure.NormalOrSelfClosing))
@@ -546,6 +568,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultiWithUnspecifiedTagStructureTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName.Substring(0, typeof(MultiWithUnspecifiedTagStructureTagHelper).FullName.Length - nameof(MultiWithUnspecifiedTagStructureTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultiWithUnspecifiedTagStructureTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder
                                 .RequireTagName("p"))
                             .TagMatchingRuleDescriptor(builder => builder
@@ -588,6 +612,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             tagName: "inherited-editor-browsable",
                             typeName: typeof(InheritedEditorBrowsableTagHelper).FullName,
                             assemblyName: AssemblyName,
+                            typeNamespace: typeof(InheritedEditorBrowsableTagHelper).FullName.Substring(0, typeof(InheritedEditorBrowsableTagHelper).FullName.Length - nameof(InheritedEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(InheritedEditorBrowsableTagHelper),
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -604,6 +630,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             tagName: "editor-browsable",
                             typeName: typeof(EditorBrowsableTagHelper).FullName,
                             assemblyName: AssemblyName,
+                            typeNamespace: typeof(EditorBrowsableTagHelper).FullName.Substring(0, typeof(EditorBrowsableTagHelper).FullName.Length - nameof(EditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(EditorBrowsableTagHelper),
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -618,6 +646,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "hidden-property-editor-browsable",
                             typeName: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName.Substring(0, typeof(HiddenPropertyEditorBrowsableTagHelper).FullName.Length - nameof(HiddenPropertyEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(HiddenPropertyEditorBrowsableTagHelper),
                             assemblyName: AssemblyName)
                     },
                     {
@@ -626,6 +656,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "hidden-property-editor-browsable",
                             typeName: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(HiddenPropertyEditorBrowsableTagHelper).FullName.Substring(0, typeof(HiddenPropertyEditorBrowsableTagHelper).FullName.Length - nameof(HiddenPropertyEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(HiddenPropertyEditorBrowsableTagHelper),
                             assemblyName: AssemblyName,
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
@@ -641,6 +673,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "overridden-editor-browsable",
                             typeName: typeof(OverriddenEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(OverriddenEditorBrowsableTagHelper).FullName.Substring(0, typeof(OverriddenEditorBrowsableTagHelper).FullName.Length - nameof(OverriddenEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(OverriddenEditorBrowsableTagHelper),
                             assemblyName: AssemblyName,
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
@@ -656,6 +690,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "multi-property-editor-browsable",
                             typeName: typeof(MultiPropertyEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(MultiPropertyEditorBrowsableTagHelper).FullName.Substring(0, typeof(MultiPropertyEditorBrowsableTagHelper).FullName.Length - nameof(MultiPropertyEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiPropertyEditorBrowsableTagHelper),
                             assemblyName: AssemblyName,
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
@@ -671,6 +707,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "multi-property-editor-browsable",
                             typeName: typeof(MultiPropertyEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(MultiPropertyEditorBrowsableTagHelper).FullName.Substring(0, typeof(MultiPropertyEditorBrowsableTagHelper).FullName.Length - nameof(MultiPropertyEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiPropertyEditorBrowsableTagHelper),
                             assemblyName: AssemblyName,
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
@@ -690,6 +728,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "overridden-property-editor-browsable",
                             typeName: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName.Substring(0, typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName.Length - nameof(OverriddenPropertyEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(OverriddenPropertyEditorBrowsableTagHelper),
                             assemblyName: AssemblyName)
                     },
                     {
@@ -698,6 +738,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "overridden-property-editor-browsable",
                             typeName: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName.Substring(0, typeof(OverriddenPropertyEditorBrowsableTagHelper).FullName.Length - nameof(OverriddenPropertyEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(OverriddenPropertyEditorBrowsableTagHelper),
                             assemblyName: AssemblyName,
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
@@ -717,6 +759,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         CreateTagHelperDescriptor(
                             tagName: "default-editor-browsable",
                             typeName: typeof(DefaultEditorBrowsableTagHelper).FullName,
+                            typeNamespace: typeof(DefaultEditorBrowsableTagHelper).FullName.Substring(0, typeof(DefaultEditorBrowsableTagHelper).FullName.Length - nameof(DefaultEditorBrowsableTagHelper).Length -1),
+                            typeNameIdentifier: nameof(DefaultEditorBrowsableTagHelper),
                             assemblyName: AssemblyName,
                             attributes: new Action<BoundAttributeDescriptorBuilder>[]
                             {
@@ -764,6 +808,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             TagHelperMatchingConventions.ElementCatchAllName,
                             typeof(AttributeTargetingTagHelper).FullName,
                             AssemblyName,
+                            typeof(AttributeTargetingTagHelper).FullName.Substring(0, typeof(AttributeTargetingTagHelper).FullName.Length - nameof(AttributeTargetingTagHelper).Length -1),
+                            nameof(AttributeTargetingTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder.RequireAttributeDescriptor(attribute => attribute.Name("class")),
@@ -775,6 +821,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             TagHelperMatchingConventions.ElementCatchAllName,
                             typeof(MultiAttributeTargetingTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiAttributeTargetingTagHelper).FullName.Substring(0, typeof(MultiAttributeTargetingTagHelper).FullName.Length - nameof(MultiAttributeTargetingTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiAttributeTargetingTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder =>
@@ -791,6 +839,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             TagHelperMatchingConventions.ElementCatchAllName,
                             typeof(MultiAttributeAttributeTargetingTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiAttributeAttributeTargetingTagHelper).FullName.Substring(0, typeof(MultiAttributeAttributeTargetingTagHelper).FullName.Length - nameof(MultiAttributeAttributeTargetingTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiAttributeAttributeTargetingTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder.RequireAttributeDescriptor(attribute => attribute.Name("custom")),
@@ -808,6 +858,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             TagHelperMatchingConventions.ElementCatchAllName,
                             typeof(InheritedAttributeTargetingTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(InheritedAttributeTargetingTagHelper).FullName.Substring(0, typeof(InheritedAttributeTargetingTagHelper).FullName.Length - nameof(InheritedAttributeTargetingTagHelper).Length -1),
+                            typeNameIdentifier: nameof(InheritedAttributeTargetingTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder.RequireAttributeDescriptor(attribute => attribute.Name("style")),
@@ -819,6 +871,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             "input",
                             typeof(RequiredAttributeTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(RequiredAttributeTagHelper).FullName.Substring(0, typeof(RequiredAttributeTagHelper).FullName.Length - nameof(RequiredAttributeTagHelper).Length -1),
+                            typeNameIdentifier: nameof(RequiredAttributeTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder.RequireAttributeDescriptor(attribute => attribute.Name("class")),
@@ -830,6 +884,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             "div",
                             typeof(InheritedRequiredAttributeTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(InheritedRequiredAttributeTagHelper).FullName.Substring(0, typeof(InheritedRequiredAttributeTagHelper).FullName.Length - nameof(InheritedRequiredAttributeTagHelper).Length -1),
+                            typeNameIdentifier: nameof(InheritedRequiredAttributeTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder.RequireAttributeDescriptor(attribute => attribute.Name("class")),
@@ -841,6 +897,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             "div",
                             typeof(MultiAttributeRequiredAttributeTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiAttributeRequiredAttributeTagHelper).FullName.Substring(0, typeof(MultiAttributeRequiredAttributeTagHelper).FullName.Length - nameof(MultiAttributeRequiredAttributeTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiAttributeRequiredAttributeTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -857,6 +915,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             "input",
                             typeof(MultiAttributeSameTagRequiredAttributeTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiAttributeSameTagRequiredAttributeTagHelper).FullName.Substring(0, typeof(MultiAttributeSameTagRequiredAttributeTagHelper).FullName.Length - nameof(MultiAttributeSameTagRequiredAttributeTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiAttributeSameTagRequiredAttributeTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder.RequireAttributeDescriptor(attribute => attribute.Name("style")),
@@ -869,6 +929,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             "input",
                             typeof(MultiRequiredAttributeTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiRequiredAttributeTagHelper).FullName.Substring(0, typeof(MultiRequiredAttributeTagHelper).FullName.Length - nameof(MultiRequiredAttributeTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiRequiredAttributeTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -882,6 +944,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             "div",
                             typeof(MultiTagMultiRequiredAttributeTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiTagMultiRequiredAttributeTagHelper).FullName.Substring(0, typeof(MultiTagMultiRequiredAttributeTagHelper).FullName.Length - nameof(MultiTagMultiRequiredAttributeTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiTagMultiRequiredAttributeTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -900,6 +964,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             TagHelperMatchingConventions.ElementCatchAllName,
                             typeof(AttributeWildcardTargetingTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(AttributeWildcardTargetingTagHelper).FullName.Substring(0, typeof(AttributeWildcardTargetingTagHelper).FullName.Length - nameof(AttributeWildcardTargetingTagHelper).Length -1),
+                            typeNameIdentifier: nameof(AttributeWildcardTargetingTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -914,6 +980,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                             TagHelperMatchingConventions.ElementCatchAllName,
                             typeof(MultiAttributeWildcardTargetingTagHelper).FullName,
                             AssemblyName,
+                            typeNamespace: typeof(MultiAttributeWildcardTargetingTagHelper).FullName.Substring(0, typeof(MultiAttributeWildcardTargetingTagHelper).FullName.Length - nameof(MultiAttributeWildcardTargetingTagHelper).Length -1),
+                            typeNameIdentifier: nameof(MultiAttributeWildcardTargetingTagHelper),
                             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
                             {
                                 builder => builder
@@ -999,6 +1067,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                 "overridden-attribute",
                 typeof(OverriddenAttributeTagHelper).FullName,
                 AssemblyName,
+                typeNamespace: typeof(OverriddenAttributeTagHelper).FullName.Substring(0, typeof(OverriddenAttributeTagHelper).FullName.Length - nameof(OverriddenAttributeTagHelper).Length -1),
+                typeNameIdentifier: nameof(OverriddenAttributeTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
                         builder => builder
@@ -1033,6 +1103,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                 "inherited-overridden-attribute",
                 typeof(InheritedOverriddenAttributeTagHelper).FullName,
                 AssemblyName,
+                typeNamespace: typeof(InheritedOverriddenAttributeTagHelper).FullName.Substring(0, typeof(InheritedOverriddenAttributeTagHelper).FullName.Length - nameof(InheritedOverriddenAttributeTagHelper).Length -1),
+                typeNameIdentifier: nameof(InheritedOverriddenAttributeTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
                         builder => builder
@@ -1067,6 +1139,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                 "inherited-not-overridden-attribute",
                 typeof(InheritedNotOverriddenAttributeTagHelper).FullName,
                 AssemblyName,
+                typeNamespace: typeof(InheritedNotOverriddenAttributeTagHelper).FullName.Substring(0, typeof(InheritedNotOverriddenAttributeTagHelper).FullName.Length - nameof(InheritedNotOverriddenAttributeTagHelper).Length -1),
+                typeNameIdentifier: nameof(InheritedNotOverriddenAttributeTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
                         builder => builder
@@ -1096,6 +1170,8 @@ public class DefaultTagHelperDescriptorFactoryTest
             "inherited-single-attribute",
             typeof(InheritedSingleAttributeTagHelper).FullName,
             AssemblyName,
+            typeNamespace: typeof(InheritedSingleAttributeTagHelper).FullName.Substring(0, typeof(InheritedSingleAttributeTagHelper).FullName.Length - nameof(InheritedSingleAttributeTagHelper).Length -1),
+            typeNameIdentifier: nameof(InheritedSingleAttributeTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
                     builder => builder
@@ -1122,6 +1198,8 @@ public class DefaultTagHelperDescriptorFactoryTest
             "single-attribute",
             typeof(SingleAttributeTagHelper).FullName,
             AssemblyName,
+            typeNamespace: typeof(SingleAttributeTagHelper).FullName.Substring(0, typeof(SingleAttributeTagHelper).FullName.Length - nameof(SingleAttributeTagHelper).Length -1),
+            typeNameIdentifier: nameof(SingleAttributeTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
                     builder => builder
@@ -1149,6 +1227,8 @@ public class DefaultTagHelperDescriptorFactoryTest
             "missing-accessor",
             typeof(MissingAccessorTagHelper).FullName,
             AssemblyName,
+            typeNamespace: typeof(MissingAccessorTagHelper).FullName.Substring(0, typeof(MissingAccessorTagHelper).FullName.Length - nameof(MissingAccessorTagHelper).Length -1),
+            typeNameIdentifier: nameof(MissingAccessorTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
                     builder => builder
@@ -1176,6 +1256,8 @@ public class DefaultTagHelperDescriptorFactoryTest
             "non-public-accessor",
             typeof(NonPublicAccessorTagHelper).FullName,
             AssemblyName,
+            typeNamespace: typeof(NonPublicAccessorTagHelper).FullName.Substring(0, typeof(NonPublicAccessorTagHelper).FullName.Length - nameof(NonPublicAccessorTagHelper).Length -1),
+            typeNameIdentifier: nameof(NonPublicAccessorTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
                     builder => builder
@@ -1201,6 +1283,8 @@ public class DefaultTagHelperDescriptorFactoryTest
             "not-bound-attribute",
             typeof(NotBoundAttributeTagHelper).FullName,
             AssemblyName,
+            typeNamespace: typeof(NotBoundAttributeTagHelper).FullName.Substring(0, typeof(NotBoundAttributeTagHelper).FullName.Length - nameof(NotBoundAttributeTagHelper).Length -1),
+            typeNameIdentifier: nameof(NotBoundAttributeTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
                     builder => builder
@@ -1227,6 +1311,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                 string.Empty,
                 typeof(MultiTagTagHelper).FullName,
                 AssemblyName,
+                typeNamespace: typeof(MultiTagTagHelper).FullName.Substring(0, typeof(MultiTagTagHelper).FullName.Length - nameof(MultiTagTagHelper).Length -1),
+                typeNameIdentifier: nameof(MultiTagTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
                         builder => builder
@@ -1258,6 +1344,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                 "inherited-multi-tag",
                 typeof(InheritedMultiTagTagHelper).FullName,
                 AssemblyName,
+                typeNamespace: typeof(InheritedMultiTagTagHelper).FullName.Substring(0, typeof(InheritedMultiTagTagHelper).FullName.Length - nameof(InheritedMultiTagTagHelper).Length -1),
+                typeNameIdentifier: nameof(InheritedMultiTagTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
                         builder => builder
@@ -1283,6 +1371,8 @@ public class DefaultTagHelperDescriptorFactoryTest
             string.Empty,
             typeof(DuplicateTagNameTagHelper).FullName,
             AssemblyName,
+            typeNamespace: typeof(DuplicateTagNameTagHelper).FullName.Substring(0, typeof(DuplicateTagNameTagHelper).FullName.Length - nameof(DuplicateTagNameTagHelper).Length -1),
+            typeNameIdentifier: nameof(DuplicateTagNameTagHelper),
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
             {
                     builder => builder.RequireTagName("p"),
@@ -1307,7 +1397,9 @@ public class DefaultTagHelperDescriptorFactoryTest
             CreateTagHelperDescriptor(
                 "data-condition",
                 typeof(OverrideNameTagHelper).FullName,
-                AssemblyName);
+                AssemblyName,
+                typeNamespace: typeof(OverrideNameTagHelper).FullName.Substring(0, typeof(OverrideNameTagHelper).FullName.Length - nameof(OverrideNameTagHelper).Length -1),
+                typeNameIdentifier: nameof(OverrideNameTagHelper));
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(OverrideNameTagHelper).FullName);
 
@@ -1762,7 +1854,12 @@ public class DefaultTagHelperDescriptorFactoryTest
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
         var expectedDescriptor =
-            CreateTagHelperDescriptor("enumerable", "System.Linq.Enumerable", typeSymbol.ContainingAssembly.Identity.Name);
+            CreateTagHelperDescriptor(
+                "enumerable",
+                "System.Linq.Enumerable",
+                typeSymbol.ContainingAssembly.Identity.Name,
+                typeSymbol.ContainingNamespace.ToDisplayString(),
+                typeSymbol.Name);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -2040,6 +2137,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(MultipleDescriptorTagHelperWithOutputElementHint),
                         TagHelperDescriptorBuilder.Create(typeof(MultipleDescriptorTagHelperWithOutputElementHint).FullName, AssemblyName)
                             .TypeName(typeof(MultipleDescriptorTagHelperWithOutputElementHint).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(MultipleDescriptorTagHelperWithOutputElementHint).FullName.Substring(0, typeof(MultipleDescriptorTagHelperWithOutputElementHint).FullName.Length - nameof(MultipleDescriptorTagHelperWithOutputElementHint).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(MultipleDescriptorTagHelperWithOutputElementHint))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("a"))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("p"))
                             .TagOutputHint("div")
@@ -2049,6 +2148,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(InheritedOutputElementHintTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(InheritedOutputElementHintTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(InheritedOutputElementHintTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(InheritedOutputElementHintTagHelper).FullName.Substring(0, typeof(InheritedOutputElementHintTagHelper).FullName.Length - nameof(InheritedOutputElementHintTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(InheritedOutputElementHintTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("inherited-output-element-hint"))
                             .Build()
                     },
@@ -2056,6 +2157,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(OutputElementHintTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(OutputElementHintTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(OutputElementHintTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(OutputElementHintTagHelper).FullName.Substring(0, typeof(OutputElementHintTagHelper).FullName.Length - nameof(OutputElementHintTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(OutputElementHintTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("output-element-hint"))
                             .TagOutputHint("hinted-value")
                             .Build()
@@ -2064,6 +2167,8 @@ public class DefaultTagHelperDescriptorFactoryTest
                         typeof(OverriddenOutputElementHintTagHelper),
                         TagHelperDescriptorBuilder.Create(typeof(OverriddenOutputElementHintTagHelper).FullName, AssemblyName)
                             .TypeName(typeof(OverriddenOutputElementHintTagHelper).FullName)
+                            .AddMetadata(TagHelperMetadata.Common.TypeNamespace, typeof(OverriddenOutputElementHintTagHelper).FullName.Substring(0, typeof(OverriddenOutputElementHintTagHelper).FullName.Length - nameof(OverriddenOutputElementHintTagHelper).Length - 1))
+                            .AddMetadata(TagHelperMetadata.Common.TypeNameIdentifier, nameof(OverriddenOutputElementHintTagHelper))
                             .TagMatchingRuleDescriptor(builder => builder.RequireTagName("overridden-output-element-hint"))
                             .TagOutputHint("overridden")
                             .Build()
@@ -2325,11 +2430,15 @@ public class DefaultTagHelperDescriptorFactoryTest
         string tagName,
         string typeName,
         string assemblyName,
+        string typeNamespace,
+        string typeNameIdentifier,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
         IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null)
     {
         var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
         builder.TypeName(typeName);
+        builder.SetTypeNamespace(typeNamespace);
+        builder.SetTypeNameIdentifier(typeNameIdentifier);
 
         if (attributes != null)
         {

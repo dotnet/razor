@@ -93,6 +93,8 @@ namespace Test
         Assert.Collection(
             component.Metadata.OrderBy(kvp => kvp.Key),
             kvp => { Assert.Equal(TagHelperMetadata.Common.TypeName, kvp.Key); Assert.Equal("Test.MyComponent", kvp.Value); },
+            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNameIdentifier, kvp.Key); Assert.Equal("MyComponent", kvp.Value); },
+            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNamespace, kvp.Key); Assert.Equal("Test", kvp.Value); },
             kvp => { Assert.Equal(TagHelperMetadata.Runtime.Name, kvp.Key); Assert.Equal("Components.IComponent", kvp.Value); });
 
         // Our use of bound attributes is what tests will focus on. As you might expect right now, this test

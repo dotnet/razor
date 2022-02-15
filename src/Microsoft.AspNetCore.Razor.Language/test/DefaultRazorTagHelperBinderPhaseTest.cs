@@ -1061,10 +1061,12 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
         string tagName,
         string typeName,
         string assemblyName,
+        string typeNamespace = null,
+        string typeNameIdentifier = null,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
         IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null)
     {
-        return CreateDescriptor(TagHelperConventions.DefaultKind, tagName, typeName, assemblyName, attributes, ruleBuilders);
+        return CreateDescriptor(TagHelperConventions.DefaultKind, tagName, typeName, assemblyName, typeNamespace, typeNameIdentifier, attributes, ruleBuilders);
     }
     #endregion
 
@@ -1170,6 +1172,8 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
             "ChildContent",
             "SomeProject.Counter.ChildContent",
             AssemblyA,
+            "SomeProject",
+            "Counter",
             childContent: true);
         var descriptors = new[]
         {
@@ -1303,7 +1307,8 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
     public void IsTypeInNamespace_WorksAsExpected(string typeName, string @namespace, bool expected)
     {
         // Arrange & Act
-        var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTypeInNamespace(typeName, @namespace);
+        var descriptor = CreateComponentDescriptor(typeName, typeName, "Test.dll");
+        var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTypeInNamespace(descriptor, @namespace);
 
         // Assert
         Assert.Equal(expected, result);
@@ -1320,7 +1325,8 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
     public void IsTypeInScope_WorksAsExpected(string typeName, string currentNamespace, bool expected)
     {
         // Arrange & Act
-        var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTypeInScope(typeName, currentNamespace);
+        var descriptor = CreateComponentDescriptor(typeName, typeName, "Test.dll");
+        var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTypeInScope(descriptor, currentNamespace);
 
         // Assert
         Assert.Equal(expected, result);
@@ -1344,57 +1350,6 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
         Assert.True(result);
     }
 
-    public static TheoryData TrySplitNamespaceAndTypeData =>
-        new TheoryData<string, bool, string, string>
-        {
-                { "", false, "", ""},
-                { ".", true, "", ""},
-                { "Foo", true, "", "Foo"},
-                { "SomeProject.Foo", true, "SomeProject", "Foo"},
-                { "SomeProject.Foo<Bar>", true, "SomeProject", "Foo<Bar>"},
-                { "SomeProject.Foo<Bar.Baz>", true, "SomeProject", "Foo<Bar.Baz>"},
-                { "SomeProject.Foo<Bar.Baz>>", true, "", "SomeProject.Foo<Bar.Baz>>"},
-                { "SomeProject..Foo<Bar>", true, "SomeProject.", "Foo<Bar>"},
-        };
-
-    [Theory]
-    [MemberData(nameof(TrySplitNamespaceAndTypeData))]
-    public void TrySplitNamespaceAndType_WorksAsExpected(string fullTypeName, bool expectedResult, string expectedNamespace, string expectedTypeName)
-    {
-        // Arrange & Act
-        var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-            fullTypeName, out var @namespace, out var typeName);
-
-        // Assert
-        Assert.Equal(expectedResult, result);
-        Assert.True(new StringSegment(expectedNamespace).Equals(@namespace, StringComparison.Ordinal));
-        Assert.True(new StringSegment(expectedTypeName).Equals(typeName, StringComparison.Ordinal));
-    }
-
-    [Theory]
-    [MemberData(nameof(TrySplitNamespaceAndTypeData))]
-    public void TrySplitNamespaceAndTypeWithTagHelperDescriptors_WorksAsExpected(string fullTypeName, bool expectedResult, string expectedNamespace, string expectedTypeName)
-    {
-        // Arrange & Act
-        var tagHelperDescriptor = CreateTagHelperDescriptor("CoolTag", fullTypeName, AssemblyA);
-
-        var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-            tagHelperDescriptor, out var @namespace, out var typeName);
-
-        // Assert
-        Assert.Equal(expectedResult, result);
-        Assert.True(new StringSegment(expectedNamespace).Equals(@namespace, StringComparison.Ordinal));
-        Assert.True(new StringSegment(expectedTypeName).Equals(typeName, StringComparison.Ordinal));
-
-        // Try again to make sure caching works
-        result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-            tagHelperDescriptor, out @namespace, out typeName);
-
-        Assert.Equal(expectedResult, result);
-        Assert.True(new StringSegment(expectedNamespace).Equals(@namespace, StringComparison.Ordinal));
-        Assert.True(new StringSegment(expectedTypeName).Equals(typeName, StringComparison.Ordinal));
-    }
-
     private static RazorSourceDocument CreateComponentTestSourceDocument(string content, string filePath = null)
     {
         var sourceDocument = TestRazorSourceDocument.Create(content, filePath: filePath);
@@ -1405,6 +1360,8 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
         string tagName,
         string typeName,
         string assemblyName,
+        string typeNamespace = null,
+        string typeNameIdentifier = null,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
         IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null,
         string kind = null,
@@ -1412,7 +1369,7 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
         bool childContent = false)
     {
         kind = kind ?? ComponentMetadata.Component.TagHelperKind;
-        return CreateDescriptor(kind, tagName, typeName, assemblyName, attributes, ruleBuilders, fullyQualified, childContent);
+        return CreateDescriptor(kind, tagName, typeName, assemblyName, typeNamespace, typeNameIdentifier, attributes, ruleBuilders, fullyQualified, childContent);
     }
     #endregion
 
@@ -1421,6 +1378,8 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
         string tagName,
         string typeName,
         string assemblyName,
+        string typeNamespace,
+        string typeNameIdentifier,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
         IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null,
         bool componentFullyQualified = false,
@@ -1428,6 +1387,8 @@ public class DefaultRazorTagHelperBinderPhaseTest : RazorProjectEngineTestBase
     {
         var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
         builder.TypeName(typeName);
+        builder.SetTypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName.Substring(0, typeName.LastIndexOf('.'))));
+        builder.SetTypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName.Substring(typeName.LastIndexOf('.') + 1)));
 
         if (attributes != null)
         {

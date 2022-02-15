@@ -118,6 +118,8 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, typeName, assemblyName);
         builder.SetTypeName(typeName);
+        builder.SetTypeNamespace(type.ContainingNamespace.ToDisplayString(FullNameTypeDisplayFormat));
+        builder.SetTypeNameIdentifier(type.Name);
         builder.CaseSensitive = true;
 
         // This opts out this 'component' tag helper for any processing that's specific to the default
@@ -320,6 +322,8 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName);
         builder.SetTypeName(typeName);
+        builder.SetTypeNamespace(component.GetTypeNamespace());
+        builder.SetTypeNameIdentifier(component.GetTypeNameIdentifier());
         builder.CaseSensitive = true;
 
         // This opts out this 'component' tag helper for any processing that's specific to the default

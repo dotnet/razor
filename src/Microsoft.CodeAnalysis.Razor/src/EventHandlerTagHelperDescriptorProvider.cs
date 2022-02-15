@@ -93,6 +93,8 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     results.Add(new EventHandlerData(
                         type.ContainingAssembly.Name,
                         type.ToDisplayString(),
+                        type.ContainingNamespace.ToDisplayString(),
+                        type.Name,
                         (string)attribute.ConstructorArguments[0].Value,
                         (INamedTypeSymbol)attribute.ConstructorArguments[1].Value,
                         enablePreventDefault,
@@ -130,6 +132,8 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
             // a C# property will crash trying to create the tooltips.
             builder.SetTypeName(entry.TypeName);
+            builder.SetTypeNamespace(entry.TypeNamespace);
+            builder.SetTypeNameIdentifier(entry.TypeNameIdentifier);
 
             builder.TagMatchingRule(rule =>
             {
@@ -183,18 +187,18 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
 
                 a.Name = attributeName;
 
-                    // We want event handler directive attributes to default to C# context.
-                    a.TypeName = $"Microsoft.AspNetCore.Components.EventCallback<{eventArgType}>";
+                // We want event handler directive attributes to default to C# context.
+                a.TypeName = $"Microsoft.AspNetCore.Components.EventCallback<{eventArgType}>";
 
-                    // But make this weakly typed (don't type check) - delegates have their own type-checking
-                    // logic that we don't want to interfere with.
-                    a.Metadata.Add(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString);
+                // But make this weakly typed (don't type check) - delegates have their own type-checking
+                // logic that we don't want to interfere with.
+                a.Metadata.Add(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString);
 
                 a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
 
-                    // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                    // a C# property will crash trying to create the tooltips.
-                    a.SetPropertyName(entry.Attribute);
+                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
+                // a C# property will crash trying to create the tooltips.
+                a.SetPropertyName(entry.Attribute);
 
                 if (entry.EnablePreventDefault)
                 {
@@ -234,6 +238,8 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         public EventHandlerData(
             string assembly,
             string typeName,
+            string typeNamespace,
+            string typeNameIdentifier,
             string element,
             INamedTypeSymbol eventArgsType,
             bool enablePreventDefault,
@@ -241,6 +247,8 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         {
             Assembly = assembly;
             TypeName = typeName;
+            TypeNamespace = typeNamespace;
+            TypeNameIdentifier = typeNameIdentifier;
             Attribute = element;
             EventArgsType = eventArgsType;
             EnablePreventDefault = enablePreventDefault;
@@ -250,6 +258,9 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         public string Assembly { get; }
 
         public string TypeName { get; }
+        public string TypeNamespace { get; }
+
+        public string TypeNameIdentifier { get; }
 
         public string Attribute { get; }
 
