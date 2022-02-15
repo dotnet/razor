@@ -22,7 +22,7 @@
       <Sha>427991ec87d4df83fdb7a24425c3cce550cf2423</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk.Razor" Version="6.0.0-alpha.1.21072.5">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
+      <Uri>https://github.com/dotnet/sdk</Uri>
       <Sha>20b6779cf3af2fed6a8fe64a0865cfab50b776bb</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NETCore.App.Ref" Version="6.0.2" CoherentParentDependency="Microsoft.NET.Sdk.Razor">
