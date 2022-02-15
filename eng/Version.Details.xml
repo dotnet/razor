@@ -44,7 +44,7 @@
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="6.0.1">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="6.0.1" CoherentParentDependency="Microsoft.NET.Sdk.Razor">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>
