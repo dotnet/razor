@@ -48,10 +48,19 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             }
         }
 
-        public Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+        public async Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
         {
-            // until we have a request operation that needs to support interception, just pass the request through
-            return sendRequest(methodParam);
+            // First send the request through.
+            // We don't yet have a scenario where the request needs to be intercepted, but if one does come up, we may need to redesign the interception handshake
+            // to handle both request and response interception.
+            var response = await sendRequest(methodParam);
+
+            if (CanHandle(methodName))
+            {
+                response = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
+            }
+
+            return response;
         }
     }
 }
