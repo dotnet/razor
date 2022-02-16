@@ -166,11 +166,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             string parentTagName = null;
             if (startTag.Parent?.Parent is MarkupElementSyntax parentElement)
             {
-                parentTagName = parentElement.StartTag.Name.Content;
+                parentTagName = parentElement.StartTag?.Name.Content ?? parentElement.EndTag?.Name.Content;
             }
             else if (startTag.Parent?.Parent is MarkupTagHelperElementSyntax parentTagHelperElement)
             {
-                parentTagName = parentTagHelperElement.StartTag.Name.Content;
+                parentTagName = parentTagHelperElement.StartTag?.Name.Content ?? parentTagHelperElement.EndTag?.Name.Content;
             }
 
             var attributes = _tagHelperFactsService.StringifyAttributes(startTag.Attributes).ToList();
