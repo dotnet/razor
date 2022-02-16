@@ -19,7 +19,7 @@ const logError = (text) => console.error(formatLog(text));
 
 async function downloadProxyPackage(version) {
     const tmpDirectory = path.join(os.tmpdir(), 'blazorwasm-companion-tmp');
-    if (!fs.existsSync(tmpDirectory)){
+    if (!fs.existsSync(tmpDirectory)) {
         fs.mkdirSync(tmpDirectory);
     }
 
@@ -51,31 +51,17 @@ async function downloadProxyPackage(version) {
 }
 
 async function copyDebugProxyAssets(version) {
-    const targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
-    const versionMarkerFile = path.join(targetDirectory, '_version');
-    if (fs.existsSync(targetDirectory) && fs.existsSync(versionMarkerFile)) {
-        const cachedVersion = fs.readFileSync(versionMarkerFile, { encoding: 'utf-8' });
-        if (cachedVersion === version) {
-            log(`Found up-to-date BlazorDebugProxy ${version}, nothing to do.`);
-            return;
-        }
-
-        log(`Cached BlazorDebugProxy ${cachedVersion} is not ${version}, downloading...`);
-    } else {
-        log(`No existing BlazorDebugProxy version found, downloading...`);
+    const targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy', version);
+    if (fs.existsSync(targetDirectory)) {
+        log(`BlazorDebugProxy ${version} is already downloaded, nothing to do.`);
+        return;
     }
 
+    log(`Downloading BlazorDebugProxy ${version}...`);
     const extracted = await downloadProxyPackage(version);
 
     log(`Using ${targetDirectory} as targetDirectory...`);
-    log(`Cleaning ${targetDirectory}...`);
-
-    // TODO: This can be replaced by fs.rmSync(targetDirectory, { recursive: true, force: true })
-    // on Node 14+. No existsSync check needed.
-    if (fs.existsSync(targetDirectory)) {
-        fs.rmdirSync(targetDirectory);
-    }
-    fs.mkdirSync(targetDirectory);
+    fs.mkdirSync(targetDirectory, { recursive: true });
 
     const srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Copying BlazorDebugProxy assets from ${srcDirectory} to ${targetDirectory}...`);
@@ -83,8 +69,6 @@ async function copyDebugProxyAssets(version) {
         log(`Copying ${file} to target directory...`);
         fs.copyFileSync(path.join(srcDirectory, file), path.join(targetDirectory, file));
     });
-
-    fs.writeFileSync(versionMarkerFile, version, { encoding: 'utf-8' });
 }
 
 const debugProxyVersion = require('../package.json').debugProxyVersion;

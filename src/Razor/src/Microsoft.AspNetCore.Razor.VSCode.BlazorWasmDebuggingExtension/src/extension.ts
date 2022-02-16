@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { acquireDotnetInstall } from './acquireDotnetInstall';
 import { getAvailablePort } from './getAvailablePort';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel('Blazor WASM Debug Proxy');
     const pidsByUrl = new Map<string, number>();
 
@@ -17,7 +17,10 @@ export function activate(context: vscode.ExtensionContext) {
             const debuggingPort = await getAvailablePort(9222);
             const debuggingHost = `http://localhost:${debuggingPort}`;
 
-            const debugProxyLocalPath = `${context.extensionPath}/BlazorDebugProxy/BrowserDebugHost.dll`;
+            const extension = vscode.extensions.getExtension('ms-dotnettools.blazorwasm-companion');
+            const version: string = extension?.packageJSON.debugProxyVersion;
+
+            const debugProxyLocalPath = `${context.extensionPath}/BlazorDebugProxy/${version}/BrowserDebugHost.dll`;
             const spawnedProxyArgs = [debugProxyLocalPath , '--DevToolsUrl', debuggingHost];
 
             const dotnet = await acquireDotnetInstall(outputChannel);
