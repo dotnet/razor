@@ -45,46 +45,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             InHTMLSchema = inHTMLSchema;
         }
 
-        internal ElementCompletionContext(
-            TagHelperDocumentContext documentContext,
-            IEnumerable<string> existingCompletions,
-            SyntaxNode containingElement,
-            string containingTagName,
-            IEnumerable<KeyValuePair<string, string>> attributes,
-            string containingParentTagName,
-            bool containingParentIsTagHelper,
-            Func<string, bool> inHTMLSchema)
-        {
-            if (documentContext is null)
-            {
-                throw new ArgumentNullException(nameof(documentContext));
-            }
-
-            if (existingCompletions is null)
-            {
-                throw new ArgumentNullException(nameof(existingCompletions));
-            }
-
-            if (inHTMLSchema is null)
-            {
-                throw new ArgumentNullException(nameof(inHTMLSchema));
-            }
-
-            DocumentContext = documentContext;
-            ExistingCompletions = existingCompletions;
-            ContainingElement = containingElement;
-            ContainingTagName = containingTagName;
-            Attributes = attributes;
-            ContainingParentTagName = containingParentTagName;
-            ContainingParentIsTagHelper = containingParentIsTagHelper;
-            InHTMLSchema = inHTMLSchema;
-        }
-
         public TagHelperDocumentContext DocumentContext { get; }
 
         public IEnumerable<string> ExistingCompletions { get; }
-
-        internal SyntaxNode ContainingElement { get; }
 
         public string ContainingTagName { get; }
 

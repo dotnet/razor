@@ -209,22 +209,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return stringifiedAttributes;
         }
 
-        internal override TagHelperBinding? GetParentTagHelperBinding(SyntaxNode? element)
-        {
-            if (element is null)
-            {
-                return null;
-            }
-
-            var parent = element.Parent;
-            if (parent is MarkupTagHelperElementSyntax tagHelperElement)
-            {
-                return tagHelperElement.TagHelperInfo.BindingResult;
-            }
-
-            return null;
-        }
-
         internal override (string? ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
         {
             foreach (var ancestor in ancestors)

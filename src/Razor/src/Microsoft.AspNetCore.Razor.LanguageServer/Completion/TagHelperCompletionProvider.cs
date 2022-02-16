@@ -206,7 +206,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var elementCompletionContext = new ElementCompletionContext(
                 tagHelperDocumentContext,
                 existingCompletions: Enumerable.Empty<string>(),
-                containingElement,
                 containingTagName,
                 attributes,
                 ancestorTagName,

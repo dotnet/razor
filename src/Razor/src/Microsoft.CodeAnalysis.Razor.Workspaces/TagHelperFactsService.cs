@@ -18,11 +18,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string parentTag);
 
-        internal virtual TagHelperBinding? GetParentTagHelperBinding(SyntaxNode parent)
-        {
-            throw new NotImplementedException();
-        }
-
         // Internal for testing
         internal virtual IEnumerable<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
         {
