@@ -28,7 +28,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                 razorCodeAction = new RazorCodeAction()
                 {
                     Title = razorCodeAction.Title,
-                    Data = JToken.FromObject(resolutionParams)
+                    Data = JToken.FromObject(resolutionParams),
+                    TelemetryId = razorCodeAction.TelemetryId,
                 };
             }
 

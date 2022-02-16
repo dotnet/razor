@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            if (!AddUsingsCodeActionProviderFactory.TryExtractNamespace(addUsingTextEdit.NewText, out var @namespace))
+            if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(addUsingTextEdit.NewText, out var @namespace))
             {
                 // Invalid text edit, missing namespace
                 return codeAction;
