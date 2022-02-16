@@ -20,7 +20,7 @@ public class SemanticTokensCacheTest
         var semanticTokensCache = GetSemanticTokensCache();
         var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
         var semanticVersion = new VersionStamp();
-        var requestedRange = new Range(0, 0, 6, 15);
+        var requestedRange = new Range(startLine: 0, startCharacter: 0, endLine: 7, endCharacter: 0);
         var tokens = new int[] {
             // line, char, length, tokenType, tokenModifiers
             0, 0, 2, 4, 0,
@@ -38,7 +38,7 @@ public class SemanticTokensCacheTest
         }
 
         Assert.Equal(tokens, cachedResult.Value.Tokens);
-        Assert.Equal(new Range(0, 0, 6, 0), cachedResult.Value.Range);
+        Assert.Equal(new Range(startLine: 0, startCharacter: 0, endLine: 7, endCharacter: 0), cachedResult.Value.Range);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class SemanticTokensCacheTest
         var semanticTokensCache = GetSemanticTokensCache();
         var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
         var semanticVersion = new VersionStamp();
-        var requestedRange = new Range(0, 0, 10, 0);
+        var requestedRange = new Range(0, startCharacter: 0, endLine: 10, endCharacter: 0);
         var tokens = new int[] {
             // line, char, length, tokenType, tokenModifiers
             1, 0, 2, 4, 0,
@@ -59,7 +59,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, requestedRange, tokens);
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(2, 0, 8, 0), out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 2, startCharacter: 0, endLine: 8, endCharacter: 0), out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
@@ -69,7 +69,7 @@ public class SemanticTokensCacheTest
             2, 2, 3, 6, 1,
             4, 0, 10, 50, 5,
         }, cachedResult.Value.Tokens);
-        Assert.Equal(new Range(2, 0, 8, 0), cachedResult.Value.Range);
+        Assert.Equal(new Range(startLine: 2, startCharacter: 0, endLine: 8, endCharacter: 0), cachedResult.Value.Range);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class SemanticTokensCacheTest
         var semanticTokensCache = GetSemanticTokensCache();
         var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
         var semanticVersion = new VersionStamp();
-        var requestedRange = new Range(0, 0, 5, 0);
+        var requestedRange = new Range(startLine: 0, startCharacter: 0, endLine: 5, endCharacter: 0);
         var tokens = new int[] {
             // line, char, length, tokenType, tokenModifiers
             0, 0, 2, 4, 0,
@@ -97,7 +97,7 @@ public class SemanticTokensCacheTest
         }
 
         Assert.Equal<int>(tokens.Take(10), cachedResult.Value.Tokens);
-        Assert.Equal(new Range(0, 0, 5, 0), cachedResult.Value.Range);
+        Assert.Equal(new Range(startLine: 0, startCharacter: 0, endLine: 5, endCharacter: 0), cachedResult.Value.Range);
     }
 
     [Fact]
@@ -108,10 +108,10 @@ public class SemanticTokensCacheTest
         var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
         var semanticVersion = new VersionStamp();
 
-        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(4, 0, 4, 20), new int[] { 4, 5, 6, 7, 0, });
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 4, startCharacter: 0, endLine: 5, endCharacter: 0), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(0, 0, 8, 20), out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 9, endCharacter: 0), out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
@@ -131,10 +131,10 @@ public class SemanticTokensCacheTest
         var uri = GetDocumentUri(Path.Join("C:\\", "path", "file.razor"));
         var semanticVersion = new VersionStamp();
 
-        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(4, 0, 4, 20), new int[] { 4, 5, 6, 7, 0, });
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 4, startCharacter: 0, endLine: 4, endCharacter: 20), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(6, 0, 8, 20), out var _))
+        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 6, startCharacter: 0, endLine: 8, endCharacter: 20), out var _))
         {
             Assert.True(false, "Cached Tokens were found but should not have been.");
             throw new NotImplementedException();
@@ -158,21 +158,21 @@ public class SemanticTokensCacheTest
             1, 6, 7, 8, 0,
         };
 
-        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(0, 0, 0, 5), tokens.Take(10).ToArray());
-        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(2, 0, 2, 10), new int[] { 2, 3, 4, 5, 0, });
-        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(4, 0, 4, 20), new int[] { 4, 5, 6, 7, 0, });
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 1, endCharacter: 0), tokens.Take(5).ToArray());
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 2, startCharacter: 0, endLine: 3, endCharacter: 0), new int[] { 2, 3, 4, 5, 0, });
+        semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 4, startCharacter: 0, endLine: 5, endCharacter: 0), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(0, 0, 8, 20), out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 9, endCharacter: 0), out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
         }
 
-        Assert.Equal<int>(tokens.Take(5), cachedResult.Value.Tokens);
+        Assert.Equal(tokens.Take(5), cachedResult.Value.Tokens);
 
         // If there's a gap between any of our results only take the first (complete) range.
-        Assert.Equal(new Range(0, 0, 1, 0), cachedResult.Value.Range);
+        Assert.Equal(new Range(startLine: 0, startCharacter: 0, endLine: 1, endCharacter: 0), cachedResult.Value.Range);
     }
 
     private static DocumentUri GetDocumentUri(string path)
