@@ -42,7 +42,6 @@ pr:
 stages:
 - stage: build
   displayName: Build
-  timeoutInMinutes: 360
   jobs:
   - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
     - template: /eng/common/templates/job/onelocbuild.yml
@@ -106,6 +105,7 @@ stages:
         enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
       jobs:
       - job: Windows
+        timeoutInMinutes: 360
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Public
