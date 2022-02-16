@@ -209,14 +209,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return stringifiedAttributes;
         }
 
-        internal override TagHelperBinding? GetNearestAncestorTagHelperBinding(IEnumerable<SyntaxNode> ancestors)
+        internal override TagHelperBinding? GetParentTagHelperBinding(SyntaxNode? element)
         {
-            foreach (var ancestor in ancestors)
+            if (element is null)
             {
-                if ( ancestor is MarkupTagHelperElementSyntax tagHelperElement)
-                {
-                    return tagHelperElement.TagHelperInfo.BindingResult;
-                }
+                return null;
+            }
+
+            var parent = element.Parent;
+            if (parent is MarkupTagHelperElementSyntax tagHelperElement)
+            {
+                return tagHelperElement.TagHelperInfo.BindingResult;
             }
 
             return null;

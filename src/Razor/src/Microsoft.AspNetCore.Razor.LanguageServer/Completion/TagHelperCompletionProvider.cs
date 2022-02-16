@@ -204,9 +204,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var ancestors = containingElement.Ancestors();
             var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var elementCompletionContext = new ElementCompletionContext(
-                containingElement,
                 tagHelperDocumentContext,
                 existingCompletions: Enumerable.Empty<string>(),
+                containingElement,
                 containingTagName,
                 attributes,
                 ancestorTagName,

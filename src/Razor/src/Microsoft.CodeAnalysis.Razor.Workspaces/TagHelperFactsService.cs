@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string parentTag);
 
-        internal virtual TagHelperBinding? GetNearestAncestorTagHelperBinding(IEnumerable<SyntaxNode> ancestors)
+        internal virtual TagHelperBinding? GetParentTagHelperBinding(SyntaxNode parent)
         {
             throw new NotImplementedException();
         }

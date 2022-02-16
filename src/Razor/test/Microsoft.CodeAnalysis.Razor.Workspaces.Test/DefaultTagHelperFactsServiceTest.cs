@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using SyntaxTrivia = Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxTrivia;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -389,7 +390,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         [Fact]
-        public void GetNearestAncestorTagHelperBinding_WithoutTagHelperParent()
+        public void GetParentTagHelperBinding_WithoutTagHelperParent()
         {
             // Arrange
             var expectedDescriptors = new[]
@@ -413,13 +414,45 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
             var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
             var service = new DefaultTagHelperFactsService();
-            var ancestors = new List<SyntaxNode>()
-            {
-
-            };
+            var parent = new MarkupElementSyntax(green: null, parent: null, 0);
+            var element = new MarkupElementSyntax(green: null, parent: parent, 0);
 
             // Act
-            var binding = service.GetNearestAncestorTagHelperBinding(ancestors);
+            var binding = service.GetParentTagHelperBinding(element);
+
+            // Assert
+            Assert.Null(binding);
+        }
+
+        [Fact]
+        public void GetParentTagHelperBinding_WithoutParent()
+        {
+            // Arrange
+            var expectedDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("TestType", "TestAssembly")
+                    .TagMatchingRuleDescriptor(
+                        rule => rule
+                            .RequireTagName("p")
+                            .RequireParentTag("div"))
+                    .Build()
+            };
+            var documentDescriptors = new[]
+            {
+                expectedDescriptors[0],
+                TagHelperDescriptorBuilder.Create("TestType2", "TestAssembly")
+                    .TagMatchingRuleDescriptor(
+                        rule => rule
+                            .RequireTagName("strong")
+                            .RequireParentTag("p"))
+                    .Build()
+            };
+            var documentContext = TagHelperDocumentContext.Create(string.Empty, documentDescriptors);
+            var service = new DefaultTagHelperFactsService();
+            var element = new MarkupElementSyntax(green: null, parent: null, 0);
+
+            // Act
+            var binding = service.GetParentTagHelperBinding(element);
 
             // Assert
             Assert.Null(binding);

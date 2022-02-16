@@ -1346,9 +1346,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
             var completionContext = new ElementCompletionContext(
-                containingElement,
                 documentContext,
                 existingCompletions,
+                containingElement,
                 containingTagName,
                 attributes: Enumerable.Empty<KeyValuePair<string, string>>(),
                 containingParentTagName: containingParentTagName,
