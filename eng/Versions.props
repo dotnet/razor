@@ -60,7 +60,7 @@
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>7.0.0-preview.2.22113.2</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>7.0.0-preview.2.22113.2</MicrosoftNETCorePlatformsPackageVersion>
-    <MicrosoftNETSdkRazorPackageVersion>7.0.100-preview.2.22115.8</MicrosoftNETSdkRazorPackageVersion>
+    <MicrosoftNETSdkRazorPackageVersion>6.0.0-alpha.1.21072.5</MicrosoftNETSdkRazorPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Dependency version settings">
     <!--
