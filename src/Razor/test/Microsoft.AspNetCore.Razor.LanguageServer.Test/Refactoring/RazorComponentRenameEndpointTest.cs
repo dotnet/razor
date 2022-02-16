@@ -388,8 +388,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var fullyQualifiedBuilder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
             fullyQualifiedBuilder.TagMatchingRule(rule => rule.TagName = fullyQualifiedName);
             fullyQualifiedBuilder.SetTypeName(fullyQualifiedName);
-            builder.SetTypeNameIdentifier(tagName);
-            builder.SetTypeNamespace(namespaceName);
+            fullyQualifiedBuilder.SetTypeNameIdentifier(tagName);
+            fullyQualifiedBuilder.SetTypeNamespace(namespaceName);
             fullyQualifiedBuilder.AddMetadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
             yield return fullyQualifiedBuilder.Build();
         }
