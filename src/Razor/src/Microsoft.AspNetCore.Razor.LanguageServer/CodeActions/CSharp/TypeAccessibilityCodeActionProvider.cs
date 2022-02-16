@@ -235,7 +235,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static RazorCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            RazorCodeAction codeAction,
+            RazorCodeAction nonFQNCodeAction,
             string fullyQualifiedName)
         {
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
@@ -257,7 +257,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
             };
 
-            var codeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(codeAction.Title, fqnWorkspaceEdit);
+            var codeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(nonFQNCodeAction.Title, fqnWorkspaceEdit);
             return codeAction;
         }
     }
