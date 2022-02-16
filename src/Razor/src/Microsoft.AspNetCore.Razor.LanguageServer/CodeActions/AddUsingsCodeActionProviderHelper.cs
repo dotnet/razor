@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             @namespace = StringSegment.Empty;
             typeName = StringSegment.Empty;
 
-            if (fullTypeName.IsEmpty)
+            if (fullTypeName.IsEmpty || string.IsNullOrEmpty(fullTypeName.Buffer))
             {
                 return false;
             }
