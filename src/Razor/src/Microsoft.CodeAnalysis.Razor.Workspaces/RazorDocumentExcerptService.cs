@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Razor
             Document document,
             TextSpan span,
             ExcerptModeInternal mode,
-            RazorClassificationOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             if (_document is null)
@@ -79,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 excerptSpan,
                 generatedDocument,
                 mappings,
-                options,
                 cancellationToken).ConfigureAwait(false);
 
             var excerptText = GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
@@ -91,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Razor
             TextSpan excerptSpan,
             Document generatedDocument,
             IReadOnlyList<SourceMapping> mappings,
-            RazorClassificationOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
@@ -134,10 +131,9 @@ namespace Microsoft.CodeAnalysis.Razor
                 //
                 // However, we'll have to translate it to the the generated document's coordinates to do that.
                 Debug.Assert(remainingSpan.Contains(primarySpan) && remainingSpan.Start == primarySpan.Start);
-                var classifiedSecondarySpans = await RazorClassifierAccessor.GetClassifiedSpansAsync(
+                var classifiedSecondarySpans = await Classifier.GetClassifiedSpansAsync(
                     generatedDocument,
                     secondarySpan,
-                    options,
                     cancellationToken);
 
                 // NOTE: The Classifier will only returns spans for things that it understands. That means
