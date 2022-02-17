@@ -267,6 +267,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public void TryConvert_TagHelperAttribute_ForBool_ReturnsTrue()
+        {
+            // Arrange
+            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
+            var attributeCompletionDescription = new AggregateBoundAttributeDescription(new[] {
+                new BoundAttributeDescriptionInfo("System.Boolean", "Stuff", "format", "SomeDocs")
+            });
+            completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
+
+            // Act
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, _supportedCompletionItemKinds, out var converted);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(completionItem.DisplayText, converted.Label);
+            Assert.Equal("format", converted.InsertText);
+            Assert.Equal(InsertTextFormat.PlainText, converted.InsertTextFormat);
+            Assert.Equal(completionItem.InsertText, converted.FilterText);
+            Assert.Equal(completionItem.InsertText, converted.SortText);
+            Assert.Null(converted.Detail);
+            Assert.Null(converted.Documentation);
+            Assert.Null(converted.Command);
+        }
+
+        [Fact]
         public void TryConvert_TagHelperAttribute_ReturnsTrue()
         {
             // Arrange
@@ -278,7 +303,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Assert
             Assert.True(result);
             Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
+            Assert.Equal("format=\"$0\"", converted.InsertText);
+            Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
             Assert.Equal(completionItem.InsertText, converted.FilterText);
             Assert.Equal(completionItem.InsertText, converted.SortText);
             Assert.Null(converted.Detail);
@@ -689,7 +715,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Contains(completionList, item => item.InsertText == "testAttribute");
+            Assert.Contains(completionList, item => item.InsertText == "testAttribute=\"$0\"");
         }
 
         private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)

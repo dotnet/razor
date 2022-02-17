@@ -174,6 +174,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     serializer.Serialize(writer, completionItem.Data);
                 }
 
+                if (completionItem is VSCompletionItem vSCompletionItem && vSCompletionItem.VsCommitCharacters is not null)
+                {
+                    writer.WritePropertyName("_vs_commitCharacters");
+                    serializer.Serialize(writer, vSCompletionItem.VsCommitCharacters);
+                }
+
                 writer.WriteEndObject();
             }
         }

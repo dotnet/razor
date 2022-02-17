@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             completionItem.Items[s_attributeCompletionDescriptionKey] = attributeCompletionDescription;
         }
 
-        public static AggregateBoundAttributeDescription GetAttributeCompletionDescription(this RazorCompletionItem completionItem)
+        public static AggregateBoundAttributeDescription? GetAttributeCompletionDescription(this RazorCompletionItem completionItem)
         {
             if (completionItem is null)
             {
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             completionItem.Items[s_directiveCompletionDescriptionKey] = attributeCompletionDescription;
         }
 
-        public static DirectiveCompletionDescription GetDirectiveCompletionDescription(this RazorCompletionItem completionItem)
+        public static DirectiveCompletionDescription? GetDirectiveCompletionDescription(this RazorCompletionItem completionItem)
         {
             if (completionItem is null)
             {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             completionItem.Items[s_markupTransitionDescriptionKey] = markupTransitionCompletionDescription;
         }
 
-        public static MarkupTransitionCompletionDescription GetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem)
+        public static MarkupTransitionCompletionDescription? GetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem)
         {
             if (completionItem is null)
             {
@@ -75,6 +74,21 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             var markupTransitionCompletionDescription = completionItem.Items[s_markupTransitionDescriptionKey] as MarkupTransitionCompletionDescription;
             return markupTransitionCompletionDescription;
+        }
+
+        public static IEnumerable<string> GetAttributeCompletionTypes(this RazorCompletionItem completionItem)
+        {
+            var attributeCompletionDescription = completionItem.GetAttributeCompletionDescription();
+
+            if( attributeCompletionDescription is null)
+            {
+                yield break;
+            }
+
+            foreach(var descriptionInfo in attributeCompletionDescription.DescriptionInfos)
+            {
+                yield return descriptionInfo.ReturnTypeName;
+            }
         }
     }
 }

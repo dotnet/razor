@@ -4,6 +4,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -23,7 +25,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var data = completionItem.Data ?? new JObject();
             data[ResultIdKey] = resultId;
             completionItem = completionItem with { Data = data };
-            return completionItem;
+
+            var result = completionItem.ToVSCompletionItem();
+            return result;
         }
 
         public static bool TryGetCompletionListResultId(this CompletionItem completion, out int resultId)
@@ -50,6 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(completion));
             }
 
+            var vsCommitCharacters = GetVSCommitCharacters(completion).ToArray();
+
             return new VSCompletionItem
             {
                 AdditionalTextEdits = completion.AdditionalTextEdits,
@@ -60,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Detail = completion.Detail,
                 Documentation = completion.Documentation,
                 FilterText = completion.FilterText,
-                InsertText = completion.FilterText,
+                InsertText = completion.InsertText,
                 InsertTextFormat = completion.InsertTextFormat,
                 Kind = completion.Kind,
                 Label = completion.Label,
@@ -68,7 +74,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 SortText = completion.SortText,
                 Tags = completion.Tags,
                 TextEdit = completion.TextEdit,
+                VsCommitCharacters = vsCommitCharacters,
             };
+#nullable enable
+            static IEnumerable<CommitCharacter>? GetVSCommitCharacters(CompletionItem completion)
+            {
+                if (completion.CommitCharacters is null)
+                {
+                    yield break;
+                }
+
+                foreach (var commitCharacter in completion.CommitCharacters)
+                {
+                    yield return new CommitCharacter
+                    {
+                        Character = commitCharacter,
+                        Insert = completion.InsertTextFormat != InsertTextFormat.Snippet,
+                    };
+                }
+            }
+#nullable disable
         }
     }
 }

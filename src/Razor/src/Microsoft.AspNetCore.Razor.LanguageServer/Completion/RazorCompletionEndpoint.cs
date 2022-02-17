@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private IReadOnlyList<ExtendedCompletionItemKinds>? _supportedItemKinds;
 
         // Guid is magically generated and doesn't mean anything. O# magic.
-        public Guid Id => new Guid("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
+        public Guid Id => new("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
 
         public RazorCompletionEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -209,13 +209,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.Directive:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetDirectiveCompletionDescription();
-                        completionItem = completionItem with { Documentation = descriptionInfo.Description };
+                        if (descriptionInfo is not null)
+                        {
+                            completionItem = completionItem with { Documentation = descriptionInfo.Description };
+                        }
+
                         break;
                     }
                 case RazorCompletionItemKind.MarkupTransition:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetMarkupTransitionCompletionDescription();
-                        completionItem = completionItem with { Documentation = descriptionInfo.Description };
+                        if (descriptionInfo is not null)
+                        {
+                            completionItem = completionItem with { Documentation = descriptionInfo.Description };
+                        }
+
                         break;
                     }
                 case RazorCompletionItemKind.DirectiveAttribute:
@@ -449,12 +457,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     }
                 case RazorCompletionItemKind.TagHelperAttribute:
                     {
+                        var isSnippet = IsInsertTextSnippet(razorCompletionItem, out var snippetInsertText);
                         var tagHelperAttributeCompletionItem = new CompletionItem()
                         {
                             Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
+                            InsertText = snippetInsertText,
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.SortText,
+                            InsertTextFormat = isSnippet ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
                             Kind = tagHelperCompletionItemKind,
                         };
 
@@ -470,6 +480,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             completionItem = null;
             return false;
+
+            static bool IsInsertTextSnippet(RazorCompletionItem razorCompletionItem, out string insertText)
+            {
+                var attributeCompletionTypes = razorCompletionItem.GetAttributeCompletionTypes();
+                // If the attribute is a boolean than just its name is a legal response. Therefor don't do the snippet
+                if (attributeCompletionTypes.Any(type => string.Equals(type, typeof(bool).ToString(), StringComparison.Ordinal)))
+                {
+                    insertText = razorCompletionItem.InsertText;
+                    return false;
+                }
+                else
+                {
+                    insertText = $"{razorCompletionItem.InsertText}=\"$0\"";
+                    return true;
+                }
+            }
         }
     }
 }
