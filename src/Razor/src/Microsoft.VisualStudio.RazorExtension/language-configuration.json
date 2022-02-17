@@ -9,7 +9,7 @@
     ["{", "}"],
     ["(", ")"]
   ],
-  "autoCloseBefore": ";:.,=}])>`\"' \r\n\t",
+  "autoCloseBefore": ";:.,/=}])><`\"' \r\n\t",
   "autoClosingPairs": [
     { "open": "{", "close": "}"},
     { "open": "[", "close": "]"},
