@@ -299,6 +299,31 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test attribute=""value"">$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test attribute=""value"">$0</test></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
         public void OnTypeCloseAngle_TagHelperInTagHelper_NestedStatement()
         {
