@@ -15,15 +15,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    internal abstract class DocumentExcerptServiceBase : IRazorDocumentExcerptService
+    internal abstract class DocumentExcerptServiceBase : IRazorDocumentExcerptServiceImplementation
     {
         public async Task<RazorExcerptResult?> TryExcerptAsync(
                         Document document,
                         TextSpan span,
                         RazorExcerptMode mode,
+                        RazorClassificationOptionsWrapper options,
                         CancellationToken cancellationToken)
         {
-            var result = await TryGetExcerptInternalAsync(document, span, (ExcerptModeInternal)mode, cancellationToken).ConfigureAwait(false);
+            var result = await TryGetExcerptInternalAsync(document, span, (ExcerptModeInternal)mode, options, cancellationToken).ConfigureAwait(false);
             return result?.ToExcerptResult();
         }
 
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 Document document,
                 TextSpan span,
                 ExcerptModeInternal mode,
+                RazorClassificationOptionsWrapper options,
                 CancellationToken cancellationToken);
 
         protected TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
