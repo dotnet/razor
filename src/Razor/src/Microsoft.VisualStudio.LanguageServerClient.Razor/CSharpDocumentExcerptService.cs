@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Document document,
             TextSpan span,
             ExcerptModeInternal mode,
-            RazorClassificationOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             var mappedSpans = await _mappingService.MapSpansAsync(document, new[] { span }, cancellationToken).ConfigureAwait(false);
@@ -66,7 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 mode,
                 _documentSnapshot.Snapshot.AsText(),
                 mappedSpans[0].LinePositionSpan,
-                options,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -76,7 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ExcerptModeInternal mode,
             SourceText razorDocumentText,
             LinePositionSpan mappedLinePosition,
-            RazorClassificationOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             var razorDocumentSpan = razorDocumentText.Lines.GetTextSpan(mappedLinePosition);
@@ -93,7 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 excerptSpan,
                 span,
                 generatedDocument,
-                options,
                 cancellationToken).ConfigureAwait(false);
 
             var excerptText = GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
@@ -106,7 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             TextSpan excerptSpan,
             TextSpan generatedSpan,
             Document generatedDocument,
-            RazorClassificationOptionsWrapper options,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
@@ -119,10 +114,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var offsetRazorToGenerated = generatedSpan.Start - razorSpan.Start;
             var offsetExcerpt = new TextSpan(excerptSpan.Start + offsetRazorToGenerated, excerptSpan.Length);
 
-            var classifiedSecondarySpans = await RazorClassifierAccessor.GetClassifiedSpansAsync(
+            var classifiedSecondarySpans = await Classifier.GetClassifiedSpansAsync(
                 generatedDocument,
                 offsetExcerpt,
-                options,
                 cancellationToken);
 
             // Now we have to translate back to the razor document's coordinates.
