@@ -643,72 +643,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_CSharpProjection_ReturnOnlyPropertiesIfInsideInitializer()
-        {
-            // Arrange
-            var called = false;
-            var expectedItems = new CompletionItem[] {
-                 new CompletionItem() { Kind = CompletionItemKind.Property, Label = "DayOfWeek" },
-                 new CompletionItem() { Kind = CompletionItemKind.Property, Label = "Kind" },
-            };
-
-            var completionRequest = new CompletionParams()
-            {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
-                Position = new Position(4, 9)
-            };
-
-            var documentManager = new TestDocumentManager();
-            var content = @"@using System
-@{
-    var date = new DateTime()
-    {
-        
-    };
-}";
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, snapshotContent: content, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, expectedItems)));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
-            };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, BuildNavigatorSelector(new TextExtent(new SnapshotSpan(new StringTextSnapshot(content), new Span(57, 9)), isSignificant: false)), CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
-
-            // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-
-            // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    Assert.Collection(list.Items,
-                        item => Assert.Equal("DayOfWeek", item.Label),
-                        item => Assert.Equal("Kind", item.Label)
-                    );
-
-                    return list;
-                });
-        }
-
-        [Fact]
         public async Task HandleRequestAsync_CSharpProjection_RemoveAllDesignTimeHelpers()
         {
             // Arrange
@@ -763,11 +697,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 list =>
                 {
                     Assert.Collection(list.Items,
-                        item => Assert.Equal("DateTime", item.InsertText),
-                        item => Assert.Equal("for (...)", item.Label),
-                        item => Assert.Equal("foreach (...)", item.Label),
-                        item => Assert.Equal("if (...)", item.Label),
-                        item => Assert.Equal("prop", item.Label)
+                        item => Assert.Equal("DateTime", item.InsertText)
                     );
 
                     return list;
