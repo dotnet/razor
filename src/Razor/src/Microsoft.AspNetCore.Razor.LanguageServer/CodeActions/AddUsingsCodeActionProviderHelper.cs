@@ -19,10 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // Internal for testing
         internal static string GetNamespaceFromFQN(string fullyQualifiedName)
         {
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-                    fullyQualifiedName,
-                    out var namespaceName,
-                    out _))
+            if (!TrySplitNamespaceAndType(fullyQualifiedName, out var namespaceName, out _))
             {
                 return string.Empty;
             }
@@ -80,6 +77,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             @namespace = regexMatchedTextEdit.Groups[1].Value;
+            return true;
+        }
+
+        internal static bool TrySplitNamespaceAndType(StringSegment fullTypeName, out StringSegment @namespace, out StringSegment typeName)
+        {
+            @namespace = StringSegment.Empty;
+            typeName = StringSegment.Empty;
+
+            if (fullTypeName.IsEmpty || string.IsNullOrEmpty(fullTypeName.Buffer))
+            {
+                return false;
+            }
+
+            var nestingLevel = 0;
+            var splitLocation = -1;
+            for (var i = fullTypeName.Length - 1; i >= 0; i--)
+            {
+                var c = fullTypeName[i];
+                if (c == Type.Delimiter && nestingLevel == 0)
+                {
+                    splitLocation = i;
+                    break;
+                }
+                else if (c == '>')
+                {
+                    nestingLevel++;
+                }
+                else if (c == '<')
+                {
+                    nestingLevel--;
+                }
+            }
+
+            if (splitLocation == -1)
+            {
+                typeName = fullTypeName;
+                return true;
+            }
+
+            @namespace = fullTypeName.Subsegment(0, splitLocation);
+
+            var typeNameStartLocation = splitLocation + 1;
+            if (typeNameStartLocation < fullTypeName.Length)
+            {
+                typeName = fullTypeName.Subsegment(typeNameStartLocation, fullTypeName.Length - typeNameStartLocation);
+            }
+
             return true;
         }
     }
