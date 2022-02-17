@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override TextLoader GetTextLoader(string filePath) => new GeneratedDocumentTextLoader(_documentSnapshot, filePath);
 
-        public override IRazorDocumentExcerptService GetExcerptService()
+        public override IRazorDocumentExcerptServiceImplementation GetExcerptService()
         {
             if (_excerptService is null)
             {
