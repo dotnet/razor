@@ -383,7 +383,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else
             {
-                Assert.False(true, $"{service.TryMapToProjectedDocumentPosition} should have returned true");
+                Assert.False(true, $"{nameof(service.TryMapToProjectedDocumentPosition)} should have returned true");
             }
         }
 
