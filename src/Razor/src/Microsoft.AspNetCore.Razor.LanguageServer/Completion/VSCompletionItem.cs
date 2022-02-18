@@ -18,15 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public VSClassifiedTextElement Description { get; set; }
 
         [JsonProperty("_vs_commitCharacters")]
-        public CommitCharacter[] VsCommitCharacters { get; set; }
-    }
-
-    internal class CommitCharacter
-    {
-        [JsonProperty("_vs_character")]
-        public string Character { get; set; }
-
-        [JsonProperty("_vs_insert")]
-        public bool Insert { get; set; }
+        public VSCommitCharacter[] VsCommitCharacters { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public class OptimizedCompletionListJsonConverter : JsonConverter
         {
-            public static readonly OptimizedCompletionListJsonConverter Instance = new OptimizedCompletionListJsonConverter();
+            public static readonly OptimizedCompletionListJsonConverter Instance = new();
             private static readonly ConcurrentDictionary<object, string> s_commitCharactersRawJson;
             private static readonly JsonSerializer s_defaultSerializer;
 

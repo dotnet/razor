@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -30,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return result;
         }
 
-        public static bool TryGetCompletionListResultId(this CompletionItem completion, out int resultId)
+        public static bool TryGetCompletionListResultId(this CompletionItem completion, [NotNullWhen(true)] out int? resultId)
         {
             if (completion is null)
             {
@@ -39,8 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (completion.Data is JObject data && data.ContainsKey(ResultIdKey))
             {
-                resultId = data[ResultIdKey].ToObject<int>();
-                return true;
+                resultId = data[ResultIdKey]?.ToObject<int>();
+                return resultId is not null;
             }
 
             resultId = default;
@@ -76,8 +75,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 TextEdit = completion.TextEdit,
                 VsCommitCharacters = vsCommitCharacters,
             };
-#nullable enable
-            static IEnumerable<CommitCharacter>? GetVSCommitCharacters(CompletionItem completion)
+
+            static IEnumerable<VSCommitCharacter> GetVSCommitCharacters(CompletionItem completion)
             {
                 if (completion.CommitCharacters is null)
                 {
@@ -86,14 +85,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                 foreach (var commitCharacter in completion.CommitCharacters)
                 {
-                    yield return new CommitCharacter
+                    yield return new VSCommitCharacter
                     {
                         Character = commitCharacter,
                         Insert = completion.InsertTextFormat != InsertTextFormat.Snippet,
                     };
                 }
             }
-#nullable disable
         }
     }
 }

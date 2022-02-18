@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return Task.FromResult(completionItem);
             }
 
-            if (!_completionListCache.TryGet(resultId, out var cachedCompletionItems))
+            if (!_completionListCache.TryGet(resultId.Value, out var cachedCompletionItems))
             {
                 return Task.FromResult(completionItem);
             }
