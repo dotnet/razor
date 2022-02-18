@@ -58,6 +58,94 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private readonly string _languageClient = "languageClient";
 
+        [Theory]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        [InlineData("if")]
+        [InlineData("using")]
+        [InlineData("foreach")]
+        [InlineData("try")]
+        public void IsRazorCompilerBugWithCSharpKeywords_ReturnsTrue(string keyword)
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords($"@|{keyword}|");
+
+            //  Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public void IsRazorCompilerBugWithCSharpKeywords_Invoked_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@|using| SomeNamespace.Foo", CompletionTriggerKind.Invoked);
+
+            //  Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public void IsRazorCompilerBugWithCSharpKeywords_MoreThanKeyword_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@|usingMore|");
+
+            //  Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public void IsRazorCompilerBugWithCSharpKeywords_Other_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@|unrelated|");
+
+            //  Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public void IsRazorCompilerBugWithCSharpKeywords_NonSignificant_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@using |  |");
+
+            //  Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public void IsRazorCompilerBugWithCSharpKeywords_Empty_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@usin||g");
+
+            //  Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public void IsRazorCompilerBugWithCSharpKeywords_Subset_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = RunTest_IsRazorCompilerBugWithCSharpKeywords("@u|sin|g");
+
+            //  Assert
+            Assert.False(result);
+        }
+
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
@@ -103,6 +191,48 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.Null(result);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5606")]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/37568")]
+        public async Task HandleRequestAsync_ProjectionNotFound_IsCompilerBug_ReturnsPolyfills()
+        {
+            // Arrange
+            var documentManager = new TestDocumentManager();
+            var snapshot = new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), version: 0, "@using");
+            documentManager.AddDocument(Uri, snapshot);
+            var wordExtent = GetWordExtent("@|using|");
+            var navigator = BuildNavigatorSelector(wordExtent);
+            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
+            Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
+                .Returns(Task.FromResult<ProjectionResult>(null));
+            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker, documentManager, projectionProvider, navigator, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+            var completionRequest = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions },
+                Position = new Position(0, 6)
+            };
+
+            // Act
+            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            var completionList = result.Value.Second;
+            Assert.True(completionList.IsIncomplete);
+            Assert.Collection(completionList.Items,
+                item => Assert.Equal("for", item.Label),
+                item => Assert.Equal("foreach", item.Label),
+                item => Assert.Equal("while", item.Label),
+                item => Assert.Equal("switch", item.Label),
+                item => Assert.Equal("lock", item.Label),
+                item => Assert.Equal("case", item.Label),
+                item => Assert.Equal("if", item.Label),
+                item => Assert.Equal("try", item.Label),
+                item => Assert.Equal("do", item.Label),
+                item => Assert.Equal("using", item.Label));
         }
 
         [Fact]
@@ -1574,6 +1704,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             navigatorSelector.Setup(selector => selector.GetTextStructureNavigator(It.IsAny<ITextBuffer>()))
                 .Returns(navigator.Object);
             return navigatorSelector.Object;
+        }
+
+        private static bool RunTest_IsRazorCompilerBugWithCSharpKeywords(string input, CompletionTriggerKind? triggerKind = null)
+        {
+            var request = new CompletionParams()
+            {
+                Context = new CompletionContext()
+                {
+                    TriggerKind = triggerKind ?? CompletionTriggerKind.TriggerForIncompleteCompletions,
+                }
+            };
+            var wordExtent = GetWordExtent(input);
+            var result = CompletionHandler.IsRazorCompilerBugWithCSharpKeywords(request, wordExtent);
+            return result;
         }
 
         private static TextExtent GetWordExtent(string input)
