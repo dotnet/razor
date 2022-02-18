@@ -21,7 +21,7 @@
       <Uri>https://github.com/dotnet/razor-compiler</Uri>
       <Sha>ca1728b83851de4211477ab37a2460bf567544d3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NETCore.BrowserDebugHost.Transport" Version="6.0.1-servicing.21567.5">
+    <Dependency Name="Microsoft.NETCore.BrowserDebugHost.Transport" Version="6.0.2-servicing.22064.6">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
       <Sha>3a25a7f1cc446b60678ed25c9d829420d6321eba</Sha>
     </Dependency>
