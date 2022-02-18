@@ -607,6 +607,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             public VisualStudioTagHelperFeature(IReadOnlyList<TagHelperDescriptor> tagHelpers)
             {
                 _tagHelpers = tagHelpers;
+                foreach (var tagHelper in tagHelpers)
+                {
+                    DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper, out _);
+                }
             }
 
             public RazorEngine Engine { get; set; }
