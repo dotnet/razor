@@ -501,7 +501,7 @@ slf*@";
             await AssertSemanticTokensAsync(txt, isRazor: false);
         }
 
-        private Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
+        private async Task AssertSemanticTokensAsync(
             string txt,
             bool isRazor,
             OmniSharpRange? range = null,
@@ -515,10 +515,10 @@ slf*@";
                 range = new OmniSharpRange { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = lines.Length - 1, Character = lines[^1].Length } };
             };
 
-            return AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, range, service, csharpTokens, documentVersion);
+            await AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, range, service, csharpTokens, documentVersion);
         }
 
-        private async Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
+        private async Task AssertSemanticTokensAsync(
             string[] txtArray,
             bool[] isRazorArray,
             OmniSharpRange range,
@@ -537,15 +537,12 @@ slf*@";
                 csharpTokens = new ProvideSemanticTokensResponse(tokens: null, isFinalized: true, documentVersion);
             }
 
-            Mock<ClientNotifierServiceBase>? serviceMock = null;
             var (documentSnapshots, textDocumentIdentifiers) = CreateDocumentSnapshot(txtArray, isRazorArray, DefaultTagHelpers);
 
             if (service is null)
             {
-                (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, csharpTokens, documentVersion);
+                service = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, csharpTokens, documentVersion);
             }
-
-            var outService = service;
 
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
 
@@ -554,11 +551,9 @@ slf*@";
 
             // Assert
             AssertSemanticTokensMatchesBaseline(tokens?.Data);
-
-            return (tokens?.ResultId, outService, serviceMock!, documentSnapshots);
         }
 
-        private (RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>) GetDefaultRazorSemanticTokenInfoService(
+        private RazorSemanticTokensInfoService GetDefaultRazorSemanticTokenInfoService(
             Queue<DocumentSnapshot> documentSnapshots,
             ProvideSemanticTokensResponse? csharpTokens = null,
             int? documentVersion = 0)
@@ -582,13 +577,13 @@ slf*@";
             documentVersionCache.Setup(c => c.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out documentVersion))
                 .Returns(true);
 
-            return (new DefaultRazorSemanticTokensInfoService(
+            return new DefaultRazorSemanticTokensInfoService(
                 languageServer.Object,
                 documentMappingService,
                 projectSnapshotManagerDispatcher,
                 documentResolver,
                 documentVersionCache.Object,
-                loggingFactory), languageServer);
+                loggingFactory);
         }
 
         private class TestDocumentResolver : DocumentResolver
