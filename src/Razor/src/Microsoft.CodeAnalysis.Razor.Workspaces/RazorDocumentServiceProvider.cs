@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly object _lock;
 
         private IRazorSpanMappingService? _spanMappingService;
-        private IRazorDocumentExcerptService? _documentExcerptService;
+        private IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
         private IRazorDocumentPropertiesService? _documentPropertiesService;
 
         public RazorDocumentServiceProvider()
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 return (TService)_spanMappingService;
             }
 
-            if (serviceType == typeof(IRazorDocumentExcerptService))
+            if (serviceType == typeof(IRazorDocumentExcerptServiceImplementation))
             {
                 if (_documentExcerptService is null)
                 {
