@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.Razor
                 provider.Execute(context);
             }
 
+            foreach (var tagHelper in results)
+            {
+                DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper, out _);
+            }
+
             return new TagHelperResolutionResult(results, Array.Empty<RazorDiagnostic>());
         }
 
