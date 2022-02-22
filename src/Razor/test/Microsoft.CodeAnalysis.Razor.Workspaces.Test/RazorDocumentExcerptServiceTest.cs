@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
@@ -40,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Razor
             var service = CreateExcerptService(primary);
 
             // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, CancellationToken.None);
+            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -118,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor
             var service = CreateExcerptService(primary);
 
             // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, CancellationToken.None);
+            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -171,8 +168,7 @@ namespace Microsoft.CodeAnalysis.Razor
             var service = CreateExcerptService(primary);
 
             // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, CancellationToken.None);
+            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -274,8 +270,7 @@ namespace Microsoft.CodeAnalysis.Razor
             var service = CreateExcerptService(primary);
 
             // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, options, CancellationToken.None);
+            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -383,8 +378,7 @@ namespace Microsoft.CodeAnalysis.Razor
             var service = CreateExcerptService(primary);
 
             // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, options, CancellationToken.None);
+            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, CancellationToken.None);
 
             // Assert
             // Verifies that the right part of the primary document will be highlighted.

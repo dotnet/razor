@@ -626,21 +626,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return request?.Response;
         }
 
-        public override async Task<IReadOnlyList<FoldingRange>> ProfideFoldingRangesAsync(FoldingRangeParams foldingRangeParams, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<FoldingRange>> ProvideFoldingRangesAsync(FoldingRangeParams foldingRangeParams, CancellationToken cancellationToken)
         {
             if (foldingRangeParams is null)
             {
                 throw new ArgumentNullException(nameof(foldingRangeParams));
             }
 
-            if (!_documentManager.TryGetDocument(foldingRangeParams.TextDocument.Uri, out var document))
+            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
+            if (csharpDocument is null)
             {
                 return Array.Empty<FoldingRange>();
             }
 
-            var buffer = document.Snapshot.TextBuffer;
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<FoldingRangeParams, FoldingRange[]>(
-                buffer,
+                csharpDocument.Snapshot.TextBuffer,
                 Methods.TextDocumentFoldingRange.Name,
                 SupportsFoldingRange,
                 foldingRangeParams,
