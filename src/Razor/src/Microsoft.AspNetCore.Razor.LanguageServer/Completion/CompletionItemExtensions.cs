@@ -25,8 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             data[ResultIdKey] = resultId;
             completionItem = completionItem with { Data = data };
 
-            var result = completionItem.ToVSCompletionItem();
-            return result;
+            return completionItem;
         }
 
         public static bool TryGetCompletionListResultId(this CompletionItem completion, [NotNullWhen(true)] out int? resultId)
