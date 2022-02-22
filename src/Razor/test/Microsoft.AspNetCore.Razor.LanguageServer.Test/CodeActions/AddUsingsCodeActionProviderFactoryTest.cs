@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var fqn = "Abc";
 
             // Act
-            var namespaceName = AddUsingsCodeActionProviderFactory.GetNamespaceFromFQN(fqn);
+            var namespaceName = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fqn);
 
             // Assert
             Assert.Empty(namespaceName);
@@ -30,24 +30,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var fqn = "Abc.Xyz";
 
             // Act
-            var namespaceName = AddUsingsCodeActionProviderFactory.GetNamespaceFromFQN(fqn);
+            var namespaceName = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fqn);
 
             // Assert
             Assert.Equal("Abc", namespaceName);
         }
 
         [Fact]
-        public void CreateAddUsingCodeAction_CreatesCodeAction()
+        public void TryCreateAddUsingResolutionParams_CreatesResolutionParams()
         {
             // Arrange
             var fqn = "Abc.Xyz";
             var docUri = DocumentUri.From("c:/path");
 
             // Act
-            var codeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fqn, docUri);
+            var result = AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, docUri, out var @namespace, out var resolutionParams);
 
             // Assert
-            Assert.Equal("@using Abc", codeAction.Title);
+            Assert.True(result);
+            Assert.Equal("Abc", @namespace);
+            Assert.NotNull(resolutionParams);
         }
 
         [Fact]
@@ -57,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var csharpAddUsing = "Abc.Xyz;";
 
             // Act
-            var res = AddUsingsCodeActionProviderFactory.TryExtractNamespace(csharpAddUsing, out var @namespace);
+            var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
 
             // Assert
             Assert.False(res);
@@ -71,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var csharpAddUsing = "using Abc.Xyz;";
 
             // Act
-            var res = AddUsingsCodeActionProviderFactory.TryExtractNamespace(csharpAddUsing, out var @namespace);
+            var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
 
             // Assert
             Assert.True(res);
@@ -85,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var csharpAddUsing = "using static X.Y.Z;";
 
             // Act
-            var res = AddUsingsCodeActionProviderFactory.TryExtractNamespace(csharpAddUsing, out var @namespace);
+            var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
 
             // Assert
             Assert.True(res);

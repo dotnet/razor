@@ -8,22 +8,18 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal static class AddUsingsCodeActionProviderFactory
+    internal static class AddUsingsCodeActionProviderHelper
     {
         internal static readonly Regex AddUsingVSCodeAction = new Regex("^using (.+);$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         // Internal for testing
         internal static string GetNamespaceFromFQN(string fullyQualifiedName)
         {
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-                    fullyQualifiedName,
-                    out var namespaceName,
-                    out _))
+            if (!TrySplitNamespaceAndType(fullyQualifiedName, out var namespaceName, out _))
             {
                 return string.Empty;
             }
@@ -31,12 +27,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return namespaceName.Value;
         }
 
-        internal static RazorCodeAction CreateAddUsingCodeAction(string fullyQualifiedName, DocumentUri uri)
+        internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, DocumentUri uri, out string @namespace, out RazorCodeActionResolutionParams resolutionParams)
         {
-            var @namespace = GetNamespaceFromFQN(fullyQualifiedName);
+            @namespace = GetNamespaceFromFQN(fullyQualifiedName);
             if (string.IsNullOrEmpty(@namespace))
             {
-                return null;
+                @namespace = null;
+                resolutionParams = null;
+                return false;
             }
 
             var actionParams = new AddUsingsCodeActionParams
@@ -45,18 +43,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Namespace = @namespace
             };
 
-            var resolutionParams = new RazorCodeActionResolutionParams
+            resolutionParams = new RazorCodeActionResolutionParams
             {
                 Action = LanguageServerConstants.CodeActions.AddUsing,
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = actionParams,
             };
 
-            return new RazorCodeAction()
-            {
-                Title = $"@using {@namespace}",
-                Data = JToken.FromObject(resolutionParams)
-            };
+            return true;
         }
 
         /// <summary>
@@ -83,6 +77,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             @namespace = regexMatchedTextEdit.Groups[1].Value;
+            return true;
+        }
+
+        internal static bool TrySplitNamespaceAndType(StringSegment fullTypeName, out StringSegment @namespace, out StringSegment typeName)
+        {
+            @namespace = StringSegment.Empty;
+            typeName = StringSegment.Empty;
+
+            if (fullTypeName.IsEmpty || string.IsNullOrEmpty(fullTypeName.Buffer))
+            {
+                return false;
+            }
+
+            var nestingLevel = 0;
+            var splitLocation = -1;
+            for (var i = fullTypeName.Length - 1; i >= 0; i--)
+            {
+                var c = fullTypeName[i];
+                if (c == Type.Delimiter && nestingLevel == 0)
+                {
+                    splitLocation = i;
+                    break;
+                }
+                else if (c == '>')
+                {
+                    nestingLevel++;
+                }
+                else if (c == '<')
+                {
+                    nestingLevel--;
+                }
+            }
+
+            if (splitLocation == -1)
+            {
+                typeName = fullTypeName;
+                return true;
+            }
+
+            @namespace = fullTypeName.Subsegment(0, splitLocation);
+
+            var typeNameStartLocation = splitLocation + 1;
+            if (typeNameStartLocation < fullTypeName.Length)
+            {
+                typeName = fullTypeName.Subsegment(typeNameStartLocation, fullTypeName.Length - typeNameStartLocation);
+            }
+
             return true;
         }
     }

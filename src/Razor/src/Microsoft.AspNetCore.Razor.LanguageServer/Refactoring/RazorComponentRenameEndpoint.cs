@@ -243,7 +243,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 if (originTagHelper?.IsComponentFullyQualifiedNameMatch() == true)
                 {
                     // Fully qualified binding, our "new name" needs to be fully qualified.
-                    if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(originTagHelper.Name, out var @namespace, out _))
+                    var @namespace = originTagHelper.GetTypeNamespace();
+                    if (@namespace == null)
                     {
                         return;
                     }

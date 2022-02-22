@@ -54,7 +54,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(tagHelper));
             }
 
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName))
+            var typeName = tagHelper.GetTypeNameIdentifier();
+            var namespaceName = tagHelper.GetTypeNamespace();
+            if (typeName == null || namespaceName == null)
             {
                 _logger.LogWarning($"Could not split namespace and type for name {tagHelper.Name}.");
                 return null;

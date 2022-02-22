@@ -367,12 +367,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 RazorSyntaxNode? endTag = null;
                 if (node is MarkupTagHelperElementSyntax parentTagHelper)
                 {
-                    potentialStartTagName = parentTagHelper.StartTag.Name.Content;
+                    potentialStartTagName = parentTagHelper.StartTag?.Name.Content ?? parentTagHelper.EndTag?.Name.Content;
                     endTag = parentTagHelper.EndTag;
                 }
                 else if (node is MarkupElementSyntax parentElement)
                 {
-                    potentialStartTagName = parentElement.StartTag.Name.Content;
+                    potentialStartTagName = parentElement.StartTag?.Name.Content ?? parentElement.EndTag?.Name.Content;
                     endTag = parentElement.EndTag;
                 }
 
