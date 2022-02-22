@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -35,12 +36,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
+            var options = RazorClassificationOptionsWrapper.Default;
             var result = await excerptService.TryGetExcerptInternalAsync(
                 generatedDocument,
                 generatedSpan,
                 ExcerptModeInternal.SingleLine,
                 razorSourceText,
                 mappedLinePositionSpan,
+                options,
                 CancellationToken.None);
 
             // Assert
@@ -121,12 +124,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
+            var options = RazorClassificationOptionsWrapper.Default;
             var result = await excerptService.TryGetExcerptInternalAsync(
                 generatedDocument,
                 generatedSpan,
                 ExcerptModeInternal.SingleLine,
                 razorSourceText,
                 mappedLinePositionSpan,
+                options,
                 CancellationToken.None);
 
             // Assert
@@ -165,12 +170,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
+            var options = RazorClassificationOptionsWrapper.Default;
             var result = await excerptService.TryGetExcerptInternalAsync(
                 generatedDocument,
                 generatedSpan,
                 ExcerptModeInternal.SingleLine,
                 razorSourceText,
                 mappedLinePositionSpan,
+                options,
                 CancellationToken.None);
 
             // Assert
@@ -210,12 +217,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
+            var options = RazorClassificationOptionsWrapper.Default;
             var result = await excerptService.TryGetExcerptInternalAsync(
                 generatedDocument,
                 generatedSpan,
                 ExcerptModeInternal.Tooltip,
                 razorSourceText,
                 mappedLinePositionSpan,
+                options,
                 CancellationToken.None);
 
             // Assert
@@ -254,12 +263,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var mappedLinePositionSpan = razorSourceText.Lines.GetLinePositionSpan(primarySpan);
 
             // Act
+            var options = RazorClassificationOptionsWrapper.Default;
             var result = await excerptService.TryGetExcerptInternalAsync(
                 generatedDocument,
                 generatedSpan,
                 ExcerptModeInternal.Tooltip,
                 razorSourceText,
                 mappedLinePositionSpan,
+                options,
                 CancellationToken.None);
 
             // Assert
