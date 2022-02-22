@@ -76,7 +76,7 @@
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.21103.2</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.0.31723.112</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.0.487</MicrosoftVisualStudioPackagesVersion>
-    <RoslynPackageVersion>4.1.0-1.21471.13</RoslynPackageVersion>
+    <RoslynPackageVersion>4.2.0-2.22108.10</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.1.11</VisualStudioLanguageServerProtocolVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
@@ -107,13 +107,13 @@
     <MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.10.81-pre</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
-    <MicrosoftVisualStudioRpcContractsVersion>17.0.50-preview-0001-0001</MicrosoftVisualStudioRpcContractsVersion>
+    <MicrosoftVisualStudioRpcContractsVersion>17.0.51</MicrosoftVisualStudioRpcContractsVersion>
     <MicrosoftVisualStudioShell150PackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150PackageVersion>
     <MicrosoftVisualStudioInteropPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioInteropPackageVersion>
     <MicrosoftVisualStudioTextDataPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextDataPackageVersion>
     <MicrosoftVisualStudioTextImplementationPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextImplementationPackageVersion>
     <MicrosoftVisualStudioTextLogicPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextLogicPackageVersion>
-    <MicrosoftVisualStudioThreadingPackageVersion>17.0.63</MicrosoftVisualStudioThreadingPackageVersion>
+    <MicrosoftVisualStudioThreadingPackageVersion>17.0.64</MicrosoftVisualStudioThreadingPackageVersion>
     <MicrosoftVisualStudioWebPackageVersion>16.10.0-preview-1-31008-014</MicrosoftVisualStudioWebPackageVersion>
     <MicrosoftVisualStudioValidationPackageVersion>17.0.16-alpha</MicrosoftVisualStudioValidationPackageVersion>
     <MicrosoftWebToolsLanguagesHtmlPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesHtmlPackageVersion>
@@ -124,12 +124,13 @@
     <MonoAddinsPackageVersion>1.3.8</MonoAddinsPackageVersion>
     <MonoDevelopSdkPackageVersion>1.0.15</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.16.0</MoqPackageVersion>
-    <NerdbankStreamsPackageVersion>2.7.74</NerdbankStreamsPackageVersion>
+    <NerdbankStreamsPackageVersion>2.8.57</NerdbankStreamsPackageVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <OmniSharpExtensionsLanguageServerPackageVersion>0.19.5</OmniSharpExtensionsLanguageServerPackageVersion>
     <OmniSharpExtensionsLanguageProtocolPackageVersion>$(OmniSharpExtensionsLanguageServerPackageVersion)</OmniSharpExtensionsLanguageProtocolPackageVersion>
     <OmniSharpMSBuildPackageVersion>1.37.13</OmniSharpMSBuildPackageVersion>
-    <StreamJsonRpcPackageVersion>2.8.28</StreamJsonRpcPackageVersion>
+    <StreamJsonRpcPackageVersion>2.11.14-alpha</StreamJsonRpcPackageVersion>
+    <SystemRuntimeInteropServicesRuntimePackageVersion>4.3.0</SystemRuntimeInteropServicesRuntimePackageVersion>
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.3</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>6.0.0-preview3.21158.1</Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
