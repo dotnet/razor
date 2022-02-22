@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
             // See if we can use our cache to at least partially avoid recomputation.
-            if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, out var cachedResult))
+            if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, out var cachedResult, _logger))
             {
                 // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
                 // results to use next time around.
@@ -347,6 +347,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
             if (combinedSemanticRanges is null)
             {
+                _logger.LogWarning("Incomplete view of document. C# may be ahead of us in document versions.");
                 return null;
             }
 
@@ -421,6 +422,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // Unrecoverable, return default to indicate no change. It will retry in a bit.
             if (csharpResponse is null)
             {
+                _logger.LogWarning($"Issue with retrieving C# response for Razor range: {razorRange}");
                 return SemanticRangeResponse.Default;
             }
 
