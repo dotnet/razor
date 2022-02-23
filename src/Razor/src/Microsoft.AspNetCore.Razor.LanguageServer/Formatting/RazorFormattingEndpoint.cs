@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -232,6 +233,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            Debug.Assert(request.Character.Length > 0);
 
             var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
             if (formattedEdits.Length == 0)
