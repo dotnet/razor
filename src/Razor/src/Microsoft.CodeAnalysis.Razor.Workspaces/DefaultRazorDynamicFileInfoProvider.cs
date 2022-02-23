@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // the dynamic file info. The properties service contains the client name and allows the C#
             // server to recognize the document.
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
-            var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
+            var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
             var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
             var emptyContainer = new PromotedDynamicDocumentContainer(
                 documentUri, propertiesService, excerptService, mappingService, associatedEntry.Current.TextLoader);
@@ -411,14 +411,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             private readonly Uri _documentUri;
             private readonly IRazorDocumentPropertiesService _documentPropertiesService;
-            private readonly IRazorDocumentExcerptService _documentExcerptService;
+            private readonly IRazorDocumentExcerptServiceImplementation _documentExcerptService;
             private readonly IRazorSpanMappingService _spanMappingService;
             private readonly TextLoader _textLoader;
 
             public PromotedDynamicDocumentContainer(
                 Uri documentUri,
                 IRazorDocumentPropertiesService documentPropertiesService,
-                IRazorDocumentExcerptService documentExcerptService,
+                IRazorDocumentExcerptServiceImplementation documentExcerptService,
                 IRazorSpanMappingService spanMappingService,
                 TextLoader textLoader)
             {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             public override IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
 
-            public override IRazorDocumentExcerptService GetExcerptService() => _documentExcerptService;
+            public override IRazorDocumentExcerptServiceImplementation GetExcerptService() => _documentExcerptService;
 
             public override IRazorSpanMappingService GetMappingService() => _spanMappingService;
 

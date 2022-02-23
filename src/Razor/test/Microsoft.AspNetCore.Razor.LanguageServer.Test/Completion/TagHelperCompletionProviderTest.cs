@@ -127,6 +127,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public void GetCompletionAt_MalformedElement()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}</t", DefaultTagHelpers);
+            var sourceSpan = new SourceSpan(32 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
+
+            // Act
+            var completions = service.GetCompletionItems(context, sourceSpan);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("test1", completion.InsertText);
+                },
+                completion =>
+                {
+                    Assert.Equal("test2", completion.InsertText);
+                });
+        }
+
+        [Fact]
         public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsNoCompletions()
         {
             // Arrange

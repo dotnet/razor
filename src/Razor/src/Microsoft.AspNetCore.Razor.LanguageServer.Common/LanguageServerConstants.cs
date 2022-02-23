@@ -50,6 +50,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorProvideSemanticTokensRangeEndpoint = "razor/provideSemanticTokensRange";
 
+        public const string RazorProvideHtmlDocumentColorEndpoint = "razor/provideHtmlDocumentColor";
+
         public const string RazorServerReadyEndpoint = "razor/serverReady";
 
         public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";

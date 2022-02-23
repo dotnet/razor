@@ -462,6 +462,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
+        public override async Task<IReadOnlyList<ColorInformation>> ProvideHtmlDocumentColorAsync(DocumentColorParams documentColorParams, CancellationToken cancellationToken)
+        {
+            if (documentColorParams is null)
+            {
+                throw new ArgumentNullException(nameof(documentColorParams));
+            }
+
+            var htmlDoc = GetHtmlDocumentSnapshsot(documentColorParams.TextDocument.Uri);
+            if (htmlDoc is null)
+            {
+                return Array.Empty<ColorInformation>();
+            }
+
+            documentColorParams.TextDocument.Uri = htmlDoc.Uri;
+            var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<DocumentColorParams, ColorInformation[]>(
+                htmlTextBuffer,
+                Methods.DocumentColorRequest.Name,
+                SupportsDocumentColor,
+                documentColorParams,
+                cancellationToken).ConfigureAwait(false);
+
+            var colorInformation = new List<ColorInformation>();
+            await foreach (var response in requests)
+            {
+                if (response.Response is not null)
+                {
+                    colorInformation.AddRange(response.Response);
+                }
+            }
+
+            return colorInformation;
+        }
+
         private CSharpVirtualDocumentSnapshot? GetCSharpDocumentSnapshsot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
@@ -480,6 +514,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return csharpDoc;
         }
 
+        private HtmlVirtualDocumentSnapshot? GetHtmlDocumentSnapshsot(Uri uri)
+        {
+            var normalizedString = uri.GetAbsoluteOrUNCPath();
+            var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));
+
+            if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            if (!documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDoc))
+            {
+                return null;
+            }
+
+            return htmlDoc;
+        }
+
         public override async Task RazorServerReadyAsync(CancellationToken cancellationToken)
         {
             // Doing both UIContext and BrokeredService while integrating
@@ -496,6 +548,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 options => (true, options.ResolveProvider)) ?? (false, false);
 
             return providesCodeActions && resolvesCodeActions;
+        }
+
+        private static bool SupportsDocumentColor(JToken token)
+        {
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
+
+            var supportsDocumentColor = serverCapabilities?.DocumentColorProvider?.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
+
+            return supportsDocumentColor;
         }
 
         // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally

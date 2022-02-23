@@ -131,6 +131,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var fullyQualifiedName = $"{namespaceName}.{typeName}";
             var builder1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
             builder1.TagMatchingRule(rule => rule.TagName = tagName);
+            builder1.SetTypeNameIdentifier(typeName);
+            builder1.SetTypeNamespace(namespaceName);
             return builder1.Build();
         }
 

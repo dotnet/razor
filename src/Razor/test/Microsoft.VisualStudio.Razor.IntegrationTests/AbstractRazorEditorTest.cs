@@ -19,6 +19,27 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
         internal static readonly string ImportsRazorFile = "_Imports.razor";
 
+        internal static readonly string MainLayoutContent = @"@inherits LayoutComponentBase
+
+<PageTitle>BlazorApp</PageTitle>
+
+<div class=""page"">
+    <div class=""sidebar"">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class=""top-row px-4"">
+            <a href=""https://docs.microsoft.com/aspnet/"" target=""_blank"">About</a>
+        </div>
+
+        <article class=""content px-4"">
+            @Body
+        </article>
+    </main>
+</div>
+";
+
         protected override string LanguageName => LanguageNames.Razor;
 
         public override async Task InitializeAsync()
