@@ -357,7 +357,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
         }
 
+        public static FormattingContext CreateForOnTypeFormatting(
+            DocumentUri uri,
+            DocumentSnapshot originalSnapshot,
+            RazorCodeDocument codeDocument,
+            FormattingOptions options,
+            AdhocWorkspaceFactory workspaceFactory,
+            bool automaticallyAddUsings,
+            int hostDocumentIndex,
+            char triggerCharacter)
+        {
+            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        }
+
         public static FormattingContext Create(
+            DocumentUri uri,
+            DocumentSnapshot originalSnapshot,
+            RazorCodeDocument codeDocument,
+            FormattingOptions options,
+            AdhocWorkspaceFactory workspaceFactory)
+        {
+            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
+        }
+
+        private static FormattingContext CreateCore(
             DocumentUri uri,
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
@@ -392,6 +415,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
+
+            // hostDocumentIndex, triggerCharacter and automaticallyAddUsings are only supported in on type formatting
+            Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));
 
             var result = new FormattingContext(
                 workspaceFactory,

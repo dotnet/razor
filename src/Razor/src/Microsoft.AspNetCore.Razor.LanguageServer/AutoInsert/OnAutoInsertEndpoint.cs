@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0'))
+            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory))
             {
                 for (var i = 0; i < applicableProviders.Count; i++)
                 {

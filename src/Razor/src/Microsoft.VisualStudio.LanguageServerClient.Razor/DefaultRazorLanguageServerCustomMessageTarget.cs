@@ -233,8 +233,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var hostDocumentUri = request.TextDocument.Uri;
             if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {

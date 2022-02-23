@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
 
             var result = new FormattingResult(Array.Empty<TextEdit>());
             foreach (var pass in _formattingPasses)
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             collapseEdits |= formattedEdits.Length == 1;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: true, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+            using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
             var result = new FormattingResult(formattedEdits, kind);
 
             foreach (var pass in _formattingPasses)
