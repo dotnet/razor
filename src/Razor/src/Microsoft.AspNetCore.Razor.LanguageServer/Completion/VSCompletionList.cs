@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         /// Gets or sets the default <see cref="CompletionItem.CommitCharacters"/> used for completion items.
         /// </summary>
         [JsonProperty("_vs_commitCharacters")]
-        public Container<string> CommitCharacters { get; set; }
+        public Container<VSCommitCharacter> CommitCharacters { get; set; }
 
         /// <summary>
         /// Gets or sets the default <see cref="CompletionItem.Data"/> used for completion items.
@@ -55,13 +55,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             var commitCharacterReferences = new Dictionary<object, int>();
             var highestUsedCount = 0;
-            Container<string> mostUsedCommitCharacters = null;
+            Container<VSCommitCharacter> mostUsedCommitCharacters = null;
             foreach (var completionItem in completionList.Items)
             {
-                var commitCharacters = completionItem.CommitCharacters;
-                if (commitCharacters is null)
+                Container<VSCommitCharacter> commitCharacters;
+                if (completionItem is VSCompletionItem vsCompletionItem)
                 {
-                    continue;
+                    commitCharacters = vsCompletionItem.VsCommitCharacters;
+                }
+                else
+                {
+                    if (completionItem.CommitCharacters is null)
+                    {
+                        continue;
+                    }
+
+                    commitCharacters = ToVSCommitCharacter(completionItem.CommitCharacters);
                 }
 
                 commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
@@ -81,9 +90,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var promotedCompletionItems = new List<CompletionItem>();
             foreach (var completionItem in completionList.Items)
             {
-                if (completionItem.CommitCharacters == mostUsedCommitCharacters)
+                if (completionItem.CommitCharacters != null && completionItem.CommitCharacters.Equals(mostUsedCommitCharacters))
                 {
                     var clearedCompletionItem = completionItem with { CommitCharacters = null };
+                    promotedCompletionItems.Add(clearedCompletionItem);
+                }
+                else if (completionItem is VSCompletionItem vsCompletionItem &&
+                    vsCompletionItem.VsCommitCharacters != null &&
+                    vsCompletionItem.VsCommitCharacters.Equals(mostUsedCommitCharacters))
+                {
+                    var clearedCompletionItem = vsCompletionItem with { VsCommitCharacters = null };
                     promotedCompletionItems.Add(clearedCompletionItem);
                 }
                 else
@@ -98,6 +114,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Data = completionList.Data,
             };
             return promotedCompletionList;
+
+            static Container<VSCommitCharacter> ToVSCommitCharacter(Container<string> commitCharacters)
+            {
+                var result = new List<VSCommitCharacter>();
+                foreach (var commitCharacter in commitCharacters)
+                {
+                    result.Add(new VSCommitCharacter
+                    {
+                        Character = commitCharacter,
+                        Insert = true,
+                    });
+                }
+
+                return result;
+            }
         }
 
         private static VSCompletionList PromotedDataOntoList(VSCompletionList completionList)

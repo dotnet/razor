@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -14,7 +13,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private const string ResultIdKey = "_resultId";
 
-        public static CompletionItem CreateWithCompletionListResultId(this CompletionItem completionItem, long resultId)
+        public static CompletionItem CreateWithCompletionListResultId(
+            this CompletionItem completionItem,
+            long resultId,
+            PlatformAgnosticCompletionCapability? completionCapability)
         {
             if (completionItem is null)
             {
@@ -25,7 +27,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             data[ResultIdKey] = resultId;
             completionItem = completionItem with { Data = data };
 
-            return completionItem;
+            if (completionCapability is not null && completionCapability.VSCompletionList != null)
+            {
+                var result = completionItem.ToVSCompletionItem(completionCapability.VSCompletionList);
+                return result;
+            }
+            else
+            {
+                return completionItem;
+            }
         }
 
         public static bool TryGetCompletionListResultId(this CompletionItem completion, [NotNullWhen(true)] out int? resultId)
@@ -45,16 +55,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return false;
         }
 
-        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion)
+        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion, VSCompletionListCapability? vSCompletionListCapability)
         {
             if (completion is null)
             {
                 throw new ArgumentNullException(nameof(completion));
             }
 
-            var vsCommitCharacters = GetVSCommitCharacters(completion).ToArray();
-
-            return new VSCompletionItem
+            var result = new VSCompletionItem
             {
                 AdditionalTextEdits = completion.AdditionalTextEdits,
                 Command = completion.Command,
@@ -72,24 +80,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 SortText = completion.SortText,
                 Tags = completion.Tags,
                 TextEdit = completion.TextEdit,
-                VsCommitCharacters = vsCommitCharacters,
             };
 
-            static IEnumerable<VSCommitCharacter> GetVSCommitCharacters(CompletionItem completion)
+            if (vSCompletionListCapability is not null && vSCompletionListCapability.CommitCharacters)
+            {
+                var vsCommitCharacters = GetVSCommitCharacters(completion);
+                result.VsCommitCharacters = vsCommitCharacters is null ? null : vsCommitCharacters;
+
+                // If we're using VsCommitCharacters don't include CommitCharacters to avoid serializing them.
+                if (result.VsCommitCharacters is not null)
+                {
+                    result = result with { CommitCharacters = null };
+                }
+            }
+
+            return result;
+
+            static Container<VSCommitCharacter>? GetVSCommitCharacters(CompletionItem completion)
             {
                 if (completion.CommitCharacters is null)
                 {
-                    yield break;
+                    return null;
                 }
 
+                var result = new List<VSCommitCharacter>();
                 foreach (var commitCharacter in completion.CommitCharacters)
                 {
-                    yield return new VSCommitCharacter
+                    result.Add(new VSCommitCharacter
                     {
                         Character = commitCharacter,
                         Insert = completion.InsertTextFormat != InsertTextFormat.Snippet,
-                    };
+                    });
                 }
+
+                return result;
             }
         }
     }

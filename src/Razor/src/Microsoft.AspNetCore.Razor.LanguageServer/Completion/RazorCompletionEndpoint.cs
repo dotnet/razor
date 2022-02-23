@@ -266,7 +266,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (tagHelperClassifiedTextTooltip != null)
             {
-                var vsCompletionItem = completionItem.ToVSCompletionItem();
+                // We might strip out the commitcharacters for speed, bring them back
+                var container = new Container<string>(associatedRazorCompletion.CommitCharacters);
+                var withCommit = completionItem with { CommitCharacters = container };
+                var vsCompletionItem = withCommit.ToVSCompletionItem(_capability?.VSCompletionList);
                 completionItem = completionItem with { Documentation = string.Empty };
                 vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
@@ -312,7 +315,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 if (TryConvert(razorCompletionItem, supportedItemKinds, out var completionItem))
                 {
                     // The completion items are cached and can be retrieved via this result id to enable the "resolve" completion functionality.
-                    completionItem = completionItem.CreateWithCompletionListResultId(resultId);
+                    completionItem = completionItem.CreateWithCompletionListResultId(resultId, completionCapability);
                     completionItems.Add(completionItem);
                 }
             }

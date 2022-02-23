@@ -174,10 +174,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     serializer.Serialize(writer, completionItem.Data);
                 }
 
-                if (completionItem is VSCompletionItem vSCompletionItem && vSCompletionItem.VsCommitCharacters is not null)
+                if (completionItem is VSCompletionItem vSCompletionItem &&
+                    vSCompletionItem.VsCommitCharacters is not null &&
+                    vSCompletionItem.VsCommitCharacters.Any())
                 {
                     writer.WritePropertyName("_vs_commitCharacters");
-                    serializer.Serialize(writer, vSCompletionItem.VsCommitCharacters);
+
+                    if (!s_commitCharactersRawJson.TryGetValue(vSCompletionItem.VsCommitCharacters, out var jsonString))
+                    {
+                        jsonString = JsonConvert.SerializeObject(vSCompletionItem.VsCommitCharacters);
+                        s_commitCharactersRawJson.TryAdd(vSCompletionItem.VsCommitCharacters, jsonString);
+                    }
+
+                    writer.WriteRawValue(jsonString);
                 }
 
                 writer.WriteEndObject();
