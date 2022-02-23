@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.1.23-servicing.22117.3">
+    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.1.23-servicing.22123.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-extensions</Uri>
-      <Sha>5784a84e7bbb7a442989e0d96bc167a82edf085c</Sha>
+      <Sha>8934ddbf6c4fbc697b8f63eb5a49fb21ccffc56b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.1.23-servicing.22117.3">
+    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.1.23-servicing.22123.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-extensions</Uri>
-      <Sha>5784a84e7bbb7a442989e0d96bc167a82edf085c</Sha>
+      <Sha>8934ddbf6c4fbc697b8f63eb5a49fb21ccffc56b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.1.23-servicing.22117.3">
+    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.1.23-servicing.22123.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-extensions</Uri>
-      <Sha>5784a84e7bbb7a442989e0d96bc167a82edf085c</Sha>
+      <Sha>8934ddbf6c4fbc697b8f63eb5a49fb21ccffc56b</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="3.1.23">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-extensions</Uri>
-      <Sha>5784a84e7bbb7a442989e0d96bc167a82edf085c</Sha>
+      <Sha>8934ddbf6c4fbc697b8f63eb5a49fb21ccffc56b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.1.23-servicing.22117.3">
+    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.1.23-servicing.22123.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-extensions</Uri>
-      <Sha>5784a84e7bbb7a442989e0d96bc167a82edf085c</Sha>
+      <Sha>8934ddbf6c4fbc697b8f63eb5a49fb21ccffc56b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.1.23-servicing.22117.3">
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.1.23-servicing.22123.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-extensions</Uri>
-      <Sha>5784a84e7bbb7a442989e0d96bc167a82edf085c</Sha>
+      <Sha>8934ddbf6c4fbc697b8f63eb5a49fb21ccffc56b</Sha>
     </Dependency>
     <Dependency Name="System.Text.Json" Version="4.7.2" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-corefx</Uri>
@@ -49,9 +49,9 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
       <Sha>3acd9b0cd16596bad450c82be08780875a73c05c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NETCore.App.Internal" Version="3.1.23-servicing.22117.1" CoherentParentDependency="Microsoft.Extensions.Logging">
+    <Dependency Name="Microsoft.NETCore.App.Internal" Version="3.1.23-servicing.22122.4" CoherentParentDependency="Microsoft.Extensions.Logging">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
-      <Sha>64991f80999d5ce31301d5cd2a8e3c0c11a112f4</Sha>
+      <Sha>7af614fde0e0da1d20b33a6e2da7ae2994c5eec3</Sha>
     </Dependency>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
     <Dependency Name="Microsoft.NETCore.Platforms" Version="3.1.9" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
@@ -64,7 +64,7 @@
     -->
     <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="3.1.23" CoherentParentDependency="Microsoft.Extensions.Logging">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
-      <Sha>64991f80999d5ce31301d5cd2a8e3c0c11a112f4</Sha>
+      <Sha>7af614fde0e0da1d20b33a6e2da7ae2994c5eec3</Sha>
     </Dependency>
     <!-- Keep this dependency at the bottom of ProductDependencies, else it will be picked as the parent for CoherentParentDependencies -->
     <Dependency Name="Microsoft.NETCore.App.Ref" Version="3.1.0" Pinned="true">
