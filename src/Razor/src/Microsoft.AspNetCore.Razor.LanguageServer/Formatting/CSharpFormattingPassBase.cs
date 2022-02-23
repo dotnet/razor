@@ -285,6 +285,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return true;
             }
 
+            // Workaround for https://github.com/dotnet/aspnetcore/issues/36689
+            // A tags owner comes back as itself if it is preceeded by a HTML comment,
+            // because the whitespace between the comment and the tag is reported as not editable
+            if (owner is MarkupTextLiteralSyntax &&
+                owner.PreviousSpan() is MarkupTextLiteralSyntax literal &&
+                literal.ContainsOnlyWhitespace() &&
+                literal.PreviousSpan()?.Parent is MarkupCommentBlockSyntax)
+            {
+                owner = literal;
+            }
+
             // special case: If we're formatting implicit statements, we want to treat the `@attribute` directive as one
             // so that the C# definition of the attribute is formatted as C#
             if (allowImplicitStatements &&
