@@ -267,7 +267,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (tagHelperClassifiedTextTooltip != null)
             {
                 // We might strip out the commitcharacters for speed, bring them back
-                var container = new Container<string>(associatedRazorCompletion.CommitCharacters);
+                var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters) : null;
                 var withCommit = completionItem with { CommitCharacters = container };
                 var vsCompletionItem = withCommit.ToVSCompletionItem(_capability?.VSCompletionList);
                 completionItem = completionItem with { Documentation = string.Empty };

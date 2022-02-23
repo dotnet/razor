@@ -437,6 +437,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public async Task Handle_Resolve_TagHelperElementCompletion_NullCommitCharacters()
+        {
+            // Arrange
+            var vsLSPDescriptionFactory = new Mock<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict);
+            var markdown = new VSClassifiedTextElement(new VSClassifiedTextRun("type", "text"));
+            vsLSPDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), out markdown))
+                .Returns(true);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams()
+            {
+                Capabilities = new PlatformAgnosticClientCapabilities
+                {
+                    SupportsVisualStudioExtensions = true,
+                }
+            });
+            var completionEndpoint = new RazorCompletionEndpoint(
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, vsLSPDescriptionFactory.Object, languageServer.Object, LoggerFactory);
+            var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
+            razorCompletionItem.SetTagHelperElementDescriptionInfo(new AggregateBoundElementDescription(Array.Empty<BoundElementDescriptionInfo>()));
+            var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
+            var completionItem = completionList.Items.Single();
+
+            // For performance we sometimes return null commit characters, so we need to be sure they resolve safely;
+            completionItem = completionItem with { CommitCharacters = null };
+
+            // Act
+            var newCompletionItem = (VSCompletionItem)await completionEndpoint.Handle(completionItem, default);
+
+            // Assert
+            Assert.NotNull(newCompletionItem.Description);
+        }
+
+        [Fact]
         public async Task Handle_Resolve_TagHelperAttribute_ReturnsCompletionItemWithDocumentation()
         {
             // Arrange

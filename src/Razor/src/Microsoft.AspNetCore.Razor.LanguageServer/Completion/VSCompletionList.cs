@@ -58,19 +58,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Container<VSCommitCharacter> mostUsedCommitCharacters = null;
             foreach (var completionItem in completionList.Items)
             {
-                Container<VSCommitCharacter> commitCharacters;
-                if (completionItem is VSCompletionItem vsCompletionItem)
+                var commitCharacters = completionItem is VSCompletionItem vsCompletionItem
+                    ? vsCompletionItem.VsCommitCharacters
+                    : ToVSCommitCharacter(completionItem.CommitCharacters);
+                if (commitCharacters is null)
                 {
-                    commitCharacters = vsCompletionItem.VsCommitCharacters;
-                }
-                else
-                {
-                    if (completionItem.CommitCharacters is null)
-                    {
-                        continue;
-                    }
-
-                    commitCharacters = ToVSCommitCharacter(completionItem.CommitCharacters);
+                    continue;
                 }
 
                 commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
@@ -90,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var promotedCompletionItems = new List<CompletionItem>();
             foreach (var completionItem in completionList.Items)
             {
-                if (completionItem.CommitCharacters != null && completionItem.CommitCharacters.Equals(mostUsedCommitCharacters))
+                if (completionItem.CommitCharacters != null && SequenceEqual(completionItem.CommitCharacters, mostUsedCommitCharacters))
                 {
                     var clearedCompletionItem = completionItem with { CommitCharacters = null };
                     promotedCompletionItems.Add(clearedCompletionItem);
@@ -114,6 +107,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Data = completionList.Data,
             };
             return promotedCompletionList;
+
+            static bool SequenceEqual(Container<string> a, Container<VSCommitCharacter> b)
+            {
+                if (a.Count() != b.Count())
+                {
+                    return false;
+                }
+
+                for(var i = 0; i < a.Count(); i++)
+                {
+                    var str = a.ElementAt(i);
+                    var vs = b.ElementAt(i);
+
+                    if(!vs.Equals(str))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
 
             static Container<VSCommitCharacter> ToVSCommitCharacter(Container<string> commitCharacters)
             {

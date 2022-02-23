@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
@@ -85,8 +86,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var vsCompletionList = VSCompletionList.Convert(completionList, capabilities);
 
             // Assert
-            Assert.Collection(vsCompletionList.Items, item => Assert.Null(item.CommitCharacters));
-            Assert.Equal(commitCharacters, vsCompletionList.CommitCharacters);
+            Assert.Collection(vsCompletionList.Items, (item) => Assert.Null(item.CommitCharacters));
+
+            Assert.Collection(vsCompletionList.CommitCharacters, (e) =>
+            {
+                e.Insert = true;
+                e.Character = "<";
+            });
         }
 
         [Fact]
