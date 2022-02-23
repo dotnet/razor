@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -85,8 +84,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="uri">The URI associated with the cached tokens.</param>
         /// <param name="semanticVersion">The semantic version associated with the cached tokens.</param>
         /// <param name="requestedRange">The requested range for the desired tokens.</param>
-        /// <param name="cachedTokens">If found, contains the cached range and cached tokens.</param>
         /// <param name="logger">Optional logger to record outcome of cache lookup.</param>
+        /// <param name="cachedTokens">If found, contains the cached range and cached tokens.</param>
         /// <returns>
         /// True if at least a partial match for the range was found. The 'Range' out var specifies the subset of
         /// the requested range that was found, and the 'Tokens' out var contains the tokens for that subset range.
@@ -96,8 +95,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range requestedRange,
-            [NotNullWhen(true)] out (Range Range, ImmutableArray<int> Tokens)? cachedTokens,
-            ILogger? logger = null)
+            ILogger? logger,
+            [NotNullWhen(true)] out (Range Range, ImmutableArray<int> Tokens)? cachedTokens)
         {
             // Don't return results for partial lines, we don't handle them currently due to
             // the need for extra logic and computation.

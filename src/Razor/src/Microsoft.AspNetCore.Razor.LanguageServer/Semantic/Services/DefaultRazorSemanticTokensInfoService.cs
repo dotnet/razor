@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
             // See if we can use our cache to at least partially avoid recomputation.
-            if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, out var cachedResult, _logger))
+            if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, _logger, out var cachedResult))
             {
                 // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
                 // results to use next time around.
