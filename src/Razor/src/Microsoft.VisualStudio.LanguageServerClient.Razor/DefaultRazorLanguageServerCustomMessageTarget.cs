@@ -639,7 +639,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (csharpDocument is not null)
             {
                 var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                    foldingRangeParams.DocumentHostVersion, csharpDocument, cancellationToken);
+                    foldingRangeParams.DocumentHostVersion, csharpDocument, cancellationToken).ConfigureAwait(false);
 
                 if (synchronized)
                 {
@@ -671,7 +671,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (htmlDocument is not null)
             {
                 var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                    foldingRangeParams.DocumentHostVersion, htmlDocument, cancellationToken);
+                    foldingRangeParams.DocumentHostVersion, 
+                    htmlDocument, 
+                    cancellationToken).ConfigureAwait(false);
 
                 if (synchronized)
                 {

@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 return EmptyFoldingRange;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
+            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
