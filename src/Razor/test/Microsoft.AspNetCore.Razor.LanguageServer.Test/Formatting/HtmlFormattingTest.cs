@@ -868,6 +868,68 @@ expected: @"@code
 tagHelpers: GetSurveyPrompt());
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
+        public async Task FormatHtmlCommentsInsideCSharp1(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@foreach (var num in Enumerable.Range(1, 10))
+{
+    <span class=""skill_result btn"">
+        <!--asdfasd-->
+        <span style=""margin-left:0px"">
+            <svg>
+                <rect width=""1"" height=""1"" />
+            </svg>
+        </span>
+        <!--adfasfd-->
+    </span>
+}
+",
+expected: @"@foreach (var num in Enumerable.Range(1, 10))
+{
+    <span class=""skill_result btn"">
+        <!--asdfasd-->
+        <span style=""margin-left:0px"">
+            <svg>
+                <rect width=""1"" height=""1"" />
+            </svg>
+        </span>
+        <!--adfasfd-->
+    </span>
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
+        public async Task FormatHtmlCommentsInsideCSharp2(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@foreach (var num in Enumerable.Range(1, 10))
+{
+    <span class=""skill_result btn"">
+        <!--asdfasd-->
+        <input type=""text"" />
+        <!--adfasfd-->
+    </span>
+}
+",
+expected: @"@foreach (var num in Enumerable.Range(1, 10))
+{
+    <span class=""skill_result btn"">
+        <!--asdfasd-->
+        <input type=""text"" />
+        <!--adfasfd-->
+    </span>
+}
+");
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
         {
             AdditionalSyntaxTrees.Add(Parse(@"
