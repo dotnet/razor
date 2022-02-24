@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(documentContext));
             }
 
-
             if (attributes is null)
             {
                 throw new ArgumentNullException(nameof(attributes));
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenTag(
             TagHelperDocumentContext documentContext,
             string tagName,
-            string parentTag)
+            string? parentTag)
         {
             if (documentContext is null)
             {
