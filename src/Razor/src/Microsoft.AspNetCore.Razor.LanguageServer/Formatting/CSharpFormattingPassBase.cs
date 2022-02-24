@@ -405,7 +405,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        private static SyntaxNode? FixOwnerToWorkaroundCompilerQuirks(SyntaxNode? owner)
+        private static SyntaxNode FixOwnerToWorkaroundCompilerQuirks(SyntaxNode owner)
         {
             // Workaround for https://github.com/dotnet/aspnetcore/issues/36689
             // A tags owner comes back as itself if it is preceeded by a HTML comment,
