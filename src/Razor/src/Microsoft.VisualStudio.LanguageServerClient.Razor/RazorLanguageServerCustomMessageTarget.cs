@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -68,6 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public abstract Task<IReadOnlyList<ColorInformation>> ProvideHtmlDocumentColorAsync(DocumentColorParams documentColorParams, CancellationToken cancellationToken);
 
         [JsonRpcMethod(LanguageServerConstants.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<IReadOnlyList<FoldingRange>> ProvideFoldingRangesAsync(FoldingRangeParams foldingRangeParams, CancellationToken cancellationToken);
+        public abstract Task<RazorFoldingRangeResponse> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken);
     }
 }
