@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -12,11 +13,18 @@ using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using Nerdbank.Streams;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using StreamJsonRpc;
 using Xunit;
 using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -26,6 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     // Finds the test method name using reflection, and uses
     // that to find the expected input/output test files as Embedded resources.
     [IntializeTestFile]
+    [UseExportProvider]
     public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
         #region CSharp
@@ -44,11 +53,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_CSharpBlock_HTML()
         {
-            var txt = @$"@{{
+            var txt = @"class C
+{
+    void M() { }
+}
+";
+            var txt2 = @$"@{{
     var d = ""t"";
     <p>HTML @d</p>
-}}";
-
+}}
+";
+            await Task.Delay(10000);
             var csharpTokens = new int[]
             {
                 20, 4, 3, RazorSemanticTokensLegend.CSharpKeyword, 0, // var
@@ -61,9 +76,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 8, 13, 1, RazorSemanticTokensLegend.CSharpVariable, 0, // d
             };
 
+            var range = new VisualStudio.LanguageServer.Protocol.Range
+            {
+                Start = new VisualStudio.LanguageServer.Protocol.Position { Line = 0, Character = 0 },
+                End = new VisualStudio.LanguageServer.Protocol.Position { Line = 50, Character = 0 },
+            };
+
+            
+
+            var clientCapabilities = new ClientCapabilities();
+            using var workspace = new AdhocWorkspace();
+
+            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId("Test"), VersionStamp.Default, "Test", "Test", LanguageNames.CSharp, filePath: "C:\\Users\\admin\\location\\TestSolution\\Test.csproj");
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId("TestSolution"), VersionStamp.Default, projects: new ProjectInfo[] { projectInfo });
+            workspace.AddSolution(solutionInfo);
+            var documentInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(projectInfo.Id), "TestDocument", filePath: "C:\\Users\\admin\\location\\TestSolution\\Test\\TestDocument.cs",
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From(txt), VersionStamp.Default, filePath: "C:\\Users\\admin\\location\\TestSolution\\Test\\TestDocument.cs")));
+            var document = workspace.AddDocument(documentInfo);
+            var uri = new Uri(document.FilePath!);
+
+            using var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, clientCapabilities);
+            var result = await testLspServer.ExecuteRequestAsync<VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams, VisualStudio.LanguageServer.Protocol.SemanticTokens>(
+                Methods.TextDocumentSemanticTokensRangeName,
+                CreateSemanticTokensRangeParams(range, uri), CancellationToken.None);
+
             var cSharpResponse = new ProvideSemanticTokensResponse(
                 csharpTokens, isFinalized: true, hostDocumentSyncVersion: 0);
             await AssertSemanticTokensAsync(txt, isRazor: false, csharpTokens: cSharpResponse);
+        }
+
+        private static VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams CreateSemanticTokensRangeParams(VisualStudio.LanguageServer.Protocol.Range range, Uri uri)
+            => new()
+            {
+                TextDocument = new VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier { Uri = uri },
+                Range = range
+            };
+
+        private static JsonMessageFormatter CreateJsonMessageFormatter()
+        {
+            var messageFormatter = new JsonMessageFormatter();
+            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
+            return messageFormatter;
         }
 
         [Fact]
@@ -396,8 +450,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             codeDocument.GetSourceText().GetLineAndOffset(startIndex, out var startLine, out var startChar);
             codeDocument.GetSourceText().GetLineAndOffset(endIndex, out var endLine, out var endChar);
 
-            var startPosition = new Position(startLine, startChar);
-            var endPosition = new Position(endLine, endChar);
+            var startPosition = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Position(startLine, startChar);
+            var endPosition = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Position(endLine, endChar);
             var location = new OmniSharpRange(startPosition, endPosition);
 
             await AssertSemanticTokensAsync(txt, isRazor: false, range: location);
@@ -512,7 +566,7 @@ slf*@";
             if (range is null)
             {
                 var lines = txt.Split(Environment.NewLine);
-                range = new OmniSharpRange { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = lines.Length - 1, Character = lines[^1].Length } };
+                range = new OmniSharpRange { Start = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Position { Line = 0, Character = 0 }, End = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Position { Line = lines.Length - 1, Character = lines[^1].Length } };
             };
 
             await AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, range, service, csharpTokens, documentVersion);
@@ -565,7 +619,7 @@ slf*@";
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
