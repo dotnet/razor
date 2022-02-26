@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     <p>HTML @d</p>
 }}
 ";
-            await Task.Delay(10000);
+             await Task.Delay(10000);
             var csharpTokens = new int[]
             {
                 20, 4, 3, RazorSemanticTokensLegend.CSharpKeyword, 0, // var
