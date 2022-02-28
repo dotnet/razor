@@ -636,68 +636,78 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var csharpRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
             var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
+            var csharpTask = Task.CompletedTask;
             if (csharpDocument is not null)
             {
-                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                    foldingRangeParams.DocumentHostVersion, csharpDocument, cancellationToken);
-
-                if (synchronized)
-                {
-                    var csharpRequestParams = new FoldingRangeParams()
+                csharpTask = Task.Run(async () =>
                     {
-                        TextDocument = new()
+                        var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                        foldingRangeParams.DocumentHostVersion, csharpDocument, cancellationToken);
+
+                        if (synchronized)
                         {
-                            Uri = csharpDocument.Uri
+                            var csharpRequestParams = new FoldingRangeParams()
+                            {
+                                TextDocument = new()
+                                {
+                                    Uri = csharpDocument.Uri
+                                }
+                            };
+
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                                Methods.TextDocumentFoldingRange.Name,
+                                RazorLSPConstants.RazorCSharpLanguageServerName,
+                                SupportsFoldingRange,
+                                csharpRequestParams,
+                                cancellationToken).ConfigureAwait(false);
+
+                            var result = request.Result;
+                            if (result is not null)
+                            {
+                                csharpRanges.AddRange(result);
+                            }
                         }
-                    };
+                    });
 
-                    var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
-                        Methods.TextDocumentFoldingRange.Name,
-                        RazorLSPConstants.RazorCSharpLanguageServerName,
-                        SupportsFoldingRange,
-                        csharpRequestParams,
-                        cancellationToken).ConfigureAwait(false);
-
-                    var result = request.Result;
-                    if (result is not null)
-                    {
-                        csharpRanges.AddRange(result);
-                    }
-                }
             }
 
             var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
             var htmlRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
+            var htmlTask = Task.CompletedTask;
             if (htmlDocument is not null)
             {
-                var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                    foldingRangeParams.DocumentHostVersion, htmlDocument, cancellationToken);
-
-                if (synchronized)
-                {
-                    var htmlRequestParams = new FoldingRangeParams()
+                htmlTask = Task.Run(async () =>
                     {
-                        TextDocument = new()
+                        var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                        foldingRangeParams.DocumentHostVersion, htmlDocument, cancellationToken);
+
+                        if (synchronized)
                         {
-                            Uri = htmlDocument.Uri
+                            var htmlRequestParams = new FoldingRangeParams()
+                            {
+                                TextDocument = new()
+                                {
+                                    Uri = htmlDocument.Uri
+                                }
+                            };
+
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                                Methods.TextDocumentFoldingRange.Name,
+                                RazorLSPConstants.HtmlLanguageServerName,
+                                SupportsFoldingRange,
+                                htmlRequestParams,
+                                cancellationToken).ConfigureAwait(false);
+
+                            var result = request.Result;
+                            if (result is not null)
+                            {
+                                htmlRanges.AddRange(result);
+                            }
                         }
-                    };
-
-                    var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
-                        Methods.TextDocumentFoldingRange.Name,
-                        RazorLSPConstants.HtmlLanguageServerName,
-                        SupportsFoldingRange,
-                        htmlRequestParams,
-                        cancellationToken).ConfigureAwait(false);
-
-                    var result = request.Result;
-                    if (result is not null)
-                    {
-                        htmlRanges.AddRange(result);
-                    }
-                }
+                    });
             }
 
+            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
             return new(htmlRanges, csharpRanges);
         }
 
