@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 {
                     container = await HandleCoreAsync(@params, cancellationToken);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     _logger.LogTrace(e, $"Try {retries} to get FoldingRange");
                 }
@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
             var requestParams = new RazorFoldingRangeRequestParam
             {
-                DocumentHostVersion = version,
+                HostDocumentVersion = version,
                 TextDocument = @params.TextDocument
             };
 
@@ -118,17 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
             foreach (var foldingRange in foldingResponse.CSharpRanges)
             {
-                var range = new Range(
-                    start: new Position()
-                    {
-                        Character = foldingRange.StartCharacter.GetValueOrDefault(),
-                        Line = foldingRange.StartLine
-                    },
-                    end: new Position()
-                    {
-                        Character = foldingRange.EndCharacter.GetValueOrDefault(),
-                        Line = foldingRange.EndLine
-                    });
+                var range = GetRange(foldingRange);
 
                 if (_documentMappingService.TryMapFromProjectedDocumentRange(
                     codeDocument,
@@ -148,6 +138,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             mappedRanges.AddRange(foldingResponse.HtmlRanges);
             return new Container<FoldingRange>(mappedRanges);
         }
+
+        private static Range GetRange(FoldingRange foldingRange)
+            => new Range(
+                start: new Position()
+                {
+                    Character = foldingRange.StartCharacter.GetValueOrDefault(),
+                    Line = foldingRange.StartLine
+                },
+                end: new Position()
+                {
+                    Character = foldingRange.EndCharacter.GetValueOrDefault(),
+                    Line = foldingRange.EndLine
+                });
 
         private record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
 

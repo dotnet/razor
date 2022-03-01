@@ -9,6 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 {
     public record RazorFoldingRangeRequestParam : FoldingRangeRequestParam
     {
-        public int DocumentHostVersion { get; init; }
+        public int HostDocumentVersion { get; init; }
     }
 }
