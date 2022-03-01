@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             var outlines = await GetOutlineRegionsAsync(textView);
 
             //
-            // Built in try logic because getting spans can take time.
+            // Built in retry logic because getting spans can take time.
             //
             var tries = 0;
             const int MaxTries = 10;
