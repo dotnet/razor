@@ -83,10 +83,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var promotedCompletionItems = new List<CompletionItem>();
             foreach (var completionItem in completionList.Items)
             {
+                var hasPromoted = false;
                 if (completionItem.CommitCharacters != null && SequenceEqual(completionItem.CommitCharacters, mostUsedCommitCharacters))
                 {
                     var clearedCompletionItem = completionItem with { CommitCharacters = null };
                     promotedCompletionItems.Add(clearedCompletionItem);
+                    hasPromoted = true;
                 }
 
                 if (completionItem is VSCompletionItem vsCompletionItem &&
@@ -95,8 +97,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     var clearedCompletionItem = vsCompletionItem with { VsCommitCharacters = null };
                     promotedCompletionItems.Add(clearedCompletionItem);
+                    hasPromoted = true;
                 }
-                else
+
+                if (!hasPromoted)
                 {
                     promotedCompletionItems.Add(completionItem);
                 }
