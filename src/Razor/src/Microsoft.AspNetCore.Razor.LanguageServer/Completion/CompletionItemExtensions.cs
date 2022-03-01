@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return false;
         }
 
-        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion, VSCompletionListCapability? vSCompletionListCapability)
+        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion, VSCompletionListCapability? vsCompletionListCapability)
         {
             if (completion is null)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 TextEdit = completion.TextEdit,
             };
 
-            if (vSCompletionListCapability is not null && vSCompletionListCapability.CommitCharacters)
+            if (vsCompletionListCapability is not null && vsCompletionListCapability.CommitCharacters)
             {
                 var vsCommitCharacters = GetVSCommitCharacters(completion);
                 result.VsCommitCharacters = vsCommitCharacters is null ? null : vsCommitCharacters;

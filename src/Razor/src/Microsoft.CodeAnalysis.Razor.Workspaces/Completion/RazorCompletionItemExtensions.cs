@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             var attributeCompletionDescription = completionItem.GetAttributeCompletionDescription();
 
-            if( attributeCompletionDescription is null)
+            if (attributeCompletionDescription is null)
             {
                 yield break;
             }
 
-            foreach(var descriptionInfo in attributeCompletionDescription.DescriptionInfos)
+            foreach (var descriptionInfo in attributeCompletionDescription.DescriptionInfos)
             {
                 yield return descriptionInfo.ReturnTypeName;
             }

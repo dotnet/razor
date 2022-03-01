@@ -88,7 +88,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     var clearedCompletionItem = completionItem with { CommitCharacters = null };
                     promotedCompletionItems.Add(clearedCompletionItem);
                 }
-                else if (completionItem is VSCompletionItem vsCompletionItem &&
+
+                if (completionItem is VSCompletionItem vsCompletionItem &&
                     vsCompletionItem.VsCommitCharacters != null &&
                     vsCompletionItem.VsCommitCharacters.Equals(mostUsedCommitCharacters))
                 {
@@ -115,12 +116,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     return false;
                 }
 
-                for(var i = 0; i < a.Count(); i++)
+                for (var i = 0; i < a.Count(); i++)
                 {
                     var str = a.ElementAt(i);
                     var vs = b.ElementAt(i);
 
-                    if(!vs.Equals(str))
+                    if (!vs.Equals(str))
                     {
                         return false;
                     }

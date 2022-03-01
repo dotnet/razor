@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public class OptimizedCompletionListJsonConverter : JsonConverter
         {
             public static readonly OptimizedCompletionListJsonConverter Instance = new();
-            private static readonly ConcurrentDictionary<object, string> s_commitCharactersRawJson;
+            protected static readonly ConcurrentDictionary<object, string> s_commitCharactersRawJson;
             private static readonly JsonSerializer s_defaultSerializer;
 
             static OptimizedCompletionListJsonConverter()
@@ -84,6 +84,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             {
                 writer.WriteStartObject();
 
+                WriteCompletionItemProperties(writer, completionItem, serializer, suppressData);
+
+                writer.WriteEndObject();
+            }
+
+            protected virtual void WriteCompletionItemProperties(JsonWriter writer, CompletionItem completionItem, JsonSerializer serializer, bool suppressData)
+            {
                 var label = completionItem.Label;
                 if (label != null)
                 {
@@ -173,23 +180,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     writer.WritePropertyName("data");
                     serializer.Serialize(writer, completionItem.Data);
                 }
-
-                if (completionItem is VSCompletionItem vSCompletionItem &&
-                    vSCompletionItem.VsCommitCharacters is not null &&
-                    vSCompletionItem.VsCommitCharacters.Any())
-                {
-                    writer.WritePropertyName("_vs_commitCharacters");
-
-                    if (!s_commitCharactersRawJson.TryGetValue(vSCompletionItem.VsCommitCharacters, out var jsonString))
-                    {
-                        jsonString = JsonConvert.SerializeObject(vSCompletionItem.VsCommitCharacters);
-                        s_commitCharactersRawJson.TryAdd(vSCompletionItem.VsCommitCharacters, jsonString);
-                    }
-
-                    writer.WriteRawValue(jsonString);
-                }
-
-                writer.WriteEndObject();
             }
         }
     }
