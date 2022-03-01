@@ -627,7 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return request?.Response;
         }
 
-        public override async Task<RazorFoldingRangeResponse> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken)
+        public override async Task<RazorFoldingRangeResponse?> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken)
         {
             if (foldingRangeParams is null)
             {
@@ -662,10 +662,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 cancellationToken).ConfigureAwait(false);
 
                             var result = request.Result;
-                            if (result is not null)
+                            if (result is null)
                             {
-                                csharpRanges.AddRange(result);
+                                throw new InvalidOperationException("CSharp result is null");
                             }
+
+                            csharpRanges.AddRange(result);
                         }
                     });
 
@@ -699,15 +701,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 cancellationToken).ConfigureAwait(false);
 
                             var result = request.Result;
-                            if (result is not null)
+                            if (result is null)
                             {
-                                htmlRanges.AddRange(result);
+                                throw new InvalidOperationException("Html result is null");
                             }
+
+                            htmlRanges.AddRange(result);
                         }
                     });
             }
 
-            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
+            // Return null if any of the tasks getting folding ranges
+            // results in an error
+            var allTasks = Task.WhenAll(htmlTask, csharpTask);
+            await allTasks.ConfigureAwait(false);
+            if (allTasks.IsFaulted)
+            {
+                return null;
+            }
+
             return new(htmlRanges, csharpRanges);
         }
 

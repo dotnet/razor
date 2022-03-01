@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -31,33 +30,157 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     .ToArray();
         }
 
-        private void AssertFoldableBlocks(ICollapsible[] outlines, Span[] foldableSpans, ITextView textView)
+        private async Task AssertFoldableBlocksAsync(Span[] foldableSpans)
         {
-            Assert.True(outlines.Length >= foldableSpans.Length);
+            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+            var outlines = await GetOutlineRegionsAsync(textView);
 
-            var spans = outlines.Select(o => o.Extent.GetSpan(textView.TextSnapshot).Span).ToImmutableArray();
-            foreach (var foldableSpan in foldableSpans)
+            //
+            // Built in try logic because getting spans can take time.
+            //
+            var tries = 0;
+            const int MaxTries = 10;
+            ImmutableArray<Span> missingSpans;
+            while (tries++ < MaxTries)
             {
-                Assert.Contains(foldableSpan, spans);
+                missingSpans = GetMissingExpectedSpans(outlines, foldableSpans, textView);
+                if (missingSpans.Length == 0)
+                {
+                    return;
+                }
+
+                Thread.Sleep(100);
+            }
+
+            Assert.Empty(missingSpans);
+
+            static ImmutableArray<Span> GetMissingExpectedSpans(ICollapsible[] outlines, Span[] foldableSpans, ITextView textView)
+            {
+                if (outlines.Length < foldableSpans.Length)
+                {
+                    return foldableSpans.ToImmutableArray();
+                }
+
+                var builder = new List<Span>();
+
+                var spans = outlines.Select(o => o.Extent.GetSpan(textView.TextSnapshot).Span).ToImmutableArray();
+                foreach (var foldableSpan in foldableSpans)
+                {
+                    if (!spans.Contains(foldableSpan))
+                    {
+                        builder.Add(foldableSpan);
+                    }
+                }
+
+                return builder.ToImmutableArray();
             }
         }
 
         [IdeFact]
-        public async Task CodeFolding_CodeBlock()
+        public async Task CodeFolding_CodeBlock_Default()
         {
-            // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
 
-            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
-            var outlines = await GetOutlineRegionsAsync(textView);
-
-            var expectedFoldableBlocks = new Span[]
+            await AssertFoldableBlocksAsync(new Span[]
             {
                 Span.FromBounds(285, 324)
-            };
-
-            AssertFoldableBlocks(outlines, expectedFoldableBlocks, textView);
-            outlines.First().Extent.GetSpan(textView.TextSnapshot);
+            });
         }
+
+        [IdeFact]
+        public async Task CodeFolding_IfBlock()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@if(true)
+{
+    if (true)
+    {
+        M();
+    }
+}
+
+@code {
+    string M() => ""M"";
+}
+",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(new Span[]
+            {
+                Span.FromBounds(76, 125), // Outer @if
+                Span.FromBounds(94, 122)  // Inner if
+            });
+        }
+
+        [IdeFact]
+        public async Task CodeFolding_ForEach()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@foreach (var s in GetStuff())
+{
+    <h2>s</h2>
+}
+
+@code {
+    string[] GetStuff() => new string[0];
+}
+",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(new Span[]
+            {
+                Span.FromBounds(76, 125), // @foreach
+            });
+        }
+
+        [IdeFact]
+        public async Task CodeFolding_CodeBlock_Region()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@code {
+    #region Methods
+    void M1() { }
+    void M2() { }
+    #endregion
+}
+",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(new Span[]
+            {
+                Span.FromBounds(76, 125), // region Methods
+            });
+        }
+
     }
 }
