@@ -238,10 +238,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         finalTokens.Add(startingTokens.Data[tokenIndex]);
                     }
 
-                    finalTokens.Add(startingTokens.Data[tokenIndex + 1]);
-                    finalTokens.Add(startingTokens.Data[tokenIndex + 2]);
-                    finalTokens.Add(startingTokens.Data[tokenIndex + 3]);
-                    finalTokens.Add(startingTokens.Data[tokenIndex + 4]);
+                    // Add the rest of the ints in the token
+                    for (var i = 1; i < TokenSize; i++)
+                    {
+                        finalTokens.Add(startingTokens.Data[tokenIndex + i]);
+                    }
                 }
 
                 return absoluteLine;
@@ -300,10 +301,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         finalTokens.Add(endingTokens.Data[tokenIndex]);
                     }
 
-                    finalTokens.Add(endingTokens.Data[tokenIndex + 1]);
-                    finalTokens.Add(endingTokens.Data[tokenIndex + 2]);
-                    finalTokens.Add(endingTokens.Data[tokenIndex + 3]);
-                    finalTokens.Add(endingTokens.Data[tokenIndex + 4]);
+                    // Add the rest of the ints in the token
+                    for (var i = 1; i < TokenSize; i++)
+                    {
+                        finalTokens.Add(endingTokens.Data[tokenIndex + i]);
+                    }
                 }
             }
         }
