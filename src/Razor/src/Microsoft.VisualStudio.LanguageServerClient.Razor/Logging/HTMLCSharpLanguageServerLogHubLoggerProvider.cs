@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 {
@@ -35,38 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
         private readonly SemaphoreSlim _initializationSemaphore;
 
-        // Internal for testing
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal HTMLCSharpLanguageServerLogHubLoggerProvider()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-        }
-
         [ImportingConstructor]
-        public HTMLCSharpLanguageServerLogHubLoggerProvider(
-            HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory,
-#pragma warning disable CS0618 // Type or member is obsolete
-            // We're purposely using the legacy feedback file logger here to create a marker
-            // file. This marker file is used to identify bug reports using the new experimental
-            // Razor editor.
-            LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
-#pragma warning restore CS0618 // Type or member is obsolete
+        public HTMLCSharpLanguageServerLogHubLoggerProvider(HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory)
         {
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (feedbackLoggerProvider is null)
-            {
-                throw new ArgumentNullException(nameof(feedbackLoggerProvider));
-            }
-
             _loggerFactory = loggerFactory;
 
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
-
-            CreateMarkerFeedbackLoggerFile(feedbackLoggerProvider);
         }
 
         // Virtual for testing
@@ -111,16 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public void Dispose()
         {
-        }
-
-        // We instantiate and create a basic log message through the Feedback logging system to ensure we still create
-        // a RazorLogs*.zip file. This zip file is used to quickly identify whether or not we're using the new LSP powered Razor.
-#pragma warning disable CS0618 // Type or member is obsolete
-        private static void CreateMarkerFeedbackLoggerFile(LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
-        {
-            var feedbackLogger = feedbackLoggerProvider.CreateLogger(nameof(LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider));
-#pragma warning restore CS0618 // Type or member is obsolete
-            feedbackLogger.LogInformation("Please take a look at the LogHub zip file for the full set of Razor logs.");
         }
     }
 }
