@@ -226,6 +226,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         // Skip tokens that are out of the range
                         if (absoluteLine < requestedRange.Start.Line || absoluteLine >= cachedRange.Start.Line)
                         {
+                            // Skip the rest of the token
+                            tokenIndex += TokenSize - 1;
                             continue;
                         }
 
@@ -285,6 +287,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         // Skip tokens that are out of the range
                         if (absoluteLine < cachedRange.End.Line || absoluteLine >= requestedRange.End.Line)
                         {
+                            // Skip the rest of the token
+                            tokenIndex += TokenSize - 1;
                             continue;
                         }
 
