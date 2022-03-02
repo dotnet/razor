@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
+using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -46,6 +47,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
             _logger.LogInformation($"Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.");
+
+            if (semanticTokens is not null)
+            {
+                Debug.Assert(semanticTokens.Data.Length % 5 == 0, $"Number of semantic token-ints should be divisible by 5. Actual number: {semanticTokens.Data.Length}");
+            }
 
             return semanticTokens;
         }
