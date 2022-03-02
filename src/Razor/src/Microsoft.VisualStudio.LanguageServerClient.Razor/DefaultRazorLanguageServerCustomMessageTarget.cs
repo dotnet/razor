@@ -662,12 +662,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 cancellationToken).ConfigureAwait(false);
 
                             var result = request.Result;
-                            if (result is null)
+                            if (result is not null)
                             {
-                                throw new InvalidOperationException("CSharp result is null");
+                                csharpRanges.AddRange(result);
                             }
-
-                            csharpRanges.AddRange(result);
                         }
                     });
 
@@ -701,22 +699,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 cancellationToken).ConfigureAwait(false);
 
                             var result = request.Result;
-                            if (result is null)
+                            if (result is not null)
                             {
-                                throw new InvalidOperationException("Html result is null");
+                                htmlRanges.AddRange(result);
                             }
 
-                            htmlRanges.AddRange(result);
                         }
                     });
             }
 
-            // Return null if any of the tasks getting folding ranges
-            // results in an error
             var allTasks = Task.WhenAll(htmlTask, csharpTask);
-            await allTasks.ConfigureAwait(false);
-            if (allTasks.IsFaulted)
+
+            try
             {
+                await allTasks.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // Return null if any of the tasks getting folding ranges
+                // results in an error
                 return null;
             }
 

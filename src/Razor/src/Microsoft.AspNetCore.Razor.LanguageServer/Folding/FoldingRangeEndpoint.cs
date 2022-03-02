@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -53,32 +54,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             using var _ = _logger.BeginScope("FoldingRangeEndpoint.Handle");
 
-            Container<FoldingRange>? container = null;
-            var retries = 0;
-            const int MaxRetries = 5;
-
-            while (container is null && ++retries <= MaxRetries)
-            {
-                try
-                {
-                    container = await HandleCoreAsync(@params, cancellationToken);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogTrace(e, $"Try {retries} to get FoldingRange");
-                }
-            }
-
-            if (retries > MaxRetries)
-            {
-                _logger.LogInformation($"Exceeded max retries of {MaxRetries}");
-            }
-
-            return container;
-        }
-
-        private async Task<Container<FoldingRange>?> HandleCoreAsync(FoldingRangeRequestParam @params, CancellationToken cancellationToken)
-        {
             var documentAndVersion = await TryGetDocumentSnapshotAndVersionAsync(
                 @params.TextDocument.Uri.GetAbsoluteOrUNCPath(),
                 cancellationToken).ConfigureAwait(false);
@@ -106,6 +81,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 TextDocument = @params.TextDocument
             };
 
+            Container<FoldingRange>? container = null;
+            var retries = 0;
+            const int MaxRetries = 5;
+
+            while (container is null && ++retries <= MaxRetries)
+            {
+                try
+                {
+                    container = await HandleCoreAsync(requestParams, codeDocument, cancellationToken);
+                }
+                catch (Exception e) when (retries < MaxRetries)
+                {
+                    _logger.LogWarning(e, $"Try {retries} to get FoldingRange");
+                }
+            }
+
+            return container;
+        }
+
+        private async Task<Container<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        {
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorFoldingRangeEndpoint, requestParams).ConfigureAwait(false);
             var foldingResponse = await delegatedRequest.Returning<RazorFoldingRangeResponse?>(cancellationToken).ConfigureAwait(false);
 
