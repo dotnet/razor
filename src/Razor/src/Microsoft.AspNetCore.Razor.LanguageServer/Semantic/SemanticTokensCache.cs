@@ -109,10 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (!_cache.TryGetValue(uri, out var documentCache) ||
                 !documentCache.TryGetValue(semanticVersion, out var lineToTokensDict))
             {
-                if (logger is not null)
-                {
-                    logger.LogInformation($"No cached results found for range: {requestedRange}");
-                }
+                logger?.LogInformation($"Cache missing for range: {requestedRange}");
 
                 // No cached results found
                 cachedTokens = null;
@@ -122,10 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var tokens = GetCachedTokens(requestedRange, lineToTokensDict, out var cachedRangeStart, out var numLinesInCachedRange);
             if (tokens.Length == 0)
             {
-                if (logger is not null)
-                {
-                    logger.LogInformation($"No cached results found for range: {requestedRange}");
-                }
+                logger?.LogInformation($"Cache lookup returned no results for range: {requestedRange}");
 
                 // We couldn't find any tokens associated with the passed-in range
                 cachedTokens = null;
