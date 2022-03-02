@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             ClientCapabilities = clientCapabilities;
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = CreateLanguageServer(serverStream, serverStream);
+            _languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace);
 
             var messageFormatter = CreateJsonMessageFormatter();
             var messageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter);
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             return server;
         }
 
-        private static IRazorLanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream)
+        private static IRazorLanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, Workspace workspace)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider();
 
@@ -81,8 +81,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             };
 
             var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+            var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
+            registrationService.Register(workspace);
+
             var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
-            var languageServer = languageServerFactory.Create(jsonRpc, capabilitiesProvider);
+            var languageServer = languageServerFactory.CreateLanguageServer(jsonRpc, capabilitiesProvider);
 
             jsonRpc.StartListening();
             return languageServer;

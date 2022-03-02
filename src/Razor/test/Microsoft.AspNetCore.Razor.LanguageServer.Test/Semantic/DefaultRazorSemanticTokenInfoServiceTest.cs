@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var range = new VisualStudio.LanguageServer.Protocol.Range
             {
                 Start = new VisualStudio.LanguageServer.Protocol.Position { Line = 0, Character = 0 },
-                End = new VisualStudio.LanguageServer.Protocol.Position { Line = 50, Character = 0 },
+                End = new VisualStudio.LanguageServer.Protocol.Position { Line = 4, Character = 0 },
             };
 
             
@@ -90,9 +90,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId("Test"), VersionStamp.Default, "Test", "Test", LanguageNames.CSharp, filePath: "C:\\Users\\admin\\location\\TestSolution\\Test.csproj");
             var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId("TestSolution"), VersionStamp.Default, projects: new ProjectInfo[] { projectInfo });
             workspace.AddSolution(solutionInfo);
-            var documentInfo = DocumentInfo.Create(
+            var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+            var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
+            var documentInfo = languageServerFactory.CreateDocumentInfo(
                 DocumentId.CreateNewId(projectInfo.Id), "TestDocument", filePath: "C:\\Users\\admin\\location\\TestSolution\\Test\\TestDocument.cs",
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From(txt), VersionStamp.Default, filePath: "C:\\Users\\admin\\location\\TestSolution\\Test\\TestDocument.cs")));
+
             var document = workspace.AddDocument(documentInfo);
             var uri = new Uri(document.FilePath!);
 
@@ -112,13 +115,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 TextDocument = new VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier { Uri = uri },
                 Range = range
             };
-
-        private static JsonMessageFormatter CreateJsonMessageFormatter()
-        {
-            var messageFormatter = new JsonMessageFormatter();
-            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
-            return messageFormatter;
-        }
 
         [Fact]
         public async Task GetSemanticTokens_CSharp_Nested_HTML()
