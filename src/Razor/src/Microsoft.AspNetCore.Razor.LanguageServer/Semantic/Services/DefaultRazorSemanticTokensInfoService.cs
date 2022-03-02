@@ -215,32 +215,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // absolute line index to use later when combining results.
                 var absoluteLine = 0;
                 var isFirstTokenInRange = true;
-                for (var tokenIndex = 0; tokenIndex < startingTokens.Data.Length; tokenIndex++)
+                for (var tokenIndex = 0; tokenIndex < startingTokens.Data.Length; tokenIndex += TokenSize)
                 {
                     // The first int of each token represents the line offset. We use this info to keep track of the
                     // absolute line for use later on when computing relative token positions.
-                    if (tokenIndex % TokenSize == 0)
+                    absoluteLine += startingTokens.Data[tokenIndex];
+
+                    // Skip tokens that are out of the range
+                    if (absoluteLine < requestedRange.Start.Line || absoluteLine >= cachedRange.Start.Line)
                     {
-                        absoluteLine += startingTokens.Data[tokenIndex];
-
-                        // Skip tokens that are out of the range
-                        if (absoluteLine < requestedRange.Start.Line || absoluteLine >= cachedRange.Start.Line)
-                        {
-                            // Skip the rest of the token
-                            tokenIndex += TokenSize - 1;
-                            continue;
-                        }
-
-                        // First token of the starting set should be relative to the start of the document
-                        if (isFirstTokenInRange)
-                        {
-                            finalTokens.Add(absoluteLine);
-                            isFirstTokenInRange = false;
-                            continue;
-                        }
+                        continue;
                     }
 
-                    finalTokens.Add(startingTokens.Data[tokenIndex]);
+                    // First token of the starting set should be relative to the start of the document
+                    if (isFirstTokenInRange)
+                    {
+                        finalTokens.Add(absoluteLine);
+                        isFirstTokenInRange = false;
+                    }
+                    else
+                    {
+                        finalTokens.Add(startingTokens.Data[tokenIndex]);
+                    }
+
+                    finalTokens.Add(startingTokens.Data[tokenIndex + 1]);
+                    finalTokens.Add(startingTokens.Data[tokenIndex + 2]);
+                    finalTokens.Add(startingTokens.Data[tokenIndex + 3]);
+                    finalTokens.Add(startingTokens.Data[tokenIndex + 4]);
                 }
 
                 return absoluteLine;
@@ -276,32 +277,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 var isFirstTokenInRange = true;
                 var absoluteLine = 0;
-                for (var tokenIndex = 0; tokenIndex < endingTokens.Data.Length; tokenIndex++)
+                for (var tokenIndex = 0; tokenIndex < endingTokens.Data.Length; tokenIndex += TokenSize)
                 {
                     // The first int of each token represents the line offset. We use this info to keep track of the
                     // absolute line for use later on when computing relative token positions.
-                    if (tokenIndex % TokenSize == 0)
+                    absoluteLine = tokenIndex == 0 ? endingTokens.Data[0] : absoluteLine + endingTokens.Data[tokenIndex];
+
+                    // Skip tokens that are out of the range
+                    if (absoluteLine < cachedRange.End.Line || absoluteLine >= requestedRange.End.Line)
                     {
-                        absoluteLine = tokenIndex == 0 ? endingTokens.Data[0] : absoluteLine + endingTokens.Data[tokenIndex];
-
-                        // Skip tokens that are out of the range
-                        if (absoluteLine < cachedRange.End.Line || absoluteLine >= requestedRange.End.Line)
-                        {
-                            // Skip the rest of the token
-                            tokenIndex += TokenSize - 1;
-                            continue;
-                        }
-
-                        // First token of the ending set should be relative to the end line of the cached tokens set
-                        if (isFirstTokenInRange)
-                        {
-                            finalTokens.Add(absoluteLine - cachedTokensAbsoluteEndLine);
-                            isFirstTokenInRange = false;
-                            continue;
-                        }
+                        continue;
                     }
 
-                    finalTokens.Add(endingTokens.Data[tokenIndex]);
+                    // First token of the ending set should be relative to the end line of the cached tokens set
+                    if (isFirstTokenInRange)
+                    {
+                        finalTokens.Add(absoluteLine - cachedTokensAbsoluteEndLine);
+                        isFirstTokenInRange = false;
+                    }
+                    else
+                    {
+                        finalTokens.Add(endingTokens.Data[tokenIndex]);
+                    }
+
+                    finalTokens.Add(endingTokens.Data[tokenIndex + 1]);
+                    finalTokens.Add(endingTokens.Data[tokenIndex + 2]);
+                    finalTokens.Add(endingTokens.Data[tokenIndex + 3]);
+                    finalTokens.Add(endingTokens.Data[tokenIndex + 4]);
                 }
             }
         }
