@@ -18,6 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         private LogHubLoggerProvider? _loggerProvider;
 
+        // Internal for testing / do not remove, used by Moq to construct
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        internal HTMLCSharpLanguageServerLogHubLoggerProvider()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        {
+        }
+
         private LogHubLoggerProvider LoggerProvider
         {
             get
