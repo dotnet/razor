@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LiveShare;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor
 {
     // This type must be a public interface in order to properly advertise itself as part of the LiveShare ICollaborationService infrastructure.
     public interface IRemoteHierarchyService : ICollaborationService

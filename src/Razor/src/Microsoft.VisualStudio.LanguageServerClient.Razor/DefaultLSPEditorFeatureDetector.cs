@@ -23,19 +23,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
         private static readonly Guid s_liveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
-        private readonly ProjectHierarchyInspector _projectHierarchyInspector;
+        private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
         private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
         private readonly Lazy<bool> _useLegacyEditor;
 
         [ImportingConstructor]
-        public DefaultLSPEditorFeatureDetector(ProjectHierarchyInspector projectHierarchyInspector)
+        public DefaultLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver)
         {
-            if (projectHierarchyInspector is null)
-            {
-                throw new ArgumentNullException(nameof(projectHierarchyInspector));
-            }
-
-            _projectHierarchyInspector = projectHierarchyInspector;
+            _projectCapabilityResolver = projectCapabilityResolver;
             _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
             {
                 var shellOpenDocument = (IVsUIShellOpenDocument)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument));
@@ -116,13 +111,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // We alow projects to specifically opt-out of the legacy Razor editor because there are legacy scenarios which would rely on behind-the-scenes
             // opt-out mechanics to enable the .NET Core editor in non-.NET Core scenarios. Therefore, we need a similar mechanic to continue supporting
             // those types of scenarios for the new .NET Core Razor editor.
-            if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
+            if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
             {
                 // CPS project that requires the legacy editor
                 return false;
             }
 
-            if (_projectHierarchyInspector.HasCapability(documentMoniker, hierarchy, DotNetCoreCSharpCapability))
+            if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, DotNetCoreCSharpCapability))
             {
                 // .NET Core project that supports C#
                 return true;

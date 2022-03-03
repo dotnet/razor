@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -213,10 +214,11 @@ $@"public class SomeRazorFile
                     .Returns(Task.FromResult<ProjectionResult>(null));
             }
 
-            var razorProximityExpressionResolver = DefaultRazorProximityExpressionResolver.CreateTestInstance(
+            var razorProximityExpressionResolver = new DefaultRazorProximityExpressionResolver(
                 uriProvider,
                 documentManager,
-                projectionProvider);
+                projectionProvider,
+                TestWorkspaceAccessor.Instance);
 
             return razorProximityExpressionResolver;
         }
@@ -231,6 +233,21 @@ $@"public class SomeRazorFile
 
             textBuffer.CurrentSnapshot.GetLineAndCharacter(index, out var lineIndex, out var characterIndex);
             return new Position(lineIndex, characterIndex);
+        }
+
+        private class TestWorkspaceAccessor : VisualStudioWorkspaceAccessor
+        {
+            public static readonly TestWorkspaceAccessor Instance = new TestWorkspaceAccessor();
+
+            private TestWorkspaceAccessor()
+            {
+            }
+
+            public override bool TryGetWorkspace(ITextBuffer textBuffer, out CodeAnalysis.Workspace workspace)
+            {
+                workspace = null;
+                return false;
+            }
         }
     }
 }
