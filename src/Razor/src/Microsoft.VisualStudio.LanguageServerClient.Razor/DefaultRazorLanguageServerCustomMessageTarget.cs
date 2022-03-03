@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -624,6 +625,114 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 cancellationToken).ConfigureAwait(false);
 
             return request?.Response;
+        }
+
+        public override async Task<RazorFoldingRangeResponse?> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken)
+        {
+            if (foldingRangeParams is null)
+            {
+                throw new ArgumentNullException(nameof(foldingRangeParams));
+            }
+
+            var csharpRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
+            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
+            var csharpTask = Task.CompletedTask;
+            if (csharpDocument is not null)
+            {
+                csharpTask = Task.Run(async () =>
+                    {
+                        var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                        foldingRangeParams.HostDocumentVersion, csharpDocument, cancellationToken);
+
+                        if (synchronized)
+                        {
+                            var csharpRequestParams = new FoldingRangeParams()
+                            {
+                                TextDocument = new()
+                                {
+                                    Uri = csharpDocument.Uri
+                                }
+                            };
+
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                                Methods.TextDocumentFoldingRange.Name,
+                                RazorLSPConstants.RazorCSharpLanguageServerName,
+                                SupportsFoldingRange,
+                                csharpRequestParams,
+                                cancellationToken).ConfigureAwait(false);
+
+                            var result = request.Result;
+                            if (result is not null)
+                            {
+                                csharpRanges.AddRange(result);
+                            }
+                        }
+                    });
+
+            }
+
+            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
+            var htmlRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
+            var htmlTask = Task.CompletedTask;
+            if (htmlDocument is not null)
+            {
+                htmlTask = Task.Run(async () =>
+                    {
+                        var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                        foldingRangeParams.HostDocumentVersion, htmlDocument, cancellationToken);
+
+                        if (synchronized)
+                        {
+                            var htmlRequestParams = new FoldingRangeParams()
+                            {
+                                TextDocument = new()
+                                {
+                                    Uri = htmlDocument.Uri
+                                }
+                            };
+
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                                Methods.TextDocumentFoldingRange.Name,
+                                RazorLSPConstants.HtmlLanguageServerName,
+                                SupportsFoldingRange,
+                                htmlRequestParams,
+                                cancellationToken).ConfigureAwait(false);
+
+                            var result = request.Result;
+                            if (result is not null)
+                            {
+                                htmlRanges.AddRange(result);
+                            }
+
+                        }
+                    });
+            }
+
+            var allTasks = Task.WhenAll(htmlTask, csharpTask);
+
+            try
+            {
+                await allTasks.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // Return null if any of the tasks getting folding ranges
+                // results in an error
+                return null;
+            }
+
+            return new(htmlRanges, csharpRanges);
+        }
+
+        private static bool SupportsFoldingRange(JToken token)
+        {
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
+
+            var supportsFoldingRange = serverCapabilities?.FoldingRangeProvider?.Match(
+                boolValue => boolValue,
+                options => options is not null) ?? false;
+
+            return supportsFoldingRange;
         }
     }
 }
