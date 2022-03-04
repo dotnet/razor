@@ -30,9 +30,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_CSharp_RazorIfNotReady()
         {
-            var documentText = $@"<p></p>@{{
+            var documentText = @"<p></p>@{
     var d = ""t"";
-}}
+}
 ";
 
             var razorRange = new OS.Range
@@ -49,10 +49,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_CSharpBlock_HTML()
         {
-            var documentText = @$"@{{
+            var documentText = @"@{
     var d = ""t"";
     <p>HTML @d</p>
-}}
+}
 ";
 
             var razorRange = new OS.Range
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OS.Position { Line = 4, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OS.Position { Line = 3, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 21);
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
         #endregion
@@ -186,7 +186,7 @@ second</p>
                 End = new OS.Position { Line = 4, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -202,7 +202,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -218,7 +218,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -235,7 +235,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -252,7 +252,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -269,7 +269,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -286,7 +286,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
         #endregion
@@ -305,7 +305,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -322,7 +322,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -339,7 +339,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -356,7 +356,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -373,7 +373,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -390,7 +390,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -407,7 +407,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -424,7 +424,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
         #endregion TagHelpers
@@ -444,7 +444,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -461,7 +461,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -478,7 +478,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -495,7 +495,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -512,7 +512,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -528,7 +528,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -545,7 +545,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -562,7 +562,7 @@ second</p>
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
         #endregion DirectiveAttributes
@@ -580,7 +580,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -601,7 +601,7 @@ second</p>
                 End = new OS.Position { Line = 6, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -617,7 +617,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -633,7 +633,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -661,7 +661,7 @@ second</p>
                 End = new OS.Position { Line = 13, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -679,7 +679,7 @@ second</p>
                 End = new OS.Position { Line = 3, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
         #endregion
@@ -696,7 +696,7 @@ second</p>
                 End = new OS.Position { Line = 1, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -714,7 +714,7 @@ slf*@
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
@@ -731,7 +731,7 @@ things *@
                 End = new OS.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange);
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 

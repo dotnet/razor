@@ -106,9 +106,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticArray;
         }
 
-        protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(string documentText, OS.Range razorRange, int hostDocumentSyncVersion = 0)
+        protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
+            string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
-            var codeDocument = CreateCodeDocument(documentText, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
             var csharpTokens = Array.Empty<int>();
             var isFinalized = true;

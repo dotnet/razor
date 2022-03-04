@@ -203,9 +203,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         protected ILogger Logger { get; } = NullLogger.Instance;
 
-        internal static RazorCodeDocument CreateCodeDocument(string text, params TagHelperDescriptor[] tagHelpers)
+        internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, params TagHelperDescriptor[] tagHelpers)
         {
-            return CreateCodeDocument(text, CSHtmlFile, tagHelpers);
+            return CreateCodeDocument(text, isRazorFile ? RazorFile : CSHtmlFile, tagHelpers);
         }
 
         protected static TextDocumentIdentifier GetIdentifier(bool isRazor)

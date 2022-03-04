@@ -16,4 +16,5 @@
 0 1 1 91 0 //markupTagDelimiter
 0 1 4 92 0 //markupElement
 0 4 1 91 0 //markupTagDelimiter
+0 1 1 43 0 //punctuation
 1 12 1 84 0 //razorTransition

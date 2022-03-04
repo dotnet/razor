@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 attribute.TypeName = typeof(bool).FullName;
             });
             tagHelper.SetTypeName("WithBoundAttribute");
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound='true' />", tagHelper.Build());
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound='true' />", isRazorFile: false, tagHelper.Build());
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 attribute.TypeName = typeof(bool).FullName;
             });
             tagHelper.SetTypeName("WithBoundAttribute");
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound />", tagHelper.Build());
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound />", isRazorFile: false, tagHelper.Build());
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -175,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void StringifyAttributes_UnboundAttribute()
         {
             // Arrange
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound='hello world' />", DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound='hello world' />", isRazorFile: false, DefaultTagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void StringifyAttributes_UnboundMinimizedAttribute()
         {
             // Arrange
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound />", DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound />", isRazorFile: false, DefaultTagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void StringifyAttributes_IgnoresMiscContent()
         {
             // Arrange
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound @DateTime.Now />", DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound @DateTime.Now />", isRazorFile: false, DefaultTagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
