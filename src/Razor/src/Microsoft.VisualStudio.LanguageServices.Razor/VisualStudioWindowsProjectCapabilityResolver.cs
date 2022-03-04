@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -12,6 +13,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     [Export(typeof(ProjectCapabilityResolver))]
     internal class VisualStudioWindowsProjectCapabilityResolver : ProjectCapabilityResolver
     {
+        private readonly RazorLogger _razorLogger;
+
+        [ImportingConstructor]
+        public VisualStudioWindowsProjectCapabilityResolver(RazorLogger razorLogger)
+        {
+            _razorLogger = razorLogger;
+        }
+
         public override bool HasCapability(string documentFilePath, object project, string capability)
         {
             if (project is not IVsHierarchy vsHierarchy)
@@ -23,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             return localHasCapability;
         }
 
-        private static bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
+        private bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
         {
             if (hierarchy is null)
             {
@@ -39,11 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             {
                 // IsCapabilityMatch throws a NotSupportedException if it can't create a
                 // BooleanSymbolExpressionEvaluator COM object
+                _razorLogger.LogWarning("Could not resolve project capability for hierarchy due to NotSupportedException.");
                 return false;
             }
             catch (ObjectDisposedException)
             {
                 // IsCapabilityMatch throws an ObjectDisposedException if the underlying hierarchy has been disposed
+                _razorLogger.LogWarning("Could not resolve project capability for hierarchy due to hierarchy being disposed.");
                 return false;
             }
         }

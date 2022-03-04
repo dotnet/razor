@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
+        private readonly RazorLogger _razorLogger;
         private readonly MemoryCache<CacheKey, IReadOnlyList<string>?> _cache;
 
         [ImportingConstructor]
@@ -32,13 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            VisualStudioWorkspaceAccessor workspaceAccessor)
+            VisualStudioWorkspaceAccessor workspaceAccessor,
+            RazorLogger razorLogger)
         {
 
             _fileUriProvider = fileUriProvider;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _workspaceAccessor = workspaceAccessor;
+            _razorLogger = razorLogger;
 
             // 10 is a magic number where this effectively represents our ability to cache the last 10 "hit" breakpoint locations
             // corresponding proximity expressions which enables us not to go "async" in those re-hit scenarios.
@@ -105,6 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             if (!_workspaceAccessor.TryGetWorkspace(textBuffer, out var workspace))
             {
                 // Couldn't find an associated workspace for the buffer
+                _razorLogger.LogWarning("Could not resolve proximity expressions because a workspace could not be found for the provided text buffer.");
                 return null;
             }
 
