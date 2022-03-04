@@ -5,6 +5,7 @@ using System;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
@@ -195,6 +196,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             return range == UndefinedRange;
+        }
+
+        public static VS.Range AsVSRange(this Range range)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            return new VS.Range
+            {
+                Start = new VS.Position
+                {
+                    Line = range.Start.Line,
+                    Character = range.Start.Character
+                },
+                End = new VS.Position
+                {
+                    Line = range.End.Line,
+                    Character = range.End.Character
+                }
+            };
         }
     }
 }

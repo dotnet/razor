@@ -1,9 +1,10 @@
 //line,characterPos,length,tokenType,modifier
 0 0 1 84 0 //razorTransition
 0 1 12 87 0 //razorDirective
+0 13 15 18 0 //string
 1 0 1 91 0 //markupTagDelimiter
 0 1 10 100 0 //razorComponentElement
-0 11 8 101 0 //razorComponentAttribute
+0 11 8 101 0 //RazorComponentAttribute
 0 8 1 93 0 //markupOperator
 0 1 1 95 0 //markupAttributeQuote
 0 5 1 95 0 //markupAttributeQuote

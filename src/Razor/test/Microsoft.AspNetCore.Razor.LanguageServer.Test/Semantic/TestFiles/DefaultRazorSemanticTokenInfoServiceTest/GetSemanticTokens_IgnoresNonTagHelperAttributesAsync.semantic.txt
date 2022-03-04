@@ -6,7 +6,8 @@
 0 6 8 83 0 //razorTagHelperAttribute
 0 8 1 93 0 //markupOperator
 0 1 1 95 0 //markupAttributeQuote
-0 5 1 95 0 //markupAttributeQuote
+0 1 4 15 0 //keyword
+0 4 1 95 0 //markupAttributeQuote
 0 2 5 94 0 //markupAttribute
 0 5 1 93 0 //markupOperator
 0 1 1 95 0 //markupAttributeQuote

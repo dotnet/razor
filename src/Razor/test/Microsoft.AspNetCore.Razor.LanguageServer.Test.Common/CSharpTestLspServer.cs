@@ -1,20 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using System;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Nerdbank.Streams;
-using StreamJsonRpc;
 using System.IO;
 using System.Threading;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using System.Linq;
+using Nerdbank.Streams;
+using StreamJsonRpc;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     public sealed class CSharpTestLspServer : IDisposable
     {
@@ -22,17 +19,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         private readonly IRazorLanguageServerTarget _languageServer;
         private readonly StreamJsonRpc.JsonRpc _clientRpc;
 
-        public LSP.ClientCapabilities ClientCapabilities { get; }
-
         private CSharpTestLspServer(
             AdhocWorkspace testWorkspace,
-            LSP.ClientCapabilities clientCapabilities)
+            ServerCapabilities serverCapabilities)
         {
             TestWorkspace = testWorkspace;
-            ClientCapabilities = clientCapabilities;
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace);
+            _languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, serverCapabilities);
 
             var messageFormatter = CreateJsonMessageFormatter();
             var messageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter);
@@ -47,32 +41,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         private static JsonMessageFormatter CreateJsonMessageFormatter()
         {
             var messageFormatter = new JsonMessageFormatter();
-            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
+            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
             return messageFormatter;
         }
 
-        internal static async Task<CSharpTestLspServer> CreateAsync(AdhocWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities)
+        internal static async Task<CSharpTestLspServer> CreateAsync(
+            AdhocWorkspace testWorkspace,
+            ClientCapabilities clientCapabilities,
+            ServerCapabilities serverCapabilities)
         {
-            var server = new CSharpTestLspServer(testWorkspace, clientCapabilities);
+            var server = new CSharpTestLspServer(testWorkspace, serverCapabilities);
 
-            try
+            await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams
             {
-                await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
-                {
-                    Capabilities = clientCapabilities,
-                }, CancellationToken.None);
-            }
-            catch (Exception e)
-            {
-
-            }
+                Capabilities = clientCapabilities,
+            }, CancellationToken.None);
 
             return server;
         }
 
-        private static IRazorLanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, Workspace workspace)
+        private static IRazorLanguageServerTarget CreateLanguageServer(
+            Stream inputStream,
+            Stream outputStream,
+            Workspace workspace,
+            ServerCapabilities serverCapabilities)
         {
-            var capabilitiesProvider = new RazorCapabilitiesProvider();
+            var capabilitiesProvider = new RazorCapabilitiesProvider(serverCapabilities);
 
             var messageHandler = new HeaderDelimitedMessageHandler(outputStream, inputStream, CreateJsonMessageFormatter());
             var jsonRpc = new StreamJsonRpc.JsonRpc(messageHandler)
@@ -107,24 +101,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 
         private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider
         {
-            public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
-            {
-                var capabilities = new ServerCapabilities
-                {
-                    SemanticTokensOptions = new SemanticTokensOptions
-                    {
-                        Full = false,
-                        Range = true,
-                        Legend = new SemanticTokensLegend
-                        {
-                            TokenTypes = RazorSemanticTokensLegend.TokenTypes.Select(t => t.ToString()).ToArray(),
-                            TokenModifiers = new string[] { SemanticTokenModifiers.Static }
-                        }
-                    }
-                };
+            private readonly ServerCapabilities _serverCapabilities;
 
-                return capabilities;
+            public RazorCapabilitiesProvider(ServerCapabilities serverCapabilities)
+            {
+                _serverCapabilities = serverCapabilities;
             }
+
+            public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities) => _serverCapabilities;
         }
     }
 }

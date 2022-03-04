@@ -454,7 +454,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticRanges;
         }
 
-        private static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range? csharpRange)
+        // Internal for testing only
+        internal static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range? csharpRange)
         {
             SourceSpan? minGeneratedSpan = null;
             SourceSpan? maxGeneratedSpan = null;

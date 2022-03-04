@@ -10,8 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
@@ -43,6 +48,46 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         internal FilePathNormalizer FilePathNormalizer { get; }
 
         protected ILoggerFactory LoggerFactory { get; }
+
+        protected static async Task<(CSharpTestLspServer Server, Uri DocumentUri)> CreateCSharpTestLspServerAsync(SourceText csharpSourceText, ServerCapabilities serverCapabilities)
+        {
+            var clientCapabilities = new ClientCapabilities();
+            var workspace = new AdhocWorkspace();
+
+            // Add project and solution to workspace
+            var projectInfo = ProjectInfo.Create(
+                id: ProjectId.CreateNewId("TestProject"),
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject",
+                language: LanguageNames.CSharp,
+                filePath: "C:\\TestSolution\\TestProject.csproj");
+
+            var solutionInfo = SolutionInfo.Create(
+                id: SolutionId.CreateNewId("TestSolution"),
+                version: VersionStamp.Default,
+                projects: new ProjectInfo[] { projectInfo });
+
+            workspace.AddSolution(solutionInfo);
+
+            // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's a special constructor in Roslyn that will
+            // help identify the document as belonging to Razor.
+            var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+            var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
+            var documentFilePath = "C:\\TestSolution\\TestProject\\TestDocument.cs";
+            var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
+            var documentInfo = languageServerFactory.CreateDocumentInfo(
+                id: DocumentId.CreateNewId(projectInfo.Id),
+                name: "TestDocument",
+                filePath: documentFilePath,
+                loader: TextLoader.From(textAndVersion));
+
+            workspace.AddDocument(documentInfo);
+
+            var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, clientCapabilities, serverCapabilities).ConfigureAwait(false);
+            var uri = new Uri(documentFilePath);
+            return (testLspServer, uri);
+        }
 
         [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]
         private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
