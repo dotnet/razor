@@ -49,7 +49,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         protected ILoggerFactory LoggerFactory { get; }
 
-        protected static async Task<(CSharpTestLspServer Server, Uri DocumentUri)> CreateCSharpTestLspServerAsync(SourceText csharpSourceText, ServerCapabilities serverCapabilities)
+        protected static async Task<(CSharpTestLspServer Server, Uri DocumentUri)> CreateCSharpTestLspServerAsync(
+            SourceText csharpSourceText,
+            ServerCapabilities serverCapabilities)
         {
             var clientCapabilities = new ClientCapabilities();
             var workspace = new AdhocWorkspace();
