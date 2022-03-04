@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,11 +12,19 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
-    public sealed class CSharpTestLspServer : IDisposable
+    public sealed class CSharpTestLspServer : IAsyncDisposable
     {
         public readonly AdhocWorkspace TestWorkspace;
+
         private readonly IRazorLanguageServerTarget _languageServer;
+
         private readonly StreamJsonRpc.JsonRpc _clientRpc;
+        private readonly JsonMessageFormatter _clientMessageFormatter;
+        private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
+
+        private readonly StreamJsonRpc.JsonRpc _serverRpc;
+        private readonly JsonMessageFormatter _serverMessageFormatter;
+        private readonly HeaderDelimitedMessageHandler _serverMessageHandler;
 
         private CSharpTestLspServer(
             AdhocWorkspace testWorkspace,
@@ -26,23 +33,49 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             TestWorkspace = testWorkspace;
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, serverCapabilities);
 
-            var messageFormatter = CreateJsonMessageFormatter();
-            var messageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter);
-            _clientRpc = new StreamJsonRpc.JsonRpc(messageHandler)
+            _serverMessageFormatter = CreateJsonMessageFormatter();
+            _serverMessageHandler = new HeaderDelimitedMessageHandler(serverStream, serverStream, _serverMessageFormatter);
+            _serverRpc = new StreamJsonRpc.JsonRpc(_serverMessageHandler)
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
+
+            _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, serverCapabilities);
+
+            _clientMessageFormatter = CreateJsonMessageFormatter();
+            _clientMessageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, _clientMessageFormatter);
+            _clientRpc = new StreamJsonRpc.JsonRpc(_clientMessageHandler)
             {
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
             _clientRpc.StartListening();
-        }
 
-        private static JsonMessageFormatter CreateJsonMessageFormatter()
-        {
-            var messageFormatter = new JsonMessageFormatter();
-            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
-            return messageFormatter;
+            static JsonMessageFormatter CreateJsonMessageFormatter()
+            {
+                var messageFormatter = new JsonMessageFormatter();
+                VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
+                return messageFormatter;
+            }
+
+            static IRazorLanguageServerTarget CreateLanguageServer(
+                StreamJsonRpc.JsonRpc serverRpc,
+                Workspace workspace,
+                ServerCapabilities serverCapabilities)
+            {
+                var capabilitiesProvider = new RazorCapabilitiesProvider(serverCapabilities);
+
+                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+                var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
+                registrationService.Register(workspace);
+
+                var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
+                var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider);
+
+                serverRpc.StartListening();
+                return languageServer;
+            }
         }
 
         internal static async Task<CSharpTestLspServer> CreateAsync(
@@ -60,43 +93,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             return server;
         }
 
-        private static IRazorLanguageServerTarget CreateLanguageServer(
-            Stream inputStream,
-            Stream outputStream,
-            Workspace workspace,
-            ServerCapabilities serverCapabilities)
+        internal async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
+            string methodName,
+            RequestType request,
+            CancellationToken cancellationToken) where RequestType : class
         {
-            var capabilitiesProvider = new RazorCapabilitiesProvider(serverCapabilities);
+            var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
+                methodName,
+                request,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var messageHandler = new HeaderDelimitedMessageHandler(outputStream, inputStream, CreateJsonMessageFormatter());
-            var jsonRpc = new StreamJsonRpc.JsonRpc(messageHandler)
-            {
-                ExceptionStrategy = ExceptionProcessing.ISerializable,
-            };
-
-            var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
-            registrationService.Register(workspace);
-
-            var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
-            var languageServer = languageServerFactory.CreateLanguageServer(jsonRpc, capabilitiesProvider);
-
-            jsonRpc.StartListening();
-            return languageServer;
-        }
-
-        public async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken) where RequestType : class
-        {
-            var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, request, cancellationToken: cancellationToken).ConfigureAwait(false);
             return result;
         }
 
-        public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             TestWorkspace.Dispose();
+            await _languageServer.DisposeAsync();
+
             _clientRpc.Dispose();
+            _clientMessageFormatter.Dispose();
+            await _clientMessageHandler.DisposeAsync();
+
+            _serverRpc.Dispose();
+            _serverMessageFormatter.Dispose();
+            await _serverMessageHandler.DisposeAsync();
         }
 
         private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider

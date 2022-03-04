@@ -47,8 +47,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             set { s_fileName.Value = value; }
         }
 
+#if GENERATE_BASELINES
         protected bool GenerateBaselines { get; set; } = true;
-
+#else
+        protected bool GenerateBaselines { get; set; } = false;
+#endif
 
         protected int BaselineTestCount { get; set; }
         protected int BaselineEditTestCount { get; set; }
@@ -106,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticArray;
         }
 
-        protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
+        private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
             string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
@@ -125,6 +128,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 csharpTokens = result?.Data;
                 isFinalized = result?.IsFinalized ?? false;
+
+                await csharpLspServer.DisposeAsync();
             }
 
             var csharpResponse = new ProvideSemanticTokensResponse(

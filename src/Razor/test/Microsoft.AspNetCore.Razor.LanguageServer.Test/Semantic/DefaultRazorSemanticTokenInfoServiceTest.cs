@@ -793,7 +793,7 @@ things *@
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<OS.SemanticTokensParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);

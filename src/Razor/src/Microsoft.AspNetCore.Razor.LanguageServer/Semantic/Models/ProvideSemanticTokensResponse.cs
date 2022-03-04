@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     /// <summary>
     /// Transports C# semantic token responses from the Razor LS client to the Razor LS.
     /// </summary>
-    public class ProvideSemanticTokensResponse
+    internal class ProvideSemanticTokensResponse
     {
         public ProvideSemanticTokensResponse(int[]? tokens, bool isFinalized, long? hostDocumentSyncVersion)
         {
