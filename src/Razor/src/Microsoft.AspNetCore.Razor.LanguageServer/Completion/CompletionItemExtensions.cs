@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -13,7 +13,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private const string ResultIdKey = "_resultId";
 
-        public static CompletionItem CreateWithCompletionListResultId(this CompletionItem completionItem, long resultId)
+        public static CompletionItem CreateWithCompletionListResultId(
+            this CompletionItem completionItem,
+            long resultId,
+            PlatformAgnosticCompletionCapability? completionCapability)
         {
             if (completionItem is null)
             {
@@ -23,10 +26,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var data = completionItem.Data ?? new JObject();
             data[ResultIdKey] = resultId;
             completionItem = completionItem with { Data = data };
-            return completionItem;
+
+            if (completionCapability is not null && completionCapability.VSCompletionList != null)
+            {
+                var result = completionItem.ToVSCompletionItem(completionCapability.VSCompletionList);
+                return result;
+            }
+            else
+            {
+                return completionItem;
+            }
         }
 
-        public static bool TryGetCompletionListResultId(this CompletionItem completion, out int resultId)
+        public static bool TryGetCompletionListResultId(this CompletionItem completion, [NotNullWhen(true)] out int? resultId)
         {
             if (completion is null)
             {
@@ -35,22 +47,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (completion.Data is JObject data && data.ContainsKey(ResultIdKey))
             {
-                resultId = data[ResultIdKey].ToObject<int>();
-                return true;
+                resultId = data[ResultIdKey]?.ToObject<int>();
+                return resultId is not null;
             }
 
             resultId = default;
             return false;
         }
 
-        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion)
+        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion, VSCompletionListCapability? vsCompletionListCapability)
         {
             if (completion is null)
             {
                 throw new ArgumentNullException(nameof(completion));
             }
 
-            return new VSCompletionItem
+            var result = new VSCompletionItem
             {
                 AdditionalTextEdits = completion.AdditionalTextEdits,
                 Command = completion.Command,
@@ -60,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Detail = completion.Detail,
                 Documentation = completion.Documentation,
                 FilterText = completion.FilterText,
-                InsertText = completion.FilterText,
+                InsertText = completion.InsertText,
                 InsertTextFormat = completion.InsertTextFormat,
                 Kind = completion.Kind,
                 Label = completion.Label,
@@ -69,6 +81,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Tags = completion.Tags,
                 TextEdit = completion.TextEdit,
             };
+
+            if (vsCompletionListCapability is not null && vsCompletionListCapability.CommitCharacters)
+            {
+                var vsCommitCharacters = GetVSCommitCharacters(completion);
+                result.VsCommitCharacters = vsCommitCharacters is null ? null : vsCommitCharacters;
+
+                // If we're using VsCommitCharacters don't include CommitCharacters to avoid serializing them.
+                if (result.VsCommitCharacters is not null)
+                {
+                    result = result with { CommitCharacters = null };
+                }
+            }
+
+            return result;
+
+            static Container<VSCommitCharacter>? GetVSCommitCharacters(CompletionItem completion)
+            {
+                if (completion.CommitCharacters is null)
+                {
+                    return null;
+                }
+
+                var result = new List<VSCommitCharacter>();
+                foreach (var commitCharacter in completion.CommitCharacters)
+                {
+                    result.Add(new VSCommitCharacter
+                    {
+                        Character = commitCharacter,
+                        Insert = completion.InsertTextFormat != InsertTextFormat.Snippet,
+                    });
+                }
+
+                return result;
+            }
         }
     }
 }
