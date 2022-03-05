@@ -26,6 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
+            DocumentVersionCache documentVersionCache,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
-            HtmlFormatter = new HtmlFormatter(server, filePathNormalizer);
+            HtmlFormatter = new HtmlFormatter(server, documentVersionCache);
         }
 
         // We want this to run first because it uses the client HTML formatter.

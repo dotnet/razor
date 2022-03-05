@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -105,6 +107,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             version = entry.Version;
             return true;
+        }
+
+        public override async Task<int?> TryGetDocumentVersionAsync(DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+        {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            var resolvedVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                TryGetDocumentVersion(documentSnapshot, out var version);
+                return version;
+            }, cancellationToken).ConfigureAwait(false);
+
+            return resolvedVersion;
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)

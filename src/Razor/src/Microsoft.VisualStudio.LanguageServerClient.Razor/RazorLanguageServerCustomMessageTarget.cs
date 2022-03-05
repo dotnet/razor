@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Called by the Razor Language Server to invoke a textDocument/onTypeFormatting  request
         // on the virtual Html buffer.
         [JsonRpcMethod(LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(DocumentOnTypeFormattingParams token, CancellationToken cancellationToken);
+        public abstract Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams token, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to invoke a textDocument/rangeFormatting request
         // on the virtual Html/CSharp buffer.

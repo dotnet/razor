@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+        public override async Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {
             var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
@@ -250,6 +250,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             else
             {
                 Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return response;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                request.HostDocumentVersion, htmlDocument, cancellationToken);
+
+            if (!synchronized)
+            {
                 return response;
             }
 
