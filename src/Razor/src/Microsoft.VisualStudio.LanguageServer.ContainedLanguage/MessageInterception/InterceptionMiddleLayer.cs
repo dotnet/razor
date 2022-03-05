@@ -55,9 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             // to handle both request and response interception.
             var response = await sendRequest(methodParam);
 
-            if (CanHandle(methodName))
+            if (response is not null && CanHandle(methodName))
             {
-                response = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
+                response = await _interceptorManager.ProcessInterceptorsAsync(methodName, response, _contentType, CancellationToken.None);
             }
 
             return response;
