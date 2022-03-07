@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (request.TextEditKind == TextEditKind.FormatOnType)
             {
-                var mappedEdits = await _razorFormattingService.FormatOnTypeAsync(request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
+                var mappedEdits = await _razorFormattingService.FormatOnTypeAsync(request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken);
 
                 return new RazorMapToDocumentEditsResponse()
                 {

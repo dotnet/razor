@@ -12,8 +12,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -51,7 +54,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Normalize and re-map the C# edits.
             var codeDocument = context.CodeDocument;
             var csharpText = codeDocument.GetCSharpSourceText();
-            var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits, out var originalTextWithChanges);
+
+            var textEdits = result.Edits;
+            if (textEdits.Length == 0)
+            {
+                if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument, context.HostDocumentIndex, out _, out var projectedIndex))
+                {
+                    _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
+                    return result;
+                }
+
+                var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
+
+                // Ask C# for formatting changes.
+                var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
+                    context.CSharpWorkspaceDocument, typedChar: context.TriggerCharacter, projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
+
+                if (formattingChanges.IsEmpty)
+                {
+                    _logger.LogInformation("Received no results.");
+                    return result;
+                }
+
+                textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
+                _logger.LogInformation($"Received {textEdits.Length} results from C#.");
+            }
+
+            var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
             var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
             var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
             if (filteredEdits.Length == 0)
@@ -150,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (context.AutomaticallyAddUsings)
             {
                 // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
-                if (result.Edits.Any(e => e.NewText.IndexOf("using") != -1))
+                if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
                 {
                     finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
                 }
@@ -474,6 +503,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
             var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
+        }
+
+        private static async Task<DocumentOptionSet> GetDocumentOptionsAsync(FormattingContext context)
+        {
+            var documentOptions = await context.CSharpWorkspaceDocument.GetOptionsAsync().ConfigureAwait(false);
+            return (DocumentOptionSet)context.GetChangedOptionSet(documentOptions);
         }
     }
 }

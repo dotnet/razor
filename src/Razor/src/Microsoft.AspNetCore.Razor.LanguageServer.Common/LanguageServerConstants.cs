@@ -35,6 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorDocumentFormattingEndpoint = "textDocument/formatting";
 
+        public const string RazorDocumentOnTypeFormattingEndpoint = "textDocument/onTypeFormatting";
+
         // RZLS Custom Message Targets
         public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
 

@@ -230,6 +230,58 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
+        public override async Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+        {
+            var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+
+            var hostDocumentUri = request.TextDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return response;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            if (documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlDocument.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return response;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                request.HostDocumentVersion, htmlDocument, cancellationToken);
+
+            if (!synchronized)
+            {
+                return response;
+            }
+
+            var formattingParams = new DocumentOnTypeFormattingParams()
+            {
+                Character = request.Character,
+                Position = request.Position,
+                TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
+                Options = request.Options
+            };
+
+            var textBuffer = htmlDocument.Snapshot.TextBuffer;
+            var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
+                textBuffer,
+                Methods.TextDocumentOnTypeFormattingName,
+                languageServerName,
+                formattingParams,
+                cancellationToken).ConfigureAwait(false);
+
+            response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
+
+            return response;
+        }
+
         public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
         {
             var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
