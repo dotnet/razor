@@ -69,6 +69,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
-
     }
 }

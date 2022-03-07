@@ -218,11 +218,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
+            var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            var versionCache = new DefaultDocumentVersionCache(dispatcher);
+
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
             var passes = new List<IFormattingPass>()
             {
-                new HtmlFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
+                new HtmlFormattingPass(mappingService, FilePathNormalizer, client, versionCache, LoggerFactory),
                 new CSharpFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
                 new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
                 new RazorFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
