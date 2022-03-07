@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
@@ -37,6 +36,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             var foldableSpans = blockTexts.Select(blockText =>
             {
+                Assert.Contains(blockText, text);
                 var start = text.IndexOf(blockText);
                 return new Span(start, blockText.Length);
             }).ToImmutableArray();
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Built in retry logic because getting spans can take time.
             //
             var tries = 0;
-            const int MaxTries = 10;
+            const int MaxTries = 20;
             ImmutableArray<Span> missingSpans;
             while (tries++ < MaxTries)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     return;
                 }
 
-                Thread.Sleep(500);
+                await Task.Delay(500);
             }
 
             Assert.Empty(missingSpans);
@@ -84,67 +84,23 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
         }
 
-        private async Task AssertFoldableBlocksAsync(Span[] foldableSpans)
-        {
-            // TODO: REMOVE THIS METHOD AND UPDATE
-            // ALL TESTS TO USE THE STRING OVERLOAD
-
-            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
-            var outlines = await GetOutlineRegionsAsync(textView);
-
-            //
-            // Built in retry logic because getting spans can take time.
-            //
-            var tries = 0;
-            const int MaxTries = 10;
-            ImmutableArray<Span> missingSpans;
-            while (tries++ < MaxTries)
-            {
-                missingSpans = GetMissingExpectedSpans(outlines, foldableSpans, textView);
-                if (missingSpans.Length == 0)
-                {
-                    return;
-                }
-
-                Thread.Sleep(100);
-            }
-
-            Assert.Empty(missingSpans);
-
-            static ImmutableArray<Span> GetMissingExpectedSpans(ICollapsible[] outlines, Span[] foldableSpans, ITextView textView)
-            {
-                if (outlines.Length < foldableSpans.Length)
-                {
-                    return foldableSpans.ToImmutableArray();
-                }
-
-                var builder = new List<Span>();
-
-                var spans = outlines.Select(o => o.Extent.GetSpan(textView.TextSnapshot).Span).ToImmutableArray();
-                foreach (var foldableSpan in foldableSpans)
-                {
-                    if (!spans.Contains(foldableSpan))
-                    {
-                        builder.Add(foldableSpan);
-                    }
-                }
-
-                return builder.ToImmutableArray();
-            }
-        }
-
-        [IdeFact(Skip = "Coming in a separate checkin")]
+        [IdeFact]
         public async Task CodeFolding_CodeBlock_Default()
         {
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
 
-            await AssertFoldableBlocksAsync(new Span[]
-            {
-                Span.FromBounds(285, 324)
-            });
+            await AssertFoldableBlocksAsync(
+@"@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}");
         }
 
-        [IdeFact(Skip = "Coming in a separate checkin")]
+        [IdeFact]
         public async Task CodeFolding_IfBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -172,14 +128,26 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 open: true,
                 HangMitigatingCancellationToken);
 
-            await AssertFoldableBlocksAsync(new Span[]
-            {
-                Span.FromBounds(76, 125), // Outer @if
-                Span.FromBounds(94, 122)  // Inner if
-            });
+            await AssertFoldableBlocksAsync(
+@"@if(true)
+{
+    if (true)
+    {
+        M();
+    }
+}
+",
+@"if (true)
+{
+    M();
+}
+",
+@"@code {
+    string M() => ""M"";
+}");
         }
 
-        [IdeFact(Skip = "Coming in a separate checkin")]
+        [IdeFact]
         public async Task CodeFolding_ForEach()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -204,13 +172,14 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 open: true,
                 HangMitigatingCancellationToken);
 
-            await AssertFoldableBlocksAsync(new Span[]
-            {
-                Span.FromBounds(76, 125), // @foreach
-            });
+            await AssertFoldableBlocksAsync(
+@"@foreach (var s in GetStuff())
+{
+    <h2>s</h2>
+}");
         }
 
-        [IdeFact(Skip = "Coming in a separate checkin")]
+        [IdeFact]
         public async Task CodeFolding_CodeBlock_Region()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
