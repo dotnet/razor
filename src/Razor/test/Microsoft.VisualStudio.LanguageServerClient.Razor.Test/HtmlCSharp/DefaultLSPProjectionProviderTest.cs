@@ -6,6 +6,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
+            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, TestRazorLogger.Instance, LoggerProvider);
 
             // Act
             var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
@@ -92,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, HtmlVirtualDocumentSnapshot, true, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
-            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
+            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, TestRazorLogger.Instance, LoggerProvider);
 
             // Act
             var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
@@ -131,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, CSharpVirtualDocumentSnapshot, true, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
-            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
+            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, TestRazorLogger.Instance, LoggerProvider);
 
             // Act
             var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
@@ -211,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, CSharpVirtualDocumentSnapshot, false, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
-            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
+            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, TestRazorLogger.Instance, LoggerProvider);
 
             // Act
             var result = await projectionProvider.GetProjectionForCompletionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
@@ -250,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, CSharpVirtualDocumentSnapshot, true, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(false));
 
-            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
+            var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, TestRazorLogger.Instance, LoggerProvider);
 
             // Act
             var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);

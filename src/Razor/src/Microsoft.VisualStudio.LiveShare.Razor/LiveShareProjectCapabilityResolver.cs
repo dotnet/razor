@@ -1,27 +1,23 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LiveShare.Razor.Guest;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor
 {
-    [Shared]
-    [Export(typeof(ProjectHierarchyInspector))]
-    internal class DefaultProjectHierarchyInspector : ProjectHierarchyInspector
+    [Export(typeof(ProjectCapabilityResolver))]
+    internal class LiveShareProjectCapabilityResolver : ProjectCapabilityResolver
     {
         private readonly LiveShareSessionAccessor _sessionAccessor;
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
         [ImportingConstructor]
-        public DefaultProjectHierarchyInspector(
+        public LiveShareProjectCapabilityResolver(
             LiveShareSessionAccessor sessionAccessor,
             JoinableTaskContext joinableTaskContext)
         {
@@ -39,41 +35,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _joinableTaskFactory = joinableTaskContext.Factory;
         }
 
-        public override bool HasCapability(string documentMoniker, IVsHierarchy hierarchy, string capability)
+        public override bool HasCapability(string documentFilePath, object project, string capability)
         {
-            if (_sessionAccessor.IsGuestSessionActive)
+            if (!_sessionAccessor.IsGuestSessionActive)
             {
-                var remoteHasCapability = RemoteHasCapability(documentMoniker, capability);
-                return remoteHasCapability;
-            }
-
-            var localHasCapability = LocalHasCapability(hierarchy, capability);
-            return localHasCapability;
-        }
-
-        private static bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
-        {
-            if (hierarchy is null)
-            {
+                // We don't provide capabilities for non-guest sessions.
                 return false;
             }
 
-            try
-            {
-                var hasCapability = hierarchy.IsCapabilityMatch(capability);
-                return hasCapability;
-            }
-            catch (NotSupportedException)
-            {
-                // IsCapabilityMatch throws a NotSupportedException if it can't create a
-                // BooleanSymbolExpressionEvaluator COM object
-                return false;
-            }
-            catch (ObjectDisposedException)
-            {
-                // IsCapabilityMatch throws an ObjectDisposedException if the underlying hierarchy has been disposed
-                return false;
-            }
+            var remoteHasCapability = RemoteHasCapability(documentFilePath, capability);
+            return remoteHasCapability;
         }
 
         private bool RemoteHasCapability(string documentMoniker, string capability)
@@ -88,6 +59,5 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return hasCapability;
             });
         }
-
     }
 }

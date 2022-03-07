@@ -5,11 +5,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor
 {
     /// <summary>
     /// In cloud scenarios a client will not have a project system which means any code running on the client needs to have the ability to
