@@ -218,9 +218,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             var documentSnapshots = new Queue<DocumentSnapshot>();
             var identifiers = new Queue<TextDocumentIdentifier>();
-            foreach (var (text, isRazor) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
+            foreach (var (text, isRazorFile) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
             {
-                var file = isRazor ? RazorFile : CSHtmlFile;
+                var file = isRazorFile ? RazorFile : CSHtmlFile;
                 var document = CreateCodeDocument(text, file, tagHelpers);
 
                 var projectSnapshot = new Mock<ProjectSnapshot>(MockBehavior.Strict);
@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     .Returns(projectSnapshot.Object);
 
                 documentSnapshots.Enqueue(documentSnapshot.Object);
-                var identifier = GetIdentifier(isRazor);
+                var identifier = GetIdentifier(isRazorFile);
                 identifiers.Enqueue(identifier);
             }
 

@@ -168,6 +168,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
+
+        [Fact]
+        public async Task GetSemanticTokens_CSharp_StaticModifier()
+        {
+            var documentText = @"@code
+{
+    static int x = 1;
+}
+";
+
+            var razorRange = new OS.Range
+            {
+                Start = new OS.Position { Line = 0, Character = 0 },
+                End = new OS.Position { Line = 4, Character = 0 }
+            };
+
+            var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+            await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+        }
         #endregion
 
         #region HTML
@@ -653,12 +672,13 @@ second</p>
                         </a>
                     }
                 }
+            }
 ";
 
             var razorRange = new OS.Range
             {
                 Start = new OS.Position { Line = 0, Character = 0 },
-                End = new OS.Position { Line = 13, Character = 0 }
+                End = new OS.Position { Line = 14, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
