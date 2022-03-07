@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -23,6 +24,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             public override bool CanConvert(Type objectType)
             {
                 return typeof(OptimizedVSCompletionList) == objectType;
+            }
+
+            protected override void WriteCompletionItemProperties(JsonWriter writer, CompletionItem completionItem, JsonSerializer serializer, bool suppressData)
+            {
+                base.WriteCompletionItemProperties(writer, completionItem, serializer, suppressData);
+
+                if (completionItem is VSCompletionItem vSCompletionItem &&
+                    vSCompletionItem.VsCommitCharacters is not null &&
+                    vSCompletionItem.VsCommitCharacters.Any())
+                {
+                    writer.WritePropertyName("_vs_commitCharacters");
+
+                    if (!s_commitCharactersRawJson.TryGetValue(vSCompletionItem.VsCommitCharacters, out var jsonString))
+                    {
+                        jsonString = JsonConvert.SerializeObject(vSCompletionItem.VsCommitCharacters);
+                        s_commitCharactersRawJson.TryAdd(vSCompletionItem.VsCommitCharacters, jsonString);
+                    }
+
+                    writer.WriteRawValue(jsonString);
+                }
             }
 
             protected override void WriteCompletionListProperties(JsonWriter writer, CompletionList completionList, JsonSerializer serializer)

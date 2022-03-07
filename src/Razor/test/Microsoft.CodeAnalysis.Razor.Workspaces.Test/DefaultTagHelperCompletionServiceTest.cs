@@ -1136,8 +1136,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var completionContext = BuildElementCompletionContext(
                 documentDescriptors,
                 existingCompletions: Enumerable.Empty<string>(),
-                containingTagName: "parent-tag",
-                containingParentTagName: null);
+                containingTagName: "child-tag",
+                containingParentTagName: "parent-tag");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1198,7 +1198,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             });
 
             var existingCompletions = new[] { "p", "em" };
-            var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions, containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions, containingTagName: "thing", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1226,7 +1226,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["bold"] = new HashSet<TagHelperDescriptor>(),
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1256,7 +1256,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["div"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1292,7 +1292,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["div"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0], documentDescriptors[1] },
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act

@@ -229,7 +229,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // We can't fix this, so we just work around it by ignoring those lines compeletely, and leaving them where the
                         // user put them.
 
-                        if (ShouldIgnoreLineCompletely(token.Parent, formattedText))
+                        if (ShouldIgnoreLineCompletely(token, formattedText))
                         {
                             offset = -1;
                         }
@@ -240,10 +240,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        private static bool ShouldIgnoreLineCompletely(SyntaxNode? parent, SourceText text)
+        private static bool ShouldIgnoreLineCompletely(SyntaxToken token, SourceText text)
         {
-            return ShouldIgnoreLineCompletelyBecauseOfNode(parent, text)
-                || ShouldIgnoreLineCompletelyBecauseOfAncestors(parent, text);
+            return ShouldIgnoreLineCompletelyBecauseOfNode(token.Parent, text)
+                || ShouldIgnoreLineCompletelyBecauseOfAncestors(token, text);
 
             static bool ShouldIgnoreLineCompletelyBecauseOfNode(SyntaxNode? node, SourceText text)
             {
@@ -258,16 +258,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 };
             }
 
-            static bool ShouldIgnoreLineCompletelyBecauseOfAncestors(SyntaxNode? parent, SourceText text)
+            static bool ShouldIgnoreLineCompletelyBecauseOfAncestors(SyntaxToken token, SourceText text)
             {
-                return parent?.AncestorsAndSelf().Any(node => node switch
+                var parent = token.Parent;
+                if (parent is null)
                 {
-                    // C# formatter doesn't touch array initializers
-                    InitializerExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression } => true,
-                    // C# formatter doesn't touch object and collection initializers if they're not empty
-                    InitializerExpressionSyntax { Expressions: { Count: > 0 } } => true,
-                    _ => false
-                }) ?? false;
+                    return false;
+                }
+
+                return parent.AncestorsAndSelf().Any(node =>
+                {
+                    if (node is not InitializerExpressionSyntax initializer)
+                    {
+                        return false;
+                    }
+
+                    if (initializer.IsKind(CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression))
+                    {
+                        // For array initializers we have don't want to ignore the open and close braces
+                        // as the formatter does move them relative to the variable declaration they
+                        // are part of, but doesn't otherwise touch them.
+                        // This isn't true if they are part of other collection or object initializers, but
+                        // fortunately we can ignore that because of the recursive nature of this method,
+                        // I just wanted to mention it so you understood how annoying this is :)
+                        if (token == initializer.OpenBraceToken || token == initializer.CloseBraceToken)
+                        {
+                            return false;
+                        }
+
+                        // Anything else in an array initializer we ignore
+                        return true;
+                    }
+
+                    // Any other type of initializer, as long as its not empty, we also ignore
+                    if (initializer.Expressions.Count > 0)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                });
             }
 
             static bool SpansMultipleLines(SyntaxNode node, SourceText text)

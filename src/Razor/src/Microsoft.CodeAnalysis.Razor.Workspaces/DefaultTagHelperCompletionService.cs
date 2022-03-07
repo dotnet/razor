@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -131,7 +129,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var completionResult = AttributeCompletionResult.Create(attributeCompletions);
             return completionResult;
 
-            void UpdateCompletions(string attributeName, BoundAttributeDescriptor possibleDescriptor)
+            void UpdateCompletions(string attributeName, BoundAttributeDescriptor? possibleDescriptor)
             {
                 if (completionContext.Attributes.Any(attribute => string.Equals(attribute.Key, attributeName, StringComparison.OrdinalIgnoreCase)) &&
                     (completionContext.CurrentAttributeName is null ||
@@ -279,10 +277,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var binding = _tagHelperFactsService.GetTagHelperBinding(
                 completionContext.DocumentContext,
-                completionContext.ContainingTagName,
-                completionContext.Attributes,
                 completionContext.ContainingParentTagName,
-                completionContext.ContainingParentIsTagHelper);
+                completionContext.Attributes,
+                parentTag: null,
+                parentIsTagHelper: false);
 
             if (binding is null)
             {
@@ -298,7 +296,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     var descriptors = _tagHelperFactsService.GetTagHelpersGivenTag(
                         completionContext.DocumentContext,
                         prefixedName,
-                        completionContext.ContainingTagName);
+                        completionContext.ContainingParentTagName);
 
                     if (descriptors.Count == 0)
                     {

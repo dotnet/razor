@@ -232,13 +232,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionItems;
         }
 
-        private IReadOnlyCollection<string> ResolveAttributeCommitCharacters(IEnumerable<BoundAttributeDescriptor> boundAttributes, bool indexerCompletion)
+        private const string BooleanTypeString = "System.Boolean";
+
+        private static IReadOnlyCollection<string> ResolveAttributeCommitCharacters(IEnumerable<BoundAttributeDescriptor> boundAttributes, bool indexerCompletion)
         {
             if (indexerCompletion)
             {
                 return s_noCommitCharacters;
             }
-            else if (boundAttributes.Any(b => b.TypeName == "System.Boolean"))
+            else if (boundAttributes.Any(b => b.TypeName == BooleanTypeString))
             {
                 // Have to use string type because IsBooleanProperty isn't set
                 return MinimizedAttributeCommitCharacters;
