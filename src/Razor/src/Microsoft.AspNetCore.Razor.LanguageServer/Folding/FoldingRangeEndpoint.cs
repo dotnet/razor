@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -89,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             {
                 try
                 {
-                    container = await HandleCoreAsync(requestParams, codeDocument, cancellationToken);
+                    container = await HandleCoreAsync(requestParams, document, codeDocument, cancellationToken);
                 }
                 catch (Exception e) when (retries < MaxRetries)
                 {
@@ -100,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             return container;
         }
 
-        private async Task<Container<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        private async Task<Container<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorFoldingRangeEndpoint, requestParams).ConfigureAwait(false);
             var foldingResponse = await delegatedRequest.Returning<RazorFoldingRangeResponse?>(cancellationToken).ConfigureAwait(false);
@@ -121,18 +122,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     range,
                     out var mappedRange))
                 {
-                    mappedRanges.Add(new FoldingRange()
-                    {
-                        StartLine = mappedRange.Start.Line,
-                        StartCharacter = mappedRange.Start.Character,
-                        EndCharacter = mappedRange.End.Character,
-                        EndLine = mappedRange.End.Line
-                    });
+                    mappedRanges.Add(GetFoldingRange(mappedRange));
                 }
             }
 
             mappedRanges.AddRange(foldingResponse.HtmlRanges);
+
+            var razorRanges = await GetRazorRangesAsync(codeDocument, documentSnapshot, cancellationToken);
+            mappedRanges.AddRange(razorRanges);
+
             return new Container<FoldingRange>(mappedRanges);
+        }
+
+        private async Task<ImmutableArray<FoldingRange>> GetRazorRangesAsync(RazorCodeDocument codeDocument, DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+        {
+            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+
+            var syntaxTree = codeDocument.GetSyntaxTree();
+            var codeBlocks = syntaxTree.GetCodeBlockDirectives();
+
+            var builder = new List<FoldingRange>();
+            foreach (var codeBlock in codeBlocks)
+            {
+                sourceText.GetLineAndOffset(codeBlock.Span.Start, out var startLine, out var startOffset);
+                sourceText.GetLineAndOffset(codeBlock.Span.End, out var endLine, out var endOffset);
+                var foldingRange = new FoldingRange()
+                {
+                    StartCharacter = startOffset,
+                    StartLine = startLine,
+                    EndCharacter = endOffset,
+                    EndLine = endLine,
+                };
+
+                builder.Add(foldingRange);
+            }
+
+            return builder.ToImmutableArray();
         }
 
         private static Range GetRange(FoldingRange foldingRange)
@@ -147,6 +172,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     Character = foldingRange.EndCharacter.GetValueOrDefault(),
                     Line = foldingRange.EndLine
                 });
+
+        private static FoldingRange GetFoldingRange(Range range)
+           => new FoldingRange()
+           {
+               StartLine = range.Start.Line,
+               StartCharacter = range.Start.Character,
+               EndCharacter = range.End.Character,
+               EndLine = range.End.Line
+           };
 
         private record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
 
