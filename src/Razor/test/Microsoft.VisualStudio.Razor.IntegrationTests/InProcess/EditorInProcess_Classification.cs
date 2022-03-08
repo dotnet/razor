@@ -1,13 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -65,7 +69,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return classifications.Where(
                     c => c.ClassificationType.BaseTypes.Any(bT => bT is ILayeredClassificationType layered &&
                         layered.Layer == ClassificationLayer.Semantic &&
-                        layered.Classification == expectedClassification)).Count() >= count;
+                        layered.Classification == expectedClassification)).Count() >= count ||
+                        classifications.Where(
+                            c => c.ClassificationType is ILayeredClassificationType layered &&
+                                layered.Layer == ClassificationLayer.Semantic &&
+                                layered.Classification == expectedClassification).Count() >= count;
             }
         }
 
