@@ -182,7 +182,13 @@ stages:
               arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng\common\cibuild.cmd
+        - script: eng\common\Build.ps1
+            -restore
+            -build
+            -sign
+            -pack
+            -publish
+            -ci
             -configuration $(_BuildConfig)
             -msbuildEngine dotnet
             -prepareMachine
@@ -202,7 +208,14 @@ stages:
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build_Vsix
-          displayName: Build Vsix
+          displayName: Build and Deploy Vsix
+          condition: succeeded()
+        - script: eng\common\Build.ps1
+            -test
+            -integrationTest
+            -ci
+          name: Run_Tests
+          displayName: Run Unit and Integration tests
           condition: succeeded()
         # Run VSCode functional tests
         # - powershell: |
