@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,13 +83,44 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 id: DocumentId.CreateNewId(projectInfo.Id),
                 name: "TestDocument",
                 filePath: documentFilePath,
-                loader: TextLoader.From(textAndVersion));
+                loader: TextLoader.From(textAndVersion),
+                razorDocumentServiceProvider: new TestRazorDocumentServiceProvider());
 
             workspace.AddDocument(documentInfo);
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, clientCapabilities, serverCapabilities).ConfigureAwait(false);
             var uri = new Uri(documentFilePath);
             return (testLspServer, uri);
+        }
+
+        private class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
+        {
+            public bool CanApplyChange => throw new NotImplementedException();
+
+            public bool SupportDiagnostics => throw new NotImplementedException();
+
+            TService IRazorDocumentServiceProvider.GetService<TService>()
+            {
+                var serviceType = typeof(TService);
+
+                if (serviceType == typeof(IRazorSpanMappingService))
+                {
+                    return (TService)(IRazorSpanMappingService)new TestRazorSpanMappingService();
+                }
+
+                return this as TService;
+            }
+
+            private class TestRazorSpanMappingService : IRazorSpanMappingService
+            {
+                public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
+                    Document document,
+                    IEnumerable<TextSpan> spans,
+                    CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
 
         [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]
