@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             static (state, _) =>
                             {
                                 var project = state.OldSolution.GetRequiredProject(state.ProjectId);
-                                var removedDocument = project.GetRequiredDocument(state.DocumentId);
+                                var removedDocument = project.GetRequiredDocument(state.DocumentId!);
 
                                 if (removedDocument.FilePath is null)
                                 {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 // generator configured by the SDK that will poke these files on disk when a component
                                 // is saved, or loses focus in the editor.
                                 var project = state.OldSolution.GetRequiredProject(state.ProjectId);
-                                var document = project.GetRequiredDocument(state.DocumentId);
+                                var document = project.GetRequiredDocument(state.DocumentId!);
 
                                 if (document.FilePath is null)
                                 {
