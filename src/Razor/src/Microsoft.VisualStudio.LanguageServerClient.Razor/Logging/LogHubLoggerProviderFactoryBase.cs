@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 var logInstanceNumber = Interlocked.Increment(ref s_logHubSessionId);
                 var traceSource = await _traceProvider.InitializeTraceAsync(logIdentifier, logInstanceNumber, cancellationToken).ConfigureAwait(false);
 
-                _currentLogWriter = new DefaultLogHubLogWriter(traceSource);
+                _currentLogWriter = new DefaultLogHubLogWriter(traceSource!);
                 var provider = new LogHubLoggerProvider(_currentLogWriter);
 
                 return provider;
