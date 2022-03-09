@@ -21,13 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly TaskCompletionSource<bool> _initializedCompletionSource;
         private readonly IClientLanguageServer _languageServer;
 
-        public DefaultClientNotifierService(IClientLanguageServer languageServer)
+        public DefaultClientNotifierService(IClientLanguageServer languageServer!!)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             _languageServer = languageServer;
             _initializedCompletionSource = new TaskCompletionSource<bool>();
         }

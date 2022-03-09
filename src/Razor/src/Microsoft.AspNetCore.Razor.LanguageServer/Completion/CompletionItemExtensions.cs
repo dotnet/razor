@@ -14,15 +14,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private const string ResultIdKey = "_resultId";
 
         public static CompletionItem CreateWithCompletionListResultId(
-            this CompletionItem completionItem,
+            this CompletionItem completionItem!!,
             long resultId,
             PlatformAgnosticCompletionCapability? completionCapability)
         {
-            if (completionItem is null)
-            {
-                throw new ArgumentNullException(nameof(completionItem));
-            }
-
             var data = completionItem.Data ?? new JObject();
             data[ResultIdKey] = resultId;
             completionItem = completionItem with { Data = data };
@@ -38,13 +33,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
         }
 
-        public static bool TryGetCompletionListResultId(this CompletionItem completion, [NotNullWhen(true)] out int? resultId)
+        public static bool TryGetCompletionListResultId(this CompletionItem completion!!, [NotNullWhen(true)] out int? resultId)
         {
-            if (completion is null)
-            {
-                throw new ArgumentNullException(nameof(completion));
-            }
-
             if (completion.Data is JObject data && data.ContainsKey(ResultIdKey))
             {
                 resultId = data[ResultIdKey]?.ToObject<int>();
@@ -55,13 +45,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return false;
         }
 
-        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion, VSCompletionListCapability? vsCompletionListCapability)
+        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion!!, VSCompletionListCapability? vsCompletionListCapability)
         {
-            if (completion is null)
-            {
-                throw new ArgumentNullException(nameof(completion));
-            }
-
             var result = new VSCompletionItem
             {
                 AdditionalTextEdits = completion.AdditionalTextEdits,

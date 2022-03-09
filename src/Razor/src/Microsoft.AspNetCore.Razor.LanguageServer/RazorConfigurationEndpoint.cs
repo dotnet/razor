@@ -20,18 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ILogger _logger;
         private DidChangeConfigurationCapability _capability;
 
-        public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
+        public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor!!, ILoggerFactory loggerFactory!!)
         {
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _optionsMonitor = optionsMonitor;
             _logger = loggerFactory.CreateLogger<RazorConfigurationEndpoint>();
         }

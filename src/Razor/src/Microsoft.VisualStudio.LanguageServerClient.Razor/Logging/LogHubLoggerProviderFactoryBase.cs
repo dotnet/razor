@@ -16,13 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly SemaphoreSlim _initializationSemaphore;
         private DefaultLogHubLogWriter? _currentLogWriter;
 
-        public LogHubLoggerProviderFactoryBase(RazorLogHubTraceProvider traceProvider)
+        public LogHubLoggerProviderFactoryBase(RazorLogHubTraceProvider traceProvider!!)
         {
-            if (traceProvider is null)
-            {
-                throw new System.ArgumentNullException(nameof(traceProvider));
-            }
-
             _traceProvider = traceProvider;
 
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);

@@ -19,30 +19,16 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         private readonly DocumentSnapshot _document;
 
-        public RazorSpanMappingService(DocumentSnapshot document)
+        public RazorSpanMappingService(DocumentSnapshot document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             _document = document;
         }
 
         public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-            Document document,
-            IEnumerable<TextSpan> spans,
+            Document document!!,
+            IEnumerable<TextSpan> spans!!,
             CancellationToken cancellationToken)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (spans is null)
-            {
-                throw new ArgumentNullException(nameof(spans));
-            }
 
             // Called on an uninitialized document.
             if (_document is null)

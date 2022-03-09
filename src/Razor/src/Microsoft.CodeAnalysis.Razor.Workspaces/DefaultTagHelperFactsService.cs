@@ -15,22 +15,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultTagHelperFactsService : TagHelperFactsService
     {
         public override TagHelperBinding? GetTagHelperBinding(
-            TagHelperDocumentContext documentContext,
+            TagHelperDocumentContext documentContext!!,
             string? tagName,
-            IEnumerable<KeyValuePair<string, string>> attributes,
+            IEnumerable<KeyValuePair<string, string>> attributes!!,
             string? parentTag,
             bool parentIsTagHelper)
         {
-            if (documentContext is null)
-            {
-                throw new ArgumentNullException(nameof(documentContext));
-            }
-
-            if (attributes is null)
-            {
-                throw new ArgumentNullException(nameof(attributes));
-            }
-
             if (tagName is null)
             {
                 return null;
@@ -50,25 +40,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public override IEnumerable<BoundAttributeDescriptor> GetBoundTagHelperAttributes(
-            TagHelperDocumentContext documentContext,
-            string attributeName,
-            TagHelperBinding binding)
+            TagHelperDocumentContext documentContext!!,
+            string attributeName!!,
+            TagHelperBinding binding!!)
         {
-            if (documentContext is null)
-            {
-                throw new ArgumentNullException(nameof(documentContext));
-            }
-
-            if (attributeName is null)
-            {
-                throw new ArgumentNullException(nameof(attributeName));
-            }
-
-            if (binding is null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
             var matchingBoundAttributes = new List<BoundAttributeDescriptor>();
             foreach (var descriptor in binding.Descriptors)
             {
@@ -88,20 +63,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public override IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenTag(
-            TagHelperDocumentContext documentContext,
-            string tagName,
+            TagHelperDocumentContext documentContext!!,
+            string tagName!!,
             string? parentTag)
         {
-            if (documentContext is null)
-            {
-                throw new ArgumentNullException(nameof(documentContext));
-            }
-
-            if (tagName is null)
-            {
-                throw new ArgumentNullException(nameof(tagName));
-            }
-
             var matchingDescriptors = new List<TagHelperDescriptor>();
             var descriptors = documentContext?.TagHelpers;
             if (descriptors is null || descriptors.Count == 0)
@@ -134,13 +99,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return matchingDescriptors;
         }
 
-        public override IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag)
+        public override IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext!!, string? parentTag)
         {
-            if (documentContext is null)
-            {
-                throw new ArgumentNullException(nameof(documentContext));
-            }
-
             var matchingDescriptors = new List<TagHelperDescriptor>();
             var descriptors = documentContext?.TagHelpers;
             if (descriptors is null || descriptors.Count == 0)

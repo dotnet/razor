@@ -42,19 +42,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
-            ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+            ProjectWorkspaceStateGenerator workspaceStateGenerator!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
-            if (workspaceStateGenerator is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceStateGenerator));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
             _workspaceStateGenerator = workspaceStateGenerator;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
@@ -470,25 +460,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public UpdateWorkspaceWorkItem(
                 Project? workspaceProject,
-                ProjectSnapshot projectSnapshot,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator,
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+                ProjectSnapshot projectSnapshot!!,
+                ProjectWorkspaceStateGenerator workspaceStateGenerator!!,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
             {
-                if (projectSnapshot is null)
-                {
-                    throw new ArgumentNullException(nameof(projectSnapshot));
-                }
-
-                if (workspaceStateGenerator is null)
-                {
-                    throw new ArgumentNullException(nameof(workspaceStateGenerator));
-                }
-
-                if (projectSnapshotManagerDispatcher is null)
-                {
-                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-                }
-
                 _workspaceProject = workspaceProject;
                 _projectSnapshot = projectSnapshot;
                 _workspaceStateGenerator = workspaceStateGenerator;

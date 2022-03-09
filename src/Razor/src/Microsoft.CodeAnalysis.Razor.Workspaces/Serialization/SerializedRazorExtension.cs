@@ -10,13 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
     internal class SerializedRazorExtension : RazorExtension
     {
-        public SerializedRazorExtension(string extensionName)
+        public SerializedRazorExtension(string extensionName!!)
         {
-            if (extensionName is null)
-            {
-                throw new ArgumentNullException(nameof(extensionName));
-            }
-
             ExtensionName = extensionName;
         }
 

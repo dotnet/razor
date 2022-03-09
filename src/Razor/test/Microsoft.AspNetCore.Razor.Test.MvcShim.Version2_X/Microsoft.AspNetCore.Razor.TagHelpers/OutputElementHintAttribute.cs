@@ -19,13 +19,8 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <param name="outputElement">
         /// The HTML element the <see cref="ITagHelper"/> may output.
         /// </param>
-        public OutputElementHintAttribute(string outputElement)
+        public OutputElementHintAttribute(string outputElement!!)
         {
-            if (outputElement is null)
-            {
-                throw new ArgumentNullException(nameof(outputElement));
-            }
-
             OutputElement = outputElement;
         }
 

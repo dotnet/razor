@@ -28,25 +28,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly Dictionary<string, HostDocument> _currentDocuments;
 
         public RazorProjectHostBase(
-            DotNetProject project,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectSnapshotManagerBase projectSnapshotManager)
+            DotNetProject project!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            ProjectSnapshotManagerBase projectSnapshotManager!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (projectSnapshotManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManager));
-            }
-
             DotNetProject = project;
             ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManager;
@@ -114,13 +99,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
         }
 
-        private void DotNetProject_Modified(object sender, SolutionItemModifiedEventArgs args)
+        private void DotNetProject_Modified(object sender, SolutionItemModifiedEventArgs args!!)
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
             _ = ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((args, ct) =>
             {
                 if (_batchingProjectChanges)

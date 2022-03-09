@@ -27,29 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         [ImportingConstructor]
         public DefaultTextBufferProjectService(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider services,
-            ITextDocumentFactoryService documentFactory)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider services!!,
+            ITextDocumentFactoryService documentFactory!!)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (documentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentFactory));
-            }
-
             _documentFactory = documentFactory;
             _documentTable = new RunningDocumentTable(services);
         }
 
-        public override object GetHostProject(ITextBuffer textBuffer)
+        public override object GetHostProject(ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
 
             // If there's no document we can't find the FileName, or look for a matching hierarchy.
             if (!_documentFactory.TryGetTextDocument(textBuffer, out var textDocument))
@@ -66,13 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return hierarchy;
         }
 
-        public override string GetProjectPath(object project)
+        public override string GetProjectPath(object project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 
@@ -80,13 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return path;
         }
 
-        public override bool IsSupportedProject(object project)
+        public override bool IsSupportedProject(object project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 
@@ -106,13 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return false;
         }
 
-        public override string GetProjectName(object project)
+        public override string GetProjectName(object project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 

@@ -58,31 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public ProjectRazorJsonPublisher(
-            LSPEditorFeatureDetector lSPEditorFeatureDetector,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            RazorLogger logger)
+            LSPEditorFeatureDetector lSPEditorFeatureDetector!!,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider!!,
+            RazorLogger logger!!)
         {
-            if (lSPEditorFeatureDetector is null)
-            {
-                throw new ArgumentNullException(nameof(lSPEditorFeatureDetector));
-            }
-
-            if (projectConfigurationFilePathStore is null)
-            {
-                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-            }
-
-            if (logger is null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
             DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
             _pendingProjectPublishes = new Dictionary<string, ProjectSnapshot>(FilePathComparer.Instance);
             _pendingProjectPublishesLock = new();
@@ -225,13 +205,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Internal for testing
-        internal void Publish(ProjectSnapshot projectSnapshot)
+        internal void Publish(ProjectSnapshot projectSnapshot!!)
         {
-            if (projectSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshot));
-            }
-
             lock (_publishLock)
             {
                 string? configurationFilePath = null;

@@ -21,25 +21,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public DefaultProjectResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
-            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            FilePathNormalizer filePathNormalizer!!,
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            if (projectSnapshotManagerAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
@@ -48,13 +33,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
         }
 
-        public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
+        public override bool TryResolveProject(string documentFilePath!!, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
         {
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedDocumentPath = _filePathNormalizer.Normalize(documentFilePath);

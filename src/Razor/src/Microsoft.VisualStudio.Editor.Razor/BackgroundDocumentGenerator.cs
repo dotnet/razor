@@ -31,18 +31,8 @@ namespace Microsoft.CodeAnalysis.Razor
         private bool _solutionIsClosing;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
+        public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!, RazorDynamicFileInfoProvider infoProvider!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (infoProvider is null)
-            {
-                throw new ArgumentNullException(nameof(infoProvider));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _infoProvider = infoProvider;
             _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
@@ -131,13 +121,8 @@ namespace Microsoft.CodeAnalysis.Razor
             }
         }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
         {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectManager = projectManager;
             _projectManager.Changed += ProjectManager_Changed;
         }
@@ -149,18 +134,8 @@ namespace Microsoft.CodeAnalysis.Razor
             UpdateFileInfo(project, document);
         }
 
-        public void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
+        public void Enqueue(ProjectSnapshot project!!, DocumentSnapshot document!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (Work)

@@ -28,43 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public RazorContentTypeChangeListener(
-            ITextDocumentFactoryService textDocumentFactory,
-            LSPDocumentManager lspDocumentManager,
-            LSPEditorFeatureDetector lspEditorFeatureDetector,
-            SVsServiceProvider serviceProvider,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IFileToContentTypeService fileToContentTypeService)
+            ITextDocumentFactoryService textDocumentFactory!!,
+            LSPDocumentManager lspDocumentManager!!,
+            LSPEditorFeatureDetector lspEditorFeatureDetector!!,
+            SVsServiceProvider serviceProvider!!,
+            IEditorOptionsFactoryService editorOptionsFactory!!,
+            IFileToContentTypeService fileToContentTypeService!!)
         {
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
-            if (lspDocumentManager is null)
-            {
-                throw new ArgumentNullException(nameof(lspDocumentManager));
-            }
-
-            if (lspEditorFeatureDetector is null)
-            {
-                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
-            }
-
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (editorOptionsFactory is null)
-            {
-                throw new ArgumentNullException(nameof(editorOptionsFactory));
-            }
-
-            if (fileToContentTypeService is null)
-            {
-                throw new ArgumentNullException(nameof(fileToContentTypeService));
-            }
-
             if (lspDocumentManager is not TrackingLSPDocumentManager tracking)
             {
                 throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_lspDocumentManager));
@@ -101,13 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Internal for testing
-        internal void RazorBufferCreated(ITextBuffer textBuffer)
+        internal void RazorBufferCreated(ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!_lspEditorFeatureDetector.IsRemoteClient())
             {
                 // Renames on open files don't dispose buffer state so we need to separately monitor the buffer for document renames to ensure
@@ -120,13 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Internal for testing
-        internal void RazorBufferDisposed(ITextBuffer textBuffer)
+        internal void RazorBufferDisposed(ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             StopMonitoringDocumentForRenames(textBuffer);
 
             // If we don't know about this document we'll no-op

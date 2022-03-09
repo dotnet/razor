@@ -12,13 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
     {
         public static readonly AggregateBoundElementDescription Default = new AggregateBoundElementDescription(Array.Empty<BoundElementDescriptionInfo>());
 
-        public AggregateBoundElementDescription(IReadOnlyList<BoundElementDescriptionInfo> associatedTagHelperDescriptions)
+        public AggregateBoundElementDescription(IReadOnlyList<BoundElementDescriptionInfo> associatedTagHelperDescriptions!!)
         {
-            if (associatedTagHelperDescriptions is null)
-            {
-                throw new ArgumentNullException(nameof(associatedTagHelperDescriptions));
-            }
-
             AssociatedTagHelperDescriptions = associatedTagHelperDescriptions;
         }
 

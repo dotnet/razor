@@ -12,23 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions
     {
         private const string HostDocumentVersionMarked = "__MsLsp_HostDocumentVersionMarker__";
 
-        public static void SetHostDocumentSyncVersion(this ITextBuffer textBuffer, long hostDocumentVersion)
+        public static void SetHostDocumentSyncVersion(this ITextBuffer textBuffer!!, long hostDocumentVersion)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             textBuffer.Properties[HostDocumentVersionMarked] = hostDocumentVersion;
         }
 
-        public static bool TryGetHostDocumentSyncVersion(this ITextBuffer textBuffer, out long hostDocumentVersion)
+        public static bool TryGetHostDocumentSyncVersion(this ITextBuffer textBuffer!!, out long hostDocumentVersion)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             var result = textBuffer.Properties.TryGetProperty(HostDocumentVersionMarked, out hostDocumentVersion);
 
             return result;

@@ -38,43 +38,13 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        DocumentResolver documentResolver,
-        RazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
-        AdhocWorkspaceFactory adhocWorkspaceFactory,
-        ILoggerFactory loggerFactory)
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+        DocumentResolver documentResolver!!,
+        RazorDocumentMappingService documentMappingService!!,
+        ClientNotifierServiceBase languageServer!!,
+        AdhocWorkspaceFactory adhocWorkspaceFactory!!,
+        ILoggerFactory loggerFactory!!)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (documentResolver is null)
-        {
-            throw new ArgumentNullException(nameof(documentResolver));
-        }
-
-        if (documentMappingService is null)
-        {
-            throw new ArgumentNullException(nameof(documentMappingService));
-        }
-
-        if (languageServer is null)
-        {
-            throw new ArgumentNullException(nameof(languageServer));
-        }
-
-        if (adhocWorkspaceFactory is null)
-        {
-            throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
-        }
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _documentResolver = documentResolver;
         _documentMappingService = documentMappingService;
@@ -96,13 +66,8 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    public async Task<InlineCompletionList?> Handle(InlineCompletionRequest request, CancellationToken cancellationToken)
+    public async Task<InlineCompletionList?> Handle(InlineCompletionRequest request!!, CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
         _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
         var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>

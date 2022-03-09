@@ -179,13 +179,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             private readonly Dictionary<DocumentSnapshot, int?> _versions;
 
-            public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions)
+            public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions!!)
             {
-                if (versions is null)
-                {
-                    throw new ArgumentNullException(nameof(versions));
-                }
-
                 _versions = versions;
             }
 

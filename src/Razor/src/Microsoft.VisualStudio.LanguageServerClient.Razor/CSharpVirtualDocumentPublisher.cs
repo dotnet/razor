@@ -25,18 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
 
         [ImportingConstructor]
-        public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider, LSPDocumentMappingProvider lspDocumentMappingProvider)
+        public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider!!, LSPDocumentMappingProvider lspDocumentMappingProvider!!)
         {
-            if (dynamicFileInfoProvider is null)
-            {
-                throw new ArgumentNullException(nameof(dynamicFileInfoProvider));
-            }
-
-            if (lspDocumentMappingProvider is null)
-            {
-                throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
-            }
-
             _dynamicFileInfoProvider = dynamicFileInfoProvider;
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
         }
@@ -80,23 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override bool SupportsDiagnostics => true;
 
-            public CSharpVirtualDocumentContainer(LSPDocumentMappingProvider lspDocumentMappingProvider, LSPDocumentSnapshot documentSnapshot, ITextSnapshot textSnapshot)
+            public CSharpVirtualDocumentContainer(LSPDocumentMappingProvider lspDocumentMappingProvider!!, LSPDocumentSnapshot documentSnapshot!!, ITextSnapshot textSnapshot!!)
             {
-                if (lspDocumentMappingProvider is null)
-                {
-                    throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
-                }
-
-                if (textSnapshot is null)
-                {
-                    throw new ArgumentNullException(nameof(textSnapshot));
-                }
-
-                if (documentSnapshot is null)
-                {
-                    throw new ArgumentNullException(nameof(documentSnapshot));
-                }
-
                 _lspDocumentMappingProvider = lspDocumentMappingProvider;
 
                 _textSnapshot = textSnapshot;
@@ -141,18 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 private readonly SourceText _sourceText;
                 private readonly string _filePath;
 
-                public SourceTextLoader(SourceText sourceText, string filePath)
+                public SourceTextLoader(SourceText sourceText!!, string filePath!!)
                 {
-                    if (sourceText is null)
-                    {
-                        throw new ArgumentNullException(nameof(sourceText));
-                    }
-
-                    if (filePath is null)
-                    {
-                        throw new ArgumentNullException(nameof(filePath));
-                    }
-
                     _sourceText = sourceText;
                     _filePath = filePath;
                 }

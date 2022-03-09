@@ -8,18 +8,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal static class RangeExtensions
     {
-        public static bool OverlapsWith(this Range range, Range other)
+        public static bool OverlapsWith(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -36,18 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this Range range, Range other)
+        public static bool LineOverlapsWith(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             var overlapStart = range.Start.Line;
             if (range.Start.Line.CompareTo(other.Start.Line) < 0)
             {
@@ -63,18 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static Range? Overlap(this Range range, Range other)
+        public static Range? Overlap(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -100,18 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return null;
         }
 
-        public static bool Contains(this Range range, Range other)
+        public static bool Contains(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
     }

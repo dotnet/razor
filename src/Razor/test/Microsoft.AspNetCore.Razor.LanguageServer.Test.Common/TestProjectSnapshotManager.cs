@@ -20,13 +20,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
         }
 
-        public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher)
+        public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher!!)
         {
-            if (dispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(dispatcher));
-            }
-
             var services = TestServices.Create(
                 workspaceServices: new[]
                 {

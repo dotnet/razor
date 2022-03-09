@@ -99,13 +99,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal static bool IsRazorDocumentItem(IMSBuildItemEvaluated item)
+        internal static bool IsRazorDocumentItem(IMSBuildItemEvaluated item!!)
         {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
             if (item.Name != ContentItemType)
             {
                 // We only inspect content items for Razor documents.

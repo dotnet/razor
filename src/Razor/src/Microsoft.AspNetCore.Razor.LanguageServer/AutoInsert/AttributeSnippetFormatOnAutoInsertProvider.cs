@@ -22,29 +22,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public override string TriggerCharacter => "=";
 
-        public AttributeSnippetOnAutoInsertProvider(TagHelperFactsService tagHelperFactsService, ILoggerFactory loggerFactory)
+        public AttributeSnippetOnAutoInsertProvider(TagHelperFactsService tagHelperFactsService!!, ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
-            if (tagHelperFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperFactsService));
-            }
-
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position!!, FormattingContext context!!, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
-            if (position is null)
-            {
-                throw new ArgumentNullException(nameof(position));
-            }
-
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (!IsAtAttributeValueStart(context, position))
             {
                 format = default;

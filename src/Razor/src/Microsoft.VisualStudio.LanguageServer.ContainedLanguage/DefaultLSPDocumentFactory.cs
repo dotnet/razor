@@ -21,30 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         [ImportingConstructor]
         public DefaultLSPDocumentFactory(
-            FileUriProvider fileUriProvider,
-            [ImportMany] IEnumerable<Lazy<VirtualDocumentFactory, IContentTypeMetadata>> virtualBufferFactories)
+            FileUriProvider fileUriProvider!!,
+            [ImportMany] IEnumerable<Lazy<VirtualDocumentFactory, IContentTypeMetadata>> virtualBufferFactories!!)
         {
-            if (fileUriProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileUriProvider));
-            }
-
-            if (virtualBufferFactories is null)
-            {
-                throw new ArgumentNullException(nameof(virtualBufferFactories));
-            }
-
             _fileUriProvider = fileUriProvider;
             _virtualDocumentFactories = virtualBufferFactories;
         }
 
-        public override LSPDocument Create(ITextBuffer buffer)
+        public override LSPDocument Create(ITextBuffer buffer!!)
         {
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
             var uri = _fileUriProvider.GetOrCreate(buffer);
             var virtualDocuments = CreateVirtualDocuments(buffer);
             var lspDocument = new DefaultLSPDocument(uri, buffer, virtualDocuments);

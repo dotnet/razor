@@ -47,13 +47,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         private static readonly VSClassifiedTextRun s_newLine = new(VSPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
         private static readonly VSClassifiedTextRun s_nullableType = new(VSPredefinedClassificationTypeNames.Punctuation, "?");
 
-        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out VSContainerElement tooltipContent)
+        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo!!, out VSContainerElement tooltipContent)
         {
-            if (elementDescriptionInfo is null)
-            {
-                throw new ArgumentNullException(nameof(elementDescriptionInfo));
-            }
-
             if (!TryClassifyElement(elementDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
@@ -64,13 +59,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             return true;
         }
 
-        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, out VSContainerElement tooltipContent)
+        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo!!, out VSContainerElement tooltipContent)
         {
-            if (attributeDescriptionInfo is null)
-            {
-                throw new ArgumentNullException(nameof(attributeDescriptionInfo));
-            }
-
             if (!TryClassifyAttribute(attributeDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
@@ -83,13 +73,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
         // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
         // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out VSClassifiedTextElement tooltipContent)
+        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo!!, out VSClassifiedTextElement tooltipContent)
         {
-            if (elementDescriptionInfo is null)
-            {
-                throw new ArgumentNullException(nameof(elementDescriptionInfo));
-            }
-
             if (!TryClassifyElement(elementDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
@@ -102,13 +87,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
         // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
         // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, out VSClassifiedTextElement tooltipContent)
+        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo!!, out VSClassifiedTextElement tooltipContent)
         {
-            if (attributeDescriptionInfo is null)
-            {
-                throw new ArgumentNullException(nameof(attributeDescriptionInfo));
-            }
-
             if (!TryClassifyAttribute(attributeDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;

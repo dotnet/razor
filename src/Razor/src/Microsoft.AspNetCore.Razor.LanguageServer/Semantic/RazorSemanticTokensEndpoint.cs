@@ -19,30 +19,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
 
         public RazorSemanticTokensEndpoint(
-            RazorSemanticTokensInfoService semanticTokensInfoService,
-            ILoggerFactory loggerFactory)
+            RazorSemanticTokensInfoService semanticTokensInfoService!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (semanticTokensInfoService is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensInfoService));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _semanticTokensInfoService = semanticTokensInfoService;
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
-        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
+        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             var semanticTokens = await _semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, cancellationToken);
             var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
