@@ -2832,6 +2832,80 @@ namespace Test
     }
 
     [Fact]
+    public void EventCallbackOfT_GenericComponent_ExplicitType()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public EventCallback<T> OnClick { get; set; }
+    }
+
+    public class MyType
+    {
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent T=""MyType"" OnClick=""@((MyType arg) => counter++)""/>
+
+@code {
+    private int counter;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void EventCallbackOfT_GenericComponent_ExplicitType_MethodGroup()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public EventCallback<T> OnClick { get; set; }
+    }
+
+    public class MyType
+    {
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent T=""MyType"" OnClick=""Increment""/>
+
+@code {
+    private int counter;
+
+    public void Increment(MyType type) => counter++;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void EventCallback_CanPassEventCallbackOfT_Explicitly()
     {
         // Arrange

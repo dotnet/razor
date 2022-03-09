@@ -117,7 +117,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 if (ValidateTypeArguments(node, bindings))
                 {
                     var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Content);
-                    RewriteTypeNames(_pass.TypeNameFeature.CreateGenericTypeRewriter(mappings), node);
+                    RewriteTypeNames(_pass.TypeNameFeature.CreateGenericTypeRewriter(mappings), node, hasTypeArgumentSpecified);
                 }
 
                 return;
@@ -131,7 +131,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             // Since we're generating code in a different namespace, we need to 'global qualify' all of the types
             // to avoid clashes with our generated code.
-            RewriteTypeNames(_pass.TypeNameFeature.CreateGlobalQualifiedTypeNameRewriter(bindings.Keys), node);
+            RewriteTypeNames(_pass.TypeNameFeature.CreateGlobalQualifiedTypeNameRewriter(bindings.Keys), node, hasTypeArgumentSpecified: false, bindings);
 
             //
             // We need to verify that an argument was provided that 'covers' each type parameter.
@@ -330,8 +330,10 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             return true;
         }
 
-        private void RewriteTypeNames(TypeNameRewriter rewriter, ComponentIntermediateNode node)
+        private void RewriteTypeNames(TypeNameRewriter rewriter, ComponentIntermediateNode node, bool? hasTypeArgumentSpecified = null, IDictionary<string, Binding> bindings = null)
         {
+            var typeNameFeature = _pass.TypeNameFeature;
+
             // Rewrite the component type name
             node.TypeName = rewriter.Rewrite(node.TypeName);
 
@@ -358,9 +360,17 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     // type parameter. In which case, we mark it with an additional annotation to
                     // acount for that during code generation and avoid trying to fully qualify
                     // the type name.
-                    if (!globallyQualifiedTypeName.StartsWith("global::", StringComparison.Ordinal))
+                    if (hasTypeArgumentSpecified == true)
                     {
                         attribute.Annotations.Add(ComponentMetadata.Component.ExplicitTypeNameKey, true);
+                    }
+                    else if(attribute.BoundAttribute?.IsEventCallbackProperty() ?? false)
+                    {
+                        var callbackArgument = typeNameFeature.ParseTypeParameters(attribute.TypeName)[0];
+                        if (bindings.ContainsKey(callbackArgument))
+                        {
+                            attribute.Annotations.Add(ComponentMetadata.Component.OpenGenericKey, true);
+                        }
                     }
                 }
                 else if (attribute.TypeName == null && (attribute.BoundAttribute?.IsDelegateProperty() ?? false))

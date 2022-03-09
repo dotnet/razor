@@ -186,9 +186,10 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         return TryGetEventCallbackArgument(TypeName, out argument);
     }
 
-    internal static bool TryGetEventCallbackArgument(string typeName, out StringSegment argument)
+    internal static bool TryGetEventCallbackArgument(string candidate, out StringSegment argument)
     {
-        if (string.Equals(typeName, ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal))
+        var typeName = new StringSegment(candidate, candidate.StartsWith("global::", StringComparison.Ordinal) ? 8 : 0);
+        if (typeName.Equals(ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal))
         {
             // Non-Generic
             argument = default;
@@ -204,7 +205,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             // OK this is promising.
             //
             // Chop off leading `...EventCallback<` and let the length so the ending `>` is cut off as well.
-            argument = new StringSegment(typeName, ComponentsApi.EventCallback.FullTypeName.Length + 1, typeName.Length - (ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length));
+            argument = typeName.Subsegment(ComponentsApi.EventCallback.FullTypeName.Length + 1, typeName.Length - (ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length));
             return true;
         }
 

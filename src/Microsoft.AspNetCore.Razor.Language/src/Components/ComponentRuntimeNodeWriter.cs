@@ -606,12 +606,13 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             }
             else if (node.BoundAttribute?.IsEventCallbackProperty() ?? false)
             {
+                var explicitType = (bool?)node.Annotations[ComponentMetadata.Component.ExplicitTypeNameKey];
+                var isInferred = (bool?)node.Annotations[ComponentMetadata.Component.OpenGenericKey];
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
                     context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
                     context.CodeWriter.Write("<");
-                    context.CodeWriter.Write("global::");
-                    QualifyEventCallback(context.CodeWriter, node.TypeName);
+                    QualifyEventCallback(context.CodeWriter, node.TypeName, explicitType);
                     context.CodeWriter.Write(">");
                     context.CodeWriter.Write("(");
                 }
@@ -624,10 +625,17 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
 
-                if (node.TryParseEventCallbackTypeArgument(out StringSegment argument))
+                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out StringSegment argument))
                 {
                     context.CodeWriter.Write("<");
-                    TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, argument);
+                    if (explicitType == true)
+                    {
+                        context.CodeWriter.Write(argument);
+                    }
+                    else
+                    {
+                        TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, argument);
+                    }
                     context.CodeWriter.Write(">");
                 }
 
@@ -678,18 +686,26 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
             }
 
-            static void QualifyEventCallback(CodeWriter codeWriter, string typeName)
+            static void QualifyEventCallback(CodeWriter codeWriter, string typeName, bool? explicitType)
             {
                 if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName, out var argument))
                 {
+                    codeWriter.Write("global::");
                     codeWriter.Write(ComponentsApi.EventCallback.FullTypeName);
                     codeWriter.Write("<");
-                    TypeNameHelper.WriteGloballyQualifiedName(codeWriter, argument);
+                    if (explicitType == true)
+                    {
+                        codeWriter.Write(argument);
+                    }
+                    else
+                    {
+                        TypeNameHelper.WriteGloballyQualifiedName(codeWriter, argument);
+                    }
                     codeWriter.Write(">");
                 }
                 else
                 {
-                    codeWriter.Write(typeName);
+                    TypeNameHelper.WriteGloballyQualifiedName(codeWriter, typeName);
                 }
             }
         }
