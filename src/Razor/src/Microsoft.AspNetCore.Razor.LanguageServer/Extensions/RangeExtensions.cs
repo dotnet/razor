@@ -3,20 +3,20 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using OS = OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OSharp = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RangeExtensions
     {
-        public static readonly OS.Range UndefinedRange = new()
+        public static readonly OSharp.Range UndefinedRange = new()
         {
-            Start = new OS.Position(-1, -1),
-            End = new OS.Position(-1, -1)
+            Start = new OSharp.Position(-1, -1),
+            End = new OSharp.Position(-1, -1)
         };
 
-        public static bool OverlapsWith(this OS.Range range, OS.Range other)
+        public static bool OverlapsWith(this OSharp.Range range, OSharp.Range other)
         {
             if (range is null)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this OS.Range range, OS.Range other)
+        public static bool LineOverlapsWith(this OSharp.Range range, OSharp.Range other)
         {
             if (range is null)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static OS.Range? Overlap(this OS.Range range, OS.Range other)
+        public static OSharp.Range? Overlap(this OSharp.Range range, OSharp.Range other)
         {
             if (range is null)
             {
@@ -98,13 +98,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             // Empty ranges do not overlap with any range.
             if (overlapStart.CompareTo(overlapEnd) < 0)
             {
-                return new OS.Range(overlapStart, overlapEnd);
+                return new OSharp.Range(overlapStart, overlapEnd);
             }
 
             return null;
         }
 
-        public static bool Contains(this OS.Range range, OS.Range other)
+        public static bool Contains(this OSharp.Range range, OSharp.Range other)
         {
             if (range is null)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
-        public static TextSpan AsTextSpan(this OS.Range range, SourceText sourceText)
+        public static TextSpan AsTextSpan(this OSharp.Range range, SourceText sourceText)
         {
             if (range is null)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new TextSpan(start, length);
         }
 
-        public static Language.Syntax.TextSpan AsRazorTextSpan(this OS.Range range, SourceText sourceText)
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this OSharp.Range range, SourceText sourceText)
         {
             if (range is null)
             {
@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this OS.Range range)
+        public static bool IsUndefined(this OSharp.Range range)
         {
             if (range is null)
             {
@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return range == UndefinedRange;
         }
 
-        public static VS.Range AsVSRange(this OS.Range range)
+        public static VS.Range AsVSRange(this OSharp.Range range)
         {
             if (range is null)
             {

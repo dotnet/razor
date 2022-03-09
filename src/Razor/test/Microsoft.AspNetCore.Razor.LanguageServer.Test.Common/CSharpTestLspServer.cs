@@ -14,23 +14,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     public sealed class CSharpTestLspServer : IAsyncDisposable
     {
-        public readonly AdhocWorkspace TestWorkspace;
-
+        private readonly AdhocWorkspace _testWorkspace;
         private readonly IRazorLanguageServerTarget _languageServer;
 
         private readonly StreamJsonRpc.JsonRpc _clientRpc;
-        private readonly JsonMessageFormatter _clientMessageFormatter;
-        private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
-
         private readonly StreamJsonRpc.JsonRpc _serverRpc;
+
+        private readonly JsonMessageFormatter _clientMessageFormatter;
         private readonly JsonMessageFormatter _serverMessageFormatter;
+
+        private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
         private readonly HeaderDelimitedMessageHandler _serverMessageHandler;
 
         private CSharpTestLspServer(
             AdhocWorkspace testWorkspace,
             ServerCapabilities serverCapabilities)
         {
-            TestWorkspace = testWorkspace;
+            _testWorkspace = testWorkspace;
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
@@ -97,18 +97,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             string methodName,
             RequestType request,
             CancellationToken cancellationToken) where RequestType : class
-        {
-            var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
+            => await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
                 methodName,
                 request,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return result;
-        }
-
         public async ValueTask DisposeAsync()
         {
-            TestWorkspace.Dispose();
+            _testWorkspace.Dispose();
             await _languageServer.DisposeAsync();
 
             _clientRpc.Dispose();

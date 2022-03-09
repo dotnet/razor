@@ -50,12 +50,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         protected ILoggerFactory LoggerFactory { get; }
 
-        protected static async Task<(CSharpTestLspServer Server, Uri DocumentUri)> CreateCSharpTestLspServerAsync(
-            SourceText csharpSourceText,
-            ServerCapabilities serverCapabilities)
+        protected static AdhocWorkspace CreateTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files)
         {
-            var clientCapabilities = new ClientCapabilities();
-            var workspace = new AdhocWorkspace();
+            var workspace = TestWorkspace.Create() as AdhocWorkspace;
 
             // Add project and solution to workspace
             var projectInfo = ProjectInfo.Create(
@@ -77,20 +74,31 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             // help identify the document as belonging to Razor.
             var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
             var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
-            var documentFilePath = "C:\\TestSolution\\TestProject\\TestDocument.cs";
-            var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
-            var documentInfo = languageServerFactory.CreateDocumentInfo(
-                id: DocumentId.CreateNewId(projectInfo.Id),
-                name: "TestDocument",
-                filePath: documentFilePath,
-                loader: TextLoader.From(textAndVersion),
-                razorDocumentServiceProvider: new TestRazorDocumentServiceProvider());
 
-            workspace.AddDocument(documentInfo);
+            var documentCount = 0;
+            foreach (var (documentUri, csharpSourceText) in files)
+            {
+                var documentFilePath = documentUri.AbsolutePath;
+                var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
+                var documentInfo = languageServerFactory.CreateDocumentInfo(
+                    id: DocumentId.CreateNewId(projectInfo.Id),
+                    name: "TestDocument" + documentCount,
+                    filePath: documentFilePath,
+                    loader: TextLoader.From(textAndVersion),
+                    razorDocumentServiceProvider: new TestRazorDocumentServiceProvider());
 
+                workspace.AddDocument(documentInfo);
+                documentCount++;
+            }
+
+            return workspace;
+        }
+
+        protected static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(AdhocWorkspace workspace, ServerCapabilities serverCapabilities)
+        {
+            var clientCapabilities = new ClientCapabilities();
             var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, clientCapabilities, serverCapabilities).ConfigureAwait(false);
-            var uri = new Uri(documentFilePath);
-            return (testLspServer, uri);
+            return testLspServer;
         }
 
         private class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider

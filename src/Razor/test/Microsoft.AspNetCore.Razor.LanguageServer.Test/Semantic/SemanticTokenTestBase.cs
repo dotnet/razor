@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
@@ -120,7 +121,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpRange is not null)
             {
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var (csharpLspServer, documentUri) = await CreateCSharpTestLspServerAsync(csharpSourceText, SemanticTokensServerCapabilities);
+                var files = new List<(Uri, SourceText)>();
+                var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+                files.Add((documentUri, csharpSourceText));
+
+                using var workspace = CreateTestWorkspace(files);
+                await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, SemanticTokensServerCapabilities);
 
                 var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                     Methods.TextDocumentSemanticTokensRangeName,
@@ -128,8 +134,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 csharpTokens = result?.Data;
                 isFinalized = result?.IsFinalized ?? false;
-
-                await csharpLspServer.DisposeAsync();
             }
 
             var csharpResponse = new ProvideSemanticTokensResponse(
