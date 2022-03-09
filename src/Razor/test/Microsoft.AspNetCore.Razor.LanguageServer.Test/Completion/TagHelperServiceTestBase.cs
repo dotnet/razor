@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             foreach (var (text, isRazor) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
             {
                 var file = isRazor ? RazorFile : CSHtmlFile;
-                var document = CreateCodeDocument(text, file, tagHelpers);
+                var document = CreateCodeDocument(text!, file, tagHelpers);
 
                 var projectSnapshot = new Mock<ProjectSnapshot>(MockBehavior.Strict);
                 projectSnapshot
