@@ -56,34 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
-            {
-                // Unable to resolve code action with server, return original code action
-                return codeAction;
-            }
-
-            if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
-            {
-                // We don't yet support multi-document code actions, return original code action
-                return codeAction;
-            }
-
-            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
-            if (!documentChanged.IsTextDocumentEdit)
-            {
-                // Only Text Document Edit changes are supported currently, return original code action
-                return codeAction;
-            }
-
-            var addUsingTextEdit = documentChanged.TextDocumentEdit?.Edits.FirstOrDefault();
-            if (addUsingTextEdit is null)
-            {
-                // No text edit available
-                return codeAction;
-            }
-
-            if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(addUsingTextEdit.NewText, out var @namespace))
+            if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
             {
                 // Invalid text edit, missing namespace
                 return codeAction;
@@ -124,9 +97,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);
-            resolvedCodeAction = resolvedCodeAction with { Edit = edit };
+            codeAction = codeAction with { Edit = edit };
 
-            return resolvedCodeAction;
+            return codeAction;
         }
     }
 }

@@ -392,7 +392,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Methods.CodeActionResolveName,
                 SupportsCSharpCodeActions,
                 codeAction,
-                cancellationToken).ConfigureAwait(false);
+                CancellationToken.None).ConfigureAwait(false);
 
             await foreach (var response in requests)
             {
