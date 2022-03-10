@@ -214,14 +214,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return new TextDocumentIdentifier(new Uri($"c:\\${file}"));
         }
 
-        internal static (Queue<DocumentSnapshot>, Queue<TextDocumentIdentifier>) CreateDocumentSnapshot(string?[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
+        internal static (Queue<DocumentSnapshot>, Queue<TextDocumentIdentifier>) CreateDocumentSnapshot(string[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
         {
             var documentSnapshots = new Queue<DocumentSnapshot>();
             var identifiers = new Queue<TextDocumentIdentifier>();
             foreach (var (text, isRazor) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
             {
                 var file = isRazor ? RazorFile : CSHtmlFile;
-                var document = CreateCodeDocument(text!, file, tagHelpers);
+                var document = CreateCodeDocument(text, file, tagHelpers);
 
                 var projectSnapshot = new Mock<ProjectSnapshot>(MockBehavior.Strict);
                 projectSnapshot
