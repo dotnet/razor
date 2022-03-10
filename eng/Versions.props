@@ -78,6 +78,7 @@
     <MicrosoftVisualStudioPackagesVersion>17.0.487</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.2.0-2.22108.10</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.1.11</VisualStudioLanguageServerProtocolVersion>
+    <MicrosoftNetCompilersToolsetVersion>4.2.0-1.final</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <!-- dotnet/runtime packages -->

@@ -22,13 +22,8 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// Creates a new instance of <see cref="RazorConfigurationNameAttribute"/>.
         /// </summary>
         /// <param name="configurationName">The name of the Razor configuration.</param>
-        public RazorConfigurationNameAttribute(string configurationName)
+        public RazorConfigurationNameAttribute(string configurationName!!)
         {
-            if (configurationName is null)
-            {
-                throw new ArgumentNullException(nameof(configurationName));
-            }
-
             ConfigurationName = configurationName;
         }
 

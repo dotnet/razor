@@ -27,14 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             DocumentVersionCache documentVersionCache,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory!!)
             : base(documentMappingService, filePathNormalizer, server)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
             HtmlFormatter = new HtmlFormatter(server, documentVersionCache);

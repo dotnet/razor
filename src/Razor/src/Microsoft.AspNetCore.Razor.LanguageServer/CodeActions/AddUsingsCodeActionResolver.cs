@@ -31,19 +31,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentResolver _documentResolver;
 
         public AddUsingsCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
         }

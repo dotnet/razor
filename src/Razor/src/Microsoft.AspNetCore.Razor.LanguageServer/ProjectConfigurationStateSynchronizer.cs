@@ -38,13 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         internal int EnqueueDelay { get; set; } = 250;
 
-        public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args)
+        public void ProjectConfigurationFileChanged(ProjectConfigurationFileChangeEventArgs args!!)
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
@@ -116,13 +111,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
             }
 
-            void UpdateProject(string projectFilePath, ProjectRazorJson? projectRazorJson)
+            void UpdateProject(string projectFilePath!!, ProjectRazorJson? projectRazorJson)
             {
-                if (projectFilePath is null)
-                {
-                    throw new ArgumentNullException(nameof(projectFilePath));
-                }
-
                 if (projectRazorJson is null)
                 {
                     ResetProject(projectFilePath);

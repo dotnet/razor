@@ -31,18 +31,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
+        public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!, JoinableTaskContext joinableTaskContext!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _onChangedOnDisk = Document_ChangedOnDisk;
@@ -75,13 +65,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         // depend on a document being open/closed (some do) then we need to ensure we can mark open/closed prior to them running.
         public override int InitializePriority => 100;
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
         {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectManager = projectManager;
             _documentManager = projectManager.Workspace.Services.GetRequiredService<EditorDocumentManager>();
 

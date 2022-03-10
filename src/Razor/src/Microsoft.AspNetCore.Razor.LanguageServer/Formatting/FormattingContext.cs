@@ -288,13 +288,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        public async Task<FormattingContext> WithTextAsync(SourceText changedText)
+        public async Task<FormattingContext> WithTextAsync(SourceText changedText!!)
         {
-            if (changedText is null)
-            {
-                throw new ArgumentNullException(nameof(changedText));
-            }
-
             if (_engine is null)
             {
                 await InitializeProjectEngineAsync().ConfigureAwait(false);
@@ -381,40 +376,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         private static FormattingContext CreateCore(
-            DocumentUri uri,
-            DocumentSnapshot originalSnapshot,
-            RazorCodeDocument codeDocument,
-            FormattingOptions options,
-            AdhocWorkspaceFactory workspaceFactory,
+            DocumentUri uri!!,
+            DocumentSnapshot originalSnapshot!!,
+            RazorCodeDocument codeDocument!!,
+            FormattingOptions options!!,
+            AdhocWorkspaceFactory workspaceFactory!!,
             bool isFormatOnType,
             bool automaticallyAddUsings,
             int hostDocumentIndex,
             char triggerCharacter)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (originalSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(originalSnapshot));
-            }
-
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (workspaceFactory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceFactory));
-            }
 
             // hostDocumentIndex, triggerCharacter and automaticallyAddUsings are only supported in on type formatting
             Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));

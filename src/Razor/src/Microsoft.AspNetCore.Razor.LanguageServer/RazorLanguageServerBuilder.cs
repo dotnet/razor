@@ -10,13 +10,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorLanguageServerBuilder
     {
-        public RazorLanguageServerBuilder(IServiceCollection services)
+        public RazorLanguageServerBuilder(IServiceCollection services!!)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
             Services = services;
         }
 

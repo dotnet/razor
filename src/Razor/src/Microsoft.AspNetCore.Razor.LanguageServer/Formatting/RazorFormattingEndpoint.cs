@@ -35,43 +35,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
         public RazorFormattingEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            RazorFormattingService razorFormattingService,
-            RazorDocumentMappingService razorDocumentMappingService,
-            IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            RazorFormattingService razorFormattingService!!,
+            RazorDocumentMappingService razorDocumentMappingService!!,
+            IOptionsMonitor<RazorLSPOptions> optionsMonitor!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (razorFormattingService is null)
-            {
-                throw new ArgumentNullException(nameof(razorFormattingService));
-            }
-
-            if (razorDocumentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(razorDocumentMappingService));
-            }
-
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;

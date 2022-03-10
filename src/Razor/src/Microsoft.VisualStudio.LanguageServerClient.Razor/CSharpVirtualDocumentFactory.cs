@@ -63,13 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             private readonly IContentType _innerContentType;
 
-            internal RemoteContentDefinitionType(IContentType innerContentType)
+            internal RemoteContentDefinitionType(IContentType innerContentType!!)
             {
-                if (innerContentType is null)
-                {
-                    throw new ArgumentNullException(nameof(innerContentType));
-                }
-
                 _innerContentType = innerContentType;
                 TypeName = innerContentType.TypeName;
                 DisplayName = innerContentType.DisplayName;

@@ -38,13 +38,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override void Update(EditorSettings updatedSettings)
+        public override void Update(EditorSettings updatedSettings!!)
         {
-            if (updatedSettings is null)
-            {
-                throw new ArgumentNullException(nameof(updatedSettings));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_settingsAccessorLock)

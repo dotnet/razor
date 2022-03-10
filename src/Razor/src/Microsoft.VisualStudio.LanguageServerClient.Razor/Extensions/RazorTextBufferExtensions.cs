@@ -10,13 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
 {
     internal static class RazorTextBufferExtensions
     {
-        public static bool IsRazorLSPBuffer(this ITextBuffer textBuffer)
+        public static bool IsRazorLSPBuffer(this ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             var matchesContentType = textBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
             return matchesContentType;
         }

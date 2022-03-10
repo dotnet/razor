@@ -11,13 +11,8 @@ namespace Microsoft.VisualStudio.Text
 {
     internal static class TextBufferExtensions
     {
-        public static bool IsRazorBuffer(this ITextBuffer textBuffer)
+        public static bool IsRazorBuffer(this ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             return textBuffer.ContentType.IsOfType(RazorLanguage.CoreContentType) || textBuffer.ContentType.IsOfType(RazorConstants.LegacyCoreContentType);
         }
     }

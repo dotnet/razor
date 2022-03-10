@@ -24,31 +24,11 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         [ImportingConstructor]
         public GuestProjectPathProvider(
-            JoinableTaskContext joinableTaskContext,
-            ITextDocumentFactoryService textDocumentFactory,
-            ProxyAccessor proxyAccessor,
-            LiveShareSessionAccessor liveShareSessionAccessor)
+            JoinableTaskContext joinableTaskContext!!,
+            ITextDocumentFactoryService textDocumentFactory!!,
+            ProxyAccessor proxyAccessor!!,
+            LiveShareSessionAccessor liveShareSessionAccessor!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
-            if (proxyAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(proxyAccessor));
-            }
-
-            if (liveShareSessionAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(liveShareSessionAccessor));
-            }
-
             _joinableTaskFactory = joinableTaskContext.Factory;
             _textDocumentFactory = textDocumentFactory;
             _proxyAccessor = proxyAccessor;

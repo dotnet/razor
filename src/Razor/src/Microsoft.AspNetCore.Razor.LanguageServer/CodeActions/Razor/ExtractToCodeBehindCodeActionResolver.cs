@@ -37,13 +37,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly Range s_startOfDocumentRange = new Range(new Position(0, 0), new Position(0, 0));
 
         public ExtractToCodeBehindCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            FilePathNormalizer filePathNormalizer)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            FilePathNormalizer filePathNormalizer!!)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
+            _filePathNormalizer = filePathNormalizer;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;

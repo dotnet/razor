@@ -56,43 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public RazorLSPTextViewConnectionListener(
-            IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            LSPEditorFeatureDetector editorFeatureDetector,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            LSPRequestInvoker requestInvoker,
-            RazorLSPClientOptionsMonitor clientOptionsMonitor,
-            SVsServiceProvider serviceProvider)
+            IVsEditorAdaptersFactoryService editorAdaptersFactory!!,
+            LSPEditorFeatureDetector editorFeatureDetector!!,
+            IEditorOptionsFactoryService editorOptionsFactory!!,
+            LSPRequestInvoker requestInvoker!!,
+            RazorLSPClientOptionsMonitor clientOptionsMonitor!!,
+            SVsServiceProvider serviceProvider!!)
         {
-            if (editorAdaptersFactory is null)
-            {
-                throw new ArgumentNullException(nameof(editorAdaptersFactory));
-            }
-
-            if (editorFeatureDetector is null)
-            {
-                throw new ArgumentNullException(nameof(editorFeatureDetector));
-            }
-
-            if (editorOptionsFactory is null)
-            {
-                throw new ArgumentNullException(nameof(editorOptionsFactory));
-            }
-
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (clientOptionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(clientOptionsMonitor));
-            }
-
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
             _editorAdaptersFactory = editorAdaptersFactory;
             _editorFeatureDetector = editorFeatureDetector;
             _editorOptionsFactory = editorOptionsFactory;
@@ -103,13 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assumes.Present(_textManager);
         }
 
-        public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+        public void SubjectBuffersConnected(ITextView textView!!, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
-            if (textView is null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
             var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
 
             // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.

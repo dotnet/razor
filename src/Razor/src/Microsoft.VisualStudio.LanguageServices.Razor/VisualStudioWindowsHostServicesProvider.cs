@@ -16,13 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly CodeAnalysis.Workspace _workspace;
 
         [ImportingConstructor]
-        public VisualStudioWindowsHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace)
+        public VisualStudioWindowsHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace!!)
         {
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
             _workspace = workspace;
         }
 

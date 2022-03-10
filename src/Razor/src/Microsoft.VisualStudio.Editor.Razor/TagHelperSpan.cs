@@ -11,13 +11,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     public struct TagHelperSpan
     {
-        public TagHelperSpan(SourceSpan span, TagHelperBinding binding)
+        public TagHelperSpan(SourceSpan span, TagHelperBinding binding!!)
         {
-            if (binding is null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
             Span = span;
             Binding = binding;
         }

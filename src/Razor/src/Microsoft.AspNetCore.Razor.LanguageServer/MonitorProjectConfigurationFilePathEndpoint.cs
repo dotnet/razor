@@ -41,13 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _disposeLock = new object();
         }
 
-        public async Task<Unit> Handle(MonitorProjectConfigurationFilePathParams request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(MonitorProjectConfigurationFilePathParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             lock (_disposeLock)
             {
                 if (_disposed)

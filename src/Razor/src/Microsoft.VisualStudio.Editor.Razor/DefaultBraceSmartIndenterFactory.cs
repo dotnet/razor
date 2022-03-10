@@ -17,37 +17,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
 
         public DefaultBraceSmartIndenterFactory(
-            JoinableTaskContext joinableTaskContext,
-            TextBufferCodeDocumentProvider codeDocumentProvider,
-            IEditorOperationsFactoryService editorOperationsFactory)
+            JoinableTaskContext joinableTaskContext!!,
+            TextBufferCodeDocumentProvider codeDocumentProvider!!,
+            IEditorOperationsFactoryService editorOperationsFactory!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (codeDocumentProvider is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocumentProvider));
-            }
-
-            if (editorOperationsFactory is null)
-            {
-                throw new ArgumentNullException(nameof(editorOperationsFactory));
-            }
-
             _joinableTaskContext = joinableTaskContext;
             _codeDocumentProvider = codeDocumentProvider;
             _editorOperationsFactory = editorOperationsFactory;
         }
 
-        public override BraceSmartIndenter Create(VisualStudioDocumentTracker documentTracker)
+        public override BraceSmartIndenter Create(VisualStudioDocumentTracker documentTracker!!)
         {
-            if (documentTracker is null)
-            {
-                throw new ArgumentNullException(nameof(documentTracker));
-            }
-
             _joinableTaskContext.AssertUIThread();
 
             var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _codeDocumentProvider, _editorOperationsFactory);

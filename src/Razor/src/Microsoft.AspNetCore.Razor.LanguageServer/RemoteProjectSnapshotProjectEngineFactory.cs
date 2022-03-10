@@ -19,19 +19,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public RemoteProjectSnapshotProjectEngineFactory(FilePathNormalizer filePathNormalizer, IOptionsMonitor<RazorLSPOptions> optionsMonitor) :
+        public RemoteProjectSnapshotProjectEngineFactory(FilePathNormalizer filePathNormalizer!!, IOptionsMonitor<RazorLSPOptions> optionsMonitor!!) :
             base(FallbackProjectEngineFactory, ProjectEngineFactories.Factories)
         {
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
             _filePathNormalizer = filePathNormalizer;
             _optionsMonitor = optionsMonitor;
         }
@@ -61,13 +51,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-            public RemoteCodeGenerationOptionsFeature(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+            public RemoteCodeGenerationOptionsFeature(IOptionsMonitor<RazorLSPOptions> optionsMonitor!!)
             {
-                if (optionsMonitor is null)
-                {
-                    throw new ArgumentNullException(nameof(optionsMonitor));
-                }
-
                 _optionsMonitor = optionsMonitor;
             }
 

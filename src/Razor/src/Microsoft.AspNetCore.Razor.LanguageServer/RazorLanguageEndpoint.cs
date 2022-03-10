@@ -32,43 +32,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ILogger _logger;
 
         public RazorLanguageEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
-            RazorDocumentMappingService documentMappingService,
-            RazorFormattingService razorFormattingService,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            DocumentVersionCache documentVersionCache!!,
+            RazorDocumentMappingService documentMappingService!!,
+            RazorFormattingService razorFormattingService!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (razorFormattingService is null)
-            {
-                throw new ArgumentNullException(nameof(razorFormattingService));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
@@ -159,13 +129,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
 
-        public async Task<RazorMapToDocumentRangesResponse?> Handle(RazorMapToDocumentRangesParams request, CancellationToken cancellationToken)
+        public async Task<RazorMapToDocumentRangesResponse?> Handle(RazorMapToDocumentRangesParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             if (info is null)
             {
@@ -208,13 +173,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        public async Task<RazorMapToDocumentEditsResponse> Handle(RazorMapToDocumentEditsParams request, CancellationToken cancellationToken)
+        public async Task<RazorMapToDocumentEditsResponse> Handle(RazorMapToDocumentEditsParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
 
             if (info is null)

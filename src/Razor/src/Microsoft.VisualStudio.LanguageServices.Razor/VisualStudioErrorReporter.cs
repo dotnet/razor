@@ -19,13 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly SVsServiceProvider _services;
 
         [ImportingConstructor]
-        public VisualStudioErrorReporter(SVsServiceProvider services)
+        public VisualStudioErrorReporter(SVsServiceProvider services!!)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
             _services = services;
         }
 

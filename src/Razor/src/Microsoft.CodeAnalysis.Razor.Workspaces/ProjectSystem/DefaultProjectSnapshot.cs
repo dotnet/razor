@@ -15,13 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private readonly Dictionary<string, DefaultDocumentSnapshot> _documents;
 
-        public DefaultProjectSnapshot(ProjectState state)
+        public DefaultProjectSnapshot(ProjectState state!!)
         {
-            if (state is null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
             State = state;
 
             _lock = new object();
@@ -63,23 +58,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override bool IsImportDocument(DocumentSnapshot document)
+        public override bool IsImportDocument(DocumentSnapshot document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             return State.ImportsToRelatedDocuments.ContainsKey(document.TargetPath);
         }
 
-        public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
+        public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             if (State.ImportsToRelatedDocuments.TryGetValue(document.TargetPath, out var relatedDocuments))
             {
                 lock (_lock)

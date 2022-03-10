@@ -21,37 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private readonly HostWorkspaceServices _fallbackServices;
 
         public AdhocWorkspaceServices(
-            HostServices hostServices,
-            IEnumerable<IWorkspaceService> workspaceServices,
-            IEnumerable<ILanguageService> languageServices,
-            Workspace workspace,
-            HostWorkspaceServices fallbackServices)
+            HostServices hostServices!!,
+            IEnumerable<IWorkspaceService> workspaceServices!!,
+            IEnumerable<ILanguageService> languageServices!!,
+            Workspace workspace!!,
+            HostWorkspaceServices fallbackServices!!)
         {
-            if (hostServices is null)
-            {
-                throw new ArgumentNullException(nameof(hostServices));
-            }
-
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
-            if (fallbackServices is null)
-            {
-                throw new ArgumentNullException(nameof(fallbackServices));
-            }
-
             _hostServices = hostServices;
             _workspaceServices = workspaceServices;
             _workspace = workspace;

@@ -56,37 +56,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public DefaultVisualStudioRazorParser(
-            JoinableTaskContext joinableTaskContext,
-            VisualStudioDocumentTracker documentTracker,
-            ProjectSnapshotProjectEngineFactory projectEngineFactory,
-            ErrorReporter errorReporter,
-            VisualStudioCompletionBroker completionBroker)
+            JoinableTaskContext joinableTaskContext!!,
+            VisualStudioDocumentTracker documentTracker!!,
+            ProjectSnapshotProjectEngineFactory projectEngineFactory!!,
+            ErrorReporter errorReporter!!,
+            VisualStudioCompletionBroker completionBroker!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (documentTracker is null)
-            {
-                throw new ArgumentNullException(nameof(documentTracker));
-            }
-
-            if (projectEngineFactory is null)
-            {
-                throw new ArgumentNullException(nameof(projectEngineFactory));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (completionBroker is null)
-            {
-                throw new ArgumentNullException(nameof(completionBroker));
-            }
-
             _joinableTaskContext = joinableTaskContext;
             _projectEngineFactory = projectEngineFactory;
             _errorReporter = errorReporter;
@@ -116,13 +91,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Used in unit tests to ensure we can block background idle work.
         internal ManualResetEventSlim BlockBackgroundIdleWork { get; set; }
 
-        internal override Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default)
+        internal override Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot!!, CancellationToken cancellationToken = default)
         {
-            if (atOrNewerSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(atOrNewerSnapshot));
-            }
-
             lock (_updateStateLock)
             {
                 if (_disposed ||
@@ -533,13 +503,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        private void TryUpdateLatestParsedSyntaxTreeSnapshot(RazorCodeDocument codeDocument, ITextSnapshot snapshot)
+        private void TryUpdateLatestParsedSyntaxTreeSnapshot(RazorCodeDocument codeDocument, ITextSnapshot snapshot!!)
         {
-            if (snapshot is null)
-            {
-                throw new ArgumentNullException(nameof(snapshot));
-            }
-
             lock (_updateStateLock)
             {
                 if (_latestParsedSnapshot is null ||
@@ -625,13 +590,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             private readonly CancellationTokenRegistration _cancellationTokenRegistration;
             private bool _done;
 
-            public CodeDocumentRequest(ITextSnapshot snapshot, CancellationToken cancellationToken)
+            public CodeDocumentRequest(ITextSnapshot snapshot!!, CancellationToken cancellationToken)
             {
-                if (snapshot is null)
-                {
-                    throw new ArgumentNullException(nameof(snapshot));
-                }
-
                 Snapshot = snapshot;
                 _taskCompletionSource = new TaskCompletionSource<RazorCodeDocument>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _cancellationTokenRegistration = cancellationToken.Register(Cancel);
@@ -648,13 +608,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public Task<RazorCodeDocument> Task { get; }
 
-            public void Complete(RazorCodeDocument codeDocument)
+            public void Complete(RazorCodeDocument codeDocument!!)
             {
-                if (codeDocument is null)
-                {
-                    throw new ArgumentNullException(nameof(codeDocument));
-                }
-
                 lock (_completionLock)
                 {
                     if (_done)

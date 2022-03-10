@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
-        private readonly VisualStudioHostServicesProvider _vsHostWorkspaceServicesProvider;
+        private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer? _server;
         private IDisposable? _serverShutdownDisposable;
@@ -50,49 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public RazorLanguageServerClient(
-            RazorLanguageServerCustomMessageTarget customTarget,
-            RazorLanguageClientMiddleLayer middleLayer,
-            LSPRequestInvoker requestInvoker,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
+            RazorLanguageServerCustomMessageTarget customTarget!!,
+            RazorLanguageClientMiddleLayer middleLayer!!,
+            LSPRequestInvoker requestInvoker!!,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
+            RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory!!,
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions!!,
             [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
         {
-            if (customTarget is null)
-            {
-                throw new ArgumentNullException(nameof(customTarget));
-            }
-
-            if (middleLayer is null)
-            {
-                throw new ArgumentNullException(nameof(middleLayer));
-            }
-
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (projectConfigurationFilePathStore is null)
-            {
-                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-            }
-
-            if (logHubLoggerProviderFactory is null)
-            {
-                throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
-            }
-
-            if (vsLanguageServerFeatureOptions is null)
-            {
-                throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
-            }
-
-            if (vsHostWorkspaceServicesProvider is null)
-            {
-                throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
-            }
-
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
             _requestInvoker = requestInvoker;
@@ -152,13 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return connection;
         }
 
-        private void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
+        private void ConfigureLanguageServer(RazorLanguageServerBuilder builder!!)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
             var services = builder.Services;
             services.AddLogging(logging =>
             {

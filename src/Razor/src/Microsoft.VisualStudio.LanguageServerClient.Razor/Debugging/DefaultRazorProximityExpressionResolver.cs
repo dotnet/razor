@@ -48,13 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _cache = new MemoryCache<CacheKey, IReadOnlyList<string>?>(sizeLimit: 10);
         }
 
-        public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer!!, int lineIndex, int characterIndex, CancellationToken cancellationToken)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!_fileUriProvider.TryGet(textBuffer, out var documentUri))
             {
                 // Not an addressable Razor document. Do not allow expression resolution here. In practice this shouldn't happen, just being defensive.
