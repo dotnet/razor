@@ -6,9 +6,9 @@
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class DefaultLSPEditorFeatureDetectorTest
+    public class VisualStudioWindowsLSPEditorFeatureDetectorTest
     {
         [Fact]
         public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
@@ -121,8 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.False(result);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        private class TestLSPEditorFeatureDetector : DefaultLSPEditorFeatureDetector
+#pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
+        private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
         {
             public bool UseLegacyEditor { get; set; }
 
@@ -144,6 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy) => ProjectSupportsLSPEditorValue;
         }
-#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0618 // Type or member is obsolete (Test constructor)
     }
 }
