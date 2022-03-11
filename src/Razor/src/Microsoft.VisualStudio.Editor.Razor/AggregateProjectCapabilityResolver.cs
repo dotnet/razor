@@ -3,9 +3,8 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.Editor.Razor
 {
     [Shared]
     [Export(typeof(AggregateProjectCapabilityResolver))]
@@ -17,6 +16,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public AggregateProjectCapabilityResolver([ImportMany] IEnumerable<ProjectCapabilityResolver> projectCapabilityResolvers)
         {
             _projectCapabilityResolvers = projectCapabilityResolvers;
+        }
+
+        public override bool HasCapability(object project, string capability)
+        {
+            foreach (var capabilityResolver in _projectCapabilityResolvers)
+            {
+                if (capabilityResolver.HasCapability(project, capability))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override bool HasCapability(string documentFilePath, object project, string capability)
