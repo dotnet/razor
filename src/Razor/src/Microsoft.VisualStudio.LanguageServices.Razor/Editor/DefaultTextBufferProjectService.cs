@@ -24,13 +24,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         private readonly RunningDocumentTable _documentTable;
         private readonly ITextDocumentFactoryService _documentFactory;
+        private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
 
         [ImportingConstructor]
         public DefaultTextBufferProjectService(
             [Import(typeof(SVsServiceProvider))] IServiceProvider services!!,
-            ITextDocumentFactoryService documentFactory!!)
+            ITextDocumentFactoryService documentFactory!!,
+            AggregateProjectCapabilityResolver projectCapabilityResolver!!)
         {
             _documentFactory = documentFactory;
+            _projectCapabilityResolver = projectCapabilityResolver;
             _documentTable = new RunningDocumentTable(services);
         }
 
@@ -43,7 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
                 return null;
             }
 
-            _documentTable.FindDocument(textDocument.FilePath, out var hierarchy, out _, out _);
+            var hostProject = GetHostProject(textDocument.FilePath);
+            return hostProject;
+        }
+
+        public override object GetHostProject(string documentFilePath)
+        {
+            _documentTable.FindDocument(documentFilePath, out var hierarchy, out _, out _);
 
             // We don't currently try to look a Roslyn ProjectId at this point, we just want to know some
             // basic things.
@@ -63,23 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public override bool IsSupportedProject(object project!!)
         {
-            var hierarchy = project as IVsHierarchy;
-            Debug.Assert(hierarchy != null);
-
-            try
-            {
-                return hierarchy.IsCapabilityMatch(DotNetCoreCapability);
-            }
-            catch (NotSupportedException)
-            {
-                // IsCapabilityMatch throws a NotSupportedException if it can't create a BooleanSymbolExpressionEvaluator COM object
-            }
-            catch (ObjectDisposedException)
-            {
-                // IsCapabilityMatch throws an ObjectDisposedException if the underlying hierarchy has been disposed.
-            }
-
-            return false;
+            var capabilitySupported = _projectCapabilityResolver.HasCapability(project, DotNetCoreCapability);
+            return capabilitySupported;
         }
 
         public override string GetProjectName(object project!!)
