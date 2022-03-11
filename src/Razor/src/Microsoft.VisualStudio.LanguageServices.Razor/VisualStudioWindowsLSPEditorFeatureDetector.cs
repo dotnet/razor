@@ -5,15 +5,16 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     [Shared]
     [Export(typeof(LSPEditorFeatureDetector))]
-    internal class DefaultLSPEditorFeatureDetector : LSPEditorFeatureDetector
+    internal class VisualStudioWindowsLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
         private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly Lazy<bool> _useLegacyEditor;
 
         [ImportingConstructor]
-        public DefaultLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver)
+        public VisualStudioWindowsLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver)
         {
             _projectCapabilityResolver = projectCapabilityResolver;
             _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
@@ -58,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [Obsolete("Test constructor")]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal DefaultLSPEditorFeatureDetector()
+        internal VisualStudioWindowsLSPEditorFeatureDetector()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
