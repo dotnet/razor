@@ -6,7 +6,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Core.FeatureConfiguration;
-using MonoDevelop.Ide;
 using MonoDevelop.Projects;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
@@ -16,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     internal class VisualStudioMacLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
         private const string RazorLSPEditorFeatureFlag = "Razor.LSP.Editor";
-        private const string DotNetCoreCSharpCapability = "CSharp&CPS";
-        private const string LegacyRazorEditorCapability = "LegacyRazorEditor";
+        private const string DotNetCoreCSharpProjectCapability = "CSharp&CPS";
+        private const string LegacyRazorEditorProjectCapability = "LegacyRazorEditor";
 
         private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
         private readonly TextBufferProjectService _textBufferProjectService;
@@ -97,13 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             // We alow projects to specifically opt-out of the legacy Razor editor because there are legacy scenarios which would rely on behind-the-scenes
             // opt-out mechanics to enable the .NET Core editor in non-.NET Core scenarios. Therefore, we need a similar mechanic to continue supporting
             // those types of scenarios for the new .NET Core Razor editor.
-            if (_projectCapabilityResolver.HasCapability(documentFilePath, project, LegacyRazorEditorCapability))
+            if (_projectCapabilityResolver.HasCapability(documentFilePath, project, LegacyRazorEditorProjectCapability))
             {
                 // CPS project that requires the legacy editor
                 return false;
             }
 
-            if (_projectCapabilityResolver.HasCapability(documentFilePath, project, DotNetCoreCSharpCapability))
+            if (_projectCapabilityResolver.HasCapability(documentFilePath, project, DotNetCoreCSharpProjectCapability))
             {
                 // .NET Core project that supports C#
                 return true;
