@@ -21,11 +21,15 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
     {
         private const string DotNetCoreRazorCapability = "DotNetCoreRazor | AspNetCore";
         private readonly ITextDocumentFactoryService _documentFactory;
+        private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
 
         [ImportingConstructor]
-        public DefaultTextBufferProjectService(ITextDocumentFactoryService documentFactory!!)
+        public DefaultTextBufferProjectService(
+            ITextDocumentFactoryService documentFactory!!,
+            AggregateProjectCapabilityResolver projectCapabilityResolver!!)
         {
             _documentFactory = documentFactory;
+            _projectCapabilityResolver = projectCapabilityResolver;
         }
 
         public override object GetHostProject(ITextBuffer textBuffer!!)
@@ -37,7 +41,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
                 return null;
             }
 
-            var projectsContainingFilePath = IdeApp.Workspace.GetProjectsContainingFile(textDocument.FilePath);
+            var hostProject = GetHostProject(textDocument.FilePath);
+            return hostProject;
+        }
+
+        public override object GetHostProject(string documentFilePath)
+        {
+            var projectsContainingFilePath = IdeApp.Workspace.GetProjectsContainingFile(documentFilePath);
             foreach (var project in projectsContainingFilePath)
             {
                 if (project is not DotNetProject)
@@ -45,7 +55,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
                     continue;
                 }
 
-                var projectFile = project.GetProjectFile(textDocument.FilePath);
+                var projectFile = project.GetProjectFile(documentFilePath);
                 if (!projectFile.IsHidden)
                 {
                     return project;
@@ -64,17 +74,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
         // VisualStudio for Mac only supports ASP.NET Core Razor.
         public override bool IsSupportedProject(object project)
         {
-            if (project is not DotNetProject dotNetProject)
-            {
-                return false;
-            }
-
-            if (!dotNetProject.IsCapabilityMatch(DotNetCoreRazorCapability))
-            {
-                return false;
-            }
-
-            return true;
+            var capabilitySupported = _projectCapabilityResolver.HasCapability(project, DotNetCoreRazorCapability);
+            return capabilitySupported;
         }
 
         public override string GetProjectName(object project!!)

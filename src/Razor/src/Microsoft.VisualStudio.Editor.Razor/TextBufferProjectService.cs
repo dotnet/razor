@@ -11,6 +11,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public abstract object GetHostProject(ITextBuffer textBuffer);
 
+        public abstract object GetHostProject(string documentFilePath);
+
         public abstract bool IsSupportedProject(object project);
 
         public abstract string GetProjectPath(object project);
