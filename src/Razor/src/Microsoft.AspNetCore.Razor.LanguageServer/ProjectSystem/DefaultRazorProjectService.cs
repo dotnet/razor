@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -276,6 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             var currentHostProject = project.HostProject;
             var projectDirectory = _filePathNormalizer.GetDirectory(project.FilePath);
             var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
+            var miscellaneousProject = (DefaultProjectSnapshot)_projectResolver.GetMiscellaneousProject();
 
             // "Remove" any unnecessary documents by putting them into the misc project
             foreach (var documentFilePath in project.DocumentFilePaths)
@@ -286,16 +288,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                     continue;
                 }
 
-                var documentSnapshot = (DefaultDocumentSnapshot)project.GetDocument(documentFilePath);
-                var currentHostDocument = documentSnapshot.State.HostDocument;
-
-                var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-                var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath);
-                var miscellaneousProject = (DefaultProjectSnapshot)_projectResolver.GetMiscellaneousProject();
-
-                _logger.LogInformation($"Moving old '{documentFilePath}' from the '{project.FilePath}' project to '{miscellaneousProject.FilePath}' project.");
-                _projectSnapshotManagerAccessor.Instance.DocumentRemoved(project.HostProject, currentHostDocument);
-                _projectSnapshotManagerAccessor.Instance.DocumentAdded(miscellaneousProject.HostProject, newHostDocument, textLoader);
+                MoveDocument(documentFilePath, project, miscellaneousProject);
             }
 
             project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectFilePath);
@@ -330,8 +323,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             }
 
             project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(project.FilePath);
+            miscellaneousProject = (DefaultProjectSnapshot)_projectResolver.GetMiscellaneousProject();
 
-            // Add any new documents
+            // Add (or migrate from misc) any new documents
             foreach (var documentKvp in documentMap)
             {
                 var documentFilePath = documentKvp.Key;
@@ -341,20 +335,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                     continue;
                 }
 
-                var documentHandle = documentKvp.Value;
-                var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
-                var newHostDocument = _hostDocumentFactory.Create(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+                if (miscellaneousProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
+                {
+                    MoveDocument(documentFilePath, miscellaneousProject, project);
+                }
+                else
+                {
+                    var documentHandle = documentKvp.Value;
+                    var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
+                    var newHostDocument = _hostDocumentFactory.Create(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
-                _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{projectFilePath}'.");
-
-                _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject, newHostDocument, remoteTextLoader);
+                    _logger.LogInformation($"Adding new document '{documentFilePath}' to project '{projectFilePath}'.");
+                    _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject, newHostDocument, remoteTextLoader);
+                }
             }
+        }
+
+        private void MoveDocument(string documentFilePath, DefaultProjectSnapshot fromProject, DefaultProjectSnapshot toProject)
+        {
+            Debug.Assert(fromProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
+            Debug.Assert(!toProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance));
+
+            var documentSnapshot = (DefaultDocumentSnapshot)fromProject.GetDocument(documentFilePath);
+            var currentHostDocument = documentSnapshot.State.HostDocument;
+
+            var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
+            var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
+
+            _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.FilePath}' project to '{toProject.FilePath}' project.");
+            _projectSnapshotManagerAccessor.Instance.DocumentRemoved(fromProject.HostProject, currentHostDocument);
+            _projectSnapshotManagerAccessor.Instance.DocumentAdded(toProject.HostProject, newHostDocument, textLoader);
         }
 
         private string EnsureFullPath(string filePath, string projectDirectory)
         {
             var normalizedFilePath = _filePathNormalizer.Normalize(filePath);
-            if (!normalizedFilePath.StartsWith(projectDirectory, StringComparison.Ordinal))
+            if (!normalizedFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
                 var absolutePath = Path.Combine(projectDirectory, normalizedFilePath);
                 normalizedFilePath = _filePathNormalizer.Normalize(absolutePath);
@@ -382,7 +398,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
                 var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
                 var defaultToProject = (DefaultProjectSnapshot)toProject;
-                var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath);
+                var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
                 _logger.LogInformation($"Migrating '{documentFilePath}' from the '{project.FilePath}' project to '{toProject.FilePath}' project.");
                 _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultToProject.HostProject, newHostDocument, textLoader);
