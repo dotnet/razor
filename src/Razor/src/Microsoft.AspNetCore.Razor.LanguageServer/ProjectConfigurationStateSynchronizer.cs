@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         var configurationFilePath = _filePathNormalizer.Normalize(args.ConfigurationFilePath);
                         if (!_configurationToProjectMap.TryGetValue(configurationFilePath, out var projectFilePath))
                         {
-                            // Failed to deserialize the initial project.razor.json on add so we can't remove the configuration file because it doesn't exist in the list.
+                            // Failed to deserialize the initial project configuration file on add so we can't remove the configuration file because it doesn't exist in the list.
                             _logger.LogWarning("Failed to resolve associated project on configuration removed event. Configuration file path: '{0}'", configurationFilePath);
                             return;
                         }

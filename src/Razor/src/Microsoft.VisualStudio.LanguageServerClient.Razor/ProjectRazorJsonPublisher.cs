@@ -218,8 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     }
 
                     // We don't want to serialize the project until it's ready to avoid flashing as the project loads different parts.
-                    // Since the project.razor.json from last session likely still exists the experience is unlikely to be degraded by this delay.
-                    // An exception is made for when there's no existing project.razor.json because some flashing is preferable to having no TagHelper knowledge.
+                    // Since the project configuration from last session likely still exists the experience is unlikely to be degraded by this delay.
+                    // An exception is made for when there's no existing project configuration file because some flashing is preferable to having no TagHelper knowledge.
                     if (ShouldSerialize(projectSnapshot, configurationFilePath))
                     {
                         SerializeToFile(projectSnapshot, configurationFilePath);
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
         {
             // We need to avoid having an incomplete file at any point, but our
-            // project.razor.json is large enough that it will be written as multiple operations.
+            // project configuration file is large enough that it will be written as multiple operations.
             var tempFilePath = string.Concat(publishFilePath, TempFileExt);
             var tempFileInfo = new FileInfo(tempFilePath);
 

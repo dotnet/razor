@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using ContentItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class FallbackRazorProjectHost : RazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-
+        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
         private IDisposable _subscription;
 
         [ImportingConstructor]
@@ -41,9 +42,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         internal FallbackRazorProjectHost(
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                     if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
                     {
-                        var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
+                        var projectRazorJson = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
                         ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
                     }
 
