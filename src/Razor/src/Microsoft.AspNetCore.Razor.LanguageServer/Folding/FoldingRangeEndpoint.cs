@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -27,6 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         private readonly DocumentResolver _documentResolver;
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly DocumentVersionCache _documentVersionCache;
+        private readonly IEnumerable<RazorFoldingRangeProvider> _foldingRangeProviders;
         private readonly ILogger _logger;
 
         public FoldingRangeEndpoint(
@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             DocumentVersionCache documentVersionCache,
+            IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders,
             ILoggerFactory loggerFactory)
         {
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -42,6 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _foldingRangeProviders = foldingRangeProviders;
             _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
         }
 
@@ -128,36 +130,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
             mappedRanges.AddRange(foldingResponse.HtmlRanges);
 
-            var razorRanges = await GetRazorRangesAsync(codeDocument, documentSnapshot, cancellationToken);
-            mappedRanges.AddRange(razorRanges);
-
-            return new Container<FoldingRange>(mappedRanges);
-        }
-
-        private async Task<ImmutableArray<FoldingRange>> GetRazorRangesAsync(RazorCodeDocument codeDocument, DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-        {
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var codeBlocks = syntaxTree.GetCodeBlockDirectives();
-
-            var builder = new List<FoldingRange>();
-            foreach (var codeBlock in codeBlocks)
+            foreach (var provider in _foldingRangeProviders)
             {
-                sourceText.GetLineAndOffset(codeBlock.Span.Start, out var startLine, out var startOffset);
-                sourceText.GetLineAndOffset(codeBlock.Span.End, out var endLine, out var endOffset);
-                var foldingRange = new FoldingRange()
-                {
-                    StartCharacter = startOffset,
-                    StartLine = startLine,
-                    EndCharacter = endOffset,
-                    EndLine = endLine,
-                };
-
-                builder.Add(foldingRange);
+                var ranges = await provider.GetFoldingRangesAsync(codeDocument, documentSnapshot, cancellationToken);
+                mappedRanges.AddRange(ranges);
             }
 
-            return builder.ToImmutableArray();
+            return new Container<FoldingRange>(mappedRanges);
         }
 
         private static Range GetRange(FoldingRange foldingRange)

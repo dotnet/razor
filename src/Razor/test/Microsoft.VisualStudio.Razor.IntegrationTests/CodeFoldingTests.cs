@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public class CodeFoldingTests : AbstractRazorEditorTest
     {
-        private struct CollapsibleLines
+        private struct CollapsibleBlock
         {
             public int Start { get; set; }
             public int End { get; set; }
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             //
             var tries = 0;
             const int MaxTries = 20;
-            ImmutableArray<CollapsibleLines> missingLines;
+            ImmutableArray<CollapsibleBlock> missingLines;
             var outlines = new ICollapsible[0];
             while (tries++ < MaxTries)
             {
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             
             Assert.Empty(missingLines);
 
-            static (ImmutableArray<CollapsibleLines> missingSpans, ImmutableArray<CollapsibleLines> extraSpans) GetOutlineDiff(ICollapsible[] outlines, ImmutableArray<Span> foldableSpans, ITextView textView)
+            static (ImmutableArray<CollapsibleBlock> missingSpans, ImmutableArray<CollapsibleBlock> extraSpans) GetOutlineDiff(ICollapsible[] outlines, ImmutableArray<Span> foldableSpans, ITextView textView)
             {
                 var spans = outlines.Select(o => o.Extent.GetSpan(textView.TextSnapshot).Span).ToImmutableArray();
                 var lines = spans.Select(s => ConvertToLineNumbers(s, textView));
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 return (missingSpans, extraSpans);
             }
 
-            static string PrintLines(ImmutableArray<CollapsibleLines> lines, ITextView textView)
+            static string PrintLines(ImmutableArray<CollapsibleBlock> lines, ITextView textView)
             {
                 var sb = new StringBuilder();
                 foreach (var line in lines)
@@ -123,9 +123,9 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 return sb.ToString();
             }
 
-            static CollapsibleLines ConvertToLineNumbers(Span span, ITextView textView)
+            static CollapsibleBlock ConvertToLineNumbers(Span span, ITextView textView)
             {
-                return new CollapsibleLines()
+                return new CollapsibleBlock()
                 {
                     Start = textView.TextSnapshot.GetLineNumberFromPosition(span.Start),
                     End = textView.TextSnapshot.GetLineNumberFromPosition(span.End)
