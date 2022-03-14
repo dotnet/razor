@@ -27,25 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPDocumentSnapshot _documentSnapshot;
 
         public RazorLSPSpanMappingService(
-            LSPDocumentMappingProvider lspDocumentMappingProvider,
-            LSPDocumentSnapshot documentSnapshot,
-            ITextSnapshot textSnapshot)
+            LSPDocumentMappingProvider lspDocumentMappingProvider!!,
+            LSPDocumentSnapshot documentSnapshot!!,
+            ITextSnapshot textSnapshot!!)
         {
-            if (lspDocumentMappingProvider is null)
-            {
-                throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
-            }
-
-            if (textSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(textSnapshot));
-            }
-
-            if (documentSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
 
             _textSnapshot = textSnapshot;
@@ -61,16 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-            IEnumerable<TextSpan> spans,
+            IEnumerable<TextSpan> spans!!,
             SourceText sourceTextGenerated,
             SourceText sourceTextRazor,
             CancellationToken cancellationToken)
         {
-            if (spans is null)
-            {
-                throw new ArgumentNullException(nameof(spans));
-            }
-
             var projectedRanges = spans.Select(span => span.AsRange(sourceTextGenerated)).ToArray();
 
             var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(

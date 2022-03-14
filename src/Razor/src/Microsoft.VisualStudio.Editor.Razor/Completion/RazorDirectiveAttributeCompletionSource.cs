@@ -46,33 +46,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         public RazorDirectiveAttributeCompletionSource(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioRazorParser parser,
-            RazorCompletionFactsService completionFactsService,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            VisualStudioRazorParser parser!!,
+            RazorCompletionFactsService completionFactsService!!,
             ICompletionBroker completionBroker,
-            VisualStudioDescriptionFactory descriptionFactory,
+            VisualStudioDescriptionFactory descriptionFactory!!,
             JoinableTaskFactory joinableTaskFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (parser is null)
-            {
-                throw new ArgumentNullException(nameof(parser));
-            }
-
-            if (completionFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(completionFactsService));
-            }
-
-            if (descriptionFactory is null)
-            {
-                throw new ArgumentNullException(nameof(descriptionFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _parser = parser;
             _completionFactsService = completionFactsService;
@@ -160,13 +140,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             }
         }
 
-        public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
+        public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, CompletionItem item!!, CancellationToken token)
         {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
             if (!item.Properties.TryGetProperty(DescriptionKey, out AggregateBoundAttributeDescription completionDescription))
             {
                 return Task.FromResult<object>(string.Empty);

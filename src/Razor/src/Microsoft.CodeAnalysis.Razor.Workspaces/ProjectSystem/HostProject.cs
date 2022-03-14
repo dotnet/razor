@@ -10,18 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class HostProject
     {
-        public HostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
+        public HostProject(string projectFilePath!!, RazorConfiguration razorConfiguration!!, string rootNamespace)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (razorConfiguration is null)
-            {
-                throw new ArgumentNullException(nameof(razorConfiguration));
-            }
-
             FilePath = projectFilePath;
             Configuration = razorConfiguration;
             RootNamespace = rootNamespace;

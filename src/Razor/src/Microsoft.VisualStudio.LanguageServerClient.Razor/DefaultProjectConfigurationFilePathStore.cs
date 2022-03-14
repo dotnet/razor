@@ -28,18 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override IReadOnlyDictionary<string, string> GetMappings() => new Dictionary<string, string>(_mappings);
 
-        public override void Set(string projectFilePath, string configurationFilePath)
+        public override void Set(string projectFilePath!!, string configurationFilePath!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (configurationFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(configurationFilePath));
-            }
-
             lock (_mappingsLock)
             {
                 // Resolve any relative pathing in the configuration path so we can talk in absolutes
@@ -59,13 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Changed?.Invoke(this, args);
         }
 
-        public override void Remove(string projectFilePath)
+        public override void Remove(string projectFilePath!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
             lock (_mappingsLock)
             {
                 if (!_mappings.Remove(projectFilePath))
@@ -79,13 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Changed?.Invoke(this, args);
         }
 
-        public override bool TryGet(string projectFilePath, out string configurationFilePath)
+        public override bool TryGet(string projectFilePath!!, out string configurationFilePath)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
             lock (_mappingsLock)
             {
                 return _mappings.TryGetValue(projectFilePath, out configurationFilePath);

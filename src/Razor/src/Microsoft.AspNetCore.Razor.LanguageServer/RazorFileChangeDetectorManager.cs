@@ -19,19 +19,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool _disposed;
 
         public RazorFileChangeDetectorManager(
-            WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
-            IEnumerable<IFileChangeDetector> fileChangeDetectors)
+            WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver!!,
+            IEnumerable<IFileChangeDetector> fileChangeDetectors!!)
         {
-            if (workspaceDirectoryPathResolver is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceDirectoryPathResolver));
-            }
-
-            if (fileChangeDetectors is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeDetectors));
-            }
-
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
             _fileChangeDetectors = fileChangeDetectors.ToArray();
         }

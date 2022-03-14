@@ -17,18 +17,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private event Action<RazorLSPOptions, string> OnChangeEvent;
         private RazorLSPOptions _currentValue;
 
-        public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
+        public RazorLSPOptionsMonitor(RazorConfigurationService configurationService!!, IOptionsMonitorCache<RazorLSPOptions> cache!!)
         {
-            if (configurationService is null)
-            {
-                throw new ArgumentNullException(nameof(configurationService));
-            }
-
-            if (cache is null)
-            {
-                throw new ArgumentNullException(nameof(cache));
-            }
-
             _configurationService = configurationService;
             _cache = cache;
             _currentValue = RazorLSPOptions.Default;

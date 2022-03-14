@@ -23,38 +23,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly ILogger _logger;
 
         public CodeActionResolutionEndpoint(
-            IEnumerable<RazorCodeActionResolver> razorCodeActionResolvers,
-            IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
-            ILoggerFactory loggerFactory)
+            IEnumerable<RazorCodeActionResolver> razorCodeActionResolvers!!,
+            IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (razorCodeActionResolvers is null)
-            {
-                throw new ArgumentNullException(nameof(razorCodeActionResolvers));
-            }
-
-            if (csharpCodeActionResolvers is null)
-            {
-                throw new ArgumentNullException(nameof(csharpCodeActionResolvers));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
 
             _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);;
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
-        public async Task<CodeAction> Handle(CodeAction request, CancellationToken cancellationToken)
+        public async Task<CodeAction> Handle(CodeAction request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             if (!(request.Data is JObject paramsObj))
             {
                 Debug.Fail($"Invalid CodeAction Received '{request.Title}'.");

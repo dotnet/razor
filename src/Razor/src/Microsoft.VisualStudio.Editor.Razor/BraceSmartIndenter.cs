@@ -45,31 +45,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public BraceSmartIndenter(
-            JoinableTaskContext joinableTaskContext,
-            VisualStudioDocumentTracker documentTracker,
-            TextBufferCodeDocumentProvider codeDocumentProvider,
-            IEditorOperationsFactoryService editorOperationsFactory)
+            JoinableTaskContext joinableTaskContext!!,
+            VisualStudioDocumentTracker documentTracker!!,
+            TextBufferCodeDocumentProvider codeDocumentProvider!!,
+            IEditorOperationsFactoryService editorOperationsFactory!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (documentTracker is null)
-            {
-                throw new ArgumentNullException(nameof(documentTracker));
-            }
-
-            if (codeDocumentProvider is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocumentProvider));
-            }
-
-            if (editorOperationsFactory is null)
-            {
-                throw new ArgumentNullException(nameof(editorOperationsFactory));
-            }
-
             _joinableTaskContext = joinableTaskContext;
             _documentTracker = documentTracker;
             _codeDocumentProvider = codeDocumentProvider;

@@ -34,13 +34,8 @@ namespace Microsoft.VisualStudio.RazorExtension
             return "InstalledProducts\\" + _name;
         }
 
-        public override void Register(RegistrationContext context)
+        public override void Register(RegistrationContext context!!)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             var attribute = typeof(AboutDialogInfoAttribute).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
             var version = attribute?.InformationalVersion;
 
@@ -64,13 +59,8 @@ namespace Microsoft.VisualStudio.RazorExtension
             }
         }
 
-        public override void Unregister(RegistrationContext context)
+        public override void Unregister(RegistrationContext context!!)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             context.RemoveKey(GetKeyName());
         }
     }

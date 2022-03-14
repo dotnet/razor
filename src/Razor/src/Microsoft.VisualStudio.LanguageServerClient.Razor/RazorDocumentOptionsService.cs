@@ -20,22 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLSPClientOptionsMonitor _optionsMonitor;
 
         [ImportingConstructor]
-        public RazorDocumentOptionsService(RazorLSPClientOptionsMonitor optionsMonitor)
+        public RazorDocumentOptionsService(RazorLSPClientOptionsMonitor optionsMonitor!!)
         {
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
             _optionsMonitor = optionsMonitor;
         }
 
-        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document!!, CancellationToken cancellationToken)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
 
             // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
             var editorSettings = _optionsMonitor.EditorSettings;

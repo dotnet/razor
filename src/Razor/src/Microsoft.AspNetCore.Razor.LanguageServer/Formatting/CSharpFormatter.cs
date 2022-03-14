@@ -28,46 +28,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly ClientNotifierServiceBase _server;
 
         public CSharpFormatter(
-            RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer,
-            FilePathNormalizer filePathNormalizer)
+            RazorDocumentMappingService documentMappingService!!,
+            ClientNotifierServiceBase languageServer!!,
+            FilePathNormalizer filePathNormalizer!!)
         {
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             _documentMappingService = documentMappingService;
             _server = languageServer;
             _filePathNormalizer = filePathNormalizer;
         }
 
         public async Task<TextEdit[]> FormatAsync(
-            FormattingContext context,
-            Range rangeToFormat,
+            FormattingContext context!!,
+            Range rangeToFormat!!,
             CancellationToken cancellationToken,
             bool formatOnClient = false)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (rangeToFormat is null)
-            {
-                throw new ArgumentNullException(nameof(rangeToFormat));
-            }
-
             if (!_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument, rangeToFormat, out var projectedRange))
             {
                 return Array.Empty<TextEdit>();
@@ -81,19 +56,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public static async Task<IReadOnlyDictionary<int, int>> GetCSharpIndentationAsync(
-            FormattingContext context,
-            IReadOnlyCollection<int> projectedDocumentLocations,
+            FormattingContext context!!,
+            IReadOnlyCollection<int> projectedDocumentLocations!!,
             CancellationToken cancellationToken)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (projectedDocumentLocations is null)
-            {
-                throw new ArgumentNullException(nameof(projectedDocumentLocations));
-            }
 
             // Sorting ensures we count the marker offsets correctly.
             // We also want to ensure there are no duplicates to avoid duplicate markers.

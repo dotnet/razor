@@ -26,25 +26,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         [ImportingConstructor]
         public ProjectBuildChangeTrigger(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            TextBufferProjectService projectService,
-            ProjectWorkspaceStateGenerator workspaceStateGenerator)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            TextBufferProjectService projectService!!,
+            ProjectWorkspaceStateGenerator workspaceStateGenerator!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
-            if (workspaceStateGenerator is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceStateGenerator));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
             _workspaceStateGenerator = workspaceStateGenerator;
@@ -52,44 +37,19 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         // Internal for testing
         internal ProjectBuildChangeTrigger(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            TextBufferProjectService projectService,
-            ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerBase projectManager)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            TextBufferProjectService projectService!!,
+            ProjectWorkspaceStateGenerator workspaceStateGenerator!!,
+            ProjectSnapshotManagerBase projectManager!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
-            if (workspaceStateGenerator is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceStateGenerator));
-            }
-
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
             _projectManager = projectManager;
             _workspaceStateGenerator = workspaceStateGenerator;
         }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
         {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectManager = projectManager;
 
             if (IdeApp.ProjectOperations != null)
@@ -98,13 +58,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
         }
 
-        private void ProjectOperations_EndBuild(object sender, BuildEventArgs args)
+        private void ProjectOperations_EndBuild(object sender, BuildEventArgs args!!)
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
             _ = HandleEndBuildAsync(args);
         }
 

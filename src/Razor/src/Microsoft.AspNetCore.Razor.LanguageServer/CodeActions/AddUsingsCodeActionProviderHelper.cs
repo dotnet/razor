@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal static class AddUsingsCodeActionProviderHelper
     {
-        internal static readonly Regex AddUsingVSCodeAction = new Regex("^using (.+);$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+        internal static readonly Regex AddUsingVSCodeAction = new Regex("^@?using ([^;]+);?$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         // Internal for testing
         internal static string GetNamespaceFromFQN(string fullyQualifiedName)

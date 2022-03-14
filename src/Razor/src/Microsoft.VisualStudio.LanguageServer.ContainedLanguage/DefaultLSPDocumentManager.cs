@@ -27,31 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         [ImportingConstructor]
         public DefaultLSPDocumentManager(
-            JoinableTaskContext joinableTaskContext,
-            FileUriProvider fileUriProvider,
-            LSPDocumentFactory documentFactory,
-            [ImportMany] IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> documentManagerChangeListeners)
+            JoinableTaskContext joinableTaskContext!!,
+            FileUriProvider fileUriProvider!!,
+            LSPDocumentFactory documentFactory!!,
+            [ImportMany] IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> documentManagerChangeListeners!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (fileUriProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileUriProvider));
-            }
-
-            if (documentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentFactory));
-            }
-
-            if (documentManagerChangeListeners is null)
-            {
-                throw new ArgumentNullException(nameof(documentManagerChangeListeners));
-            }
-
             _joinableTaskContext = joinableTaskContext;
             _fileUriProvider = fileUriProvider;
             _documentFactory = documentFactory;
@@ -59,13 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _documents = new ConcurrentDictionary<Uri, LSPDocument>();
         }
 
-        public override void TrackDocument(ITextBuffer buffer)
+        public override void TrackDocument(ITextBuffer buffer!!)
         {
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
             Debug.Assert(_joinableTaskContext.IsOnMainThread);
 
             var uri = _fileUriProvider.GetOrCreate(buffer);
@@ -85,13 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 LSPDocumentChangeKind.Added);
         }
 
-        public override void UntrackDocument(ITextBuffer buffer)
+        public override void UntrackDocument(ITextBuffer buffer!!)
         {
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
             Debug.Assert(_joinableTaskContext.IsOnMainThread);
 
             var uri = _fileUriProvider.GetOrCreate(buffer);
@@ -122,21 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         public override void UpdateVirtualDocument<TVirtualDocument>(
-            Uri hostDocumentUri,
-            IReadOnlyList<ITextChange> changes,
+            Uri hostDocumentUri!!,
+            IReadOnlyList<ITextChange> changes!!,
             int hostDocumentVersion,
             object state)
         {
-            if (hostDocumentUri is null)
-            {
-                throw new ArgumentNullException(nameof(hostDocumentUri));
-            }
-
-            if (changes is null)
-            {
-                throw new ArgumentNullException(nameof(changes));
-            }
-
             Debug.Assert(_joinableTaskContext.IsOnMainThread);
 
             if (!_documents.TryGetValue(hostDocumentUri, out var lspDocument))

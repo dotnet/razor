@@ -14,25 +14,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly LiveShareProjectPathProvider _liveShareProjectPathProvider;
 
         public DefaultProjectPathProvider(
-            TextBufferProjectService projectService,
+            TextBufferProjectService projectService!!,
             LiveShareProjectPathProvider liveShareProjectPathProvider)
         {
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _projectService = projectService;
             _liveShareProjectPathProvider = liveShareProjectPathProvider;
         }
 
-        public override bool TryGetProjectPath(ITextBuffer textBuffer, out string filePath)
+        public override bool TryGetProjectPath(ITextBuffer textBuffer!!, out string filePath)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (_liveShareProjectPathProvider != null &&
                 _liveShareProjectPathProvider.TryGetProjectPath(textBuffer, out filePath))
             {

@@ -16,12 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly RazorLogger _razorLogger;
 
         [ImportingConstructor]
-        public VisualStudioWindowsProjectCapabilityResolver(RazorLogger razorLogger)
+        public VisualStudioWindowsProjectCapabilityResolver(RazorLogger razorLogger!!)
         {
             _razorLogger = razorLogger;
         }
 
-        public override bool HasCapability(string documentFilePath, object project, string capability)
+        public override bool HasCapability(object project, string capability)
         {
             if (project is not IVsHierarchy vsHierarchy)
             {
@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var localHasCapability = LocalHasCapability(vsHierarchy, capability);
             return localHasCapability;
         }
+
+        public override bool HasCapability(string documentFilePath, object project, string capability) => HasCapability(project, capability);
 
         private bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
         {

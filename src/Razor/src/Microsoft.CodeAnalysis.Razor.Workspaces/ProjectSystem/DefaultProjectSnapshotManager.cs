@@ -35,31 +35,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly Queue<ProjectChangeEventArgs> _notificationWork;
 
         public DefaultProjectSnapshotManager(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ErrorReporter errorReporter,
-            IEnumerable<ProjectSnapshotChangeTrigger> triggers,
-            Workspace workspace)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            ErrorReporter errorReporter!!,
+            IEnumerable<ProjectSnapshotChangeTrigger> triggers!!,
+            Workspace workspace!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (triggers is null)
-            {
-                throw new ArgumentNullException(nameof(triggers));
-            }
-
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
@@ -126,13 +106,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override Workspace Workspace { get; }
 
-        public override ProjectSnapshot GetLoadedProject(string filePath)
+        public override ProjectSnapshot GetLoadedProject(string filePath!!)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(filePath, out var entry))
@@ -143,42 +118,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return null;
         }
 
-        public override ProjectSnapshot GetOrCreateProject(string filePath)
+        public override ProjectSnapshot GetOrCreateProject(string filePath!!)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             return GetLoadedProject(filePath) ?? new EphemeralProjectSnapshot(Workspace.Services, filePath);
         }
 
-        public override bool IsDocumentOpen(string documentFilePath)
+        public override bool IsDocumentOpen(string documentFilePath!!)
         {
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             return _openDocuments.Contains(documentFilePath);
         }
 
-        public override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
+        public override void DocumentAdded(HostProject hostProject!!, HostDocument document!!, TextLoader textLoader)
         {
-            if (hostProject is null)
-            {
-                throw new ArgumentNullException(nameof(hostProject));
-            }
-
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
@@ -208,18 +163,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void DocumentRemoved(HostProject hostProject, HostDocument document)
+        public override void DocumentRemoved(HostProject hostProject!!, HostDocument document!!)
         {
-            if (hostProject is null)
-            {
-                throw new ArgumentNullException(nameof(hostProject));
-            }
-
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
@@ -246,23 +191,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText)
+        public override void DocumentOpened(string projectFilePath!!, string documentFilePath!!, SourceText sourceText!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
@@ -311,23 +241,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader)
+        public override void DocumentClosed(string projectFilePath!!, string documentFilePath!!, TextLoader textLoader!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
-
-            if (textLoader is null)
-            {
-                throw new ArgumentNullException(nameof(textLoader));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
@@ -359,23 +274,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText)
+        public override void DocumentChanged(string projectFilePath!!, string documentFilePath!!, SourceText sourceText!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
@@ -423,23 +323,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader)
+        public override void DocumentChanged(string projectFilePath!!, string documentFilePath!!, TextLoader textLoader!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
-
-            if (textLoader is null)
-            {
-                throw new ArgumentNullException(nameof(textLoader));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
@@ -469,13 +354,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void ProjectAdded(HostProject hostProject)
+        public override void ProjectAdded(HostProject hostProject!!)
         {
-            if (hostProject is null)
-            {
-                throw new ArgumentNullException(nameof(hostProject));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             // We don't expect to see a HostProject initialized multiple times for the same path. Just ignore it.
@@ -492,13 +372,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             NotifyListeners(older: null, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectAdded);
         }
 
-        public override void ProjectConfigurationChanged(HostProject hostProject)
+        public override void ProjectConfigurationChanged(HostProject hostProject!!)
         {
-            if (hostProject is null)
-            {
-                throw new ArgumentNullException(nameof(hostProject));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
@@ -525,18 +400,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
+        public override void ProjectWorkspaceStateChanged(string projectFilePath!!, ProjectWorkspaceState projectWorkspaceState!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (projectWorkspaceState is null)
-            {
-                throw new ArgumentNullException(nameof(projectWorkspaceState));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(projectFilePath, out var entry))
@@ -563,13 +428,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public override void ProjectRemoved(HostProject hostProject)
+        public override void ProjectRemoved(HostProject hostProject!!)
         {
-            if (hostProject is null)
-            {
-                throw new ArgumentNullException(nameof(hostProject));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
@@ -591,33 +451,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IsSolutionClosing = true;
         }
 
-        public override void ReportError(Exception exception)
+        public override void ReportError(Exception exception!!)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
             _errorReporter.ReportError(exception);
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot project)
+        public override void ReportError(Exception exception!!, ProjectSnapshot project)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
             _errorReporter.ReportError(exception, project);
         }
 
-        public override void ReportError(Exception exception, HostProject hostProject)
+        public override void ReportError(Exception exception!!, HostProject hostProject)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
             var snapshot = hostProject?.FilePath is null ? null : GetLoadedProject(hostProject.FilePath);
             _errorReporter.ReportError(exception, snapshot);
         }

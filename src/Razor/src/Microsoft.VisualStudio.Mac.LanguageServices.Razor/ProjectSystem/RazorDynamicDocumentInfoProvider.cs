@@ -39,17 +39,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public event Action<DocumentInfo> Updated;
 
-        public DocumentInfo GetDynamicDocumentInfo(ProjectId projectId, string projectFilePath, string filePath)
+        public DocumentInfo GetDynamicDocumentInfo(ProjectId projectId, string projectFilePath!!, string filePath!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
 
             // The underlying method doesn't actually do anything truly asynchronous which allows us to synchronously call it.
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
@@ -61,17 +52,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return entry.Current;
         }
 
-        public void RemoveDynamicDocumentInfo(ProjectId projectId, string projectFilePath, string filePath)
+        public void RemoveDynamicDocumentInfo(ProjectId projectId, string projectFilePath!!, string filePath!!)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
 
             // The underlying method doesn't actually do anything truly asynchronous which allows us to synchronously call and wait on it.
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
@@ -112,13 +94,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Can't ever be null for thread-safety reasons
             private DocumentInfo _current;
 
-            public Entry(DocumentInfo current)
+            public Entry(DocumentInfo current!!)
             {
-                if (current is null)
-                {
-                    throw new ArgumentNullException(nameof(current));
-                }
-
                 Current = current;
                 Lock = new object();
             }

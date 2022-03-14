@@ -24,32 +24,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         private readonly RunningDocumentTable _documentTable;
         private readonly ITextDocumentFactoryService _documentFactory;
+        private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
 
         [ImportingConstructor]
         public DefaultTextBufferProjectService(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider services,
-            ITextDocumentFactoryService documentFactory)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider services!!,
+            ITextDocumentFactoryService documentFactory!!,
+            AggregateProjectCapabilityResolver projectCapabilityResolver!!)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (documentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentFactory));
-            }
-
             _documentFactory = documentFactory;
+            _projectCapabilityResolver = projectCapabilityResolver;
             _documentTable = new RunningDocumentTable(services);
         }
 
-        public override object GetHostProject(ITextBuffer textBuffer)
+        public override object GetHostProject(ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
 
             // If there's no document we can't find the FileName, or look for a matching hierarchy.
             if (!_documentFactory.TryGetTextDocument(textBuffer, out var textDocument))
@@ -57,7 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
                 return null;
             }
 
-            _documentTable.FindDocument(textDocument.FilePath, out var hierarchy, out _, out _);
+            var hostProject = GetHostProject(textDocument.FilePath);
+            return hostProject;
+        }
+
+        public override object GetHostProject(string documentFilePath)
+        {
+            _documentTable.FindDocument(documentFilePath, out var hierarchy, out _, out _);
 
             // We don't currently try to look a Roslyn ProjectId at this point, we just want to know some
             // basic things.
@@ -66,13 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return hierarchy;
         }
 
-        public override string GetProjectPath(object project)
+        public override string GetProjectPath(object project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 
@@ -80,39 +70,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return path;
         }
 
-        public override bool IsSupportedProject(object project)
+        public override bool IsSupportedProject(object project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            var hierarchy = project as IVsHierarchy;
-            Debug.Assert(hierarchy != null);
-
-            try
-            {
-                return hierarchy.IsCapabilityMatch(DotNetCoreCapability);
-            }
-            catch (NotSupportedException)
-            {
-                // IsCapabilityMatch throws a NotSupportedException if it can't create a BooleanSymbolExpressionEvaluator COM object
-            }
-            catch (ObjectDisposedException)
-            {
-                // IsCapabilityMatch throws an ObjectDisposedException if the underlying hierarchy has been disposed.
-            }
-
-            return false;
+            var capabilitySupported = _projectCapabilityResolver.HasCapability(project, DotNetCoreCapability);
+            return capabilitySupported;
         }
 
-        public override string GetProjectName(object project)
+        public override string GetProjectName(object project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 

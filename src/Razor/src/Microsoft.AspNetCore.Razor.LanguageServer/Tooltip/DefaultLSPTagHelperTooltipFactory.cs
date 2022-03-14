@@ -15,25 +15,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     {
         // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
         // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
-        public DefaultLSPTagHelperTooltipFactory(ClientNotifierServiceBase languageServer)
+        public DefaultLSPTagHelperTooltipFactory(ClientNotifierServiceBase languageServer!!)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             _languageServer = languageServer;
         }
 
         private readonly ClientNotifierServiceBase _languageServer;
 
-        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out MarkupContent tooltipContent)
+        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo!!, out MarkupContent tooltipContent)
         {
-            if (elementDescriptionInfo is null)
-            {
-                throw new ArgumentNullException(nameof(elementDescriptionInfo));
-            }
-
             var associatedTagHelperInfos = elementDescriptionInfo.AssociatedTagHelperDescriptions;
             if (associatedTagHelperInfos.Count == 0)
             {
@@ -85,13 +75,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             return true;
         }
 
-        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, out MarkupContent tooltipContent)
+        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo!!, out MarkupContent tooltipContent)
         {
-            if (attributeDescriptionInfo is null)
-            {
-                throw new ArgumentNullException(nameof(attributeDescriptionInfo));
-            }
-
             var associatedAttributeInfos = attributeDescriptionInfo.DescriptionInfos;
             if (associatedAttributeInfos.Count == 0)
             {

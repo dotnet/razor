@@ -17,7 +17,7 @@
     Condition=" '$(CI)' != 'true' AND '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))' != '' " />
 
   <PropertyGroup Label="Build Settings">
-    <LangVersion>Latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>

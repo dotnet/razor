@@ -17,13 +17,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
         {
         }
 
-        public OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        public OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
             InternalWorkspaceStateGenerator = new DefaultProjectWorkspaceStateGenerator(projectSnapshotManagerDispatcher.InternalDispatcher);
         }
 

@@ -16,13 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.Items[s_tagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
         }
 
-        public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
+        public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem!!)
         {
-            if (completionItem is null)
-            {
-                throw new ArgumentNullException(nameof(completionItem));
-            }
-
             var description = completionItem.Items[s_tagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
             return description;
         }

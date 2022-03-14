@@ -38,24 +38,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly SemanticTokensCache _tokensCache = new();
 
         public DefaultRazorSemanticTokensInfoService(
-            ClientNotifierServiceBase languageServer,
-            RazorDocumentMappingService documentMappingService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
-            ILoggerFactory loggerFactory)
+            ClientNotifierServiceBase languageServer!!,
+            RazorDocumentMappingService documentMappingService!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            DocumentVersionCache documentVersionCache!!,
+            ILoggerFactory loggerFactory!!)
         {
-            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
+            _languageServer = languageServer;
+            _documentMappingService = documentMappingService;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
+            _documentVersionCache = documentVersionCache;
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
 

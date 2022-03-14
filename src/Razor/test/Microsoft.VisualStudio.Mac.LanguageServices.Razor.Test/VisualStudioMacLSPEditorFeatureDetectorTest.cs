@@ -3,12 +3,12 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio.Shell.Interop;
+using MonoDevelop.Projects;
 using Xunit;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class DefaultLSPEditorFeatureDetectorTest
+    public class VisualStudioMacLSPEditorFeatureDetectorTest
     {
         [Fact]
         public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var featureDetector = new TestLSPEditorFeatureDetector()
             {
-                IsVSRemoteClientValue = true,
+                IsRemoteClientValue = true,
                 ProjectSupportsLSPEditorValue = true,
             };
 
@@ -82,23 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var featureDetector = new TestLSPEditorFeatureDetector()
             {
-                IsVSRemoteClientValue = true,
-            };
-
-            // Act
-            var result = featureDetector.IsRemoteClient();
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
-        {
-            // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
-            {
-                IsLiveShareGuestValue = true,
+                IsRemoteClientValue = true,
             };
 
             // Act
@@ -121,16 +105,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.False(result);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        private class TestLSPEditorFeatureDetector : DefaultLSPEditorFeatureDetector
+#pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
+        private class TestLSPEditorFeatureDetector : VisualStudioMacLSPEditorFeatureDetector
         {
             public bool UseLegacyEditor { get; set; }
 
-            public bool IsLiveShareGuestValue { get; set; }
-
             public bool IsLiveShareHostValue { get; set; }
 
-            public bool IsVSRemoteClientValue { get; set; }
+            public bool IsRemoteClientValue { get; set; }
 
             public bool ProjectSupportsLSPEditorValue { get; set; }
 
@@ -138,12 +120,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override bool IsLiveShareHost() => IsLiveShareHostValue;
 
-            private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
+            public override bool IsRemoteClient() => IsRemoteClientValue;
 
-            private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
-
-            private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy) => ProjectSupportsLSPEditorValue;
+            private protected override bool ProjectSupportsLSPEditor(string documentFilePath, DotNetProject project) => ProjectSupportsLSPEditorValue;
         }
-#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0618 // Type or member is obsolete (Test constructor)
     }
 }

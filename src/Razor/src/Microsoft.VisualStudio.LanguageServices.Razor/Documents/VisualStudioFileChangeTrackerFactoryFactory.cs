@@ -24,37 +24,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         [ImportingConstructor]
         public VisualStudioFileChangeTrackerFactoryFactory(
-            SVsServiceProvider serviceProvider,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+            SVsServiceProvider serviceProvider!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            JoinableTaskContext joinableTaskContext!!)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _fileChangeService = serviceProvider.GetService(typeof(SVsFileChangeEx)) as IVsAsyncFileChangeEx;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices!!)
         {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
             var errorReporter = workspaceServices.GetRequiredService<ErrorReporter>();
             return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
         }

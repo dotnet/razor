@@ -24,16 +24,11 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <param name="uniqueId">The unique identifier for the source element this <see cref="TagHelperContext" />
         /// applies to.</param>
         public TagHelperContext(
-            string tagName,
+            string tagName!!,
             TagHelperAttributeList allAttributes,
             IDictionary<object, object> items,
             string uniqueId) : this(allAttributes, items, uniqueId)
         {
-            if (tagName is null)
-            {
-                throw new ArgumentNullException(nameof(tagName));
-            }
-
             TagName = tagName;
         }
 
@@ -45,25 +40,10 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <param name="uniqueId">The unique identifier for the source element this <see cref="TagHelperContext" />
         /// applies to.</param>
         public TagHelperContext(
-            TagHelperAttributeList allAttributes,
-            IDictionary<object, object> items,
-            string uniqueId)
+            TagHelperAttributeList allAttributes!!,
+            IDictionary<object, object> items!!,
+            string uniqueId!!)
         {
-            if (items is null)
-            {
-                throw new ArgumentNullException(nameof(items));
-            }
-
-            if (uniqueId is null)
-            {
-                throw new ArgumentNullException(nameof(uniqueId));
-            }
-
-            if (allAttributes is null)
-            {
-                throw new ArgumentNullException(nameof(allAttributes));
-            }
-
             _allAttributes = allAttributes;
             Items = items;
             UniqueId = uniqueId;

@@ -19,13 +19,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
         [ImportingConstructor]
-        public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
+        public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService!!)
         {
-            if (tagHelperFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperFactsService));
-            }
-
             _tagHelperFactsService = tagHelperFactsService;
         }
 
@@ -39,13 +34,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         //
         // Within each of the above scenarios if an attribute completion has a corresponding bound attribute we associate it with the corresponding
         // BoundAttributeDescriptor. By doing this a user can see what C# type a TagHelper expects for the attribute.
-        public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
+        public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext!!)
         {
-            if (completionContext is null)
-            {
-                throw new ArgumentNullException(nameof(completionContext));
-            }
-
             var attributeCompletions = completionContext.ExistingCompletions.ToDictionary(
                 completion => completion,
                 _ => new HashSet<BoundAttributeDescriptor>(),
@@ -153,13 +143,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
+        public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext!!)
         {
-            if (completionContext is null)
-            {
-                throw new ArgumentNullException(nameof(completionContext));
-            }
-
             var elementCompletions = new Dictionary<string, HashSet<TagHelperDescriptor>>(StringComparer.OrdinalIgnoreCase);
 
             AddAllowedChildrenCompletions(completionContext, elementCompletions);

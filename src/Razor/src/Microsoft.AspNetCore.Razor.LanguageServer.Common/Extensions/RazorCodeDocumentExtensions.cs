@@ -12,13 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
     {
         private static readonly object s_unsupportedKey = new();
 
-        public static bool IsUnsupported(this RazorCodeDocument document)
+        public static bool IsUnsupported(this RazorCodeDocument document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             var unsupportedObj = document.Items[s_unsupportedKey];
             if (unsupportedObj is null)
             {
@@ -28,13 +23,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
             return (bool)unsupportedObj;
         }
 
-        public static void SetUnsupported(this RazorCodeDocument document)
+        public static void SetUnsupported(this RazorCodeDocument document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             document.Items[s_unsupportedKey] = true;
         }
     }

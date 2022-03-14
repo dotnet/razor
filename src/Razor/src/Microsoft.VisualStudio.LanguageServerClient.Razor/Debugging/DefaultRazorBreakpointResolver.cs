@@ -24,25 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
         [ImportingConstructor]
         public DefaultRazorBreakpointResolver(
-            FileUriProvider fileUriProvider,
-            LSPDocumentManager documentManager,
-            LSPBreakpointSpanProvider breakpointSpanProvider)
+            FileUriProvider fileUriProvider!!,
+            LSPDocumentManager documentManager!!,
+            LSPBreakpointSpanProvider breakpointSpanProvider!!)
         {
-            if (fileUriProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileUriProvider));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (breakpointSpanProvider is null)
-            {
-                throw new ArgumentNullException(nameof(breakpointSpanProvider));
-            }
-
             _fileUriProvider = fileUriProvider;
             _documentManager = documentManager;
             _breakpointSpanProvider = breakpointSpanProvider;
@@ -53,13 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _cache = new MemoryCache<CacheKey, Range>(sizeLimit: 4);
         }
 
-        public override async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+        public override async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer!!, int lineIndex, int characterIndex, CancellationToken cancellationToken)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!_fileUriProvider.TryGet(textBuffer, out var documentUri))
             {
                 // Not an addressable Razor document. Do not allow a breakpoint here. In practice this shouldn't happen, just being defensive.

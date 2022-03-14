@@ -23,59 +23,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly AdhocWorkspaceFactory _workspaceFactory;
 
         public DefaultRazorFormattingService(
-            IEnumerable<IFormattingPass> formattingPasses,
-            ILoggerFactory loggerFactory,
-            AdhocWorkspaceFactory workspaceFactory)
+            IEnumerable<IFormattingPass> formattingPasses!!,
+            ILoggerFactory loggerFactory!!,
+            AdhocWorkspaceFactory workspaceFactory!!)
         {
-            if (formattingPasses is null)
-            {
-                throw new ArgumentNullException(nameof(formattingPasses));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            if (workspaceFactory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceFactory));
-            }
-
             _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
             _logger = loggerFactory.CreateLogger<DefaultRazorFormattingService>();
             _workspaceFactory = workspaceFactory;
         }
 
         public override async Task<TextEdit[]> FormatAsync(
-            DocumentUri uri,
-            DocumentSnapshot documentSnapshot,
-            Range range,
-            FormattingOptions options,
+            DocumentUri uri!!,
+            DocumentSnapshot documentSnapshot!!,
+            Range range!!,
+            FormattingOptions options!!,
             CancellationToken cancellationToken)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (documentSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false);
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
 
             var result = new FormattingResult(Array.Empty<TextEdit>());
             foreach (var pass in _formattingPasses)
@@ -88,14 +53,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return filteredEdits;
         }
 
-        public override Task<TextEdit[]> FormatOnTypeAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+        public override Task<TextEdit[]> FormatOnTypeAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
         public override Task<TextEdit[]> FormatCodeActionAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
 
         public override Task<TextEdit[]> FormatSnippetAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: false, cancellationToken: cancellationToken);
+            => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
         private async Task<TextEdit[]> ApplyFormattedEditsAsync(
             DocumentUri uri,
@@ -103,23 +68,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,
             FormattingOptions options,
+            int hostDocumentIndex,
+            char triggerCharacter,
             bool bypassValidationPasses,
             bool collapseEdits,
             bool automaticallyAddUsings,
             CancellationToken cancellationToken)
         {
-            if (kind == RazorLanguageKind.Html)
-            {
-                // We don't support formatting HTML edits yet.
-                return formattedEdits;
-            }
-
             // If we only received a single edit, let's always return a single edit back.
             // Otherwise, merge only if explicitly asked.
             collapseEdits |= formattedEdits.Length == 1;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: true, automaticallyAddUsings: automaticallyAddUsings);
+            using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
             var result = new FormattingResult(formattedEdits, kind);
 
             foreach (var pass in _formattingPasses)

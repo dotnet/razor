@@ -26,64 +26,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentVersionCache _documentVersionCache;
 
         public AddUsingsCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache)
+            DocumentVersionCache documentVersionCache!!)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
+            _documentVersionCache = documentVersionCache;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
         public async override Task<CodeAction?> ResolveAsync(
-            CSharpCodeActionParams csharpParams,
-            CodeAction codeAction,
+            CSharpCodeActionParams csharpParams!!,
+            CodeAction codeAction!!,
             CancellationToken cancellationToken)
         {
-            if (csharpParams is null)
-            {
-                throw new ArgumentNullException(nameof(csharpParams));
-            }
-
-            if (codeAction is null)
-            {
-                throw new ArgumentNullException(nameof(codeAction));
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
-            {
-                // Unable to resolve code action with server, return original code action
-                return codeAction;
-            }
-
-            if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
-            {
-                // We don't yet support multi-document code actions, return original code action
-                return codeAction;
-            }
-
-            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
-            if (!documentChanged.IsTextDocumentEdit)
-            {
-                // Only Text Document Edit changes are supported currently, return original code action
-                return codeAction;
-            }
-
-            var addUsingTextEdit = documentChanged.TextDocumentEdit?.Edits.FirstOrDefault();
-            if (addUsingTextEdit is null)
-            {
-                // No text edit available
-                return codeAction;
-            }
-
-            if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(addUsingTextEdit.NewText, out var @namespace))
+            if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
             {
                 // Invalid text edit, missing namespace
                 return codeAction;
@@ -124,9 +87,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);
-            resolvedCodeAction = resolvedCodeAction with { Edit = edit };
+            codeAction = codeAction with { Edit = edit };
 
-            return resolvedCodeAction;
+            return codeAction;
         }
     }
 }

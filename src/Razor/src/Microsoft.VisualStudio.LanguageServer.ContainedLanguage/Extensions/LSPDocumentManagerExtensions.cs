@@ -10,18 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions
 {
     internal static class LSPDocumentManagerExtensions
     {
-        public static bool TryGetDocument(this LSPDocumentManager documentManager, string filePath, out LSPDocumentSnapshot lspDocumentSnapshot)
+        public static bool TryGetDocument(this LSPDocumentManager documentManager!!, string filePath!!, out LSPDocumentSnapshot lspDocumentSnapshot)
         {
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             if (filePath.StartsWith("/", StringComparison.Ordinal) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = filePath.Substring(1);

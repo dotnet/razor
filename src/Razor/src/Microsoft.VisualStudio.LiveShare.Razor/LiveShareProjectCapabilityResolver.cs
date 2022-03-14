@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -18,21 +17,17 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
 
         [ImportingConstructor]
         public LiveShareProjectCapabilityResolver(
-            LiveShareSessionAccessor sessionAccessor,
-            JoinableTaskContext joinableTaskContext)
+            LiveShareSessionAccessor sessionAccessor!!,
+            JoinableTaskContext joinableTaskContext!!)
         {
-            if (sessionAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(sessionAccessor));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _sessionAccessor = sessionAccessor;
             _joinableTaskFactory = joinableTaskContext.Factory;
+        }
+
+        public override bool HasCapability(object project, string capability)
+        {
+            // In LiveShare scenarios we need a document file path to be able to make reasonable assumptions on if a project has a capability
+            return false;
         }
 
         public override bool HasCapability(string documentFilePath, object project, string capability)
