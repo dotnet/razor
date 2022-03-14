@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            // Some of the string using in a basic project.razor.json are interned by other processes,
+            // Some of the strings used in TagHelperDescriptors are interned by other processes,
             // so we should avoid duplicating those.
             var interned = string.IsInterned(str);
             if (interned != null)

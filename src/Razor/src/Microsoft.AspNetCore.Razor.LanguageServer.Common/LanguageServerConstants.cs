@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     {
         public const int VSCompletionItemKindOffset = 118115;
 
-        public const string ProjectConfigurationFile = "project.razor.json";
+        public const string DefaultProjectConfigurationFile = "project.razor.json";
 
         public const string RazorSemanticTokensLegendEndpoint = "_vs_/textDocument/semanticTokensLegend";
 

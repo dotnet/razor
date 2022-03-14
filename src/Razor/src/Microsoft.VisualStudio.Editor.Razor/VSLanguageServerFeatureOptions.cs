@@ -1,13 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.Editor.Razor
 {
     [Export(typeof(VSLanguageServerFeatureOptions))]
     internal class VSLanguageServerFeatureOptions : LanguageServerFeatureOptions
@@ -22,6 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // We don't currently support file creation operations on VS Codespaces or VS Liveshare
         public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
+
+        // In VS we override the project configuration file name because we don't want our serialized state to clash with other platforms (VSCode)
+        public override string ProjectConfigurationFileName => "project.razor.vs.json";
 
         private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
     }

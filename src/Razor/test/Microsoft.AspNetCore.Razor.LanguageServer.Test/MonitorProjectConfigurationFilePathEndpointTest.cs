@@ -39,6 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
             configurationFileEndpoint.Dispose();
             var request = new MonitorProjectConfigurationFilePathParams()
@@ -63,6 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
             var request = new MonitorProjectConfigurationFilePathParams()
             {
@@ -345,6 +347,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners,
+                    TestLanguageServerFeatureOptions.Instance,
                     loggerFactory)
             {
                 _fileChangeDetectorFactory = fileChangeDetectorFactory ?? (() => Mock.Of<IFileChangeDetector>(MockBehavior.Strict));

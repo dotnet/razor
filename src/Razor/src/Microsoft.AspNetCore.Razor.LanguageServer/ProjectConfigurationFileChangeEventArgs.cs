@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                     else
                     {
-                        // Stale project.razor.json, most likely a user copy & pasted the project.razor.json and it hasn't
+                        // Stale project configuration file, most likely a user copy & pasted the project configuration file and it hasn't
                         // been re-computed yet. Fail deserialization.
                         projectRazorJson = null;
                         return false;

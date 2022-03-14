@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -20,6 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, (string ConfigurationDirectory, IFileChangeDetector Detector)> _outputPathMonitors;
         private readonly object _disposeLock;
@@ -30,12 +32,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             FilePathNormalizer filePathNormalizer,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+            LanguageServerFeatureOptions languageServerFeatureOptions!!,
             ILoggerFactory loggerFactory)
         {
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
             _listeners = listeners;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory.CreateLogger<MonitorProjectConfigurationFilePathEndpoint>();
             _outputPathMonitors = new ConcurrentDictionary<string, (string, IFileChangeDetector)>(FilePathComparer.Instance);
             _disposeLock = new object();
@@ -59,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return Unit.Value;
             }
 
-            if (!request.ConfigurationFilePath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, StringComparison.Ordinal))
+            if (!request.ConfigurationFilePath.EndsWith(_languageServerFeatureOptions.ProjectConfigurationFileName, StringComparison.Ordinal))
             {
                 _logger.LogError("Invalid configuration file path provided for project '{0}': '{1}'", request.ProjectFilePath, request.ConfigurationFilePath);
                 return Unit.Value;
@@ -175,6 +179,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Protected virtual for testing
-        protected virtual IFileChangeDetector CreateFileChangeDetector() => new ProjectConfigurationFileChangeDetector(_projectSnapshotManagerDispatcher, _filePathNormalizer, _listeners);
+        protected virtual IFileChangeDetector CreateFileChangeDetector() => new ProjectConfigurationFileChangeDetector(
+            _projectSnapshotManagerDispatcher,
+            _filePathNormalizer,
+            _listeners,
+            _languageServerFeatureOptions);
     }
 }

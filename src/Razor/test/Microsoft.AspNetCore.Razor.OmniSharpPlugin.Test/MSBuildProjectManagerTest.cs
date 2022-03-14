@@ -292,7 +292,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var intermediateOutputPath = "C:/project\\obj";
             projectRootElement.AddProperty(MSBuildProjectManager.IntermediateOutputPathPropertyName, intermediateOutputPath);
             var projectInstance = new ProjectInstance(projectRootElement);
-            var expectedPath = string.Format(CultureInfo.InvariantCulture, "C:{0}project{0}obj{0}{1}", Path.DirectorySeparatorChar, LanguageServerConstants.ProjectConfigurationFile);
+            var expectedPath = string.Format(CultureInfo.InvariantCulture, "C:{0}project{0}obj{0}{1}", Path.DirectorySeparatorChar, LanguageServerConstants.DefaultProjectConfigurationFile);
 
             // Act
             var result = MSBuildProjectManager.TryResolveConfigurationOutputPath(projectInstance, out var path);
@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var intermediateOutputPath = string.Format(CultureInfo.InvariantCulture, "C:{0}project{0}obj", Path.DirectorySeparatorChar);
             projectRootElement.AddProperty(MSBuildProjectManager.IntermediateOutputPathPropertyName, intermediateOutputPath);
             var projectInstance = new ProjectInstance(projectRootElement);
-            var expectedPath = Path.Combine(intermediateOutputPath, LanguageServerConstants.ProjectConfigurationFile);
+            var expectedPath = Path.Combine(intermediateOutputPath, LanguageServerConstants.DefaultProjectConfigurationFile);
 
             // Act
             var result = MSBuildProjectManager.TryResolveConfigurationOutputPath(projectInstance, out var path);
