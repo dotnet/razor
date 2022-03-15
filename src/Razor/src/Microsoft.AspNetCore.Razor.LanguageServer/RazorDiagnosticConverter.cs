@@ -14,18 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal static class RazorDiagnosticConverter
     {
-        public static Diagnostic Convert(RazorDiagnostic razorDiagnostic, SourceText sourceText)
+        public static Diagnostic Convert(RazorDiagnostic razorDiagnostic!!, SourceText sourceText!!)
         {
-            if (razorDiagnostic is null)
-            {
-                throw new ArgumentNullException(nameof(razorDiagnostic));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             var diagnostic = new Diagnostic()
             {
                 Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),

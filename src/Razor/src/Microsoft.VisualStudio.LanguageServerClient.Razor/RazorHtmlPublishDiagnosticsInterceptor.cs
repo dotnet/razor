@@ -34,37 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
-            LSPDocumentManager documentManager,
-            LSPDiagnosticsTranslator diagnosticsProvider,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
+            LSPDocumentManager documentManager!!,
+            LSPDiagnosticsTranslator diagnosticsProvider!!,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
         {
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (diagnosticsProvider is null)
-            {
-                throw new ArgumentNullException(nameof(diagnosticsProvider));
-            }
-
-            if (loggerProvider is null)
-            {
-                throw new ArgumentNullException(nameof(loggerProvider));
-            }
-
             _documentManager = documentManager;
             _diagnosticsProvider = diagnosticsProvider;
             _loggerProvider = loggerProvider;
         }
 
-        public override async Task<InterceptionResult> ApplyChangesAsync(JToken token, string containedLanguageName, CancellationToken cancellationToken)
+        public override async Task<InterceptionResult> ApplyChangesAsync(JToken token!!, string containedLanguageName, CancellationToken cancellationToken)
         {
-            if (token is null)
-            {
-                throw new ArgumentNullException(nameof(token));
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
 
             // The diagnostics interceptor isn't a part of the HTMLCSharpLanguageServer stack as it's lifecycle is a bit different.

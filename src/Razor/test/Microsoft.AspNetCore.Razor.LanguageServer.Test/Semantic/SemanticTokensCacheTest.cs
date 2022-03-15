@@ -31,7 +31,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, requestedRange, tokens);
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, requestedRange, out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, requestedRange, logger: null, out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
@@ -59,7 +59,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, requestedRange, tokens);
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 2, startCharacter: 0, endLine: 8, endCharacter: 0), out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 2, startCharacter: 0, endLine: 8, endCharacter: 0), logger: null, out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
@@ -90,7 +90,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, requestedRange, tokens);
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, requestedRange, out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, requestedRange, logger: null, out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
@@ -111,7 +111,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 4, startCharacter: 0, endLine: 5, endCharacter: 0), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 9, endCharacter: 0), out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 9, endCharacter: 0), logger: null, out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();
@@ -134,7 +134,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 4, startCharacter: 0, endLine: 4, endCharacter: 20), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 6, startCharacter: 0, endLine: 8, endCharacter: 20), out var _))
+        if (semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 6, startCharacter: 0, endLine: 8, endCharacter: 20), logger: null, out var _))
         {
             Assert.True(false, "Cached Tokens were found but should not have been.");
             throw new NotImplementedException();
@@ -163,7 +163,7 @@ public class SemanticTokensCacheTest
         semanticTokensCache.CacheTokens(uri, semanticVersion, new Range(startLine: 4, startCharacter: 0, endLine: 5, endCharacter: 0), new int[] { 4, 5, 6, 7, 0, });
 
         // Act
-        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 9, endCharacter: 0), out var cachedResult))
+        if (!semanticTokensCache.TryGetCachedTokens(uri, semanticVersion, new Range(startLine: 0, startCharacter: 0, endLine: 9, endCharacter: 0), logger: null, out var cachedResult))
         {
             Assert.True(false, "Cached Tokens were not found");
             throw new NotImplementedException();

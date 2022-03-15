@@ -2,14 +2,16 @@
 
 One of the easiest ways to contribute is to participate in discussions on GitHub issues. You can also contribute by submitting pull requests with code changes.
 
-
 ## Feedback, bug reports, and feature requests
+
 Please start a discussion in the [dotnet/razor-tooling issue tracker](https://github.com/dotnet/razor-tooling/issues).
 
 ## Reporting security issues and bugs
+
 Security issues and bugs should be reported privately, via email, to the Microsoft Security Response Center (MSRC)  secure@microsoft.com. You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message. Further information, including the MSRC PGP key, can be found in the [Security TechCenter](https://technet.microsoft.com/en-us/security/ff852094.aspx).
 
 ## Other issues
+
 For non-Razor tooling related bugs, please log a new issue in the appropriate GitHub repo. Here are some of the most common repos:
 
 * [Razor compiler](https://github.com/dotnet/razor-compiler)
@@ -22,11 +24,11 @@ For non-Razor tooling related bugs, please log a new issue in the appropriate Gi
 Or browse the full list of repos in the [dotnet](https://github.com/dotnet/) and [aspnet](https://github.com/aspnet/) organizations.
 
 ## Other discussions
+
 Our team members also monitor several other discussion forums:
 
 * [ASP.NET Core forum](https://forums.asp.net/1255.aspx/1?ASP+NET+5)
 * [Stack Overflow](https://stackoverflow.com/) with the [`asp.net-core`](https://stackoverflow.com/questions/tagged/asp.net-core), [`asp.net-core-mvc`](https://stackoverflow.com/questions/tagged/asp.net-core-mvc), or [`entity-framework-core`](https://stackoverflow.com/questions/tagged/entity-framework-core) tags.
-
 
 ## Contributing code and content
 
@@ -38,15 +40,14 @@ If you would like to contribute to one of our repositories, first identify the s
 
 You will need to sign a [Contributor License Agreement](https://cla.dotnetfoundation.org/) when submitting your pull request. To complete the Contributor License Agreement (CLA), you will need to follow the instructions provided by the CLA bot when you send the pull request. This needs to only be done once for any .NET Foundation OSS project.
 
-If you don't know what a pull request is read this article: https://help.github.com/articles/using-pull-requests. Make sure the respository can build and all tests pass. Familiarize yourself with the project workflow and our coding conventions. The coding, style, and general engineering guidelines are published on the [Engineering guidelines](https://github.com/dotnet/aspnetcore/wiki/Engineering-guidelines) page.
-
+If you don't know what a pull request is read this article: <https://help.github.com/articles/using-pull-requests>. Make sure the respository can build and all tests pass. Familiarize yourself with the project workflow and our coding conventions. The coding, style, and general engineering guidelines are published on the [Engineering guidelines](https://github.com/dotnet/aspnetcore/wiki/Engineering-guidelines) page.
 
 ### Tests
 
--  Tests need to be provided for every bug/feature that is completed.
--  Tests only need to be present for issues that need to be verified by QA (e.g. not tasks)
--  If there is a scenario that is far too hard to test there does not need to be a test for it.
-  - "Too hard" is determined by the team as a whole.
+* Tests need to be provided for every bug/feature that is completed.
+* Tests only need to be present for issues that need to be verified by QA (e.g. not tasks)
+* If there is a scenario that is far too hard to test there does not need to be a test for it.
+  * "Too hard" is determined by the team as a whole.
 
 ### Feedback
 

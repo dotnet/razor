@@ -25,37 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public RenameHandler(
-            LSPRequestInvoker requestInvoker,
-            LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
+            LSPRequestInvoker requestInvoker!!,
+            LSPDocumentManager documentManager!!,
+            LSPProjectionProvider projectionProvider!!,
+            LSPDocumentMappingProvider documentMappingProvider!!,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
         {
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (projectionProvider is null)
-            {
-                throw new ArgumentNullException(nameof(projectionProvider));
-            }
-
-            if (documentMappingProvider is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingProvider));
-            }
-
-            if (loggerProvider is null)
-            {
-                throw new ArgumentNullException(nameof(loggerProvider));
-            }
-
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
@@ -64,18 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(RenameHandler));
         }
 
-        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request!!, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (clientCapabilities is null)
-            {
-                throw new ArgumentNullException(nameof(clientCapabilities));
-            }
-
             _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))

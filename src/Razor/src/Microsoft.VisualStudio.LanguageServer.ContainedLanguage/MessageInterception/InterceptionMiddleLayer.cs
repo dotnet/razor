@@ -22,9 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
         /// </summary>
         /// <param name="interceptorManager">Interception manager</param>
         /// <param name="contentType">The content type name of the language for the ILanguageClient using this middle layer</param>
-        public InterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
+        public InterceptionMiddleLayer(InterceptorManager interceptorManager!!, string contentType)
         {
-            _interceptorManager = interceptorManager ?? throw new ArgumentNullException(nameof(interceptorManager));
+            _interceptorManager = interceptorManager;
             _contentType = !string.IsNullOrEmpty(contentType) ? contentType : throw new ArgumentException("Cannot be empty", nameof(contentType));
         }
 
@@ -55,9 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             // to handle both request and response interception.
             var response = await sendRequest(methodParam);
 
-            if (CanHandle(methodName))
+            if (response is not null && CanHandle(methodName))
             {
-                response = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
+                response = await _interceptorManager.ProcessInterceptorsAsync(methodName, response, _contentType, CancellationToken.None);
             }
 
             return response;

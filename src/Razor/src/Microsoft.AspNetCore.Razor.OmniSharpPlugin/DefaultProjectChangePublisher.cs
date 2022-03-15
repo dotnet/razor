@@ -31,13 +31,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public DefaultProjectChangePublisher(ILoggerFactory loggerFactory)
+        public DefaultProjectChangePublisher(ILoggerFactory loggerFactory!!)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<DefaultProjectChangePublisher>();
 
             _serializer = new JsonSerializer()
@@ -55,13 +50,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
         internal int EnqueueDelay { get; set; } = 250;
 
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager!!)
         {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectManager = projectManager;
             _projectManager.Changed += ProjectManager_Changed;
         }
@@ -78,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         protected virtual void SerializeToFile(OmniSharpProjectSnapshot projectSnapshot, string publishFilePath)
         {
             // We need to avoid having an incomplete file at any point, but our
-            // project.razor.json is large enough that it will be written as multiple operations.
+            // project configuration is large enough that it will be written as multiple operations.
             var tempFilePath = string.Concat(publishFilePath, TempFileExt);
             var tempFileInfo = new FileInfo(tempFilePath);
 
@@ -105,13 +95,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         }
 
         // Internal for testing
-        internal void Publish(OmniSharpProjectSnapshot projectSnapshot)
+        internal void Publish(OmniSharpProjectSnapshot projectSnapshot!!)
         {
-            if (projectSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshot));
-            }
-
             lock (_publishLock)
             {
                 string publishFilePath = null;

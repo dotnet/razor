@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
@@ -31,15 +32,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private IDisposable _subscription;
 
         private const string RootNamespaceProperty = "RootNamespace";
+        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public DefaultRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         // Internal for testing
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                         if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
                         {
-                            var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
+                            var projectRazorJson = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
                             ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
                         }
 

@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -16,25 +15,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly HostServicesProvider _hostServicesProvider;
 
-        public DefaultAdhocWorkspaceFactory(HostServicesProvider hostWorkspaceServicesProvider)
+        public DefaultAdhocWorkspaceFactory(HostServicesProvider hostWorkspaceServicesProvider!!)
         {
-            if (hostWorkspaceServicesProvider is null)
-            {
-                throw new ArgumentNullException(nameof(hostWorkspaceServicesProvider));
-            }
-
             _hostServicesProvider = hostWorkspaceServicesProvider;
         }
 
         public override AdhocWorkspace Create() => Create(Enumerable.Empty<IWorkspaceService>());
 
-        public override AdhocWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices)
+        public override AdhocWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices!!)
         {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
             var fallbackServices = _hostServicesProvider.GetServices();
             var services = AdhocServices.Create(
                 workspaceServices,

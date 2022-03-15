@@ -17,13 +17,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private class UnsupportedRazorExtension : RazorExtension
         {
-            public UnsupportedRazorExtension(string extensionName)
+            public UnsupportedRazorExtension(string extensionName!!)
             {
-                if (extensionName is null)
-                {
-                    throw new ArgumentNullException(nameof(extensionName));
-                }
-
                 ExtensionName = extensionName;
             }
 

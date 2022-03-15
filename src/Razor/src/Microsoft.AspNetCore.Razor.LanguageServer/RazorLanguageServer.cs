@@ -41,6 +41,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -50,13 +51,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly object _disposeLock;
         private bool _disposed;
 
-        private RazorLanguageServer(ILanguageServer innerServer)
+        private RazorLanguageServer(ILanguageServer innerServer!!)
         {
-            if (innerServer is null)
-            {
-                throw new ArgumentNullException(nameof(innerServer));
-            }
-
             _innerServer = innerServer;
             _disposeLock = new object();
         }
@@ -139,6 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<InlineCompletionEndpoint>()
                     .WithHandler<RazorBreakpointSpanEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
+                    .WithHandler<FoldingRangeEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder

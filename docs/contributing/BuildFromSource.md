@@ -72,7 +72,6 @@ Executing `.\restore.cmd` or `.\build.cmd` may produce these errors:
 
 In most cases, this is because the option _Use previews of the .NET Core SDK_ in VS2019 is not checked. Start Visual Studio, go to _Tools > Options_ and check _Use previews of the .NET Core SDK_ under _Environment > Preview Features_.
 
-
 ## Building with Visual Studio Code
 
 Note, the [Visual Studio Code C# Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) is required.
@@ -99,7 +98,7 @@ code .
 Note that if you are using the "Remote-WSL" extension in VSCode, the environment is not supplied
 to the process in WSL.  You can workaround this by explicitly setting the environment variables
 in `~/.vscode-server/server-env-setup`.
-See https://code.visualstudio.com/docs/remote/wsl#_advanced-environment-setup-script for details.
+See <https://code.visualstudio.com/docs/remote/wsl#_advanced-environment-setup-script> for details.
 
 ## Building on command-line
 

@@ -1,16 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     [Shared]
     [Export(typeof(RazorLogger))]
@@ -20,18 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
         [ImportingConstructor]
-        public ActivityLogRazorLogger(SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
+        public ActivityLogRazorLogger(SVsServiceProvider serviceProvider!!, JoinableTaskContext joinableTaskContext!!)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _serviceProvider = serviceProvider;
             _joinableTaskFactory = joinableTaskContext.Factory;
         }

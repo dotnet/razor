@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             projectManager.ProjectAdded(hostProject);
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectManager);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
             var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.LatestMajor);
 
             // Act
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectManager.ProjectAdded(hostProject);
             var hostDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
             projectManager.DocumentAdded(hostProject, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectManager);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
             var newDocument = new DocumentSnapshotHandle("file.cshtml", "file.cshtml", FileKinds.Component);
 
             // Act
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectManager.ProjectAdded(hostProject);
             var hostDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
             projectManager.DocumentAdded(hostProject, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectManager);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
             var oldDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
             var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
 
@@ -86,6 +86,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var project = projectManager.GetLoadedProject(hostProject.FilePath);
             var projectFilePaths = project.DocumentFilePaths.OrderBy(path => path);
             Assert.Equal(projectFilePaths, new[] { oldDocument.FilePath, newDocument.FilePath });
+        }
+
+        [Fact]
+        public void UpdateProject_MovesDocumentsFromMisc()
+        {
+            // Arrange
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
+            var hostDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
+            var miscProject = TestProjectSnapshot.Create("C:/__MISC_PROJECT__");
+            projectManager.ProjectAdded(miscProject.HostProject);
+            var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            projectManager.ProjectAdded(hostProject);
+            projectManager.DocumentAdded(miscProject.HostProject, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
+            var project = projectManager.GetLoadedProject(hostProject.FilePath);
+            var miscProjectSnapshot = projectManager.GetLoadedProject(miscProject.FilePath);
+            var projectResolver = new TestProjectResolver(
+                new Dictionary<string, ProjectSnapshot>
+                {
+                    [hostDocument.FilePath] = project
+                },
+                miscProjectSnapshot);
+            var projectService = CreateProjectService(projectResolver, projectManager);
+            var addedDocument = new DocumentSnapshotHandle("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
+
+            // Act
+            projectService.UpdateProject(hostProject.FilePath, hostProject.Configuration, hostProject.RootNamespace, ProjectWorkspaceState.Default, new[] { addedDocument });
+
+            // Assert
+            project = projectManager.GetLoadedProject(hostProject.FilePath);
+            var projectFilePaths = project.DocumentFilePaths.OrderBy(path => path);
+            Assert.Equal(projectFilePaths, new[] { addedDocument.FilePath });
+            miscProjectSnapshot = projectManager.GetLoadedProject(miscProject.FilePath);
+            Assert.Empty(miscProjectSnapshot.DocumentFilePaths);
         }
 
         [Fact]
@@ -130,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectManager.ProjectAdded(hostProject);
             var document = new HostDocument("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
             projectManager.DocumentAdded(hostProject, document, Mock.Of<TextLoader>(MockBehavior.Strict));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectManager);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
             var newDocument = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
             projectManager.AllowNotifyListeners = true;
             projectManager.Changed += (sender, args) =>
@@ -156,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectManager.ProjectAdded(hostProject);
             var legacyDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
             projectManager.DocumentAdded(hostProject, legacyDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectManager);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
             var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
             // Act
@@ -182,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectSnapshotManager.Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<string>(), It.IsAny<ProjectWorkspaceState>()));
             projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
                 .Callback<HostProject>((hostProject) => Assert.Equal(expectedRootNamespace, hostProject.RootNamespace));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectSnapshotManager.Object);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectSnapshotManager.Object);
 
             // Act
             projectService.UpdateProject(projectFilePath, ownerProject.Configuration, expectedRootNamespace, ProjectWorkspaceState.Default, EmptyDocuments);
@@ -203,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectSnapshotManager.Setup(manager => manager.ProjectWorkspaceStateChanged(It.IsAny<string>(), It.IsAny<ProjectWorkspaceState>()));
             projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
                 .Throws(new XunitException("Should not have been called."));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectSnapshotManager.Object);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectSnapshotManager.Object);
 
             // Act & Assert
             projectService.UpdateProject(projectFilePath, ownerProject.Configuration, "TestRootNamespace", ProjectWorkspaceState.Default, EmptyDocuments);
@@ -225,7 +258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Assert.Same(RazorDefaults.Configuration, hostProject.Configuration);
                     Assert.Equal(projectFilePath, hostProject.FilePath);
                 });
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectSnapshotManager.Object);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectSnapshotManager.Object);
 
             // Act
             projectService.UpdateProject(projectFilePath, configuration: null, "TestRootNamespace", ProjectWorkspaceState.Default, EmptyDocuments);
@@ -250,7 +283,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Assert.Same(FallbackRazorConfiguration.MVC_1_1, hostProject.Configuration);
                     Assert.Equal(projectFilePath, hostProject.FilePath);
                 });
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectSnapshotManager.Object);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectSnapshotManager.Object);
 
             // Act
             projectService.UpdateProject(projectFilePath, FallbackRazorConfiguration.MVC_1_1, "TestRootNamespace", ProjectWorkspaceState.Default, EmptyDocuments);
@@ -269,7 +302,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Returns<ProjectSnapshot>(null);
             projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
                 .Throws(new XunitException("Should not have been called."));
-            var projectService = CreateProjectService(Mock.Of<ProjectResolver>(MockBehavior.Strict), projectSnapshotManager.Object);
+            var projectService = CreateProjectService(new TestProjectResolver(), projectSnapshotManager.Object);
 
             // Act & Assert
             projectService.UpdateProject(projectFilePath, FallbackRazorConfiguration.MVC_1_1, "TestRootNamespace", ProjectWorkspaceState.Default, EmptyDocuments);
@@ -969,6 +1002,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             private readonly IReadOnlyDictionary<string, ProjectSnapshot> _projectMappings;
             private readonly ProjectSnapshot _miscellaneousProject;
+
+            public TestProjectResolver()
+            {
+                _projectMappings = new Dictionary<string, ProjectSnapshot>();
+                _miscellaneousProject = TestProjectSnapshot.Create("C:/__MISC_PROJECT__");
+            }
 
             public TestProjectResolver(IReadOnlyDictionary<string, ProjectSnapshot> projectMappings, ProjectSnapshot miscellaneousProject)
             {

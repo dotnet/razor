@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -84,6 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="uri">The URI associated with the cached tokens.</param>
         /// <param name="semanticVersion">The semantic version associated with the cached tokens.</param>
         /// <param name="requestedRange">The requested range for the desired tokens.</param>
+        /// <param name="logger">Optional logger to record outcome of cache lookup.</param>
         /// <param name="cachedTokens">If found, contains the cached range and cached tokens.</param>
         /// <returns>
         /// True if at least a partial match for the range was found. The 'Range' out var specifies the subset of
@@ -94,6 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range requestedRange,
+            ILogger? logger,
             [NotNullWhen(true)] out (Range Range, ImmutableArray<int> Tokens)? cachedTokens)
         {
             // Don't return results for partial lines, we don't handle them currently due to
@@ -107,6 +109,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (!_cache.TryGetValue(uri, out var documentCache) ||
                 !documentCache.TryGetValue(semanticVersion, out var lineToTokensDict))
             {
+                logger?.LogInformation($"Cache missing for range: {requestedRange}");
+
                 // No cached results found
                 cachedTokens = null;
                 return false;
@@ -115,6 +119,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var tokens = GetCachedTokens(requestedRange, lineToTokensDict, out var cachedRangeStart, out var numLinesInCachedRange);
             if (tokens.Length == 0)
             {
+                logger?.LogInformation($"Cache lookup returned no results for range: {requestedRange}");
+
                 // We couldn't find any tokens associated with the passed-in range
                 cachedTokens = null;
                 return false;
@@ -134,7 +140,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// Given the tokens, place them in the lineToTokensDict according to the line they belong on.
         /// </summary>
         /// <param name="range">The range within the document that these tokens represent.</param>
-        /// <param name="tokens">The tokens for the document within the given range. line count begins at the begining of the document regardless of the area the range represents</param>
+        /// <param name="tokens">The tokens for the document within the given range.
+        /// Line count begins at the begining of the document regardless of the area the range represents.</param>
         /// <param name="lineToTokensDict">A dictionary onto which to add tokens.</param>
         private void CacheTokensPerLine(Range range, int[] tokens, Dictionary<int, ImmutableArray<int>> lineToTokensDict)
         {

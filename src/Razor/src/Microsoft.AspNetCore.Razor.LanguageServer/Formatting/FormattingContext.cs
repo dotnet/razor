@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private RazorProjectEngine? _engine;
         private IReadOnlyList<RazorSourceDocument>? _importSources;
 
-        private FormattingContext(AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
+        private FormattingContext(AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
         {
             _workspaceFactory = workspaceFactory;
             Uri = uri;
@@ -38,10 +38,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Options = options;
             IsFormatOnType = isFormatOnType;
             AutomaticallyAddUsings = automaticallyAddUsings;
+            HostDocumentIndex = hostDocumentIndex;
+            TriggerCharacter = triggerCharacter;
         }
 
-        private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings)
-            : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings)
+        private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+            : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
         {
             _engine = engine;
             _importSources = importSources;
@@ -55,6 +57,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingOptions Options { get; }
         public bool IsFormatOnType { get; }
         public bool AutomaticallyAddUsings { get; }
+        public int HostDocumentIndex { get; }
+        public char TriggerCharacter { get; }
 
         public SourceText SourceText => CodeDocument.GetSourceText();
 
@@ -85,16 +89,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 if (_csharpWorkspace is null)
                 {
                     var adhocWorkspace = _workspaceFactory.Create();
-                    var csharpOptions = adhocWorkspace.Options
-                        .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, (int)Options.TabSize)
-                        .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, LanguageNames.CSharp, (int)Options.TabSize)
-                        .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, !Options.InsertSpaces);
+                    var csharpOptions = GetChangedOptionSet(adhocWorkspace.Options);
                     adhocWorkspace.TryApplyChanges(adhocWorkspace.CurrentSolution.WithOptions(csharpOptions));
                     _csharpWorkspace = adhocWorkspace;
                 }
 
                 return _csharpWorkspace;
             }
+        }
+
+        public CodeAnalysis.Options.OptionSet GetChangedOptionSet(CodeAnalysis.Options.OptionSet optionsSet)
+        {
+            return optionsSet.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, Options.TabSize)
+                             .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, LanguageNames.CSharp, Options.TabSize)
+                             .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, !Options.InsertSpaces);
         }
 
         /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
@@ -280,13 +288,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        public async Task<FormattingContext> WithTextAsync(SourceText changedText)
+        public async Task<FormattingContext> WithTextAsync(SourceText changedText!!)
         {
-            if (changedText is null)
-            {
-                throw new ArgumentNullException(nameof(changedText));
-            }
-
             if (_engine is null)
             {
                 await InitializeProjectEngineAsync().ConfigureAwait(false);
@@ -307,7 +310,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 codeDocument,
                 Options,
                 IsFormatOnType,
-                AutomaticallyAddUsings);
+                AutomaticallyAddUsings,
+                HostDocumentIndex,
+                TriggerCharacter);
 
             return newContext;
         }
@@ -347,39 +352,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
         }
 
-        public static FormattingContext Create(
+        public static FormattingContext CreateForOnTypeFormatting(
             DocumentUri uri,
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            bool isFormatOnType,
-            bool automaticallyAddUsings)
+            bool automaticallyAddUsings,
+            int hostDocumentIndex,
+            char triggerCharacter)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
+            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+        }
 
-            if (originalSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(originalSnapshot));
-            }
+        public static FormattingContext Create(
+            DocumentUri uri,
+            DocumentSnapshot originalSnapshot,
+            RazorCodeDocument codeDocument,
+            FormattingOptions options,
+            AdhocWorkspaceFactory workspaceFactory)
+        {
+            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
+        }
 
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
+        private static FormattingContext CreateCore(
+            DocumentUri uri!!,
+            DocumentSnapshot originalSnapshot!!,
+            RazorCodeDocument codeDocument!!,
+            FormattingOptions options!!,
+            AdhocWorkspaceFactory workspaceFactory!!,
+            bool isFormatOnType,
+            bool automaticallyAddUsings,
+            int hostDocumentIndex,
+            char triggerCharacter)
+        {
 
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (workspaceFactory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceFactory));
-            }
+            // hostDocumentIndex, triggerCharacter and automaticallyAddUsings are only supported in on type formatting
+            Debug.Assert(isFormatOnType || (hostDocumentIndex == 0 && triggerCharacter == '\0' && automaticallyAddUsings == false));
 
             var result = new FormattingContext(
                 workspaceFactory,
@@ -388,7 +397,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 codeDocument,
                 options,
                 isFormatOnType,
-                automaticallyAddUsings
+                automaticallyAddUsings,
+                hostDocumentIndex,
+                triggerCharacter
             );
 
             return result;

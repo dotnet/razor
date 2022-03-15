@@ -66,13 +66,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             return true;
         }
 
-        public TestDocumentSnapshot With(RazorCodeDocument codeDocument)
+        public TestDocumentSnapshot With(RazorCodeDocument codeDocument!!)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
             _codeDocument = codeDocument;
             return this;
         }

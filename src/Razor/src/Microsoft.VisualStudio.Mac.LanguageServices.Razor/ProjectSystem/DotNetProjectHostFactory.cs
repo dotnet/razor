@@ -21,37 +21,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         [ImportingConstructor]
         public DotNetProjectHostFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor,
-            TextBufferProjectService projectService)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
+            TextBufferProjectService projectService!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
         }
 
-        public DotNetProjectHost Create(DotNetProject project)
+        public DotNetProjectHost Create(DotNetProject project!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             var projectHost = new DefaultDotNetProjectHost(project, _projectSnapshotManagerDispatcher, _workspaceAccessor, _projectService);
             return projectHost;
         }

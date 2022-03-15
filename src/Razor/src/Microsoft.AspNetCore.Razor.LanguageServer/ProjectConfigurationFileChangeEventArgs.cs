@@ -25,20 +25,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         // Internal for testing
         internal ProjectConfigurationFileChangeEventArgs(
-            string configurationFilePath,
+            string configurationFilePath!!,
             RazorFileChangeKind kind,
-            JsonFileDeserializer jsonFileDeserializer)
+            JsonFileDeserializer jsonFileDeserializer!!)
         {
-            if (configurationFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(configurationFilePath));
-            }
-
-            if (jsonFileDeserializer is null)
-            {
-                throw new ArgumentNullException(nameof(jsonFileDeserializer));
-            }
-
             ConfigurationFilePath = configurationFilePath;
             Kind = kind;
             _jsonFileDeserializer = jsonFileDeserializer;
@@ -80,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                     else
                     {
-                        // Stale project.razor.json, most likely a user copy & pasted the project.razor.json and it hasn't
+                        // Stale project configuration file, most likely a user copy & pasted the project configuration file and it hasn't
                         // been re-computed yet. Fail deserialization.
                         projectRazorJson = null;
                         return false;

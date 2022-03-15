@@ -26,19 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         [ImportingConstructor]
         public DefaultLSPRequestInvoker(
-            ILanguageServiceBroker2 languageServiceBroker,
-            FallbackCapabilitiesFilterResolver fallbackCapabilitiesFilterResolver)
+            ILanguageServiceBroker2 languageServiceBroker!!,
+            FallbackCapabilitiesFilterResolver fallbackCapabilitiesFilterResolver!!)
         {
-            if (languageServiceBroker is null)
-            {
-                throw new ArgumentNullException(nameof(languageServiceBroker));
-            }
-
-            if (fallbackCapabilitiesFilterResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fallbackCapabilitiesFilterResolver));
-            }
-
             _languageServiceBroker = languageServiceBroker;
             _fallbackCapabilitiesFilterResolver = fallbackCapabilitiesFilterResolver;
 

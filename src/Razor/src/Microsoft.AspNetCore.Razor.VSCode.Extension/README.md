@@ -13,7 +13,7 @@ In practice the Razor VSCode extension operates as a library that [OmniSharp](ht
 If you need to make changes to both the Razor-vscode extension and the Omnisharp-vscode extension you might find it useful to debug through both of them at the same time.
 
 1. Do all the steps for debugging this repo
-1. Clone https://github.com/OmniSharp/omnisharp-vscode
+1. Clone <https://github.com/OmniSharp/omnisharp-vscode>
 1. In that repo do all the steps to debug except pressing F5.
-1. Edit https://github.com/OmniSharp/omnisharp-vscode/blob/master/.vscode/launch.json#L10 to include a second `--extensionDevelopmentPath` which points to our workspace.
+1. Edit <https://github.com/OmniSharp/omnisharp-vscode/blob/master/.vscode/launch.json#L10> to include a second `--extensionDevelopmentPath` which points to our workspace.
 1. F5 on their repo.

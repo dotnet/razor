@@ -57,55 +57,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public CompletionHandler(
-            JoinableTaskContext joinableTaskContext,
-            LSPRequestInvoker requestInvoker,
-            LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
-            ITextStructureNavigatorSelectorService textStructureNavigator,
-            CompletionRequestContextCache completionRequestContextCache,
-            FormattingOptionsProvider formattingOptionsProvider,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
+            JoinableTaskContext joinableTaskContext!!,
+            LSPRequestInvoker requestInvoker!!,
+            LSPDocumentManager documentManager!!,
+            LSPProjectionProvider projectionProvider!!,
+            ITextStructureNavigatorSelectorService textStructureNavigator!!,
+            CompletionRequestContextCache completionRequestContextCache!!,
+            FormattingOptionsProvider formattingOptionsProvider!!,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (projectionProvider is null)
-            {
-                throw new ArgumentNullException(nameof(projectionProvider));
-            }
-
-            if (textStructureNavigator is null)
-            {
-                throw new ArgumentNullException(nameof(textStructureNavigator));
-            }
-
-            if (completionRequestContextCache is null)
-            {
-                throw new ArgumentNullException(nameof(completionRequestContextCache));
-            }
-
-            if (formattingOptionsProvider is null)
-            {
-                throw new ArgumentNullException(nameof(formattingOptionsProvider));
-            }
-
-            if (loggerProvider is null)
-            {
-                throw new ArgumentNullException(nameof(loggerProvider));
-            }
-
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
@@ -116,18 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(CompletionHandler));
         }
 
-        public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request!!, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (clientCapabilities is null)
-            {
-                throw new ArgumentNullException(nameof(clientCapabilities));
-            }
-
             _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
@@ -495,24 +445,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
             {
-                // Non-triggered based completion
-
-                if (languageKind == RazorLanguageKind.CSharp &&
-                    context is VSInternalCompletionContext internalContext &&
-                    internalContext.InvokeKind == VSInternalCompletionInvokeKind.Typing)
-                {
-                    // We're in the midst of doing a C# typing completion. We consider this 24/7 completion and HTML & C# only offer 24/7 completion at the
-                    // beginning of a word. Meaning, completions will be provided at `|D` but not for `|Da` which brings us to an interesting cross-roads.
-                    // Razor is currently designed with two language servers:
-                    //   1. HTML C#: Powers the HTML / C# experience
-                    //   2. Razor: Has all of the Razor understanding / powers the generated C# & HTML for a document
-                    // Because of this split, in the middle of completion requests it's possible for additional generated content (C# or HTML) to flow into the client.
-                    // When additional content flows to the client we could mean to ask for completions at `|D` but in practice it'd ask C# for `|Da` (resulting
-                    // in 0 completions). Therefore, to counteract this point-in-time design flaw we translate typing completion requests to explicit in order
-                    // to ensure that we still get completion results at `|Da`.
-                    internalContext.InvokeKind = VSInternalCompletionInvokeKind.Explicit;
-                }
-
+                // Non-triggered based completion, the existing context is valid.
                 return context;
             }
 

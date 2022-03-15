@@ -18,18 +18,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private int _listenerCount = 0;
 
-        public DefaultWorkspaceEditorSettings(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, EditorSettingsManager editorSettingsManager)
+        public DefaultWorkspaceEditorSettings(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!, EditorSettingsManager editorSettingsManager!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (editorSettingsManager is null)
-            {
-                throw new ArgumentNullException(nameof(editorSettingsManager));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _editorSettingsManager = editorSettingsManager;
             _onChanged = OnChanged;

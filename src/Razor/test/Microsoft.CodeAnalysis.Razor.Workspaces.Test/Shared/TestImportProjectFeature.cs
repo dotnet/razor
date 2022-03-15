@@ -11,13 +11,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 {
     public class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
-        public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
+        public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem!!)
         {
-            if (projectItem is null)
-            {
-                throw new ArgumentNullException(nameof(projectItem));
-            }
-
             var imports = new List<RazorProjectItem>();
             AddHierarchicalImports(projectItem, imports);
 

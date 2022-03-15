@@ -29,7 +29,7 @@ steps:
       testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml
       mergeTestResults: true
       testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }}'
-    condition: always()
+    condition: succeededOrFailed()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
@@ -38,7 +38,7 @@ steps:
       ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
-    condition: not(succeeded())
+    condition: succeededOrFailed()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Screenshots
@@ -47,4 +47,4 @@ steps:
       ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
-    condition: not(succeeded())
+    condition: succeededOrFailed()

@@ -5,25 +5,19 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    [Export(typeof(VSHostServicesProvider))]
-    internal class VSHostServicesProvider : HostServicesProvider
+    [Export(typeof(VisualStudioHostServicesProvider))]
+    internal class VisualStudioWindowsHostServicesProvider : VisualStudioHostServicesProvider
     {
         private readonly CodeAnalysis.Workspace _workspace;
 
         [ImportingConstructor]
-        public VSHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace)
+        public VisualStudioWindowsHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace!!)
         {
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
             _workspace = workspace;
         }
 

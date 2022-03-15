@@ -19,22 +19,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public DefaultVisualStudioRazorParserFactoryFactory(JoinableTaskContext joinableTaskContext)
+        public DefaultVisualStudioRazorParserFactoryFactory(JoinableTaskContext joinableTaskContext!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _joinableTaskContext = joinableTaskContext;
         }
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
             var workspaceServices = languageServices.WorkspaceServices;
             var errorReporter = workspaceServices.GetRequiredService<ErrorReporter>();
             var completionBroker = languageServices.GetRequiredService<VisualStudioCompletionBroker>();

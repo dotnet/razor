@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         /// Gets or sets the default <see cref="CompletionItem.CommitCharacters"/> used for completion items.
         /// </summary>
         [JsonProperty("_vs_commitCharacters")]
-        public Container<string> CommitCharacters { get; set; }
+        public Container<VSCommitCharacter> CommitCharacters { get; set; }
 
         /// <summary>
         /// Gets or sets the default <see cref="CompletionItem.Data"/> used for completion items.
@@ -55,10 +55,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             var commitCharacterReferences = new Dictionary<object, int>();
             var highestUsedCount = 0;
-            Container<string> mostUsedCommitCharacters = null;
+            Container<VSCommitCharacter> mostUsedCommitCharacters = null;
             foreach (var completionItem in completionList.Items)
             {
-                var commitCharacters = completionItem.CommitCharacters;
+                var commitCharacters = completionItem is VSCompletionItem vsCompletionItem
+                    ? vsCompletionItem.VsCommitCharacters
+                    : ToVSCommitCharacter(completionItem.CommitCharacters);
                 if (commitCharacters is null)
                 {
                     continue;
@@ -81,12 +83,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var promotedCompletionItems = new List<CompletionItem>();
             foreach (var completionItem in completionList.Items)
             {
-                if (completionItem.CommitCharacters == mostUsedCommitCharacters)
+                var hasPromoted = false;
+                if (completionItem.CommitCharacters != null && SequenceEqual(completionItem.CommitCharacters, mostUsedCommitCharacters))
                 {
                     var clearedCompletionItem = completionItem with { CommitCharacters = null };
                     promotedCompletionItems.Add(clearedCompletionItem);
+                    hasPromoted = true;
                 }
-                else
+
+                if (completionItem is VSCompletionItem vsCompletionItem &&
+                    vsCompletionItem.VsCommitCharacters != null &&
+                    vsCompletionItem.VsCommitCharacters.Equals(mostUsedCommitCharacters))
+                {
+                    var clearedCompletionItem = vsCompletionItem with { VsCommitCharacters = null };
+                    promotedCompletionItems.Add(clearedCompletionItem);
+                    hasPromoted = true;
+                }
+
+                if (!hasPromoted)
                 {
                     promotedCompletionItems.Add(completionItem);
                 }
@@ -98,6 +112,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Data = completionList.Data,
             };
             return promotedCompletionList;
+
+            static bool SequenceEqual(Container<string> a, Container<VSCommitCharacter> b)
+            {
+                if (a.Count() != b.Count())
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < a.Count(); i++)
+                {
+                    var str = a.ElementAt(i);
+                    var vs = b.ElementAt(i);
+
+                    if (!vs.Equals(str))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            static Container<VSCommitCharacter> ToVSCommitCharacter(Container<string> commitCharacters)
+            {
+                var result = new List<VSCommitCharacter>();
+                foreach (var commitCharacter in commitCharacters)
+                {
+                    result.Add(new VSCommitCharacter
+                    {
+                        Character = commitCharacter,
+                        Insert = true,
+                    });
+                }
+
+                return result;
+            }
         }
 
         private static VSCompletionList PromotedDataOntoList(VSCompletionList completionList)

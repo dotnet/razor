@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -19,6 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ILogger _logger;
         private FileSystemWatcher _watcher;
 
@@ -30,38 +32,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         };
 
         public ProjectConfigurationFileChangeDetector(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
-            IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            FilePathNormalizer filePathNormalizer!!,
+            IEnumerable<IProjectConfigurationFileChangeListener> listeners!!,
+            LanguageServerFeatureOptions languageServerFeatureOptions!!,
             ILoggerFactory loggerFactory = null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            if (listeners is null)
-            {
-                throw new ArgumentNullException(nameof(listeners));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory?.CreateLogger<ProjectConfigurationFileChangeDetector>();
         }
 
-        public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
+        public async Task StartAsync(string workspaceDirectory!!, CancellationToken cancellationToken)
         {
-            if (workspaceDirectory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceDirectory));
-            }
 
             // Dive through existing project configuration files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
@@ -85,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            _watcher = new RazorFileSystemWatcher(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile)
+            _watcher = new RazorFileSystemWatcher(workspaceDirectory, _languageServerFeatureOptions.ProjectConfigurationFileName)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 IncludeSubdirectories = true,
@@ -98,14 +83,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 // Translate file renames into remove / add
 
-                if (args.OldFullPath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, FilePathComparison.Instance))
+                if (args.OldFullPath.EndsWith(_languageServerFeatureOptions.ProjectConfigurationFileName, FilePathComparison.Instance))
                 {
-                    // Renaming from project.razor.json to something else. Just remove the configuration file.
+                    // Renaming from project configuration file to something else. Just remove the configuration file.
                     FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.OldFullPath, RazorFileChangeKind.Removed);
                 }
-                else if (args.FullPath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, FilePathComparison.Instance))
+                else if (args.FullPath.EndsWith(_languageServerFeatureOptions.ProjectConfigurationFileName, FilePathComparison.Instance))
                 {
-                    // Renaming from a non-project.razor.json file to project.razor.json. Just add the configuration file.
+                    // Renaming from a non-project configuration file file to a real one. Just add the configuration file.
                     FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.FullPath, RazorFileChangeKind.Added);
                 }
             };
@@ -129,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Protected virtual for testing
         protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
         {
-            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, s_ignoredDirectories, logger: _logger);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, _languageServerFeatureOptions.ProjectConfigurationFileName, s_ignoredDirectories, logger: _logger);
 
             return files;
         }

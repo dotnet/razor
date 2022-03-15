@@ -19,23 +19,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
 
         [ImportingConstructor]
-        public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor)
+        public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor!!)
         {
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
             _workspaceAccessor = workspaceAccessor;
         }
 
-        public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
+        public override bool TryGetDocumentTracker(ITextBuffer textBuffer!!, out VisualStudioDocumentTracker documentTracker)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!textBuffer.IsRazorBuffer())
             {
                 documentTracker = null;
@@ -58,13 +48,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return true;
         }
 
-        public override bool TryGetParser(ITextBuffer textBuffer, out VisualStudioRazorParser parser)
+        public override bool TryGetParser(ITextBuffer textBuffer!!, out VisualStudioRazorParser parser)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!textBuffer.IsRazorBuffer())
             {
                 parser = null;
@@ -87,13 +72,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return true;
         }
 
-        internal override bool TryGetSmartIndenter(ITextBuffer textBuffer, out BraceSmartIndenter braceSmartIndenter)
+        internal override bool TryGetSmartIndenter(ITextBuffer textBuffer!!, out BraceSmartIndenter braceSmartIndenter)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!textBuffer.IsRazorBuffer())
             {
                 braceSmartIndenter = null;

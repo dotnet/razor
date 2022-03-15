@@ -28,13 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private readonly FileUriProvider _fileUriProvider;
 
         [ImportingConstructor]
-        public DefaultLSPDocumentSynchronizer(FileUriProvider fileUriProvider)
+        public DefaultLSPDocumentSynchronizer(FileUriProvider fileUriProvider!!)
         {
-            if (fileUriProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileUriProvider));
-            }
-
             _fileUriProvider = fileUriProvider;
             _virtualDocumentContexts = new Dictionary<Uri, DocumentContext>();
         }
@@ -42,13 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, CancellationToken cancellationToken)
             => TrySynchronizeVirtualDocumentAsync(requiredHostDocumentVersion, virtualDocument, rejectOnNewerParallelRequest: true, cancellationToken);
 
-        public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
+        public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument!!, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
         {
-            if (virtualDocument is null)
-            {
-                throw new ArgumentNullException(nameof(virtualDocument));
-            }
-
             lock (_documentContextLock)
             {
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocument.Uri, out var documentContext))

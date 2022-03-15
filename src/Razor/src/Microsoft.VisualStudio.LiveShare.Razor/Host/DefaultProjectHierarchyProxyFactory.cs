@@ -24,23 +24,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         [ImportingConstructor]
         public DefaultProjectHierarchyProxyFactory(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+            JoinableTaskContext joinableTaskContext!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _joinableTaskContext = joinableTaskContext;
         }
 
-        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
+        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session!!, CancellationToken cancellationToken)
         {
-            if (session is null)
-            {
-                throw new ArgumentNullException(nameof(session));
-            }
-
             var service = new DefaultProjectHierarchyProxy(session, _joinableTaskContext.Factory);
             return Task.FromResult<ICollaborationService>(service);
         }

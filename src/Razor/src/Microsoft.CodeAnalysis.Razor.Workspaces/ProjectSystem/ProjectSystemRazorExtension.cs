@@ -10,13 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class ProjectSystemRazorExtension : RazorExtension
     {
-        public ProjectSystemRazorExtension(string extensionName)
+        public ProjectSystemRazorExtension(string extensionName!!)
         {
-            if (extensionName is null)
-            {
-                throw new ArgumentNullException(nameof(extensionName));
-            }
-
             ExtensionName = extensionName;
         }
 

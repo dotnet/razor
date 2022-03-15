@@ -11,23 +11,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class DocumentUriExtensions
     {
-        public static string GetAbsoluteOrUNCPath(this DocumentUri documentUri)
+        public static string GetAbsoluteOrUNCPath(this DocumentUri documentUri!!)
         {
-            if (documentUri is null)
-            {
-                throw new ArgumentNullException(nameof(documentUri));
-            }
-
             return documentUri.ToUri().GetAbsoluteOrUNCPath();
         }
 
-        public static string GetAbsolutePath(this DocumentUri documentUri)
+        public static string GetAbsolutePath(this DocumentUri documentUri!!)
         {
-            if (documentUri is null)
-            {
-                throw new ArgumentNullException(nameof(documentUri));
-            }
-
             return documentUri.ToUri().AbsolutePath;
         }
     }

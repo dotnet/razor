@@ -12,43 +12,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class HtmlFormatter
     {
-        private readonly FilePathNormalizer _filePathNormalizer;
+        private readonly DocumentVersionCache _documentVersionCache;
         private readonly ClientNotifierServiceBase _server;
 
         public HtmlFormatter(
             ClientNotifierServiceBase languageServer,
-            FilePathNormalizer filePathNormalizer)
+            DocumentVersionCache documentVersionCache)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             _server = languageServer;
-            _filePathNormalizer = filePathNormalizer;
+            _documentVersionCache = documentVersionCache;
         }
 
         public async Task<TextEdit[]> FormatAsync(
-            FormattingContext context,
+            FormattingContext context!!,
             CancellationToken cancellationToken)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             var @params = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier { Uri = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
                 Options = context.Options
             };
 
             var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+
+            return result?.Edits ?? Array.Empty<TextEdit>();
+        }
+
+        public async Task<TextEdit[]> FormatOnTypeAsync(
+           FormattingContext context,
+           CancellationToken cancellationToken)
+        {
+            var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
+            if (documentVersion == null)
+            {
+                return Array.Empty<TextEdit>();
+            }
+
+            context.SourceText.GetLineAndOffset(context.HostDocumentIndex, out var line, out var col);
+            var @params = new RazorDocumentOnTypeFormattingParams()
+            {
+                Position = new Position(line, col),
+                Character = context.TriggerCharacter.ToString(),
+                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                Options = context.Options,
+                HostDocumentVersion = documentVersion.Value,
+            };
+
+            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint, @params);
             var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();

@@ -15,18 +15,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly IConnectionPoint _connectionPoint;
         private uint _cookie;
 
-        public static void Subscribe(IVsTextBuffer vsTextBuffer, Action action)
+        public static void Subscribe(IVsTextBuffer vsTextBuffer!!, Action action!!)
         {
-            if (vsTextBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(vsTextBuffer));
-            }
-
-            if (action is null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
             var connectionPointContainer = (IConnectionPointContainer)vsTextBuffer;
 
             var guid = typeof(IVsTextBufferDataEvents).GUID;
