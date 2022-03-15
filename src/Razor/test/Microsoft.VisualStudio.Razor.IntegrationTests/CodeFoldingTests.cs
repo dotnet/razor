@@ -209,12 +209,10 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         M();
     }
 }",
-@"
-    if (true)
+@"if (true)
     {
         M();
-    }
-",
+    }",
 @"@code {
     string M() => ""M"";
 }");
