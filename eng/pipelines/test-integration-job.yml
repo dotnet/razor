@@ -39,12 +39,3 @@ steps:
       publishLocation: Container
     continueOnError: true
     condition: succeededOrFailed()
-
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Screenshots
-    inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.Razor.IntegrationTests\${{ parameters.configuration }}\net472\xUnitResults'
-      ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} $(Build.BuildNumber)'
-      publishLocation: Container
-    continueOnError: true
-    condition: succeededOrFailed()
