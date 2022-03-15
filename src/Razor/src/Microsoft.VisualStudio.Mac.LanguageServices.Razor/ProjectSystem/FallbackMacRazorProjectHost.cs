@@ -16,11 +16,11 @@ using AssemblyReference = MonoDevelop.Projects.AssemblyReference;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    internal class FallbackRazorProjectHost : RazorProjectHostBase
+    internal class FallbackMacRazorProjectHost : MacRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
 
-        public FallbackRazorProjectHost(
+        public FallbackMacRazorProjectHost(
             DotNetProject project,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)

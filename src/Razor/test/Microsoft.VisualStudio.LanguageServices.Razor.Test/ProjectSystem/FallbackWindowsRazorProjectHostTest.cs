@@ -16,9 +16,9 @@ using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectS
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class FallbackRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
+    public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
-        public FallbackRazorProjectHostTest()
+        public FallbackWindowsRazorProjectHostTest()
         {
             ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
 
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        private class TestFallbackRazorProjectHost : FallbackRazorProjectHost
+        private class TestFallbackRazorProjectHost : FallbackWindowsRazorProjectHost
         {
             internal TestFallbackRazorProjectHost(
                 IUnconfiguredProjectCommonServices commonServices,

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     /// <summary>
     /// Needs to SetPublisherPath for DefaultRazorProjectChangePublisher
     /// </summary>
-    internal abstract class RazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
+    internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
     {
         private readonly Workspace _workspace;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
         internal int EnqueueDelay { get; set; } = 250;
 
-        public RazorProjectHostBase(
+        public WindowsRazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices!!,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace!!,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing
-        protected RazorProjectHostBase(
+        protected WindowsRazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,

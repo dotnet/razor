@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
-        private RazorProjectHostBase _razorProjectHost;
+        private MacRazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
             DotNetProject project!!,
@@ -87,12 +87,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 if (_project.IsCapabilityMatch(ExplicitRazorConfigurationCapability))
                 {
                     // SDK >= 2.1
-                    _razorProjectHost = new DefaultRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                    _razorProjectHost = new DefaultMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
                     return;
                 }
 
                 // We're an older version of Razor at this point, SDK < 2.1
-                _razorProjectHost = new FallbackRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                _razorProjectHost = new FallbackMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
             }, CancellationToken.None);
         }
 

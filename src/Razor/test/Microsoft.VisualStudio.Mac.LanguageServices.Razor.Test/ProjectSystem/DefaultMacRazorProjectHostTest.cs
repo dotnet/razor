@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    public class DefaultRazorProjectHostTest
+    public class DefaultMacRazorProjectHostTest
     {
         [Fact]
         public void IsRazorDocumentItem_NonContentItem_ReturnsFalse()
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+            var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
 
             // Assert
             Assert.False(result);
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var item = new TestMSBuildItem("Content");
 
             // Act
-            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+            var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
 
             // Assert
             Assert.False(result);
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+            var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
 
             // Assert
             Assert.False(result);
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+            var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
 
             // Assert
             Assert.True(result);
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+            var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
 
             // Assert
             Assert.True(result);
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectProperties = new MSBuildPropertyGroup();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration);
+            var result = DefaultMacRazorProjectHost.TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration);
 
             // Assert
             Assert.False(result);
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             projectProperties.SetValue("RazorDefaultConfiguration", string.Empty);
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration);
+            var result = DefaultMacRazorProjectHost.TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration);
 
             // Assert
             Assert.False(result);
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             projectProperties.SetValue("RazorDefaultConfiguration", expectedConfiguration);
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration);
+            var result = DefaultMacRazorProjectHost.TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration);
 
             // Assert
             Assert.True(result);
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectProperties = new MSBuildPropertyGroup();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
+            var result = DefaultMacRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
 
             // Assert
             Assert.False(result);
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             projectProperties.SetValue("RazorLangVersion", string.Empty);
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
+            var result = DefaultMacRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
 
             // Assert
             Assert.False(result);
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             projectProperties.SetValue("RazorLangVersion", "1.0");
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
+            var result = DefaultMacRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
 
             // Assert
             Assert.True(result);
@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             projectProperties.SetValue("RazorLangVersion", "13.37");
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
+            var result = DefaultMacRazorProjectHost.TryGetLanguageVersion(projectProperties, out var languageVersion);
 
             // Assert
             Assert.True(result);
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectItems = Enumerable.Empty<IMSBuildItemEvaluated>();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectItems, out var configurationItem);
+            var result = DefaultMacRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectItems, out var configurationItem);
 
             // Assert
             Assert.False(result);
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectItems, out var configurationItem);
+            var result = DefaultMacRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectItems, out var configurationItem);
 
             // Assert
             Assert.False(result);
@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem(expectedConfiguration, projectItems, out var configurationItem);
+            var result = DefaultMacRazorProjectHost.TryGetConfigurationItem(expectedConfiguration, projectItems, out var configurationItem);
 
             // Assert
             Assert.True(result);
@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var configurationItem = new TestMSBuildItem("RazorConfiguration");
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(configurationItem);
+            var extensionNames = DefaultMacRazorProjectHost.GetExtensionNames(configurationItem);
 
             // Assert
             Assert.Empty(extensionNames);
@@ -276,7 +276,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             configurationItem.TestMetadata.SetValue("Extensions", string.Empty);
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(configurationItem);
+            var extensionNames = DefaultMacRazorProjectHost.GetExtensionNames(configurationItem);
 
             // Assert
             Assert.Empty(extensionNames);
@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             configurationItem.TestMetadata.SetValue("Extensions", expectedExtensionName);
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(configurationItem);
+            var extensionNames = DefaultMacRazorProjectHost.GetExtensionNames(configurationItem);
 
             // Assert
             var extensionName = Assert.Single(extensionNames);
@@ -306,7 +306,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             configurationItem.TestMetadata.SetValue("Extensions", "SomeExtensionName;SomeOtherExtensionName");
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(configurationItem);
+            var extensionNames = DefaultMacRazorProjectHost.GetExtensionNames(configurationItem);
 
             // Assert
             Assert.Collection(
@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var extensions = DefaultRazorProjectHost.GetExtensions(new[] { "Extension1", "Extension2" }, projectItems);
+            var extensions = DefaultMacRazorProjectHost.GetExtensions(new[] { "Extension1", "Extension2" }, projectItems);
 
             // Assert
             Assert.Empty(extensions);
@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var extensions = DefaultRazorProjectHost.GetExtensions(new[] { "Extension1", "Extension2" }, projectItems);
+            var extensions = DefaultMacRazorProjectHost.GetExtensions(new[] { "Extension1", "Extension2" }, projectItems);
 
             // Assert
             Assert.Empty(extensions);
@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var extensions = DefaultRazorProjectHost.GetExtensions(new[] { expectedExtension1Name, expectedExtension2Name }, projectItems);
+            var extensions = DefaultMacRazorProjectHost.GetExtensions(new[] { expectedExtension1Name, expectedExtension2Name }, projectItems);
 
             // Assert
             Assert.Collection(
@@ -393,7 +393,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectItems = Array.Empty<IMSBuildItemEvaluated>();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
+            var result = DefaultMacRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
 
             // Assert
             Assert.False(result);
@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectItems = Array.Empty<IMSBuildItemEvaluated>();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
+            var result = DefaultMacRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
 
             // Assert
             Assert.False(result);
@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectItems = Array.Empty<IMSBuildItemEvaluated>();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
+            var result = DefaultMacRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
 
             // Assert
             Assert.False(result);
@@ -449,7 +449,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             };
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
+            var result = DefaultMacRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
 
             // Assert
             Assert.True(result);
@@ -495,7 +495,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             projectProperties.SetValue("RazorLangVersion", "1.0");
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
+            var result = DefaultMacRazorProjectHost.TryGetConfiguration(projectProperties, projectItems, out var configuration);
 
             // Assert
             Assert.True(result);
