@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     // MSBuild provides configuration support (>= 2.1).
     [AppliesTo("DotNetCoreRazor & DotNetCoreRazorConfiguration")]
     [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
-    internal class DefaultRazorProjectHost : RazorProjectHostBase
+    internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
         private IDisposable _subscription;
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
-        public DefaultRazorProjectHost(
+        public DefaultWindowsRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal DefaultRazorProjectHost(
+        internal DefaultWindowsRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,

@@ -18,7 +18,7 @@ using MonoDevelop.Projects.MSBuild;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    internal class DefaultRazorProjectHost : RazorProjectHostBase
+    internal class DefaultMacRazorProjectHost : MacRazorProjectHostBase
     {
         private const string RazorLangVersionProperty = "RazorLangVersion";
         private const string RazorDefaultConfigurationProperty = "RazorDefaultConfiguration";
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private IReadOnlyList<string> _currentRazorFilePaths = Array.Empty<string>();
 
-        public DefaultRazorProjectHost(
+        public DefaultMacRazorProjectHost(
             DotNetProject project,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)

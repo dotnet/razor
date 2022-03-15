@@ -18,9 +18,9 @@ using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class DefaultRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
+    public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
-        public DefaultRazorProjectHostTest()
+        public DefaultWindowsRazorProjectHostTest()
         {
             ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
+            var result = DefaultWindowsRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
 
             // Assert
             Assert.False(result);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
+            var result = DefaultWindowsRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
 
             // Assert
             Assert.False(result);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
+            var result = DefaultWindowsRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
 
             // Assert
             Assert.False(result);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
+            var result = DefaultWindowsRazorProjectHost.TryGetDefaultConfiguration(projectState, out var defaultConfiguration);
 
             // Assert
             Assert.True(result);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
+            var result = DefaultWindowsRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
 
             // Assert
             Assert.False(result);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
+            var result = DefaultWindowsRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
 
             // Assert
             Assert.False(result);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
+            var result = DefaultWindowsRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
 
             // Assert
             Assert.False(result);
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
+            var result = DefaultWindowsRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
 
             // Assert
             Assert.True(result);
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
+            var result = DefaultWindowsRazorProjectHost.TryGetLanguageVersion(projectState, out var languageVersion);
 
             // Assert
             Assert.True(result);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectState, out _);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectState, out _);
 
             // Assert
             Assert.False(result);
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectState, out _);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectState, out _);
 
             // Assert
             Assert.False(result);
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectState, out _);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfigurationItem("Razor-13.37", projectState, out _);
 
             // Assert
             Assert.False(result);
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfigurationItem(expectedConfiguration, projectState, out var configurationItem);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfigurationItem(expectedConfiguration, projectState, out var configurationItem);
 
             // Assert
             Assert.True(result);
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
+            var extensionNames = DefaultWindowsRazorProjectHost.GetExtensionNames(item);
 
             // Assert
             Assert.Empty(extensionNames);
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
+            var extensionNames = DefaultWindowsRazorProjectHost.GetExtensionNames(item);
 
             // Assert
             Assert.Empty(extensionNames);
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
+            var extensionNames = DefaultWindowsRazorProjectHost.GetExtensionNames(item);
 
             // Assert
             var extensionName = Assert.Single(extensionNames);
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
+            var extensionNames = DefaultWindowsRazorProjectHost.GetExtensionNames(item);
 
             // Assert
             Assert.Collection(
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensions(new[] { "Extension1", "Extension2" }, projectState, out var extensions);
+            var result = DefaultWindowsRazorProjectHost.TryGetExtensions(new[] { "Extension1", "Extension2" }, projectState, out var extensions);
 
             // Assert
             Assert.True(result);
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensions(new[] { "Extension1", "Extension2" }, projectState, out var extensions);
+            var result = DefaultWindowsRazorProjectHost.TryGetExtensions(new[] { "Extension1", "Extension2" }, projectState, out var extensions);
 
             // Assert
             Assert.True(result);
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensions(new[] { expectedExtension1Name, expectedExtension2Name }, projectState, out var extensions);
+            var result = DefaultWindowsRazorProjectHost.TryGetExtensions(new[] { expectedExtension1Name, expectedExtension2Name }, projectState, out var extensions);
 
             // Assert
             Assert.True(result);
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var projectState = new Dictionary<string, IProjectRuleSnapshot>().ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
 
             // Assert
             Assert.False(result);
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
 
             // Assert
             Assert.False(result);
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
 
             // Assert
             Assert.False(result);
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
 
             // Assert
             Assert.True(result);
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
 
             // Assert
             Assert.True(result);
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }.ToImmutableDictionary();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
+            var result = DefaultWindowsRazorProjectHost.TryGetConfiguration(projectState, out var configuration);
 
             // Assert
             Assert.True(result);
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             // Act & Assert
             await host.LoadAsync();
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
-            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);

@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     // MSBuild does not provides configuration support (SDK < 2.1).
     [AppliesTo("(DotNetCoreRazor | DotNetCoreWeb) & !DotNetCoreRazorConfiguration")]
     [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
-    internal class FallbackRazorProjectHost : RazorProjectHostBase
+    internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
         private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
         private IDisposable _subscription;
 
         [ImportingConstructor]
-        public FallbackRazorProjectHost(
+        public FallbackWindowsRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
-        internal FallbackRazorProjectHost(
+        internal FallbackWindowsRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,

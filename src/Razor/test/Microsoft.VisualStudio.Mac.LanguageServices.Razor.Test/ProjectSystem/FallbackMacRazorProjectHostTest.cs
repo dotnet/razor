@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    public class FallbackRazorProjectHostTest
+    public class FallbackMacRazorProjectHostTest
     {
         [Theory]
         [InlineData(null)]
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var assemblyReference = new AssemblyReference(assemblyFilePath);
 
             // Act
-            var result = FallbackRazorProjectHost.IsMvcAssembly(assemblyReference);
+            var result = FallbackMacRazorProjectHost.IsMvcAssembly(assemblyReference);
 
             // Assert
             Assert.False(result);
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var assemblyReference = new AssemblyReference(assemblyFilePath);
 
             // Act
-            var result = FallbackRazorProjectHost.IsMvcAssembly(assemblyReference);
+            var result = FallbackMacRazorProjectHost.IsMvcAssembly(assemblyReference);
 
             // Assert
             Assert.False(result);
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var assemblyReference = new AssemblyReference(assemblyFilePath);
 
             // Act
-            var result = FallbackRazorProjectHost.IsMvcAssembly(assemblyReference);
+            var result = FallbackMacRazorProjectHost.IsMvcAssembly(assemblyReference);
 
             // Assert
             Assert.True(result);

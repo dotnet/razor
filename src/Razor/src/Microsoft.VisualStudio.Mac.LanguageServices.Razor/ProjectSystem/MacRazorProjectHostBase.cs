@@ -16,7 +16,7 @@ using MonoDevelop.Projects;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    internal abstract class RazorProjectHostBase
+    internal abstract class MacRazorProjectHostBase
     {
         // References changes are always triggered when project changes happen.
         private const string ProjectChangedHint = "References";
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly AsyncSemaphore _projectChangedSemaphore;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
 
-        public RazorProjectHostBase(
+        public MacRazorProjectHostBase(
             DotNetProject project!!,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
             ProjectSnapshotManagerBase projectSnapshotManager!!)
