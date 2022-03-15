@@ -15,13 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private readonly IFallbackProjectEngineFactory _fallbackFactory;
 
-        public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory)
+        public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory!!)
         {
-            if (fallbackFactory is null)
-            {
-                throw new ArgumentNullException(nameof(fallbackFactory));
-            }
-
             _fallbackFactory = fallbackFactory;
         }
 
@@ -31,16 +26,11 @@ namespace Microsoft.CodeAnalysis.Razor
         }
 
         public Task<TagHelperResolutionResult> GetTagHelpersAsync(
-            Project project,
+            Project project!!,
             RazorConfiguration configuration,
             string factoryTypeName,
             CancellationToken cancellationToken = default)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
             if (configuration is null || project is null)
             {
                 return Task.FromResult(TagHelperResolutionResult.Empty);

@@ -13,13 +13,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
-        public VisualStudioMacFileChangeTrackerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        public VisualStudioMacFileChangeTrackerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 

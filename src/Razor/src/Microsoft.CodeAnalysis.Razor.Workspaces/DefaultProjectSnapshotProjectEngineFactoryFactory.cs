@@ -18,30 +18,15 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         [ImportingConstructor]
         public DefaultProjectSnapshotProjectEngineFactoryFactory(
-            IFallbackProjectEngineFactory fallback,
-            [ImportMany] Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
+            IFallbackProjectEngineFactory fallback!!,
+            [ImportMany] Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories!!)
         {
-            if (fallback is null)
-            {
-                throw new ArgumentNullException(nameof(fallback));
-            }
-
-            if (factories is null)
-            {
-                throw new ArgumentNullException(nameof(factories));
-            }
-
             _fallback = fallback;
             _factories = factories;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices!!)
         {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
             return new DefaultProjectSnapshotProjectEngineFactory(_fallback, _factories);
         }
     }

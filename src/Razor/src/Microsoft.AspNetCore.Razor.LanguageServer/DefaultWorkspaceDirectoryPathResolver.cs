@@ -12,13 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly IClientLanguageServer _languageServer;
 
-        public DefaultWorkspaceDirectoryPathResolver(IClientLanguageServer languageServer)
+        public DefaultWorkspaceDirectoryPathResolver(IClientLanguageServer languageServer!!)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             _languageServer = languageServer;
         }
 

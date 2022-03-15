@@ -51,13 +51,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly object _disposeLock;
         private bool _disposed;
 
-        private RazorLanguageServer(ILanguageServer innerServer)
+        private RazorLanguageServer(ILanguageServer innerServer!!)
         {
-            if (innerServer is null)
-            {
-                throw new ArgumentNullException(nameof(innerServer));
-            }
-
             _innerServer = innerServer;
             _disposeLock = new object();
         }

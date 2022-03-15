@@ -21,22 +21,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private readonly TextBufferProjectService _projectService;
 
         [ImportingConstructor]
-        public DefaultVisualStudioMacWorkspaceAccessor(TextBufferProjectService projectService)
+        public DefaultVisualStudioMacWorkspaceAccessor(TextBufferProjectService projectService!!)
         {
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _projectService = projectService;
         }
 
-        public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
+        public override bool TryGetWorkspace(ITextBuffer textBuffer!!, out Workspace workspace)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
 
             // We do a best effort approach in this method to get the workspace that belongs to the TextBuffer.
             // Below we try and find the project and then the solution that contains the given text buffer. If
@@ -62,13 +53,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             return TryGetWorkspace(hostSolution, out workspace);
         }
 
-        public override bool TryGetWorkspace(Solution solution, out Workspace workspace)
+        public override bool TryGetWorkspace(Solution solution!!, out Workspace workspace)
         {
-            if (solution is null)
-            {
-                throw new ArgumentNullException(nameof(solution));
-            }
-
             workspace = IdeServices.TypeSystemService.GetWorkspace(solution);
 
             // Workspace cannot be null at this point. If TypeSystemService.GetWorkspace isn't able to find a corresponding

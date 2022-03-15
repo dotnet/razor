@@ -31,34 +31,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public VisualStudioFileChangeTracker(
             string filePath,
-            ErrorReporter errorReporter,
-            IVsAsyncFileChangeEx fileChangeService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+            ErrorReporter errorReporter!!,
+            IVsAsyncFileChangeEx fileChangeService!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            JoinableTaskContext joinableTaskContext!!)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (fileChangeService is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeService));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
             FilePath = filePath;

@@ -32,19 +32,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         };
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
-            RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions,
+            RazorCodeActionContext context!!,
+            IEnumerable<RazorCodeAction> codeActions!!,
             CancellationToken cancellationToken)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (codeActions is null)
-            {
-                throw new ArgumentNullException(nameof(codeActions));
-            }
 
             // Used to identify if this is VSCode which doesn't support
             // code action resolve.

@@ -17,19 +17,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
 
         public DefaultOmniSharpProjectSnapshotManager(
-            ProjectSnapshotManagerBase projectSnapshotManager,
-            RemoteTextLoaderFactory remoteTextLoaderFactory)
+            ProjectSnapshotManagerBase projectSnapshotManager!!,
+            RemoteTextLoaderFactory remoteTextLoaderFactory!!)
         {
-            if (projectSnapshotManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManager));
-            }
-
-            if (remoteTextLoaderFactory is null)
-            {
-                throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
-            }
-
             InternalProjectSnapshotManager = projectSnapshotManager;
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
             InternalProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;

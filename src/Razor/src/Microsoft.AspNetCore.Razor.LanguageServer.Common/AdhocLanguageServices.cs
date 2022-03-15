@@ -16,18 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly IEnumerable<ILanguageService> _languageServices;
 
-        public AdhocLanguageServices(HostWorkspaceServices workspaceServices, IEnumerable<ILanguageService> languageServices)
+        public AdhocLanguageServices(HostWorkspaceServices workspaceServices!!, IEnumerable<ILanguageService> languageServices!!)
         {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
             _workspaceServices = workspaceServices;
             _languageServices = languageServices;
         }

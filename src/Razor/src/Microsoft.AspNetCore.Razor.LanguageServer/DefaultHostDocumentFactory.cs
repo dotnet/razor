@@ -15,31 +15,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly GeneratedDocumentContainerStore _generatedDocumentContainerStore;
 
-        public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore)
+        public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore!!)
         {
-            if (generatedDocumentContainerStore is null)
-            {
-                throw new ArgumentNullException(nameof(generatedDocumentContainerStore));
-            }
-
             _generatedDocumentContainerStore = generatedDocumentContainerStore;
         }
 
         public override HostDocument Create(string filePath, string targetFilePath)
             => Create(filePath, targetFilePath, fileKind: null);
 
-        public override HostDocument Create(string filePath, string targetFilePath, string fileKind)
+        public override HostDocument Create(string filePath!!, string targetFilePath!!, string fileKind)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (targetFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(targetFilePath));
-            }
-
             var hostDocument = new HostDocument(filePath, targetFilePath, fileKind);
             hostDocument.GeneratedDocumentContainer.GeneratedCSharpChanged += GeneratedDocumentContainer_Changed;
             hostDocument.GeneratedDocumentContainer.GeneratedHtmlChanged += GeneratedDocumentContainer_Changed;

@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 {
     internal static class SourceTextExtensions
     {
-        public static RazorSourceDocument GetRazorSourceDocument(this SourceText sourceText, string filePath, string relativePath)
+        public static RazorSourceDocument GetRazorSourceDocument(this SourceText sourceText!!, string filePath, string relativePath)
         {
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             var sourceDocument = new SourceTextSourceDocument(sourceText, filePath, relativePath);
             return sourceDocument;
         }

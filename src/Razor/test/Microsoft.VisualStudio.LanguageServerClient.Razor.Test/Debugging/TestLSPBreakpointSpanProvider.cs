@@ -19,18 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly Uri _documentUri;
         private readonly IReadOnlyDictionary<Position, Range> _mappings;
 
-        public TestLSPBreakpointSpanProvider(Uri documentUri, IReadOnlyDictionary<Position, Range> mappings)
+        public TestLSPBreakpointSpanProvider(Uri documentUri!!, IReadOnlyDictionary<Position, Range> mappings!!)
         {
-            if (documentUri is null)
-            {
-                throw new ArgumentNullException(nameof(documentUri));
-            }
-
-            if (mappings is null)
-            {
-                throw new ArgumentNullException(nameof(mappings));
-            }
-
             _documentUri = documentUri;
             _mappings = mappings;
         }

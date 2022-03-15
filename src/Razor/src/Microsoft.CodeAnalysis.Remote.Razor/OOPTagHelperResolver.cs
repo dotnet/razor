@@ -22,23 +22,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         private readonly ErrorReporter _errorReporter;
         private readonly Workspace _workspace;
 
-        public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
+        public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory!!, ErrorReporter errorReporter!!, Workspace workspace!!)
         {
-            if (factory is null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
             _factory = factory;
             _errorReporter = errorReporter;
             _workspace = workspace;
@@ -47,18 +32,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             _resultCache = new TagHelperResultCache();
         }
 
-        public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
+        public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject!!, ProjectSnapshot projectSnapshot!!, CancellationToken cancellationToken = default)
         {
-            if (workspaceProject is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceProject));
-            }
-
-            if (projectSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshot));
-            }
-
             if (projectSnapshot.Configuration is null)
             {
                 return TagHelperResolutionResult.Empty;

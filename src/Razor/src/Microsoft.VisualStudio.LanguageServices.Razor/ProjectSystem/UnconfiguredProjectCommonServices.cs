@@ -20,55 +20,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         [ImportingConstructor]
         public UnconfiguredProjectCommonServices(
-            [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService tasksService,
-            IProjectThreadingService threadingService,
-            UnconfiguredProject unconfiguredProject,
-            IActiveConfiguredProjectSubscriptionService activeConfiguredProjectSubscription,
-            ActiveConfiguredProject<ConfiguredProject> activeConfiguredProject,
-            ActiveConfiguredProject<IAssemblyReferencesService> activeConfiguredProjectAssemblyReferences,
-            ActiveConfiguredProject<IPackageReferencesService> activeConfiguredProjectPackageReferences,
-            ActiveConfiguredProject<Rules.RazorProjectProperties> activeConfiguredProjectRazorProperties)
+            [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService tasksService!!,
+            IProjectThreadingService threadingService!!,
+            UnconfiguredProject unconfiguredProject!!,
+            IActiveConfiguredProjectSubscriptionService activeConfiguredProjectSubscription!!,
+            ActiveConfiguredProject<ConfiguredProject> activeConfiguredProject!!,
+            ActiveConfiguredProject<IAssemblyReferencesService> activeConfiguredProjectAssemblyReferences!!,
+            ActiveConfiguredProject<IPackageReferencesService> activeConfiguredProjectPackageReferences!!,
+            ActiveConfiguredProject<Rules.RazorProjectProperties> activeConfiguredProjectRazorProperties!!)
         {
-            if (tasksService is null)
-            {
-                throw new ArgumentNullException(nameof(tasksService));
-            }
-
-            if (threadingService is null)
-            {
-                throw new ArgumentNullException(nameof(threadingService));
-            }
-
-            if (unconfiguredProject is null)
-            {
-                throw new ArgumentNullException(nameof(unconfiguredProject));
-            }
-
-            if (activeConfiguredProjectSubscription is null)
-            {
-                throw new ArgumentNullException(nameof(activeConfiguredProjectSubscription));
-            }
-
-            if (activeConfiguredProject is null)
-            {
-                throw new ArgumentNullException(nameof(activeConfiguredProject));
-            }
-
-            if (activeConfiguredProjectAssemblyReferences is null)
-            {
-                throw new ArgumentNullException(nameof(activeConfiguredProjectAssemblyReferences));
-            }
-
-            if (activeConfiguredProjectPackageReferences is null)
-            {
-                throw new ArgumentNullException(nameof(activeConfiguredProjectPackageReferences));
-            }
-
-            if (activeConfiguredProjectRazorProperties is null)
-            {
-                throw new ArgumentNullException(nameof(activeConfiguredProjectRazorProperties));
-            }
-
             TasksService = tasksService;
             ThreadingService = threadingService;
             UnconfiguredProject = unconfiguredProject;

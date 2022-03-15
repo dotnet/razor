@@ -17,23 +17,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private readonly FilePathNormalizer _filePathNormalizer;
 
         public DefaultRemoteTextLoaderFactory(
-            FilePathNormalizer filePathNormalizer)
+            FilePathNormalizer filePathNormalizer!!)
         {
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             _filePathNormalizer = filePathNormalizer;
         }
 
-        public override TextLoader Create(string filePath)
+        public override TextLoader Create(string filePath!!)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             return new RemoteTextLoader(normalizedPath);
         }
@@ -42,13 +32,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
             private readonly string _filePath;
 
-            public RemoteTextLoader(string filePath)
+            public RemoteTextLoader(string filePath!!)
             {
-                if (filePath is null)
-                {
-                    throw new ArgumentNullException(nameof(filePath));
-                }
-
                 _filePath = filePath;
             }
 

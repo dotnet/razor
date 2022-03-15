@@ -47,13 +47,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return false;
         }
 
-        public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
+        public static bool ContainsOnlyWhitespace(this SyntaxNode node!!, bool includingNewLines = true)
         {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
             var tokens = node.GetTokens();
 
             for (var i = 0; i < tokens.Count; i++)
@@ -69,18 +64,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return true;
         }
 
-        public static LinePositionSpan GetLinePositionSpan(this SyntaxNode node, RazorSourceDocument source)
+        public static LinePositionSpan GetLinePositionSpan(this SyntaxNode node!!, RazorSourceDocument source!!)
         {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             var start = node.Position;
             var end = node.EndPosition;
 
@@ -107,18 +92,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
         }
 
-        public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
+        public static Range GetRange(this SyntaxNode node!!, RazorSourceDocument source!!)
         {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             var lineSpan = node.GetLinePositionSpan(source);
             var range = new Range(
                 new Position(lineSpan.Start.Line, lineSpan.Start.Character),
@@ -127,18 +102,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return range;
         }
 
-        public static Range GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+        public static Range GetRangeWithoutWhitespace(this SyntaxNode node!!, RazorSourceDocument source!!)
         {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             var tokens = node.GetTokens();
 
             SyntaxToken firstToken = null;
@@ -179,18 +144,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             // This is needed because SyntaxToken positions taken from GetTokens
             // are relative to their parent node and not to the document.
-            static LinePositionSpan GetLinePositionSpan(SyntaxNode node, RazorSourceDocument source, int parentStart)
+            static LinePositionSpan GetLinePositionSpan(SyntaxNode node!!, RazorSourceDocument source!!, int parentStart)
             {
-                if (node is null)
-                {
-                    throw new ArgumentNullException(nameof(node));
-                }
-
-                if (source is null)
-                {
-                    throw new ArgumentNullException(nameof(source));
-                }
-
                 var start = node.Position + parentStart;
                 var end = node.EndPosition + parentStart;
 

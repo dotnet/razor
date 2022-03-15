@@ -32,27 +32,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // </div>
         // Asking for desired indentation of the @{ or } lines should result in a desired indentation of 8.
         public override int? GetDesiredIndentation(
-            RazorSyntaxTree syntaxTree,
-            ITextSnapshot syntaxTreeSnapshot,
-            ITextSnapshotLine line,
+            RazorSyntaxTree syntaxTree!!,
+            ITextSnapshot syntaxTreeSnapshot!!,
+            ITextSnapshotLine line!!,
             int indentSize,
             int tabSize)
         {
-            if (syntaxTree is null)
-            {
-                throw new ArgumentNullException(nameof(syntaxTree));
-            }
-
-            if (syntaxTreeSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(syntaxTreeSnapshot));
-            }
-
-            if (line is null)
-            {
-                throw new ArgumentNullException(nameof(line));
-            }
-
             if (indentSize < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(indentSize));

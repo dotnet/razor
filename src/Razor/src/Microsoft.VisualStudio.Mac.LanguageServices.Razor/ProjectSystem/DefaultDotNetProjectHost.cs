@@ -23,31 +23,11 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private RazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
-            DotNetProject project,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor,
-            TextBufferProjectService projectService)
+            DotNetProject project!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
+            TextBufferProjectService projectService!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _project = project;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
@@ -56,25 +36,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         // Internal for testing
         internal DefaultDotNetProjectHost(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor,
-            TextBufferProjectService projectService)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
+            TextBufferProjectService projectService!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;

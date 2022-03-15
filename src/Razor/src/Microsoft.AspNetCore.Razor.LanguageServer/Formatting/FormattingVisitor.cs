@@ -26,13 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private int _currentComponentIndentationLevel = 0;
         private bool _isInClassBody = false;
 
-        public FormattingVisitor(RazorSourceDocument source)
+        public FormattingVisitor(RazorSourceDocument source!!)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             _source = source;
             _spans = new List<FormattingSpan>();
             _currentBlockKind = FormattingBlockKind.Markup;

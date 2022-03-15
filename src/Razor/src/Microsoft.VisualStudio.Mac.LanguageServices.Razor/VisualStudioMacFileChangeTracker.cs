@@ -21,16 +21,11 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public VisualStudioMacFileChangeTracker(
             string filePath,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             FilePath = filePath;

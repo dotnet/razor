@@ -19,18 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
         [ImportingConstructor]
-        public ActivityLogRazorLogger(SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
+        public ActivityLogRazorLogger(SVsServiceProvider serviceProvider!!, JoinableTaskContext joinableTaskContext!!)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _serviceProvider = serviceProvider;
             _joinableTaskFactory = joinableTaskContext.Factory;
         }

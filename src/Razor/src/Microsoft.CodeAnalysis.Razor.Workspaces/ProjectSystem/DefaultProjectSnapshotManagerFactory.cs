@@ -20,30 +20,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         [ImportingConstructor]
         public DefaultProjectSnapshotManagerFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (triggers is null)
-            {
-                throw new ArgumentNullException(nameof(triggers));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _triggers = triggers;
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
             return new DefaultProjectSnapshotManager(
                 _projectSnapshotManagerDispatcher,
                 languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>(),

@@ -26,25 +26,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentPublisher(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            IClientLanguageServer server,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            IClientLanguageServer server!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (server is null)
-            {
-                throw new ArgumentNullException(nameof(server));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _server = server;
             _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
@@ -58,18 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override void PublishCSharp(string filePath!!, SourceText sourceText!!, int hostDocumentVersion)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_publishedCSharpData.TryGetValue(filePath, out var previouslyPublishedData))
@@ -113,18 +88,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _ = result.ReturningVoid(CancellationToken.None);
         }
 
-        public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override void PublishHtml(string filePath!!, SourceText sourceText!!, int hostDocumentVersion)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))

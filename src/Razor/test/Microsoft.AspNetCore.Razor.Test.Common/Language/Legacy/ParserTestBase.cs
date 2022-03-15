@@ -274,13 +274,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
         private class TestRazorParserOptions : RazorParserOptions
         {
-            public TestRazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind, RazorParserFeatureFlags featureFlags = null)
+            public TestRazorParserOptions(DirectiveDescriptor[] directives!!, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind, RazorParserFeatureFlags featureFlags = null)
             {
-                if (directives is null)
-                {
-                    throw new ArgumentNullException(nameof(directives));
-                }
-
                 Directives = directives;
                 DesignTime = designTime;
                 ParseLeadingDirectives = parseLeadingDirectives;
