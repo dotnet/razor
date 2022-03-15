@@ -8,7 +8,7 @@
 ![image](https://user-images.githubusercontent.com/2008729/89469594-98306f80-d72e-11ea-8ae3-4e652f9e75c6.png)
 
 5. Right click the `Microsoft.VisualStudio.Mac.RazorAddin` project and `Set As Startup Project`.
-6. Open the `~/Applications/Visual Studio.app/Contents/Resources/lib/monodevelop/bin/VisualStudio.exe.config` and update the binding redirects of the following to 42.42.42.42. This ensures WebTools can load our locally built assemblies so we need to update binding redirects. 
+6. Open the `~/Applications/Visual Studio.app/Contents/Resources/lib/monodevelop/bin/VisualStudio.exe.config` and update the binding redirects of the following to 42.42.42.42. This ensures WebTools can load our locally built assemblies so we need to update binding redirects.
     - Microsoft.VisualStudio.Editor.Razor
     - Microsoft.CodeAnalysis.Razor.Workspaces
     Example:

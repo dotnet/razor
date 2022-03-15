@@ -15,6 +15,7 @@ e.g. VS2022 17.0 Preview 1
 
 **To reproduce:**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'

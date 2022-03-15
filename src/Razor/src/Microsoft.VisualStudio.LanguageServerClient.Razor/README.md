@@ -1,11 +1,15 @@
-# Having a "proper" VS build
+# Running this extension as the "Experimental instance"
+
+## Having a "proper" VS build
+
 1. From an Administrator Powershell prompt run \\vspreinstall\PREINSTALL\Preinstall.cmd
-1. Install the VS Enterprise->Branch Channel of Visual Studio from the latest successful build of http://ddweb/dashboard/vsbuild/.
+1. Install the VS Enterprise->Branch Channel of Visual Studio from the latest successful build of <http://ddweb/dashboard/vsbuild/>.
 1. Workloads: ASP.NET and web dev., VS extension dev., .NET Core cross-platform dev., .NET desktop Dev.
 
-# Using the Razor LSP Editor
+## Using the Razor LSP Editor
 
 ## On VS Master
+
 Tools>Options>Environment>Preview Features>Enable LSP powered Razor editor.
 
 ## On VS public builds
@@ -14,18 +18,20 @@ The above bits aren't yet public though, so if you have to use a master build se
 
 After doing either of the above running the `Microsoft.VisualStudio.RazorExtension` project will then result in `.razor` and `.cshtml` files being opened with our LSP editor.
 
-
-# FAQ
+## FAQ
 
 ### How do I view the logs?
+
 Logs are off by default. If you'd like to adjust that set the `RAZOR_TRACE` environment variable to `Verbose`, `Messages` or `Off` depending on your needs.
 
 ### Opening a project results in my Razor file saying "waiting for IntelliSense to initialize", why does it never stop?
+
 This is a combo issue dealing with how Visual Studio serializes project state after a feature flag / environment variable has been set. Basically, prior to setting `Razor.LSP.Editor` Visual Studio will have serialized project state that says a Razor file was opened with the WTE editor. Therefore, when you first open a project that Razor file will attempt to be opened under the WTE editor but the core editor will conflict saying it should be opened by our editor. This results in the endless behavior of "waiting for IntelliSense to initialize".
 
 Close and re-open the file and it shouldn't re-occur if you re-save the solution.
 
 ### VS isn't actually using my locally built LSP, what do?
+
 1. Double-check that you have `Razor.LSP.Editor` set to true, have set the Preview feature switch, and that you have built the project.
 1. Close and re-open the offending file, see if it works once re-opened (a known issue causes this behavior).
 1. Put a breakpoint in the RazorEditorFactory.CreateEditorInstance when opening a new Razor doc, does it get hit?
