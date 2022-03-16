@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 
@@ -50,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         protected ILoggerFactory LoggerFactory { get; }
 
-        protected static AdhocWorkspace CreateTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files)
+        protected static AdhocWorkspace CreateTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
         {
             var workspace = TestWorkspace.Create() as AdhocWorkspace;
 
@@ -72,7 +73,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
             // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's a special constructor in Roslyn that will
             // help identify the document as belonging to Razor.
-            var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
             var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
 
             var documentCount = 0;
@@ -94,10 +94,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             return workspace;
         }
 
-        protected static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(AdhocWorkspace workspace, ServerCapabilities serverCapabilities)
+        protected static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(AdhocWorkspace workspace, ExportProvider exportProvider, ServerCapabilities serverCapabilities)
         {
             var clientCapabilities = new ClientCapabilities();
-            var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, clientCapabilities, serverCapabilities).ConfigureAwait(false);
+            var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
             return testLspServer;
         }
 
