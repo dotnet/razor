@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using StreamJsonRpc;
@@ -28,6 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 
         private CSharpTestLspServer(
             AdhocWorkspace testWorkspace,
+            ExportProvider exportProvider,
             ServerCapabilities serverCapabilities)
         {
             _testWorkspace = testWorkspace;
@@ -41,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, serverCapabilities);
+            _languageServer = CreateLanguageServer(_serverRpc, testWorkspace, exportProvider, serverCapabilities);
 
             _clientMessageFormatter = CreateJsonMessageFormatter();
             _clientMessageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, _clientMessageFormatter);
@@ -62,11 +64,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             static IRazorLanguageServerTarget CreateLanguageServer(
                 StreamJsonRpc.JsonRpc serverRpc,
                 Workspace workspace,
+                ExportProvider exportProvider,
                 ServerCapabilities serverCapabilities)
             {
                 var capabilitiesProvider = new RazorCapabilitiesProvider(serverCapabilities);
 
-                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
                 var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
                 registrationService.Register(workspace);
 
@@ -80,18 +82,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 
         internal static async Task<CSharpTestLspServer> CreateAsync(
             AdhocWorkspace testWorkspace,
+            ExportProvider exportProvider,
             ClientCapabilities clientCapabilities,
             ServerCapabilities serverCapabilities)
         {
-            var server = new CSharpTestLspServer(testWorkspace, serverCapabilities);
+            var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities);
 
             await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams
             {
                 Capabilities = clientCapabilities,
             }, CancellationToken.None);
 
+            await server.ExecuteRequestAsync(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
             return server;
         }
+
+        internal async Task ExecuteRequestAsync<RequestType>(
+            string methodName,
+            RequestType request,
+            CancellationToken cancellationToken) where RequestType : class
+            => await _clientRpc.InvokeWithParameterObjectAsync(
+                methodName,
+                request,
+                cancellationToken).ConfigureAwait(false);
 
         internal async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
@@ -100,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             => await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
                 methodName,
                 request,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
         public async ValueTask DisposeAsync()
         {
