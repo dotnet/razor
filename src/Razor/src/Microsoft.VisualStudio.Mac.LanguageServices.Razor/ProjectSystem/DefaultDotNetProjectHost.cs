@@ -20,29 +20,39 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
+        private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
         private MacRazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
             DotNetProject project!!,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
             VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!)
+            TextBufferProjectService projectService!!,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
         {
             _project = project;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
+            _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         // Internal for testing
         internal DefaultDotNetProjectHost(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
             VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!)
+            TextBufferProjectService projectService!!,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
         {
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
+            _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         public override DotNetProject Project => _project;
@@ -87,12 +97,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 if (_project.IsCapabilityMatch(ExplicitRazorConfigurationCapability))
                 {
                     // SDK >= 2.1
-                    _razorProjectHost = new DefaultMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                    _razorProjectHost = new DefaultMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager, _projectConfigurationFilePathStore, _languageServerFeatureOptions);
                     return;
                 }
 
                 // We're an older version of Razor at this point, SDK < 2.1
-                _razorProjectHost = new FallbackMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                _razorProjectHost = new FallbackMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager, _projectConfigurationFilePathStore, _languageServerFeatureOptions);
             }, CancellationToken.None);
         }
 

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Projects;
 using MonoDevelop.Projects.MSBuild;
 
@@ -27,15 +28,18 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private const string RazorConfigurationItemTypeExtensionsProperty = "Extensions";
         private const string RootNamespaceProperty = "RootNamespace";
         private const string ContentItemType = "Content";
-
+        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
         private IReadOnlyList<string> _currentRazorFilePaths = Array.Empty<string>();
 
         public DefaultMacRazorProjectHost(
             DotNetProject project,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
+            ProjectSnapshotManagerBase projectSnapshotManager,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
         {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         protected override async Task OnProjectChangedAsync()
@@ -44,6 +48,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             {
                 var projectProperties = DotNetProject.MSBuildProject.EvaluatedProperties;
                 var projectItems = DotNetProject.MSBuildProject.EvaluatedItems;
+
+                if (TryGetIntermediateOutputPath(projectProperties, out var intermediatePath))
+                {
+                    var projectRazorJson = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    ProjectConfigurationFilePathStore.Set(DotNetProject.FileName.FullPath, projectRazorJson);
+                }
 
                 if (TryGetConfiguration(projectProperties, projectItems, out var configuration))
                 {

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IUnconfiguredProjectCommonServices commonServices!!,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace!!,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!)
             : base(commonServices.ThreadingService.JoinableTaskContext)
         {
             CommonServices = commonServices;
