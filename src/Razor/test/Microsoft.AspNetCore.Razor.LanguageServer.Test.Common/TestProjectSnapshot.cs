@@ -53,13 +53,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             return testProject;
         }
 
-        private TestProjectSnapshot(ProjectState projectState)
+        private TestProjectSnapshot(ProjectState projectState!!)
             : base(projectState)
         {
-            if (projectState is null)
-            {
-                throw new ArgumentNullException(nameof(projectState));
-            }
         }
 
         public override VersionStamp Version => throw new NotImplementedException();

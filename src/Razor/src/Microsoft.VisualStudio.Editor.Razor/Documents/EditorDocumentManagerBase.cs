@@ -25,25 +25,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         protected readonly object Lock;
 
         public EditorDocumentManagerBase(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext,
-            FileChangeTrackerFactory fileChangeTrackerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            JoinableTaskContext joinableTaskContext!!,
+            FileChangeTrackerFactory fileChangeTrackerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (fileChangeTrackerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
-            }
-
             ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             JoinableTaskContext = joinableTaskContext;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
@@ -150,18 +135,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        protected void DocumentOpened(string filePath, ITextBuffer textBuffer)
+        protected void DocumentOpened(string filePath!!, ITextBuffer textBuffer!!)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             JoinableTaskContext.AssertUIThread();
 
             lock (Lock)
@@ -179,13 +154,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        protected void DocumentClosed(string filePath)
+        protected void DocumentClosed(string filePath!!)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             JoinableTaskContext.AssertUIThread();
 
             lock (Lock)
@@ -203,13 +173,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public sealed override void RemoveDocument(EditorDocument document)
+        public sealed override void RemoveDocument(EditorDocument document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             JoinableTaskContext.AssertUIThread();
 
             lock (Lock)

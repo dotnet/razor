@@ -16,13 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
         private static readonly Container<ColorInformation> EmptyDocumentColors = new Container<ColorInformation>();
         private readonly ClientNotifierServiceBase _languageServer;
 
-        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
+        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer!!)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             _languageServer = languageServer;
         }
         public DocumentColorRegistrationOptions GetRegistrationOptions(ColorProviderCapability capability, ClientCapabilities clientCapabilities)

@@ -42,19 +42,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
-            ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+            ProjectWorkspaceStateGenerator workspaceStateGenerator!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
-            if (workspaceStateGenerator is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceStateGenerator));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
             _workspaceStateGenerator = workspaceStateGenerator;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
@@ -123,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
-                                var project = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                var project = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
@@ -135,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
-                                var project = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                var project = state.NewSolution.GetRequiredProject(state.ProjectId!);
 
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
@@ -147,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
-                                var project = state.OldSolution.GetRequiredProject(state.ProjectId);
+                                var project = state.OldSolution.GetRequiredProject(state.ProjectId!);
 
                                 if (state.self.TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
                                 {
@@ -165,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 // This is the case when a component declaration file changes on disk. We have an MSBuild
                                 // generator configured by the SDK that will poke these files on disk when a component
                                 // is saved, or loses focus in the editor.
-                                var project = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                var project = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                 var newDocument = project.GetDocument(state.DocumentId!);
 
                                 if (newDocument?.FilePath is null)
@@ -194,8 +184,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
-                                var project = state.OldSolution.GetRequiredProject(state.ProjectId);
-                                var removedDocument = project.GetRequiredDocument(state.DocumentId);
+                                var project = state.OldSolution.GetRequiredProject(state.ProjectId!);
+                                var removedDocument = project.GetRequiredDocument(state.DocumentId!);
 
                                 if (removedDocument.FilePath is null)
                                 {
@@ -228,8 +218,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 // This is the case when a component declaration file changes on disk. We have an MSBuild
                                 // generator configured by the SDK that will poke these files on disk when a component
                                 // is saved, or loses focus in the editor.
-                                var project = state.OldSolution.GetRequiredProject(state.ProjectId);
-                                var document = project.GetRequiredDocument(state.DocumentId);
+                                var project = state.OldSolution.GetRequiredProject(state.ProjectId!);
+                                var document = project.GetRequiredDocument(state.DocumentId!);
 
                                 if (document.FilePath is null)
                                 {
@@ -238,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (IsRazorFileOrRazorVirtual(document))
                                 {
-                                    var newProject = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                    var newProject = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                     state.self.EnqueueUpdateOnProjectAndDependencies(newProject, state.NewSolution);
                                     return;
                                 }
@@ -247,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (state.self.IsPartialComponentClass(document))
                                 {
-                                    var newProject = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                    var newProject = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                     state.self.EnqueueUpdateOnProjectAndDependencies(newProject, state.NewSolution);
                                 }
                             },
@@ -470,25 +460,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public UpdateWorkspaceWorkItem(
                 Project? workspaceProject,
-                ProjectSnapshot projectSnapshot,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator,
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+                ProjectSnapshot projectSnapshot!!,
+                ProjectWorkspaceStateGenerator workspaceStateGenerator!!,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
             {
-                if (projectSnapshot is null)
-                {
-                    throw new ArgumentNullException(nameof(projectSnapshot));
-                }
-
-                if (workspaceStateGenerator is null)
-                {
-                    throw new ArgumentNullException(nameof(workspaceStateGenerator));
-                }
-
-                if (projectSnapshotManagerDispatcher is null)
-                {
-                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-                }
-
                 _workspaceProject = workspaceProject;
                 _projectSnapshot = projectSnapshot;
                 _workspaceStateGenerator = workspaceStateGenerator;

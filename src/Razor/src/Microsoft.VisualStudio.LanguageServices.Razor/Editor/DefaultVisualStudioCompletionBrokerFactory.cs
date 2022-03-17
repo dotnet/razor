@@ -20,23 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
         private readonly ICompletionBroker _completionBroker;
 
         [ImportingConstructor]
-        public DefaultVisualStudioCompletionBrokerFactory(ICompletionBroker completionBroker)
+        public DefaultVisualStudioCompletionBrokerFactory(ICompletionBroker completionBroker!!)
         {
-            if (completionBroker is null)
-            {
-                throw new ArgumentNullException(nameof(completionBroker));
-            }
-
             _completionBroker = completionBroker;
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
             return new DefaultVisualStudioCompletionBroker(_completionBroker);
         }
     }

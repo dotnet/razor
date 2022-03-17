@@ -198,13 +198,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 _outerLock = outerLock;
             }
 
-            public TextContainer(SourceText sourceText)
+            public TextContainer(SourceText sourceText!!)
             {
-                if (sourceText is null)
-                {
-                    throw new ArgumentNullException(nameof(sourceText));
-                }
-
                 _currentText = sourceText;
             }
 
@@ -219,13 +214,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
             }
 
-            public void SetText(SourceText sourceText)
+            public void SetText(SourceText sourceText!!)
             {
-                if (sourceText is null)
-                {
-                    throw new ArgumentNullException(nameof(sourceText));
-                }
-
                 lock (_outerLock)
                 {
 

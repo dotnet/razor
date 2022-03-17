@@ -23,18 +23,8 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// </summary>
         /// <param name="extensionName">The name of the extension.</param>
         /// <param name="assemblyName">The assembly name of the extension.</param>
-        public RazorExtensionAssemblyNameAttribute(string extensionName, string assemblyName)
+        public RazorExtensionAssemblyNameAttribute(string extensionName!!, string assemblyName!!)
         {
-            if (extensionName is null)
-            {
-                throw new ArgumentNullException(nameof(extensionName));
-            }
-
-            if (assemblyName is null)
-            {
-                throw new ArgumentNullException(nameof(assemblyName));
-            }
-
             ExtensionName = extensionName;
             AssemblyName = assemblyName;
         }

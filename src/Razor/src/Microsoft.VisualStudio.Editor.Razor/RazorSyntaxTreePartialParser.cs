@@ -15,13 +15,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private SyntaxNode _lastChangeOwner;
         private bool _lastResultProvisional;
 
-        public RazorSyntaxTreePartialParser(RazorSyntaxTree syntaxTree)
+        public RazorSyntaxTreePartialParser(RazorSyntaxTree syntaxTree!!)
         {
-            if (syntaxTree is null)
-            {
-                throw new ArgumentNullException(nameof(syntaxTree));
-            }
-
             OriginalSyntaxTree = syntaxTree;
             ModifiedSyntaxTreeRoot = syntaxTree.Root;
         }

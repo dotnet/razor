@@ -1,5 +1,4 @@
-ASP.NET Core Razor Tooling
-====================
+# ASP.NET Core Razor Tooling
 
 Razor Tooling is the open-source implementation for the [Razor](https://docs.microsoft.com/en-us/aspnet/core/razor-pages) IDE experience in ASP.NET Core. It contains tools for working on Razor ASP.NET Core apps using [Visual Studio](https://visualstudio.com), [Visual Studio for Mac](https://visualstudio.microsoft.com/vs/mac/), and [Visual Studio Code](https://code.visualstudio.com/).
 
@@ -11,13 +10,14 @@ and make pull requests.
 * Check out the [contributing](CONTRIBUTING.md) page to see the best places to log issues, start discussions, and for general contributing guidelines.
 * [Instructions to build Razor Tooling source code](https://github.com/dotnet/razor-tooling/blob/main/docs/contributing/BuildFromSource.md)
 * Follow along with the development of ASP.NET Core:
-    * [Community Standup](http://live.asp.net): The community standup is held every week and streamed live to YouTube. You can view past standups in the linked playlist.
+  * [Community Standup](http://live.asp.net): The community standup is held every week and streamed live to YouTube. You can view past standups in the linked playlist.
 
 ## Getting Started with Razor
 
 If you are unfamiliar with ASP.NET Core or Razor, follow the links below to learn more:
-- ASP.NET Core apps: Follow the [Getting Started](https://docs.microsoft.com/aspnet/core/getting-started) instructions in the [ASP.NET Core docs](https://docs.microsoft.com/aspnet/index). 
-- Razor pages: Visit the [tutorial](https://docs.microsoft.com/en-us/aspnet/core/tutorials/razor-pages/razor-pages-start?view=aspnetcore-5.0&tabs=visual-studio) on getting started with Razor pages.
+
+* ASP.NET Core apps: Follow the [Getting Started](https://docs.microsoft.com/aspnet/core/getting-started) instructions in the [ASP.NET Core docs](https://docs.microsoft.com/aspnet/index).
+* Razor pages: Visit the [tutorial](https://docs.microsoft.com/en-us/aspnet/core/tutorials/razor-pages/razor-pages-start?view=aspnetcore-5.0&tabs=visual-studio) on getting started with Razor pages.
 
 Also check out the [.NET Homepage](https://www.microsoft.com/net) for released versions of .NET, getting started guides, and learning resources.
 
@@ -37,7 +37,7 @@ Security issues and bugs should be reported privately, via email, to the Microso
 These are some other repos for related projects:
 
 * [ASP.NET Core](https://github.com/dotnet/aspnetcore) - the ASP.NET Core framework
-* [Documentation](https://github.com/aspnet/Docs) - documentation sources for https://docs.microsoft.com/aspnet/core/
+* [Documentation](https://github.com/aspnet/Docs) - documentation sources for <https://docs.microsoft.com/aspnet/core/>
 * [Extensions](https://github.com/dotnet/extensions) - Logging, configuration, dependency injection, and more.
 
 ## Code of conduct

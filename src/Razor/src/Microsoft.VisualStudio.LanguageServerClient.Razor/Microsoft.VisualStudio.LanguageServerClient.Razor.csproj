@@ -10,8 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.LiveShare.Razor\Microsoft.VisualStudio.LiveShare.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Editor.Razor\Microsoft.VisualStudio.Editor.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
   </ItemGroup>
 
@@ -19,8 +19,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion)" NoWarn="NU1608" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(OmniSharpMicrosoftExtensionsLoggingPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="$(MicrosoftVisualStudioProjectSystemSDKPackageVersion)" />
-    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(MicrosoftInternalVisualStudioShellFrameworkPackageVersion)" />
   </ItemGroup>
 
 </Project>

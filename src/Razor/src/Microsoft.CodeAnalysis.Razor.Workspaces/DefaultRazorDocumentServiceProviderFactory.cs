@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
     [Export(typeof(RazorDocumentServiceProviderFactory))]
     internal class DefaultRazorDocumentServiceProviderFactory : RazorDocumentServiceProviderFactory
     {
-        public override IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer)
+        public override IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer!!)
         {
-            if (documentContainer is null)
-            {
-                throw new ArgumentNullException(nameof(documentContainer));
-            }
-
             return new RazorDocumentServiceProvider(documentContainer);
         }
 

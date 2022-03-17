@@ -32,40 +32,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task WaitForCurrentLineTextAsync(string text, CancellationToken cancellationToken)
         {
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            using var semaphore = new SemaphoreSlim(1);
-            await semaphore.WaitAsync(cancellationToken);
-
-            var caret = view.Caret.Position.BufferPosition;
-            var line = view.TextBuffer.CurrentSnapshot.GetLineFromPosition(caret).GetText();
-            if (line.Trim() == text.Trim())
-            {
-                semaphore.Release();
-                view.Caret.PositionChanged -= Caret_PositionChanged;
-                return;
-            }
-
-            view.Caret.PositionChanged += Caret_PositionChanged;
-
-            try
-            {
-                await semaphore.WaitAsync(cancellationToken);
-            }
-            finally
-            {
-                view.Caret.PositionChanged -= Caret_PositionChanged;
-            }
-
-            void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
-            {
-                var caret = view.Caret.Position.BufferPosition;
-                var line = view.TextBuffer.CurrentSnapshot.GetLineFromPosition(caret).GetText();
-                if (line.Trim() == text.Trim())
+            await Helper.RetryAsync(async ct =>
                 {
-                    semaphore.Release();
-                }
-            }
+                    var view = await GetActiveTextViewAsync(cancellationToken);
+                    var caret = view.Caret.Position.BufferPosition;
+                    var line = view.TextBuffer.CurrentSnapshot.GetLineFromPosition(caret).GetText();
+
+                    return line.Trim() == text.Trim();
+                },
+                TimeSpan.FromMilliseconds(50),
+                cancellationToken);
         }
 
         public async Task WaitForActiveWindowAsync(string windowTitle, CancellationToken cancellationToken)

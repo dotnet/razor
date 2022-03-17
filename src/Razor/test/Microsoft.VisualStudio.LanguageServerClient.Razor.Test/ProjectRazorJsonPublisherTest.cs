@@ -22,8 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
     public class ProjectRazorJsonPublisherTest : LanguageServerTestBase
     {
-        private readonly RazorLogger _razorLogger = Mock.Of<RazorLogger>(MockBehavior.Strict);
-
         public ProjectRazorJsonPublisherTest()
         {
             ProjectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
@@ -48,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(expectedProjectSnapshot, snapshot);
@@ -84,7 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.ProjectAdded(hostProject);
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10,
@@ -110,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentAdded(hostProject, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10,
@@ -140,7 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectConfigurationFilePathStore.Set(projectSnapshot.FilePath, expectedConfigurationFilePath);
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
@@ -171,7 +165,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(projectSnapshot, snapshot);
@@ -206,7 +199,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var aboutToChange = false;
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     if (!aboutToChange)
@@ -252,7 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10,
@@ -283,7 +274,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(secondSnapshot, snapshot);
@@ -317,7 +307,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\objbin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(secondSnapshot, snapshot);
@@ -357,7 +346,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(secondSnapshot, snapshot);
@@ -386,8 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var publisher = new TestProjectRazorJsonPublisher(
-                ProjectConfigurationFilePathStore,
-                _razorLogger)
+                ProjectConfigurationFilePathStore)
             {
                 _active = true,
             };
@@ -407,7 +394,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(omniSharpProjectSnapshot, snapshot);
@@ -436,7 +422,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
@@ -471,7 +456,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.True(false, "Serialization should not have been atempted because there is no ProjectWorkspaceState.");
@@ -498,8 +482,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var publisher = new TestProjectRazorJsonPublisher(
-                ProjectConfigurationFilePathStore,
-                _razorLogger)
+                ProjectConfigurationFilePathStore)
             {
                 _active = true,
             };
@@ -522,7 +505,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             var publisher = new TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore,
-                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
@@ -615,11 +597,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             public TestProjectRazorJsonPublisher(
                 ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
-                RazorLogger logger,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 bool shouldSerialize = true,
                 bool useRealShouldSerialize = false)
-                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
+                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), TestRazorLogger.Instance)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;

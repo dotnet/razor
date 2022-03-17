@@ -31,18 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly Lazy<LSPDocumentManager> _lazyDocumentManager;
 
         [ImportingConstructor]
-        public DefaultLSPDocumentMappingProvider(LSPRequestInvoker requestInvoker, Lazy<LSPDocumentManager> lazyDocumentManager)
+        public DefaultLSPDocumentMappingProvider(LSPRequestInvoker requestInvoker!!, Lazy<LSPDocumentManager> lazyDocumentManager!!)
         {
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (lazyDocumentManager is null)
-            {
-                throw new ArgumentNullException(nameof(lazyDocumentManager));
-            }
-
             _requestInvoker = requestInvoker;
             _lazyDocumentManager = lazyDocumentManager;
         }
@@ -52,21 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public async override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(
             RazorLanguageKind languageKind,
-            Uri razorDocumentUri,
-            Range[] projectedRanges,
+            Uri razorDocumentUri!!,
+            Range[] projectedRanges!!,
             LanguageServerMappingBehavior mappingBehavior,
             CancellationToken cancellationToken)
         {
-            if (razorDocumentUri is null)
-            {
-                throw new ArgumentNullException(nameof(razorDocumentUri));
-            }
-
-            if (projectedRanges is null)
-            {
-                throw new ArgumentNullException(nameof(projectedRanges));
-            }
-
             var mapToDocumentRangeParams = new RazorMapToDocumentRangesParams()
             {
                 Kind = languageKind,
@@ -91,13 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return documentMappingResponse?.Response;
         }
 
-        public async override Task<Location[]> RemapLocationsAsync(Location[] locations, CancellationToken cancellationToken)
+        public async override Task<Location[]> RemapLocationsAsync(Location[] locations!!, CancellationToken cancellationToken)
         {
-            if (locations is null)
-            {
-                throw new ArgumentNullException(nameof(locations));
-            }
-
             var remappedLocations = new List<Location>();
             foreach (var location in locations)
             {
@@ -154,18 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedLocations.ToArray();
         }
 
-        public async override Task<TextEdit[]> RemapTextEditsAsync(Uri uri, TextEdit[] edits, CancellationToken cancellationToken)
+        public async override Task<TextEdit[]> RemapTextEditsAsync(Uri uri!!, TextEdit[] edits!!, CancellationToken cancellationToken)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (edits is null)
-            {
-                throw new ArgumentNullException(nameof(edits));
-            }
-
             if (!RazorLSPConventions.IsVirtualCSharpFile(uri) && !RazorLSPConventions.IsVirtualHtmlFile(uri))
             {
                 // This is not a virtual razor file. No need to remap.
@@ -176,18 +141,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedEdits;
         }
 
-        public async override Task<TextEdit[]> RemapFormattedTextEditsAsync(Uri uri, TextEdit[] edits, FormattingOptions options, bool containsSnippet, CancellationToken cancellationToken)
+        public async override Task<TextEdit[]> RemapFormattedTextEditsAsync(Uri uri!!, TextEdit[] edits!!, FormattingOptions options, bool containsSnippet, CancellationToken cancellationToken)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (edits is null)
-            {
-                throw new ArgumentNullException(nameof(edits));
-            }
-
             if (!RazorLSPConventions.IsVirtualCSharpFile(uri) && !RazorLSPConventions.IsVirtualHtmlFile(uri))
             {
                 // This is not a virtual razor file. No need to remap.

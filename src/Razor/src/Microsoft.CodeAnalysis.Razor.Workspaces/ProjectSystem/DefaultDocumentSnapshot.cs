@@ -13,18 +13,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class DefaultDocumentSnapshot : DocumentSnapshot
     {
-        public DefaultDocumentSnapshot(DefaultProjectSnapshot project, DocumentState state)
+        public DefaultDocumentSnapshot(DefaultProjectSnapshot project!!, DocumentState state!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (state is null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
             ProjectInternal = project;
             State = state;
         }

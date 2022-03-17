@@ -21,13 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ILogger _logger;
 
-        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
+        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory!!) : base()
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
         }
 
@@ -201,18 +196,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument!!, Range projectedRange!!, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
-            if (projectedRange is null)
-            {
-                throw new ArgumentNullException(nameof(projectedRange));
-            }
-
             if (mappingBehavior == MappingBehavior.Strict)
             {
                 return TryMapFromProjectedDocumentRangeStrict(codeDocument, projectedRange, out originalRange);
@@ -227,18 +212,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
+        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument!!, Range originalRange!!, [NotNullWhen(true)] out Range? projectedRange)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
-            if (originalRange is null)
-            {
-                throw new ArgumentNullException(nameof(originalRange));
-            }
-
             projectedRange = default;
 
             if ((originalRange.End.Line < originalRange.Start.Line) ||
@@ -288,13 +263,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
+        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument!!, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {
@@ -328,13 +298,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public override bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
             => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
 
-        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument!!, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {
@@ -382,13 +347,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex)
+        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument!!, int originalIndex)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
             var syntaxTree = codeDocument.GetSyntaxTree();
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             var tagHelperSpans = syntaxTree.GetTagHelperSpans();

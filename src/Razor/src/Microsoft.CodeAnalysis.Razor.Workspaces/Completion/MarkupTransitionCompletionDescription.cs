@@ -11,13 +11,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     {
         public override string Description { get; }
 
-        public MarkupTransitionCompletionDescription(string description)
+        public MarkupTransitionCompletionDescription(string description!!)
         {
-            if (description is null)
-            {
-                throw new ArgumentNullException(nameof(description));
-            }
-
             Description = description;
         }
     }

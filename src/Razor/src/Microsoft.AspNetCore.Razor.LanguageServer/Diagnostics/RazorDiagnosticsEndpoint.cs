@@ -41,37 +41,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         private readonly ILogger _logger;
 
         public RazorDiagnosticsEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
-            RazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            DocumentVersionCache documentVersionCache!!,
+            RazorDocumentMappingService documentMappingService!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
@@ -79,13 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             _logger = loggerFactory.CreateLogger<RazorDiagnosticsEndpoint>();
         }
 
-        public async Task<RazorDiagnosticsResponse> Handle(RazorDiagnosticsParams request, CancellationToken cancellationToken)
+        public async Task<RazorDiagnosticsResponse> Handle(RazorDiagnosticsParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             _logger.LogInformation($"Received {request.Kind:G} diagnostic request for {request.RazorDocumentUri} with {request.Diagnostics.Length} diagnostics.");
 
             cancellationToken.ThrowIfCancellationRequested();

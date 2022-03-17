@@ -409,13 +409,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // We don't want to classify TagNames of well-known HTML
         // elements as TagHelpers (even if they are). So the 'input' in`<input @onclick='...' />`
         // needs to not be marked as a TagHelper, but `<Input @onclick='...' />` should be.
-        private static bool ClassifyTagName(MarkupTagHelperElementSyntax node)
+        private static bool ClassifyTagName(MarkupTagHelperElementSyntax node!!)
         {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
             if (node.StartTag != null && node.StartTag.Name != null)
             {
                 var binding = node.TagHelperInfo.BindingResult;

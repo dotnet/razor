@@ -16,18 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             End = new Position(-1, -1)
         };
 
-        public static bool OverlapsWith(this Range range, Range other)
+        public static bool OverlapsWith(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -44,18 +34,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this Range range, Range other)
+        public static bool LineOverlapsWith(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             var overlapStart = range.Start.Line;
             if (range.Start.Line.CompareTo(other.Start.Line) < 0)
             {
@@ -71,18 +51,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static Range? Overlap(this Range range, Range other)
+        public static Range? Overlap(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -104,33 +74,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return null;
         }
 
-        public static bool Contains(this Range range, Range other)
+        public static bool Contains(this Range range!!, Range other!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
-        public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
+        public static TextSpan AsTextSpan(this Range range!!, SourceText sourceText!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             if (range.Start.Line >= sourceText.Lines.Count)
             {
                 throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
@@ -153,18 +103,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new TextSpan(start, length);
         }
 
-        public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range!!, SourceText sourceText!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             if (range.Start.Line >= sourceText.Lines.Count)
             {
                 throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
@@ -187,13 +127,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this Range range)
+        public static bool IsUndefined(this Range range!!)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
             return range == UndefinedRange;
         }
     }

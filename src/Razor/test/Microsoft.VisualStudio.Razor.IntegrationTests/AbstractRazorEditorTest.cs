@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         internal static readonly string IndexRazorFile = Path.Combine(s_pagesDir, "Index.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
         internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
+        internal static readonly string ErrorCshtmlFile = Path.Combine(s_pagesDir, "Error.cshtml");
         internal static readonly string ImportsRazorFile = "_Imports.razor";
 
         internal static readonly string MainLayoutContent = @"@inherits LayoutComponentBase

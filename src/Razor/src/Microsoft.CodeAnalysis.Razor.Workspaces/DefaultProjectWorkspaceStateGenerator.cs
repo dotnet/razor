@@ -29,13 +29,8 @@ namespace Microsoft.CodeAnalysis.Razor
         private bool _disposed;
 
         [ImportingConstructor]
-        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _semaphore = new SemaphoreSlim(initialCount: 1);
@@ -48,25 +43,15 @@ namespace Microsoft.CodeAnalysis.Razor
         // Used in unit tests to ensure we can know when background work finishes.
         public ManualResetEventSlim NotifyBackgroundWorkCompleted { get; set; }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
         {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectManager = projectManager;
 
             _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<TagHelperResolver>();
         }
 
-        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot!!, CancellationToken cancellationToken)
         {
-            if (projectSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshot));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_disposed)
@@ -246,18 +231,8 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal class UpdateItem
         {
-            public UpdateItem(Task task, CancellationTokenSource cts)
+            public UpdateItem(Task task!!, CancellationTokenSource cts!!)
             {
-                if (task is null)
-                {
-                    throw new ArgumentNullException(nameof(task));
-                }
-
-                if (cts is null)
-                {
-                    throw new ArgumentNullException(nameof(cts));
-                }
-
                 Task = task;
                 Cts = cts;
             }

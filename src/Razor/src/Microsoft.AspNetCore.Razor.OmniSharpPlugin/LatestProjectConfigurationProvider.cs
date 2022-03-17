@@ -222,13 +222,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         /// </summary>
         /// <param name="targetPath">The TargetPath to be normalized.</param>
         /// <returns>A normalized TargetPath</returns>
-        internal static string NormalizeTargetPath(string targetPath)
+        internal static string NormalizeTargetPath(string targetPath!!)
         {
-            if (targetPath is null)
-            {
-                throw new ArgumentNullException(nameof(targetPath));
-            }
-
             var normalizedTargetPath = targetPath.Replace('/', '\\');
             normalizedTargetPath = normalizedTargetPath.TrimStart('\\');
             return normalizedTargetPath;
@@ -237,26 +232,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private class ProjectSystemRazorConfiguration : RazorConfiguration
         {
             public ProjectSystemRazorConfiguration(
-                RazorLanguageVersion languageVersion,
-                string configurationName,
-                RazorExtension[] extensions,
+                RazorLanguageVersion languageVersion!!,
+                string configurationName!!,
+                RazorExtension[] extensions!!,
                 bool useConsolidatedMvcViews = false)
             {
-                if (languageVersion is null)
-                {
-                    throw new ArgumentNullException(nameof(languageVersion));
-                }
-
-                if (configurationName is null)
-                {
-                    throw new ArgumentNullException(nameof(configurationName));
-                }
-
-                if (extensions is null)
-                {
-                    throw new ArgumentNullException(nameof(extensions));
-                }
-
                 LanguageVersion = languageVersion;
                 ConfigurationName = configurationName;
                 Extensions = extensions;
@@ -274,13 +254,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         internal class ProjectSystemRazorExtension : RazorExtension
         {
-            public ProjectSystemRazorExtension(string extensionName)
+            public ProjectSystemRazorExtension(string extensionName!!)
             {
-                if (extensionName is null)
-                {
-                    throw new ArgumentNullException(nameof(extensionName));
-                }
-
                 ExtensionName = extensionName;
             }
 

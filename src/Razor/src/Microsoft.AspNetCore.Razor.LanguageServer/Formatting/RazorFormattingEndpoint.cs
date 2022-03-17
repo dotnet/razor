@@ -3,15 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,63 +27,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly RazorDocumentMappingService _razorDocumentMappingService;
-        private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
         private readonly ILogger _logger;
 
         private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
-        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = Array.Empty<string>();
+        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = new[] { "\n", "{", "}", ";" };
         private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
         public RazorFormattingEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            RazorFormattingService razorFormattingService,
-            RazorDocumentMappingService razorDocumentMappingService,
-            AdhocWorkspaceFactory adhocWorkspaceFactory,
-            IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            RazorFormattingService razorFormattingService!!,
+            RazorDocumentMappingService razorDocumentMappingService!!,
+            IOptionsMonitor<RazorLSPOptions> optionsMonitor!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (razorFormattingService is null)
-            {
-                throw new ArgumentNullException(nameof(razorFormattingService));
-            }
-
-            if (razorDocumentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(razorDocumentMappingService));
-            }
-
-            if (adhocWorkspaceFactory is null)
-            {
-                throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
-            }
-
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
             _razorDocumentMappingService = razorDocumentMappingService;
-            _adhocWorkspaceFactory = adhocWorkspaceFactory;
             _optionsMonitor = optionsMonitor;
             _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
@@ -229,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
-            if (triggerCharacterKind is not RazorLanguageKind.CSharp)
+            if (triggerCharacterKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
             {
                 _logger.LogInformation($"Unsupported trigger character language {triggerCharacterKind:G}.");
                 return null;
@@ -242,32 +202,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            if (!_razorDocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out var projectedIndex))
-            {
-                _logger.LogWarning($"Failed to map to projected position for document {request.TextDocument.Uri}.");
-                return null;
-            }
-
-            using var formattingContext = FormattingContext.Create(
-                request.TextDocument.Uri, documentSnapshot, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true, automaticallyAddUsings: false);
-            var documentOptions = await GetDocumentOptionsAsync(request, formattingContext.CSharpWorkspaceDocument).ConfigureAwait(false);
-
-            // Ask C# for formatting changes.
-            var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                formattingContext.CSharpWorkspaceDocument, typedChar: request.Character[0], projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
-            if (formattingChanges.IsEmpty)
-            {
-                _logger.LogInformation("Received no results.");
-                return null;
-            }
-
-            var textEdits = formattingChanges.Select(
-                change => Extensions.TextChangeExtensions.AsTextEdit(change, codeDocument.GetCSharpSourceText())).ToArray();
-            _logger.LogInformation($"Received {textEdits.Length} results from C#.");
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, textEdits, request.Options, cancellationToken).ConfigureAwait(false);
+            Debug.Assert(request.Character.Length > 0);
+
+            var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
             if (formattedEdits.Length == 0)
             {
                 _logger.LogInformation("No formatting changes were necessary");
@@ -291,16 +230,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Unknown trigger character.
             return false;
-        }
-
-        // Internal for testing
-        internal static async Task<DocumentOptionSet> GetDocumentOptionsAsync(DocumentOnTypeFormattingParams request, Document document)
-        {
-            var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
-            documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, request.Options.TabSize)
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, request.Options.TabSize)
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !request.Options.InsertSpaces);
-            return documentOptions;
         }
     }
 }

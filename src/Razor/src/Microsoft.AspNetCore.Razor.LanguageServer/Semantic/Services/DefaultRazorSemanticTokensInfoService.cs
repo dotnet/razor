@@ -38,24 +38,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly SemanticTokensCache _tokensCache = new();
 
         public DefaultRazorSemanticTokensInfoService(
-            ClientNotifierServiceBase languageServer,
-            RazorDocumentMappingService documentMappingService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
-            ILoggerFactory loggerFactory)
+            ClientNotifierServiceBase languageServer!!,
+            RazorDocumentMappingService documentMappingService!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            DocumentVersionCache documentVersionCache!!,
+            ILoggerFactory loggerFactory!!)
         {
-            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
+            _languageServer = languageServer;
+            _documentMappingService = documentMappingService;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
+            _documentVersionCache = documentVersionCache;
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
 
@@ -215,30 +209,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // absolute line index to use later when combining results.
                 var absoluteLine = 0;
                 var isFirstTokenInRange = true;
-                for (var tokenIndex = 0; tokenIndex < startingTokens.Data.Length; tokenIndex++)
+                for (var tokenIndex = 0; tokenIndex < startingTokens.Data.Length; tokenIndex += TokenSize)
                 {
                     // The first int of each token represents the line offset. We use this info to keep track of the
                     // absolute line for use later on when computing relative token positions.
-                    if (tokenIndex % TokenSize == 0)
+                    absoluteLine += startingTokens.Data[tokenIndex];
+
+                    // Skip tokens that are out of the range
+                    if (absoluteLine < requestedRange.Start.Line || absoluteLine >= cachedRange.Start.Line)
                     {
-                        absoluteLine += startingTokens.Data[tokenIndex];
-
-                        // Skip tokens that are out of the range
-                        if (absoluteLine < requestedRange.Start.Line || absoluteLine >= cachedRange.Start.Line)
-                        {
-                            continue;
-                        }
-
-                        // First token of the starting set should be relative to the start of the document
-                        if (isFirstTokenInRange)
-                        {
-                            finalTokens.Add(absoluteLine);
-                            isFirstTokenInRange = false;
-                            continue;
-                        }
+                        continue;
                     }
 
-                    finalTokens.Add(startingTokens.Data[tokenIndex]);
+                    // First token of the starting set should be relative to the start of the document
+                    if (isFirstTokenInRange)
+                    {
+                        finalTokens.Add(absoluteLine);
+                        isFirstTokenInRange = false;
+                    }
+                    else
+                    {
+                        finalTokens.Add(startingTokens.Data[tokenIndex]);
+                    }
+
+                    // Add the rest of the ints in the token
+                    for (var i = 1; i < TokenSize; i++)
+                    {
+                        finalTokens.Add(startingTokens.Data[tokenIndex + i]);
+                    }
                 }
 
                 return absoluteLine;
@@ -274,30 +272,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 var isFirstTokenInRange = true;
                 var absoluteLine = 0;
-                for (var tokenIndex = 0; tokenIndex < endingTokens.Data.Length; tokenIndex++)
+                for (var tokenIndex = 0; tokenIndex < endingTokens.Data.Length; tokenIndex += TokenSize)
                 {
                     // The first int of each token represents the line offset. We use this info to keep track of the
                     // absolute line for use later on when computing relative token positions.
-                    if (tokenIndex % TokenSize == 0)
+                    absoluteLine = tokenIndex == 0 ? endingTokens.Data[0] : absoluteLine + endingTokens.Data[tokenIndex];
+
+                    // Skip tokens that are out of the range
+                    if (absoluteLine < cachedRange.End.Line || absoluteLine >= requestedRange.End.Line)
                     {
-                        absoluteLine = tokenIndex == 0 ? endingTokens.Data[0] : absoluteLine + endingTokens.Data[tokenIndex];
-
-                        // Skip tokens that are out of the range
-                        if (absoluteLine < cachedRange.End.Line || absoluteLine >= requestedRange.End.Line)
-                        {
-                            continue;
-                        }
-
-                        // First token of the ending set should be relative to the end line of the cached tokens set
-                        if (isFirstTokenInRange)
-                        {
-                            finalTokens.Add(absoluteLine - cachedTokensAbsoluteEndLine);
-                            isFirstTokenInRange = false;
-                            continue;
-                        }
+                        continue;
                     }
 
-                    finalTokens.Add(endingTokens.Data[tokenIndex]);
+                    // First token of the ending set should be relative to the end line of the cached tokens set
+                    if (isFirstTokenInRange)
+                    {
+                        finalTokens.Add(absoluteLine - cachedTokensAbsoluteEndLine);
+                        isFirstTokenInRange = false;
+                    }
+                    else
+                    {
+                        finalTokens.Add(endingTokens.Data[tokenIndex]);
+                    }
+
+                    // Add the rest of the ints in the token
+                    for (var i = 1; i < TokenSize; i++)
+                    {
+                        finalTokens.Add(endingTokens.Data[tokenIndex + i]);
+                    }
                 }
             }
         }

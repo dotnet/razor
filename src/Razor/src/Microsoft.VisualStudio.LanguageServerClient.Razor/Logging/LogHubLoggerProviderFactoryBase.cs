@@ -16,13 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly SemaphoreSlim _initializationSemaphore;
         private DefaultLogHubLogWriter? _currentLogWriter;
 
-        public LogHubLoggerProviderFactoryBase(RazorLogHubTraceProvider traceProvider)
+        public LogHubLoggerProviderFactoryBase(RazorLogHubTraceProvider traceProvider!!)
         {
-            if (traceProvider is null)
-            {
-                throw new System.ArgumentNullException(nameof(traceProvider));
-            }
-
             _traceProvider = traceProvider;
 
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
@@ -42,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 var logInstanceNumber = Interlocked.Increment(ref s_logHubSessionId);
                 var traceSource = await _traceProvider.InitializeTraceAsync(logIdentifier, logInstanceNumber, cancellationToken).ConfigureAwait(false);
 
-                _currentLogWriter = new DefaultLogHubLogWriter(traceSource);
+                _currentLogWriter = new DefaultLogHubLogWriter(traceSource!);
                 var provider = new LogHubLoggerProvider(_currentLogWriter);
 
                 return provider;

@@ -30,36 +30,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         };
 
         public ProjectFileChangeDetector(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
-            IEnumerable<IProjectFileChangeListener> listeners)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            FilePathNormalizer filePathNormalizer!!,
+            IEnumerable<IProjectFileChangeListener> listeners!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            if (listeners is null)
-            {
-                throw new ArgumentNullException(nameof(listeners));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
         }
 
-        public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
+        public async Task StartAsync(string workspaceDirectory!!, CancellationToken cancellationToken)
         {
-            if (workspaceDirectory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceDirectory));
-            }
 
             // Dive through existing project files and fabricate "added" events so listeners can accurately listen to state changes for them.
 

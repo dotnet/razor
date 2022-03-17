@@ -20,34 +20,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
-        private RazorProjectHostBase _razorProjectHost;
+        private MacRazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
-            DotNetProject project,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor,
-            TextBufferProjectService projectService)
+            DotNetProject project!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
+            TextBufferProjectService projectService!!)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _project = project;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
@@ -56,25 +36,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         // Internal for testing
         internal DefaultDotNetProjectHost(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor,
-            TextBufferProjectService projectService)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
+            TextBufferProjectService projectService!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
@@ -122,12 +87,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 if (_project.IsCapabilityMatch(ExplicitRazorConfigurationCapability))
                 {
                     // SDK >= 2.1
-                    _razorProjectHost = new DefaultRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                    _razorProjectHost = new DefaultMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
                     return;
                 }
 
                 // We're an older version of Razor at this point, SDK < 2.1
-                _razorProjectHost = new FallbackRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                _razorProjectHost = new FallbackMacRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
             }, CancellationToken.None);
         }
 

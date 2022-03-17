@@ -11,18 +11,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public sealed class OmniSharpHostProject
     {
-        public OmniSharpHostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
+        public OmniSharpHostProject(string projectFilePath!!, RazorConfiguration razorConfiguration!!, string rootNamespace)
         {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            if (razorConfiguration is null)
-            {
-                throw new ArgumentNullException(nameof(razorConfiguration));
-            }
-
             InternalHostProject = new HostProject(projectFilePath, razorConfiguration, rootNamespace);
         }
 

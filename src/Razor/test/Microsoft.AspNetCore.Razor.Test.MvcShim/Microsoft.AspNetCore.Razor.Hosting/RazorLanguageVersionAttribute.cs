@@ -22,13 +22,8 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// Creates a new instance of <see cref="RazorLanguageVersionAttribute"/>.
         /// </summary>
         /// <param name="languageVersion">The language version of Razor</param>
-        public RazorLanguageVersionAttribute(string languageVersion)
+        public RazorLanguageVersionAttribute(string languageVersion!!)
         {
-            if (languageVersion is null)
-            {
-                throw new ArgumentNullException(nameof(languageVersion));
-            }
-
             LanguageVersion = languageVersion;
         }
 

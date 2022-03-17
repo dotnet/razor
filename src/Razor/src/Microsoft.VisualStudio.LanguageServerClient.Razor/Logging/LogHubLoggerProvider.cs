@@ -17,24 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly LogHubLogWriter _logWriter;
         private readonly ILogger _noopLogger;
 
-        public LogHubLoggerProvider(LogHubLogWriter logWriter)
+        public LogHubLoggerProvider(LogHubLogWriter logWriter!!)
         {
-            if (logWriter is null)
-            {
-                throw new ArgumentNullException(nameof(logWriter));
-            }
-
             _logWriter = logWriter;
             _noopLogger = new NoopLogger();
         }
 
-        public ILogger CreateLogger(string categoryName)
+        public ILogger CreateLogger(string categoryName!!)
         {
-            if (categoryName is null)
-            {
-                throw new ArgumentNullException(nameof(categoryName));
-            }
-
             if (categoryName.StartsWith(OmniSharpFrameworkCategoryPrefix, StringComparison.Ordinal))
             {
                 // Loggers created for O# framework pieces should be ignored. They emit too much noise.

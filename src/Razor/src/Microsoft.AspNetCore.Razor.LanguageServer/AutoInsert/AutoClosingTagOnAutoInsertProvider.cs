@@ -44,31 +44,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor!!, ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
             _optionsMonitor = optionsMonitor;
         }
 
         public override string TriggerCharacter => ">";
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position!!, FormattingContext context!!, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
-            if (position is null)
-            {
-                throw new ArgumentNullException(nameof(position));
-            }
-
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (!_optionsMonitor.CurrentValue.AutoClosingTags)
             {
                 format = default;

@@ -19,23 +19,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         [ImportingConstructor]
-        public VisualStudioMacFileChangeTrackerFactoryFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        public VisualStudioMacFileChangeTrackerFactoryFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices!!)
         {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
             return new VisualStudioMacFileChangeTrackerFactory(_projectSnapshotManagerDispatcher);
         }
     }

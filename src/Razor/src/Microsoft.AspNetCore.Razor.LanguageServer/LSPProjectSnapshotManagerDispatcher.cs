@@ -13,13 +13,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private readonly ILogger<LSPProjectSnapshotManagerDispatcher> _logger;
 
-        public LSPProjectSnapshotManagerDispatcher(ILoggerFactory loggerFactory) : base(ThreadName)
+        public LSPProjectSnapshotManagerDispatcher(ILoggerFactory loggerFactory!!) : base(ThreadName)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<LSPProjectSnapshotManagerDispatcher>();
         }
 
