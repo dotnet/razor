@@ -221,7 +221,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
             }
-            else if (currentOwner.Parent is MarkupEndTagSyntax { Parent: MarkupElementSyntax markup })
+            else if (currentOwner.Parent is MarkupEndTagSyntax ||
+                     currentOwner.Parent is MarkupTagHelperEndTagSyntax)
             {
                 // Quirk: https://github.com/dotnet/aspnetcore/issues/33919#issuecomment-870233627
                 // When tags are nested within each other within a C# block like:
@@ -233,16 +234,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 //
                 // The owner will be the </div>. Note this does not happen outside of C# blocks.
 
-                var closeAngleSourceChange = new SourceChange(markup.StartTag.EndPosition + 1, length: 0, newText: string.Empty);
+                var closeAngleSourceChange = new SourceChange(afterCloseAngleIndex - 1, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
-            }
-            else if (currentOwner.Parent is MarkupTagHelperEndTagSyntax)
-            {
-                //Same situation as 1 block above but with tag helper
 
-                var closeAngleIndex = afterCloseAngleIndex - 1;
-                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
-                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
+                // Get the real closing angle if we get the quote from an attribute syntax. See https://github.com/dotnet/razor-tooling/issues/5694
+                switch (currentOwner)
+                {
+                    case MarkupTextLiteralSyntax { Parent: MarkupAttributeBlockSyntax { Parent: MarkupStartTagSyntax startTag } }:
+                        currentOwner = startTag.CloseAngle;
+                        break;
+                    case MarkupTextLiteralSyntax { Parent: MarkupMiscAttributeContentSyntax { Parent: MarkupStartTagSyntax startTag } }:
+                        currentOwner = startTag.CloseAngle;
+                        break;
+                    case MarkupTextLiteralSyntax { Parent: MarkupTagHelperAttributeSyntax { Parent: MarkupTagHelperStartTagSyntax startTagHelper } }:
+                        currentOwner = startTagHelper.CloseAngle;
+                        break;
+                    case MarkupTextLiteralSyntax { Parent: MarkupMiscAttributeContentSyntax { Parent: MarkupTagHelperStartTagSyntax startTagHelper } }:
+                        currentOwner = startTagHelper.CloseAngle;
+                        break;
+                }
             }
             else if (currentOwner.Parent is MarkupStartTagSyntax startTag &&
                 startTag.OpenAngle.Position == afterCloseAngleIndex)
