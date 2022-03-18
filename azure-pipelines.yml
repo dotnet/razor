@@ -233,7 +233,7 @@ stages:
             pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
-            parallel: false
+            parallel: true
         # - task: PublishTestResults@2
         #   displayName: Publish VSCode Test Results
         #   inputs:
@@ -312,7 +312,7 @@ stages:
             pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
-            parallel: false
+            parallel: true
 
       - job: Linux
         container:
@@ -363,7 +363,7 @@ stages:
             pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
-            parallel: false
+            parallel: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
