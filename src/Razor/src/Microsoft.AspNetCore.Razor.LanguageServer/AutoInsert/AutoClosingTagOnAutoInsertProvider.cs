@@ -234,9 +234,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 //
                 // The owner will be the </div>. Note this does not happen outside of C# blocks.
 
-                var closeAngleIndex = afterCloseAngleIndex - 1;
-                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                var closeAngleSourceChange = new SourceChange(afterCloseAngleIndex - 1, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
+
+                // Get the real closing angle if we get the quote from an attribute syntax. See https://github.com/dotnet/razor-tooling/issues/5694
+                switch (currentOwner)
+                {
+                    case MarkupTextLiteralSyntax { Parent.Parent: MarkupStartTagSyntax startTag }:
+                        currentOwner = startTag.CloseAngle;
+                        break;
+                    case MarkupTextLiteralSyntax { Parent.Parent: MarkupTagHelperStartTagSyntax startTagHelper }:
+                        currentOwner = startTagHelper.CloseAngle;
+                        break;
+                }
             }
             else if (currentOwner.Parent is MarkupStartTagSyntax startTag &&
                 startTag.OpenAngle.Position == afterCloseAngleIndex)

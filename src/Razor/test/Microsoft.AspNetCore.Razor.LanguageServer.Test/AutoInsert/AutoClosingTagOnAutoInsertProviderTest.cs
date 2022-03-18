@@ -299,6 +299,206 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><a target=""_blank"">$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><a target=""_blank"">$0</a></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><a target=""_blank"" >$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><a target=""_blank"" >$0</a></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><form novalidate>$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><form novalidate>$0</form></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_HtmlTagInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><form novalidate >$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><form novalidate >$0</form></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test attribute=""value"">$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test attribute=""value"">$0</test></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test attribute=""value"" >$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test attribute=""value"" >$0</test></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test bool-val>$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test bool-val>$0</test></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5694")]
+        public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement_WithMinimalizedAttribute_SpaceBetweenClosingAngleAndAttributeClosingQuote()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test bool-val >$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test bool-val >$0</test></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
         public void OnTypeCloseAngle_TagHelperInTagHelper_NestedStatement()
         {
