@@ -11,6 +11,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Projects;
 using AssemblyReference = MonoDevelop.Projects.AssemblyReference;
 
@@ -19,13 +20,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     internal class FallbackMacRazorProjectHost : MacRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
+        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public FallbackMacRazorProjectHost(
             DotNetProject project,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
+            ProjectSnapshotManagerBase projectSnapshotManager,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
         {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         protected override async Task OnProjectChangedAsync()
@@ -34,6 +39,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             {
                 var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);
                 var mvcReference = referencedAssemblies.FirstOrDefault(IsMvcAssembly);
+                var projectProperties = DotNetProject.MSBuildProject.EvaluatedProperties;
+
+                if (TryGetIntermediateOutputPath(projectProperties, out var intermediatePath))
+                {
+                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    ProjectConfigurationFilePathStore.Set(DotNetProject.FileName.FullPath, projectConfigurationFile);
+                }
 
                 if (mvcReference is null)
                 {

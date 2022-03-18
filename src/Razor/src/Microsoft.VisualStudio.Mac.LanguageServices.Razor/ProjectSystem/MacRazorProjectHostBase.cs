@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 using MonoDevelop.Projects;
+using MonoDevelop.Projects.MSBuild;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
@@ -20,8 +22,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     {
         // References changes are always triggered when project changes happen.
         private const string ProjectChangedHint = "References";
+        private const string BaseIntermediateOutputPathPropertyName = "BaseIntermediateOutputPath";
+        private const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
+        private const string MSBuildProjectDirectoryPropertyName = "MSBuildProjectDirectory";
 
         private bool _batchingProjectChanges;
+        protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
         private readonly ProjectSnapshotManagerBase _projectSnapshotManager;
         private readonly AsyncSemaphore _onProjectChangedInnerSemaphore;
         private readonly AsyncSemaphore _projectChangedSemaphore;
@@ -30,11 +36,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         public MacRazorProjectHostBase(
             DotNetProject project!!,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ProjectSnapshotManagerBase projectSnapshotManager!!)
+            ProjectSnapshotManagerBase projectSnapshotManager!!,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!)
         {
             DotNetProject = project;
             ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManager;
+            ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _onProjectChangedInnerSemaphore = new AsyncSemaphore(initialCount: 1);
             _projectChangedSemaphore = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
@@ -138,6 +146,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             else if (HostProject != null && newHostProject is null)
             {
                 _projectSnapshotManager.ProjectRemoved(HostProject);
+                ProjectConfigurationFilePathStore.Remove(HostProject.FilePath);
             }
             else
             {
@@ -169,6 +178,82 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 _projectSnapshotManager.DocumentRemoved(hostProject, hostDocument);
                 _currentDocuments.Remove(filePath);
             }
+        }
+
+        // Internal for testing
+        internal static bool TryGetIntermediateOutputPath(
+            IMSBuildEvaluatedPropertyCollection projectProperties,
+            out string path)
+        {
+            if (!projectProperties.HasProperty(BaseIntermediateOutputPathPropertyName))
+            {
+                path = null;
+                return false;
+            }
+
+            if (!projectProperties.HasProperty(IntermediateOutputPathPropertyName))
+            {
+                path = null;
+                return false;
+            }
+
+            var baseIntermediateOutputPathValue = projectProperties.GetValue(BaseIntermediateOutputPathPropertyName);
+            if (string.IsNullOrEmpty(baseIntermediateOutputPathValue))
+            {
+                path = null;
+                return false;
+            }
+
+            var intermediateOutputPathValue = projectProperties.GetValue(IntermediateOutputPathPropertyName);
+            if (string.IsNullOrEmpty(intermediateOutputPathValue))
+            {
+                path = null;
+                return false;
+            }
+
+            var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
+            var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
+
+            if (!Directory.Exists(joinedPath))
+            {
+                // The directory doesn't exist for the currently executing application.
+                // This can occur in Razor class library scenarios because:
+                //   1. Razor class libraries base intermediate path is not absolute. Meaning instead of C:/project/obj it returns /obj.
+                //   2. Our `new DirectoryInfo(...).Parent` call above is forgiving so if the path passed to it isn't absolute (Razor class library scenario) it utilizes Directory.GetCurrentDirectory where
+                //      in this case would be the C:/Windows/System path
+                // Because of the above two issues the joinedPath ends up looking like "C:\WINDOWS\system32\obj\Debug\netstandard2.0\" which doesn't actually exist and of course isn't writeable. The end-user effect of this
+                // quirk means that you don't get any component completions for Razor class libraries because we're unable to capture their project state information.
+                //
+                // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
+                joinedPath = ResolveFallbackIntermediateOutputPath(projectProperties, intermediateOutputPathValue);
+                if (joinedPath is null)
+                {
+                    // Still couldn't resolve a valid directory.
+                    path = null;
+                    return false;
+                }
+            }
+
+            path = joinedPath;
+            return true;
+        }
+
+        private static string ResolveFallbackIntermediateOutputPath(IMSBuildEvaluatedPropertyCollection projectProperties, string intermediateOutputPathValue)
+        {
+            if (!projectProperties.HasProperty(MSBuildProjectDirectoryPropertyName))
+            {
+                // Can't resolve the project, bail.
+                return null;
+            }
+
+            var projectDirectory = projectProperties.GetValue(MSBuildProjectDirectoryPropertyName);
+            var joinedPath = Path.Combine(projectDirectory, intermediateOutputPathValue);
+            if (!Directory.Exists(joinedPath))
+            {
+                return null;
+            }
+
+            return joinedPath;
         }
     }
 }
