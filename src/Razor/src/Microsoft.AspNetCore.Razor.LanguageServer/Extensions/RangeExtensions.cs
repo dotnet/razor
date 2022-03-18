@@ -3,20 +3,20 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using OSharp = OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RangeExtensions
     {
-        public static readonly Range UndefinedRange = new()
+        public static readonly OSharp.Range UndefinedRange = new()
         {
-            Start = new Position(-1, -1),
-            End = new Position(-1, -1)
+            Start = new OSharp.Position(-1, -1),
+            End = new OSharp.Position(-1, -1)
         };
 
-        public static bool OverlapsWith(this Range range!!, Range other!!)
+        public static bool OverlapsWith(this OSharp.Range range!!, OSharp.Range other!!)
         {
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this Range range!!, Range other!!)
+        public static bool LineOverlapsWith(this OSharp.Range range!!, OSharp.Range other!!)
         {
             var overlapStart = range.Start.Line;
             if (range.Start.Line.CompareTo(other.Start.Line) < 0)
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static Range? Overlap(this Range range!!, Range other!!)
+        public static OSharp.Range? Overlap(this OSharp.Range range!!, OSharp.Range other!!)
         {
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
@@ -68,18 +68,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             // Empty ranges do not overlap with any range.
             if (overlapStart.CompareTo(overlapEnd) < 0)
             {
-                return new Range(overlapStart, overlapEnd);
+                return new OSharp.Range(overlapStart, overlapEnd);
             }
 
             return null;
         }
 
-        public static bool Contains(this Range range!!, Range other!!)
+        public static bool Contains(this OSharp.Range range!!, OSharp.Range other!!)
         {
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
-        public static TextSpan AsTextSpan(this Range range!!, SourceText sourceText!!)
+        public static TextSpan AsTextSpan(this OSharp.Range range!!, SourceText sourceText!!)
         {
             if (range.Start.Line >= sourceText.Lines.Count)
             {
@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new TextSpan(start, length);
         }
 
-        public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range!!, SourceText sourceText!!)
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this OSharp.Range range!!, SourceText sourceText!!)
         {
             if (range.Start.Line >= sourceText.Lines.Count)
             {
@@ -127,9 +127,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this Range range!!)
+        public static bool IsUndefined(this OSharp.Range range!!)
         {
             return range == UndefinedRange;
+        }
+
+        public static VS.Range AsVSRange(this OSharp.Range range!!)
+        {
+            return new VS.Range
+            {
+                Start = new VS.Position
+                {
+                    Line = range.Start.Line,
+                    Character = range.Start.Character
+                },
+                End = new VS.Position
+                {
+                    Line = range.End.Line,
+                    Character = range.End.Character
+                }
+            };
         }
     }
 }

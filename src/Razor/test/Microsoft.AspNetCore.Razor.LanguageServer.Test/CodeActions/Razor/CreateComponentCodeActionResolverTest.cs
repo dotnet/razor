@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new CreateComponentCodeActionResolver(LegacyDispatcher, _emptyDocumentResolver);
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, _emptyDocumentResolver);
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetUnsupported();
 
-            var resolver = new CreateComponentCodeActionResolver(LegacyDispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri(documentPath),
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new CreateComponentCodeActionResolver(LegacyDispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri(documentPath),
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new CreateComponentCodeActionResolver(LegacyDispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new CreateComponentCodeActionParams
             {
                 Uri = documentUri,
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"{Environment.NewLine}@namespace Another.Namespace";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new CreateComponentCodeActionResolver(LegacyDispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new CreateComponentCodeActionParams
             {
                 Uri = documentUri,

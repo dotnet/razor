@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.LastIndexOf("test1", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val minimized></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var edgeLocation = txt.IndexOf("bool-val", StringComparison.Ordinal) + "bool-val".Length;
             var location = new SourceLocation(edgeLocation, 0, edgeLocation);
@@ -134,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("true", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -151,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("=", StringComparison.Ordinal) + 1, -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -168,7 +168,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("true'", StringComparison.Ordinal) + 5, -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1<hello";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -250,7 +250,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val=\"aslj alsk<strong>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -270,7 +270,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong></strong></p>";
-            var codeDocument = CreateCodeDocument(txt);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("strong", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -287,7 +287,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
@@ -310,7 +310,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
@@ -333,7 +333,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
@@ -357,7 +357,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong></strong></p>";
-            var codeDocument = CreateCodeDocument(txt);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
@@ -377,7 +377,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong class=\"weak\"></strong></p>";
-            var codeDocument = CreateCodeDocument(txt);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
@@ -397,7 +397,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
@@ -431,7 +431,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = LanguageServer.ClientSettings.Capabilities;

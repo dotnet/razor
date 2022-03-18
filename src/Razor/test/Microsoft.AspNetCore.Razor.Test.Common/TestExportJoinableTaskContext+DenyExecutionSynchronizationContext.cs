@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
-    internal partial class TestExportJoinableTaskContext
+    public partial class TestExportJoinableTaskContext
     {
         /// <summary>
         /// Defines a <see cref="SynchronizationContext"/> for use in cases where the synchronization context should not

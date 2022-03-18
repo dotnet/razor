@@ -6,22 +6,41 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
+using OS = OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
-        private static readonly AsyncLocal<string?> s_fileName = new AsyncLocal<string?>();
+        private static readonly AsyncLocal<string?> s_fileName = new();
 
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
+
+        protected static readonly ServerCapabilities SemanticTokensServerCapabilities = new()
+        {
+            SemanticTokensOptions = new()
+            {
+                Full = false,
+                Range = true
+            }
+        };
 
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
@@ -39,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         protected int BaselineTestCount { get; set; }
         protected int BaselineEditTestCount { get; set; }
 
-        internal void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
+        protected void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
         {
             if (FileName is null)
             {
@@ -79,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Assert.True(semanticArray.Length == actual.Length, $"Expected length: {semanticArray.Length}, Actual length: {actual.Length}");
         }
 
-        internal int[]? GetBaselineTokens(string baselineFileName)
+        protected int[]? GetBaselineTokens(string baselineFileName)
         {
             var semanticFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
             if (!semanticFile.Exists())
@@ -91,6 +110,58 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticArray = ParseSemanticBaseline(semanticIntStr);
             return semanticArray;
         }
+
+        private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
+            string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
+        {
+            var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
+            var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
+            var csharpTokens = Array.Empty<int>();
+            var isFinalized = true;
+
+            if (csharpRange is not null)
+            {
+                var csharpSourceText = codeDocument.GetCSharpSourceText();
+                var files = new List<(Uri, SourceText)>();
+                var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+                files.Add((documentUri, csharpSourceText));
+
+                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+                using var workspace = CreateTestWorkspace(files, exportProvider);
+                await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
+
+                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                    Methods.TextDocumentSemanticTokensRangeName,
+                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
+
+                csharpTokens = result?.Data;
+                isFinalized = result?.IsFinalized ?? false;
+            }
+
+            var csharpResponse = new ProvideSemanticTokensResponse(
+                tokens: csharpTokens, isFinalized, hostDocumentSyncVersion);
+            return csharpResponse;
+        }
+
+        protected static OS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, OS.Range razorRange)
+        {
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+            if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
+                !DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
+            {
+                // No C# in the range.
+                return null;
+            }
+
+            return csharpRange;
+        }
+
+        protected static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+            => new()
+            {
+                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                Range = range
+            };
 
         private static void GenerateSemanticBaseline(IEnumerable<int>? actual, string baselineFileName)
         {
@@ -139,6 +210,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return results.ToArray();
+        }
+
+        private class VSSemanticTokensResponse : SemanticTokens
+        {
+            [DataMember(Name = "isFinalized")]
+            public bool IsFinalized { get; set; }
         }
     }
 }

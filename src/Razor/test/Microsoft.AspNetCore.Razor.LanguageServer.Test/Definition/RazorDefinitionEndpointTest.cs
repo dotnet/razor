@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var srcText = SourceText.From(txt);
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var documentSnapshot = Mock.Of<DocumentSnapshot>(d => d.GetTextAsync() == Task.FromResult(srcText), MockBehavior.Strict);
             var position = new Position(1, 2);
 

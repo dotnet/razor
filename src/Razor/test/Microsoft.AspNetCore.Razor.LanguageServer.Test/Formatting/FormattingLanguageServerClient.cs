@@ -14,7 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
             var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
 
-            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var exportProvider = TestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
             var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
             if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))
