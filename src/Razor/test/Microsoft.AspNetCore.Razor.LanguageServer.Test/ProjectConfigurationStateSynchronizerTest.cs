@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(removeArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(args);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(removeArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -293,7 +293,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -304,7 +304,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -325,7 +325,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
             {
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer, hasTask: false);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer, hasTask: false);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -366,7 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(addedArgs);
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueueAsync_DispatcherThread(synchronizer);
+                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
             }, CancellationToken.None);
             await enqueueTask;
 
@@ -381,7 +381,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectService.VerifyAll();
         }
 
-        private async Task WaitForEnqueueAsync_DispatcherThread(ProjectConfigurationStateSynchronizer synchronizer, bool hasTask = true)
+        private async Task WaitForEnqueue_DispatcherThreadAsync(ProjectConfigurationStateSynchronizer synchronizer, bool hasTask = true)
         {
             Dispatcher.AssertDispatcherThread();
             if (hasTask)
