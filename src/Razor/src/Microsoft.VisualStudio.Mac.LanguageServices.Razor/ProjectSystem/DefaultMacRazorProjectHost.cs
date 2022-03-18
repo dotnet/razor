@@ -51,8 +51,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
                 if (TryGetIntermediateOutputPath(projectProperties, out var intermediatePath))
                 {
-                    var projectRazorJson = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                    ProjectConfigurationFilePathStore.Set(DotNetProject.FileName.FullPath, projectRazorJson);
+                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    ProjectConfigurationFilePathStore.Set(DotNetProject.FileName.FullPath, projectConfigurationFile);
                 }
 
                 if (TryGetConfiguration(projectProperties, projectItems, out var configuration))
