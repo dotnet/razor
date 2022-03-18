@@ -8,12 +8,50 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultTagHelperCompletionServiceTest
     {
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
+        public void GetAttributeCompletions_OnlyIndexerNamePrefix()
+        {
+            // Arrange
+            var documentDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("FormTagHelper", "TestAssembly")
+                    .TagMatchingRuleDescriptor(rule => rule
+                        .RequireTagName("form"))
+                    .BoundAttributeDescriptor(attribute => attribute
+                        .TypeName("System.Collections.Generic.IDictionary<System.String, System.String>")
+                        .PropertyName("RouteValues").AsDictionary("asp-route-", typeof(string).FullName))
+                    .Build(),
+            };
+            var expectedCompletions = AttributeCompletionResult.Create(new Dictionary<string, HashSet<BoundAttributeDescriptor>>()
+            {
+                ["asp-route-..."] = new HashSet<BoundAttributeDescriptor>()
+                {
+                    documentDescriptors[0].BoundAttributes.Last(),
+                }
+            });
+
+            var completionContext = BuildAttributeCompletionContext(
+                documentDescriptors,
+                Array.Empty<string>(),
+                attributes: new Dictionary<string, string>(),
+                currentTagName: "form");
+            var service = CreateTagHelperCompletionFactsService();
+
+            // Act
+            var completions = service.GetAttributeCompletions(completionContext);
+
+            // Assert
+            AssertCompletionsAreEquivalent(expectedCompletions, completions);
+        }
+
         [Fact]
         public void GetAttributeCompletions_BoundDictionaryAttribute_ReturnsPrefixIndexerAndFullSetter()
         {

@@ -282,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             }
 
             var attributeDescriptor = (propertyName is not null)
-                ? originTagDescriptor.BoundAttributes.FirstOrDefault(a => a.Name.Equals(propertyName, StringComparison.Ordinal))
+                ? originTagDescriptor.BoundAttributes.FirstOrDefault(a => a.Name?.Equals(propertyName, StringComparison.Ordinal) == true)
                 : null;
 
             return (originTagDescriptor, attributeDescriptor);

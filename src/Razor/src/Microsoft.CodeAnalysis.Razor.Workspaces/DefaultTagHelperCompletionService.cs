@@ -78,7 +78,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     foreach (var attributeDescriptor in descriptor.BoundAttributes)
                     {
-                        UpdateCompletions(attributeDescriptor.Name, attributeDescriptor);
+                        if (attributeDescriptor.Name != null)
+                        {
+                            UpdateCompletions(attributeDescriptor.Name, attributeDescriptor);
+                        }
 
                         if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
                         {
@@ -91,7 +94,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     var htmlNameToBoundAttribute = new Dictionary<string, BoundAttributeDescriptor>(StringComparer.OrdinalIgnoreCase);
                     foreach (var attributeDescriptor in descriptor.BoundAttributes)
                     {
-                        htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
+                        if (attributeDescriptor.Name != null)
+                        {
+                            htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
+                        }
 
                         if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
                         {
