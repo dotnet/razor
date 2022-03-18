@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
@@ -36,18 +37,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private HostProject HostProject2 { get; }
 
         [Fact]
-        public void Queue_ProcessesNotifications_AndGoesBackToSleep()
+        public async Task Queue_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
-            projectManager.ProjectAdded(HostProject1);
-            projectManager.ProjectAdded(HostProject2);
-            projectManager.DocumentAdded(HostProject1, Documents[0], null);
-            projectManager.DocumentAdded(HostProject1, Documents[1], null);
+            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                projectManager.ProjectAdded(HostProject1);
+                projectManager.ProjectAdded(HostProject2);
+                projectManager.DocumentAdded(HostProject1, Documents[0], null);
+                projectManager.DocumentAdded(HostProject1, Documents[1], null);
+            }, CancellationToken.None);
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
+            var project = await Dispatcher.RunOnDispatcherThreadAsync(
+                () => projectManager.GetLoadedProject(HostProject1.FilePath), CancellationToken.None);
 
-            var queue = new TestBackgroundDocumentGenerator(LegacyDispatcher)
+            var queue = new TestBackgroundDocumentGenerator(Dispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -57,7 +62,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             };
 
             // Act & Assert
-            queue.Enqueue(project.GetDocument(Documents[0].FilePath));
+            await Dispatcher.RunOnDispatcherThreadAsync(
+                () => queue.Enqueue(project.GetDocument(Documents[0].FilePath)), CancellationToken.None);
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -73,18 +79,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         }
 
         [Fact]
-        public void Queue_ProcessesNotifications_AndRestarts()
+        public async Task Queue_ProcessesNotifications_AndRestarts()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
-            projectManager.ProjectAdded(HostProject1);
-            projectManager.ProjectAdded(HostProject2);
-            projectManager.DocumentAdded(HostProject1, Documents[0], null);
-            projectManager.DocumentAdded(HostProject1, Documents[1], null);
+            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                projectManager.ProjectAdded(HostProject1);
+                projectManager.ProjectAdded(HostProject2);
+                projectManager.DocumentAdded(HostProject1, Documents[0], null);
+                projectManager.DocumentAdded(HostProject1, Documents[1], null);
+            }, CancellationToken.None);
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
+            var project = await Dispatcher.RunOnDispatcherThreadAsync(
+                () => projectManager.GetLoadedProject(HostProject1.FilePath), CancellationToken.None);
 
-            var queue = new TestBackgroundDocumentGenerator(LegacyDispatcher)
+            var queue = new TestBackgroundDocumentGenerator(Dispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -95,7 +105,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             };
 
             // Act & Assert
-            queue.Enqueue(project.GetDocument(Documents[0].FilePath));
+            await Dispatcher.RunOnDispatcherThreadAsync(
+                () => queue.Enqueue(project.GetDocument(Documents[0].FilePath)), CancellationToken.None);
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -109,7 +120,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             queue.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(1));
             Assert.False(queue.HasPendingNotifications, "Worker should have taken all notifications");
 
-            queue.Enqueue(project.GetDocument(Documents[1].FilePath));
+            await Dispatcher.RunOnDispatcherThreadAsync(
+                () => queue.Enqueue(project.GetDocument(Documents[1].FilePath)), CancellationToken.None);
             Assert.True(queue.HasPendingNotifications); // Now we should see the worker restart when it finishes.
 
             // Allow work to complete, which should restart the timer.

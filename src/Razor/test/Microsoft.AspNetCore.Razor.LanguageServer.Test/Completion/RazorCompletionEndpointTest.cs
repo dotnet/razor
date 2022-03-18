@@ -319,7 +319,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.Directive);
             razorCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Test directive"));
             var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
@@ -339,7 +339,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var razorCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.MarkupTransition);
             razorCompletionItem.SetMarkupTransitionCompletionDescription(new MarkupTransitionCompletionDescription("Test description"));
             var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
@@ -367,7 +367,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
             razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
             var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
@@ -395,7 +395,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, descriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, descriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
             razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
             var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
@@ -423,7 +423,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
             razorCompletionItem.SetTagHelperElementDescriptionInfo(new AggregateBoundElementDescription(Array.Empty<BoundElementDescriptionInfo>()));
             var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
@@ -484,7 +484,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
             razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
             var completionList = completionEndpoint.CreateLSPCompletionList(new[] { razorCompletionItem });
@@ -512,7 +512,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, CompletionFactsService, lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var completionItem = new CompletionItem();
 
             // Act
@@ -534,7 +534,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -560,7 +560,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -595,7 +595,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -629,7 +629,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -663,7 +663,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -698,7 +698,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -736,7 +736,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
             var completionEndpoint = new RazorCompletionEndpoint(
-                LegacyDispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),

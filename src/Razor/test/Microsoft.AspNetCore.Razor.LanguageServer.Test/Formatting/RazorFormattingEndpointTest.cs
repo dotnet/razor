@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri)
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var uri = new Uri("file://path/test.razor");
             var @params = new DocumentRangeFormattingParams()
             {
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri)
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams();
 
             // Act
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams() { TextDocument = new TextDocumentIdentifier(uri) };
 
             // Act
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17)).Returns(RazorLanguageKind.Html);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -253,7 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17)).Returns(RazorLanguageKind.Razor);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -285,7 +285,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                LegacyDispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),

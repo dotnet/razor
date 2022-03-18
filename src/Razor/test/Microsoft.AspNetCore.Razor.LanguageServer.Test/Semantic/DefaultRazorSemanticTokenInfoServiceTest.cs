@@ -818,7 +818,7 @@ things *@
 
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
             var loggingFactory = TestLoggerFactory.Instance;
-            var projectSnapshotManagerDispatcher = LegacyDispatcher;
+            var projectSnapshotManagerDispatcher = Dispatcher;
             var documentResolver = new TestDocumentResolver(documentSnapshots);
 
             var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
