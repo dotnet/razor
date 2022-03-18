@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             var boundAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(context.CodeDocument.GetTagHelperContext(), attribute.Name.GetContent(), tagHelperElement.TagHelperInfo.BindingResult);
-            var isStringProperty = boundAttributes.FirstOrDefault(a => a.Name == attribute.Name.GetContent())?.IsStringProperty ?? true;
+            var isStringProperty = boundAttributes.FirstOrDefault(a => a.Name == attribute.Name.GetContent() || a.IndexerNamePrefix?.StartsWith(attribute.Name.GetContent()) == true)?.IsStringProperty ?? true;
 
             return !isStringProperty;
         }
