@@ -240,16 +240,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 // Get the real closing angle if we get the quote from an attribute syntax. See https://github.com/dotnet/razor-tooling/issues/5694
                 switch (currentOwner)
                 {
-                    case MarkupTextLiteralSyntax { Parent: MarkupAttributeBlockSyntax { Parent: MarkupStartTagSyntax startTag } }:
+                    case MarkupTextLiteralSyntax { Parent.Parent: MarkupStartTagSyntax startTag }:
                         currentOwner = startTag.CloseAngle;
                         break;
-                    case MarkupTextLiteralSyntax { Parent: MarkupMiscAttributeContentSyntax { Parent: MarkupStartTagSyntax startTag } }:
-                        currentOwner = startTag.CloseAngle;
-                        break;
-                    case MarkupTextLiteralSyntax { Parent: MarkupTagHelperAttributeSyntax { Parent: MarkupTagHelperStartTagSyntax startTagHelper } }:
-                        currentOwner = startTagHelper.CloseAngle;
-                        break;
-                    case MarkupTextLiteralSyntax { Parent: MarkupMiscAttributeContentSyntax { Parent: MarkupTagHelperStartTagSyntax startTagHelper } }:
+                    case MarkupTextLiteralSyntax { Parent.Parent: MarkupTagHelperStartTagSyntax startTagHelper }:
                         currentOwner = startTagHelper.CloseAngle;
                         break;
                 }
