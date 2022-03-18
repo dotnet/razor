@@ -295,7 +295,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return true;
             }
 
-            if (IsInHtmlTag() ||
+            if (IsRazorComment() ||
+                IsInHtmlTag() ||
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
                 IsImplicitOrExplicitExpression() ||
@@ -306,6 +307,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return true;
+
+            bool IsRazorComment()
+            {
+                if (owner.IsCommentSpanKind())
+                {
+                    return true;
+                }
+
+                return false;
+            }
 
             bool IsImplicitStatementStart()
             {

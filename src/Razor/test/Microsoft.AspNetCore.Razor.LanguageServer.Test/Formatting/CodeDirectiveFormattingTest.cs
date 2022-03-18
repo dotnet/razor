@@ -1374,6 +1374,51 @@ expected: @"@{
 ");
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task Formats_MultilineRazorComment(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+<div></div>
+    @*
+line 1
+  line 2
+    line 3
+            *@
+@code
+{
+    void M()
+    {
+    @*
+line 1
+  line 2
+    line 3
+                *@
+    }
+}
+",
+expected: @"
+<div></div>
+@*
+line 1
+  line 2
+    line 3
+            *@
+@code
+{
+    void M()
+    {
+        @*
+line 1
+  line 2
+    line 3
+                *@
+    }
+}
+");
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()
         {
             var input = @"
