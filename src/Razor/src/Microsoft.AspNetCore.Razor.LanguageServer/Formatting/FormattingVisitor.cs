@@ -39,22 +39,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             WriteBlock(node, FormattingBlockKind.Comment, razorCommentSyntax =>
             {
+                // We only want to move the start of the comment into the right spot, so we only
+                // create spans for the start.
+                // The body of the comment, including whitespace before the "*@" is left exactly
+                // as the user has it in the file.
                 WriteSpan(razorCommentSyntax.StartCommentTransition, FormattingSpanKind.Transition);
                 WriteSpan(razorCommentSyntax.StartCommentStar, FormattingSpanKind.MetaCode);
-
-                var comment = razorCommentSyntax.Comment;
-                if (comment.IsMissing)
-                {
-                    // We need to generate a formatting span at this position. So insert a marker in its place.
-                    comment = (SyntaxToken)SyntaxFactory.Token(SyntaxKind.Marker, string.Empty).Green.CreateRed(razorCommentSyntax, razorCommentSyntax.StartCommentStar.EndPosition);
-                }
-
-                _currentRazorIndentationLevel++;
-                WriteSpan(comment, FormattingSpanKind.Comment);
-                _currentRazorIndentationLevel--;
-
-                WriteSpan(razorCommentSyntax.EndCommentStar, FormattingSpanKind.MetaCode);
-                WriteSpan(razorCommentSyntax.EndCommentTransition, FormattingSpanKind.Transition);
             });
         }
 
