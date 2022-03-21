@@ -23,6 +23,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorBreakpointSpanEndpoint = "razor/breakpointSpan";
 
+        public const string RazorProximityExpressionsEndpoint = "razor/proximityExpressions";
+
         public const string RazorMonitorProjectConfigurationFilePathEndpoint = "razor/monitorProjectConfigurationFilePath";
 
         public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
