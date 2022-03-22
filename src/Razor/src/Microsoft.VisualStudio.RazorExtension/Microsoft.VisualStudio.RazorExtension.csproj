@@ -26,7 +26,9 @@
 
     <SetupProductArch>neutral</SetupProductArch>
     <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
-
+    <!-- Cause the vsix to get deployed to the RootSuffix.
+         Without this the Razor Extension won't be deployed for IntegrationTests
+         to use in the "build.cmd" scenario -->
     <DeployExtension>true</DeployExtension>
   </PropertyGroup>
 
