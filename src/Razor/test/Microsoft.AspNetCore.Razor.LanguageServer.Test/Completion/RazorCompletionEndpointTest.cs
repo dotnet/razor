@@ -312,7 +312,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Null(converted.Detail);
             Assert.Null(converted.Documentation);
             Assert.Null(converted.Command);
-
         }
 
         [Fact]
