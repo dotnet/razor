@@ -119,9 +119,6 @@ A
         await TestServices.Editor.PlaceCaretAsync("@onclick='thing'", charsOffset: 1, HangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
 
-        var outputContent = await TestServices.Output.GetOutputContentAsync(HangMitigatingCancellationToken);
-        ActivityLog.LogInformation("RazorPane", outputContent);
-
         // Assert
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button class='someclass' @onclick='thing'
