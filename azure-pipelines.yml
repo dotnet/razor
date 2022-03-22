@@ -186,7 +186,6 @@ stages:
             -configuration $(_BuildConfig)
             -msbuildEngine dotnet
             -prepareMachine
-            -integrationTest
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
@@ -196,13 +195,14 @@ stages:
         - script: eng\common\cibuild.cmd
             -configuration $(_BuildConfig)
             -prepareMachine
+            -integrationTest
             /p:BuildVsix=true
             /p:BuildProjectReferences=false
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build_Vsix
-          displayName: Build Vsix
+          displayName: Build Vsix and Run Integration Tests
           condition: succeeded()
         # Run VSCode functional tests
         # - powershell: |
