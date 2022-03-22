@@ -292,6 +292,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public void TryConvert_TagHelperAttribute_ForHtml_ReturnsTrue()
+        {
+            // Arrange
+            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
+            var attributeCompletionDescription = new AggregateBoundAttributeDescription(new BoundAttributeDescriptionInfo[] { });
+            completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
+
+            // Act
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, _supportedCompletionItemKinds, out var converted);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(completionItem.DisplayText, converted.Label);
+            Assert.Equal("format=\"$0\"", converted.InsertText);
+            Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
+            Assert.Equal(completionItem.InsertText, converted.FilterText);
+            Assert.Equal(completionItem.InsertText, converted.SortText);
+            Assert.Null(converted.Detail);
+            Assert.Null(converted.Documentation);
+            Assert.Null(converted.Command);
+
+        }
+
+        [Fact]
         public void TryConvert_TagHelperAttribute_ReturnsTrue()
         {
             // Arrange
