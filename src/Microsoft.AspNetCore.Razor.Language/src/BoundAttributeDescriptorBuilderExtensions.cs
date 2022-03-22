@@ -101,9 +101,4 @@ public static class BoundAttributeDescriptorBuilderExtensions
     {
         builder.Metadata[TagHelperMetadata.Common.GloballyQualifiedTypeName] = globallyQualifiedTypeName;
     }
-
-    public static string GetGloballyQualifiedTypeName(this BoundAttributeDescriptor descriptor)
-    {
-        return descriptor?.Metadata[TagHelperMetadata.Common.GloballyQualifiedTypeName];
-    }
 }

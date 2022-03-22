@@ -339,7 +339,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             foreach (var attribute in node.Attributes)
             {
-                var globallyQualifiedTypeName = attribute.BoundAttribute.GetGloballyQualifiedTypeName();
+                var globallyQualifiedTypeName = attribute.BoundAttribute?.GetGloballyQualifiedTypeName();
 
                 if (attribute.TypeName != null)
                 {
