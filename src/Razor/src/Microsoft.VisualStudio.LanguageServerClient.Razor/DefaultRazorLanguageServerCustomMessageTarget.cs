@@ -373,8 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // If we're unable to synchronize we won't produce useful results, but we have to indicate
                 // it's due to out of sync by providing the old version
-                return new ProvideSemanticTokensResponse(
-                    tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
             var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
@@ -399,12 +398,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (result is null)
             {
                 // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
-                return new ProvideSemanticTokensResponse(
-                    tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
-            var response = new ProvideSemanticTokensResponse(
-                result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
+            var response = new ProvideSemanticTokensResponse(result.Data, semanticTokensParams.RequiredHostDocumentVersion);
 
             return response;
         }

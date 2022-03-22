@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,7 +116,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
             var csharpTokens = Array.Empty<int>();
-            var isFinalized = true;
 
             if (csharpRange is not null)
             {
@@ -130,16 +128,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 using var workspace = CreateTestWorkspace(files, exportProvider);
                 await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
 
-                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
                     CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
 
                 csharpTokens = result?.Data;
-                isFinalized = result?.IsFinalized ?? false;
             }
 
-            var csharpResponse = new ProvideSemanticTokensResponse(
-                tokens: csharpTokens, isFinalized, hostDocumentSyncVersion);
+            var csharpResponse = new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
             return csharpResponse;
         }
 
@@ -210,12 +206,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return results.ToArray();
-        }
-
-        private class VSSemanticTokensResponse : SemanticTokens
-        {
-            [DataMember(Name = "isFinalized")]
-            public bool IsFinalized { get; set; }
         }
     }
 }
