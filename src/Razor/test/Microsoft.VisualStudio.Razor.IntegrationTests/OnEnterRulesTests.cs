@@ -2,14 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class OnEnterRulesTests : AbstractRazorEditorTest
 {
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_BetweenStartAndEnd()
     {
         // Arrange
@@ -29,7 +28,7 @@ public class OnEnterRulesTests : AbstractRazorEditorTest
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_AtEndOfTag()
     {
         // Arrange
@@ -49,7 +48,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_BeforeAttribute()
     {
         // Arrange
@@ -69,7 +68,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_EmptyAttribute()
     {
         // Arrange
@@ -88,7 +87,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_DoubleQuote()
     {
         // Arrange
@@ -107,7 +106,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_DirectiveAttribute()
     {
         // Arrange
@@ -126,7 +125,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "VSIX Deployment issues")]
     public async Task OnEnterRules_UnfinishedTag()
     {
         // Arrange
