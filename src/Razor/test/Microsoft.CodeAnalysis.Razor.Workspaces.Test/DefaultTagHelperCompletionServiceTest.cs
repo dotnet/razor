@@ -8,12 +8,50 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultTagHelperCompletionServiceTest
     {
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
+        public void GetAttributeCompletions_OnlyIndexerNamePrefix()
+        {
+            // Arrange
+            var documentDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("FormTagHelper", "TestAssembly")
+                    .TagMatchingRuleDescriptor(rule => rule
+                        .RequireTagName("form"))
+                    .BoundAttributeDescriptor(attribute => attribute
+                        .TypeName("System.Collections.Generic.IDictionary<System.String, System.String>")
+                        .PropertyName("RouteValues").AsDictionary("asp-route-", typeof(string).FullName))
+                    .Build(),
+            };
+            var expectedCompletions = AttributeCompletionResult.Create(new Dictionary<string, HashSet<BoundAttributeDescriptor>>()
+            {
+                ["asp-route-..."] = new HashSet<BoundAttributeDescriptor>()
+                {
+                    documentDescriptors[0].BoundAttributes.Last(),
+                }
+            });
+
+            var completionContext = BuildAttributeCompletionContext(
+                documentDescriptors,
+                Array.Empty<string>(),
+                attributes: new Dictionary<string, string>(),
+                currentTagName: "form");
+            var service = CreateTagHelperCompletionFactsService();
+
+            // Act
+            var completions = service.GetAttributeCompletions(completionContext);
+
+            // Assert
+            AssertCompletionsAreEquivalent(expectedCompletions, completions);
+        }
+
         [Fact]
         public void GetAttributeCompletions_BoundDictionaryAttribute_ReturnsPrefixIndexerAndFullSetter()
         {
@@ -1136,8 +1174,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var completionContext = BuildElementCompletionContext(
                 documentDescriptors,
                 existingCompletions: Enumerable.Empty<string>(),
-                containingTagName: "parent-tag",
-                containingParentTagName: null);
+                containingTagName: "child-tag",
+                containingParentTagName: "parent-tag");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1198,7 +1236,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             });
 
             var existingCompletions = new[] { "p", "em" };
-            var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions, containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions, containingTagName: "thing", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1226,7 +1264,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["bold"] = new HashSet<TagHelperDescriptor>(),
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1256,7 +1294,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["div"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1292,7 +1330,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["div"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0], documentDescriptors[1] },
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act

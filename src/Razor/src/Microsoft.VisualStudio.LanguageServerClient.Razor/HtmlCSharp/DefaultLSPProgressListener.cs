@@ -25,13 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             = new();
 
         [ImportingConstructor]
-        public DefaultLSPProgressListener(ILanguageServiceBroker2 languageServiceBroker)
+        public DefaultLSPProgressListener(ILanguageServiceBroker2 languageServiceBroker!!)
         {
-            if (languageServiceBroker is null)
-            {
-                throw new ArgumentNullException(nameof(languageServiceBroker));
-            }
-
             _languageServiceBroker = languageServiceBroker;
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -182,26 +177,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private class ProgressRequest
         {
             public ProgressRequest(
-                Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
-                Func<CancellationToken, Task> delayAfterLastNotifyAsync,
+                Func<JToken, CancellationToken, Task> onProgressNotifyAsync!!,
+                Func<CancellationToken, Task> delayAfterLastNotifyAsync!!,
                 CancellationToken handlerCancellationToken,
-                TaskCompletionSource<bool> onCompleted)
+                TaskCompletionSource<bool> onCompleted!!)
             {
-                if (onProgressNotifyAsync is null)
-                {
-                    throw new ArgumentNullException(nameof(onProgressNotifyAsync));
-                }
-
-                if (onCompleted is null)
-                {
-                    throw new ArgumentNullException(nameof(onCompleted));
-                }
-
-                if (delayAfterLastNotifyAsync is null)
-                {
-                    throw new ArgumentNullException(nameof(delayAfterLastNotifyAsync));
-                }
-
                 OnProgressNotifyAsync = onProgressNotifyAsync;
                 DelayAfterLastNotifyAsync = delayAfterLastNotifyAsync;
                 HandlerCancellationToken = handlerCancellationToken;

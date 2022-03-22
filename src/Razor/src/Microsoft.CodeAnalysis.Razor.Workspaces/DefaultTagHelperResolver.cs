@@ -12,18 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class DefaultTagHelperResolver : TagHelperResolver
     {
-        public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
+        public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject!!, ProjectSnapshot projectSnapshot!!, CancellationToken cancellationToken = default)
         {
-            if (workspaceProject is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceProject));
-            }
-
-            if (projectSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshot));
-            }
-
             if (projectSnapshot.Configuration is null)
             {
                 return Task.FromResult(TagHelperResolutionResult.Empty);

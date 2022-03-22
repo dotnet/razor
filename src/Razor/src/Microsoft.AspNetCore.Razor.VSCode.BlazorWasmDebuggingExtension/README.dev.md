@@ -18,7 +18,7 @@ The debugging proxy needs to talk to both VS Code and the browser but they run i
 
 To that end, we need a way to launch the debugging proxy on the user's host machine, where the browser is running. To achieve this, we developed a UI-only extension that runs on the VS Code UI (the same place as the users host) and is responsible for launching and killing a Blazor debugging proxy on the host machine.
 
-### Publishing the extension
+## Publishing the extension
 
 In order to publish the extension, you will need to have access to the `ms.dotnet-tools` publisher account on the VS Code marketplace. If you don't already have this access, reach out to @captainsafia for info.
 

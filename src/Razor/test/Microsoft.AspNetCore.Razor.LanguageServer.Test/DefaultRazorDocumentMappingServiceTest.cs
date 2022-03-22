@@ -496,7 +496,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else
             {
-                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+                Assert.False(true, $"{nameof(service.TryMapFromProjectedDocumentPosition)} should have returned true");
             }
         }
 
@@ -526,7 +526,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else
             {
-                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+                Assert.False(true, $"{nameof(service.TryMapFromProjectedDocumentPosition)} should have returned true");
             }
         }
 
@@ -556,7 +556,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else
             {
-                Assert.False(true, $"{service.TryMapFromProjectedDocumentPosition} should have returned true");
+                Assert.False(true, $"{nameof(service.TryMapFromProjectedDocumentPosition)} should have returned true");
             }
         }
 
@@ -587,7 +587,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else
             {
-                Assert.False(true, $"{service.TryMapToProjectedDocumentRange} should have returned true");
+                Assert.False(true, $"{nameof(service.TryMapToProjectedDocumentRange)} should have returned true");
             }
         }
 

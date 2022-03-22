@@ -23,24 +23,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <returns>A list of files within the given directory that meet the search criteria.</returns>
         /// <remarks>This method is needed to avoid problematic folders such as "node_modules" which are known not to yield the desired results or may cause performance issues.</remarks>
         internal static IEnumerable<string> GetFilteredFiles(
-            string workspaceDirectory,
-            string searchPattern,
+            string workspaceDirectory!!,
+            string searchPattern!!,
             IReadOnlyCollection<string> ignoredDirectories,
 #pragma warning disable CS0618 // Type or member is obsolete
             IFileSystem? fileSystem = null,
 #pragma warning restore CS0618 // Type or member is obsolete
             ILogger? logger = null)
         {
-            if (workspaceDirectory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceDirectory));
-            }
-
-            if (searchPattern is null)
-            {
-                throw new ArgumentNullException(nameof(searchPattern));
-            }
-
             if (ignoredDirectories is null || ignoredDirectories.Count == 0)
             {
                 throw new ArgumentNullException(nameof(ignoredDirectories));

@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -177,13 +179,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             private readonly Dictionary<DocumentSnapshot, int?> _versions;
 
-            public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions)
+            public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions!!)
             {
-                if (versions is null)
-                {
-                    throw new ArgumentNullException(nameof(versions));
-                }
-
                 _versions = versions;
             }
 
@@ -192,12 +189,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return _versions.TryGetValue(documentSnapshot, out version);
             }
 
-            public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version) => throw new NotImplementedException();
+            public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version)
+                => throw new NotImplementedException();
 
             public override void Initialize(ProjectSnapshotManagerBase projectManager)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
+
+            public override Task<int?> TryGetDocumentVersionAsync(DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
         }
     }
 }

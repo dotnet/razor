@@ -23,38 +23,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override event EventHandler<ImportChangedEventArgs> Changed;
 
         public DefaultImportDocumentManager(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ErrorReporter errorReporter,
-            FileChangeTrackerFactory fileChangeTrackerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            ErrorReporter errorReporter!!,
+            FileChangeTrackerFactory fileChangeTrackerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (fileChangeTrackerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
             _importTrackerCache = new Dictionary<string, ImportTracker>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public override void OnSubscribed(VisualStudioDocumentTracker tracker)
+        public override void OnSubscribed(VisualStudioDocumentTracker tracker!!)
         {
-            if (tracker is null)
-            {
-                throw new ArgumentNullException(nameof(tracker));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var imports = GetImportItems(tracker);
@@ -78,13 +58,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override void OnUnsubscribed(VisualStudioDocumentTracker tracker)
+        public override void OnUnsubscribed(VisualStudioDocumentTracker tracker!!)
         {
-            if (tracker is null)
-            {
-                throw new ArgumentNullException(nameof(tracker));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var imports = GetImportItems(tracker);

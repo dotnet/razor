@@ -35,25 +35,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private ProjectSnapshotManager _projectManager;
 
         public RazorDiagnosticsPublisher(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ITextDocumentLanguageServer languageServer,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            ITextDocumentLanguageServer languageServer!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _languageServer = languageServer;
             PublishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
@@ -67,23 +52,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Used in tests to ensure we can control when background work completes.
         public ManualResetEventSlim NotifyBackgroundWorkCompleting { get; set; }
 
-        public override void Initialize(ProjectSnapshotManager projectManager)
+        public override void Initialize(ProjectSnapshotManager projectManager!!)
         {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             _projectManager = projectManager;
         }
 
-        public override void DocumentProcessed(DocumentSnapshot document)
+        public override void DocumentProcessed(DocumentSnapshot document!!)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)

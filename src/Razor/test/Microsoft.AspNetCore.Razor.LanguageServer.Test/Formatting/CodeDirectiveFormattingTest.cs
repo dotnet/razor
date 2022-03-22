@@ -921,6 +921,11 @@ input: @"
             Bar = new string[] {
                 ""Hello"",
                 ""There""
+            },
+            Baz = new string[]
+            {
+                ""Hello"",
+                ""There""
             }
         }
     };
@@ -940,9 +945,117 @@ expected: @"@code {
             Bar = new string[] {
                 ""Hello"",
                 ""There""
+            },
+            Baz = new string[]
+            {
+                ""Hello"",
+                ""There""
             }
         }
     };
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
+        public async Task CodeBlock_ArrayInitializers(bool useSourceTextDiffer)
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@code {
+    private void M()
+    {
+        var entries = new string[]
+        {
+            ""a"",
+            ""b"",
+            ""c""
+        };
+    }
+}
+",
+expected: @"@code {
+    private void M()
+    {
+        var entries = new string[]
+        {
+            ""a"",
+            ""b"",
+            ""c""
+        };
+    }
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
+        public async Task CodeBlock_ObjectInitializers(bool useSourceTextDiffer)
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@code {
+    private void M()
+    {
+        var entries = new
+        {
+            First = 1,
+            Second = 2
+        };
+    }
+}
+",
+expected: @"@code {
+    private void M()
+    {
+        var entries = new
+        {
+            First = 1,
+            Second = 2
+        };
+    }
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
+        public async Task CodeBlock_CollectionInitializers(bool useSourceTextDiffer)
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@code {
+    private void M()
+    {
+        var entries = new List<string>()
+        {
+            ""a"",
+            ""b"",
+            ""c""
+        };
+    }
+}
+",
+expected: @"@code {
+    private void M()
+    {
+        var entries = new List<string>()
+        {
+            ""a"",
+            ""b"",
+            ""c""
+        };
+    }
 }
 ");
         }
@@ -1257,6 +1370,51 @@ expected: @"@{
     var x = DateTime
         .Now
         .ToString();
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Formats_MultilineRazorComment(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+<div></div>
+    @*
+line 1
+  line 2
+    line 3
+            *@
+@code
+{
+    void M()
+    {
+    @*
+line 1
+  line 2
+    line 3
+                *@
+    }
+}
+",
+expected: @"
+<div></div>
+@*
+line 1
+  line 2
+    line 3
+            *@
+@code
+{
+    void M()
+    {
+        @*
+line 1
+  line 2
+    line 3
+                *@
+    }
 }
 ");
         }

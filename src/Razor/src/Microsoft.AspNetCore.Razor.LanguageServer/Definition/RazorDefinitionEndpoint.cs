@@ -35,21 +35,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly ILogger<RazorDefinitionEndpoint> _logger;
 
         public RazorDefinitionEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            RazorComponentSearchEngine componentSearchEngine,
-            RazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            RazorComponentSearchEngine componentSearchEngine!!,
+            RazorDocumentMappingService documentMappingService!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
+            _componentSearchEngine = componentSearchEngine;
+            _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
         }
 
@@ -287,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             }
 
             var attributeDescriptor = (propertyName is not null)
-                ? originTagDescriptor.BoundAttributes.FirstOrDefault(a => a.Name.Equals(propertyName, StringComparison.Ordinal))
+                ? originTagDescriptor.BoundAttributes.FirstOrDefault(a => a.Name?.Equals(propertyName, StringComparison.Ordinal) == true)
                 : null;
 
             return (originTagDescriptor, attributeDescriptor);

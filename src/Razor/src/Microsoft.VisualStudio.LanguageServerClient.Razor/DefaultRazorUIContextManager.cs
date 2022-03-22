@@ -20,18 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
         [ImportingConstructor]
-        public DefaultRazorUIContextManager(SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
+        public DefaultRazorUIContextManager(SVsServiceProvider serviceProvider!!, JoinableTaskContext joinableTaskContext!!)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _serviceProvider = serviceProvider;
             _joinableTaskFactory = joinableTaskContext.Factory;
         }

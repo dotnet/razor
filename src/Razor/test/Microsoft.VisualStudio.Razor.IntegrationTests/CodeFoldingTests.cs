@@ -1,0 +1,293 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Outlining;
+using Xunit;
+
+namespace Microsoft.VisualStudio.Razor.IntegrationTests
+{
+    public class CodeFoldingTests : AbstractRazorEditorTest
+    {
+        private struct CollapsibleBlock
+        {
+            public int Start { get; set; }
+            public int End { get; set; }
+        }
+
+        private async Task<ICollapsible[]> GetOutlineRegionsAsync(Text.Editor.IWpfTextView textView)
+        {
+            await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var outliningService = await TestServices.Shell.GetComponentModelServiceAsync<IOutliningManagerService>(HangMitigatingCancellationToken);
+            var manager = outliningService.GetOutliningManager(textView);
+            var span = new SnapshotSpan(textView.TextSnapshot, 0, textView.TextSnapshot.Length);
+
+            var outlines = manager.GetAllRegions(span);
+
+            return outlines
+                    .OrderBy(s => s.Extent.GetStartPoint(textView.TextSnapshot))
+                    .ToArray();
+        }
+
+        private async Task AssertFoldableBlocksAsync(params string[] blockTexts)
+        {
+            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+            var text = textView.TextBuffer.CurrentSnapshot.GetText();
+
+            var foldableSpans = blockTexts.Select(blockText =>
+            {
+                Assert.Contains(blockText, text);
+                var start = text.IndexOf(blockText);
+                return new Span(start, blockText.Length);
+            }).ToImmutableArray();
+
+            var foldableLines = foldableSpans.Select(s => ConvertToLineNumbers(s, textView)).ToImmutableArray();
+
+            //
+            // Built in retry logic because getting spans can take time.
+            //
+            var tries = 0;
+            const int MaxTries = 1;
+            ImmutableArray<CollapsibleBlock> missingLines;
+            var outlines = new ICollapsible[0];
+            while (tries++ < MaxTries)
+            {
+                textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+                outlines = await GetOutlineRegionsAsync(textView);
+
+                (missingLines, var extraLines) = GetOutlineDiff(outlines, foldableSpans, textView);
+                if (missingLines.Length == 0)
+                {
+                    if (extraLines.Length > 0)
+                    {
+                        var extraLineText = PrintLines(extraLines, textView);
+                        var lineText = PrintLines(foldableLines, textView);
+
+                        Assert.False(true, $"Extra Lines: {extraLineText}Expected Lines: {lineText}");
+                    }
+
+                    return;
+                }
+
+                await Task.Delay(500);
+            }
+
+            if (missingLines.Length > 0)
+            {
+                var missingSpanText = PrintLines(missingLines, textView);
+                var spans = outlines.Select(o => o.Extent.GetSpan(textView.TextSnapshot).Span).ToImmutableArray();
+                var lines = spans.Select(s => ConvertToLineNumbers(s, textView)).ToImmutableArray();
+                var linesText = PrintLines(lines, textView);
+
+                Assert.False(true, $"Missing Lines: {missingSpanText}Actual Lines: {linesText}");
+            }
+            
+            Assert.Empty(missingLines);
+
+            static (ImmutableArray<CollapsibleBlock> missingSpans, ImmutableArray<CollapsibleBlock> extraSpans) GetOutlineDiff(ICollapsible[] outlines, ImmutableArray<Span> foldableSpans, ITextView textView)
+            {
+                var spans = outlines.Select(o => o.Extent.GetSpan(textView.TextSnapshot).Span).ToImmutableArray();
+                var lines = spans.Select(s => ConvertToLineNumbers(s, textView));
+
+                var foldableLines = foldableSpans.Select(s => ConvertToLineNumbers(s, textView));
+
+                var missingSpans = foldableLines.Except(lines).ToImmutableArray();
+                var extraSpans = lines.Except(foldableLines).ToImmutableArray();
+
+                return (missingSpans, extraSpans);
+            }
+
+            static string PrintLines(ImmutableArray<CollapsibleBlock> lines, ITextView textView)
+            {
+                var sb = new StringBuilder();
+                foreach (var line in lines)
+                {
+                    sb.AppendLine();
+
+                    var startLine = textView.TextSnapshot.GetLineFromLineNumber(line.Start);
+                    var endLine = textView.TextSnapshot.GetLineFromLineNumber(line.End);
+                    var span = Span.FromBounds(startLine.Start, endLine.End);
+                    var text = textView.TextSnapshot.GetText(span);
+
+                    sb.AppendLine(span.ToString());
+                    sb.AppendLine(text);
+                    sb.AppendLine();
+                }
+
+                return sb.ToString();
+            }
+
+            static CollapsibleBlock ConvertToLineNumbers(Span span, ITextView textView)
+            {
+                return new CollapsibleBlock()
+                {
+                    Start = textView.TextSnapshot.GetLineNumberFromPosition(span.Start),
+                    End = textView.TextSnapshot.GetLineNumberFromPosition(span.End)
+                };
+            }
+            
+        }
+
+        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        public async Task CodeFolding_CodeBlock()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(
+@"@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}",
+@"private void IncrementCount()
+    {
+        currentCount++;
+    }");
+        }
+
+        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        public async Task CodeFolding_IfBlock()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@if(true)
+{
+    if (true)
+    {
+        M();
+    }
+}
+
+@code {
+    string M() => ""M"";
+}
+",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(
+@"@if(true)
+{
+    if (true)
+    {
+        M();
+    }
+}",
+@"if (true)
+    {
+        M();
+    }",
+@"@code {
+    string M() => ""M"";
+}");
+        }
+
+        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        public async Task CodeFolding_ForEach()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@foreach (var s in GetStuff())
+{
+    <h2>s</h2>
+}
+
+@code {
+    string[] GetStuff() => new string[0];
+}
+",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(
+@"@foreach (var s in GetStuff())
+{
+    <h2>s</h2>
+}",
+@"@code {
+    string[] GetStuff() => new string[0];
+}");
+        }
+
+        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        public async Task CodeFolding_CodeBlock_Region()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(
+                BlazorProjectName,
+                "Test.razor",
+                @"
+@page ""/Test""
+
+<PageTitle>Test</PageTitle>
+
+<h1>Test</h1>
+
+@code {
+    #region Methods
+    void M1() { }
+    void M2() { }
+    #endregion
+}
+",
+                open: true,
+                HangMitigatingCancellationToken);
+
+            await AssertFoldableBlocksAsync(
+@"#region Methods
+    void M1() { }
+    void M2() { }
+    #endregion",
+@"@code {
+    #region Methods
+    void M1() { }
+    void M2() { }
+    #endregion
+}");
+        }
+
+    }
+}

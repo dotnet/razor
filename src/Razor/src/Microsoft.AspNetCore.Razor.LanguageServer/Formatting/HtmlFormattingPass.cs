@@ -26,17 +26,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
-            ILoggerFactory loggerFactory)
+            DocumentVersionCache documentVersionCache,
+            ILoggerFactory loggerFactory!!)
             : base(documentMappingService, filePathNormalizer, server)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
-            HtmlFormatter = new HtmlFormatter(server, filePathNormalizer);
+            HtmlFormatter = new HtmlFormatter(server, documentVersionCache);
         }
 
         // We want this to run first because it uses the client HTML formatter.
@@ -48,15 +44,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
         {
-            if (context.IsFormatOnType)
-            {
-                // We don't want to handle OnTypeFormatting here.
-                return result;
-            }
-
             var originalText = context.SourceText;
 
-            var htmlEdits = await HtmlFormatter.FormatAsync(context, cancellationToken);
+            TextEdit[] htmlEdits;
+
+            if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html)
+            {
+                htmlEdits = await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+            else if (!context.IsFormatOnType)
+            {
+                htmlEdits = await HtmlFormatter.FormatAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // We don't want to handle on type formatting requests for other languages
+                return result;
+            }
 
             // Allow benchmarks to specify a different diff algorithm
             if (!context.Options.TryGetValue("UseSourceTextDiffer", out var useSourceTextDiffer))

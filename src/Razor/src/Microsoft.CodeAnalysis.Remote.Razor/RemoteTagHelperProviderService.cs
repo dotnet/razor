@@ -29,13 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, int lastResultId, CancellationToken cancellationToken)
             => RazorBrokeredServiceImplementation.RunServiceAsync(cancellationToken => GetTagHelpersDeltaCoreAsync(solutionInfo, projectHandle, factoryTypeName, lastResultId, cancellationToken), cancellationToken);
 
-        private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken)
+        private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle!!, string factoryTypeName, CancellationToken cancellationToken)
         {
-            if (projectHandle is null)
-            {
-                throw new ArgumentNullException(nameof(projectHandle));
-            }
-
             if (string.IsNullOrEmpty(factoryTypeName))
             {
                 throw new ArgumentException($"'{nameof(factoryTypeName)}' cannot be null or empty.", nameof(factoryTypeName));

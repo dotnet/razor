@@ -16,13 +16,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
     [ExportLanguageServiceFactory(typeof(VisualStudioCompletionBroker), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultVisualStudioCompletionBrokerFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
             return new DefaultVisualStudioCompletionBroker();
         }
     }

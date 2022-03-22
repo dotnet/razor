@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     return true;
                 case MarkupEndTagSyntax { Parent: MarkupElementSyntax parent } endTag:
                     containingTagNameToken = endTag.Name;
-                    attributeNodes = parent.StartTag.Attributes;
+                    attributeNodes = parent.StartTag?.Attributes ?? new SyntaxList<RazorSyntaxNode>();
                     return true;
                 case MarkupTagHelperStartTagSyntax startTagHelper:
                     containingTagNameToken = startTagHelper.Name;
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     return true;
                 case MarkupTagHelperEndTagSyntax { Parent: MarkupTagHelperElementSyntax parent } endTagHelper:
                     containingTagNameToken = endTagHelper.Name;
-                    attributeNodes = parent.StartTag.Attributes;
+                    attributeNodes = parent.StartTag?.Attributes ?? new SyntaxList<RazorSyntaxNode>();
                     return true;
                 default:
                     containingTagNameToken = null;

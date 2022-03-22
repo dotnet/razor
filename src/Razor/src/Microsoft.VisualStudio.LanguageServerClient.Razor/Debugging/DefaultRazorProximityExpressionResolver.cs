@@ -10,10 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
@@ -24,7 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly FileUriProvider _fileUriProvider;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
-        private readonly CodeAnalysis.Workspace? _workspace;
+        private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
+        private readonly RazorLogger _razorLogger;
         private readonly MemoryCache<CacheKey, IReadOnlyList<string>?> _cache;
 
         [ImportingConstructor]
@@ -32,52 +33,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            VisualStudioWorkspace workspace) : this(fileUriProvider, documentManager, projectionProvider, (CodeAnalysis.Workspace)workspace)
+            VisualStudioWorkspaceAccessor workspaceAccessor,
+            RazorLogger razorLogger)
         {
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-        }
-
-        private DefaultRazorProximityExpressionResolver(
-            FileUriProvider fileUriProvider,
-            LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
-            CodeAnalysis.Workspace? workspace)
-        {
-            if (fileUriProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileUriProvider));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (projectionProvider is null)
-            {
-                throw new ArgumentNullException(nameof(projectionProvider));
-            }
 
             _fileUriProvider = fileUriProvider;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
-            _workspace = workspace;
+            _workspaceAccessor = workspaceAccessor;
+            _razorLogger = razorLogger;
 
             // 10 is a magic number where this effectively represents our ability to cache the last 10 "hit" breakpoint locations
             // corresponding proximity expressions which enables us not to go "async" in those re-hit scenarios.
             _cache = new MemoryCache<CacheKey, IReadOnlyList<string>?>(sizeLimit: 10);
         }
 
-        public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer!!, int lineIndex, int characterIndex, CancellationToken cancellationToken)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (!_fileUriProvider.TryGet(textBuffer, out var documentUri))
             {
                 // Not an addressable Razor document. Do not allow expression resolution here. In practice this shouldn't happen, just being defensive.
@@ -128,7 +100,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 return null;
             }
 
-            var syntaxTree = await virtualDocument.GetCSharpSyntaxTreeAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (!_workspaceAccessor.TryGetWorkspace(textBuffer, out var workspace))
+            {
+                // Couldn't find an associated workspace for the buffer
+                _razorLogger.LogWarning("Could not resolve proximity expressions because a workspace could not be found for the provided text buffer.");
+                return null;
+            }
+
+            var syntaxTree = await virtualDocument.GetCSharpSyntaxTreeAsync(workspace, cancellationToken).ConfigureAwait(false);
             var proximityExpressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectionResult.PositionIndex, cancellationToken)?.ToList();
 
             // Cache range so if we're asked again for this document/line/character we don't have to go async.
@@ -136,11 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             return proximityExpressions;
         }
-
-        public static DefaultRazorProximityExpressionResolver CreateTestInstance(
-            FileUriProvider fileUriProvider,
-            LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider) => new(fileUriProvider, documentManager, projectionProvider, (CodeAnalysis.Workspace?)null);
 
         private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
     }

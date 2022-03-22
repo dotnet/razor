@@ -25,37 +25,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         [ImportingConstructor]
         public DefaultVisualStudioDocumentTrackerFactoryFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext,
-            ITextDocumentFactoryService textDocumentFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            JoinableTaskContext joinableTaskContext!!,
+            ITextDocumentFactoryService textDocumentFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _textDocumentFactory = textDocumentFactory;
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
             var projectManager = languageServices.GetRequiredService<ProjectSnapshotManager>();
             var workspaceEditorSettings = languageServices.GetRequiredService<WorkspaceEditorSettings>();
             var importDocumentManager = languageServices.GetRequiredService<ImportDocumentManager>();

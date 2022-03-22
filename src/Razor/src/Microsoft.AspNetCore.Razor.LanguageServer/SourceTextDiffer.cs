@@ -30,18 +30,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         protected override int NewTextLength => _lineDiffOnly ? NewText.Lines.Count : NewText.Length;
 
-        public static IReadOnlyList<TextChange> GetMinimalTextChanges(SourceText oldText, SourceText newText, bool lineDiffOnly = true)
+        public static IReadOnlyList<TextChange> GetMinimalTextChanges(SourceText oldText!!, SourceText newText!!, bool lineDiffOnly = true)
         {
-            if (oldText is null)
-            {
-                throw new ArgumentNullException(nameof(oldText));
-            }
-
-            if (newText is null)
-            {
-                throw new ArgumentNullException(nameof(newText));
-            }
-
             if (oldText.ContentEquals(newText))
             {
                 return Array.Empty<TextChange>();

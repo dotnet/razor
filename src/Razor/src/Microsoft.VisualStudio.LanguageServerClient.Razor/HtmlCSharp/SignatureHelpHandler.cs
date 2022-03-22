@@ -24,26 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public SignatureHelpHandler(
-            LSPRequestInvoker requestInvoker,
-            LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
+            LSPRequestInvoker requestInvoker!!,
+            LSPDocumentManager documentManager!!,
+            LSPProjectionProvider projectionProvider!!,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (projectionProvider is null)
-            {
-                throw new ArgumentNullException(nameof(projectionProvider));
-            }
-
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
@@ -51,18 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(SignatureHelpHandler));
         }
 
-        public async Task<SignatureHelp?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<SignatureHelp?> HandleRequestAsync(TextDocumentPositionParams request!!, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (clientCapabilities is null)
-            {
-                throw new ArgumentNullException(nameof(clientCapabilities));
-            }
-
             _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))

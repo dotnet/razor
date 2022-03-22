@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -21,13 +19,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
         [ImportingConstructor]
-        public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
+        public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService!!)
         {
-            if (tagHelperFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperFactsService));
-            }
-
             _tagHelperFactsService = tagHelperFactsService;
         }
 
@@ -41,13 +34,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         //
         // Within each of the above scenarios if an attribute completion has a corresponding bound attribute we associate it with the corresponding
         // BoundAttributeDescriptor. By doing this a user can see what C# type a TagHelper expects for the attribute.
-        public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext)
+        public override AttributeCompletionResult GetAttributeCompletions(AttributeCompletionContext completionContext!!)
         {
-            if (completionContext is null)
-            {
-                throw new ArgumentNullException(nameof(completionContext));
-            }
-
             var attributeCompletions = completionContext.ExistingCompletions.ToDictionary(
                 completion => completion,
                 _ => new HashSet<BoundAttributeDescriptor>(),
@@ -90,7 +78,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     foreach (var attributeDescriptor in descriptor.BoundAttributes)
                     {
-                        UpdateCompletions(attributeDescriptor.Name, attributeDescriptor);
+                        if (attributeDescriptor.Name != null)
+                        {
+                            UpdateCompletions(attributeDescriptor.Name, attributeDescriptor);
+                        }
 
                         if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
                         {
@@ -103,7 +94,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     var htmlNameToBoundAttribute = new Dictionary<string, BoundAttributeDescriptor>(StringComparer.OrdinalIgnoreCase);
                     foreach (var attributeDescriptor in descriptor.BoundAttributes)
                     {
-                        htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
+                        if (attributeDescriptor.Name != null)
+                        {
+                            htmlNameToBoundAttribute[attributeDescriptor.Name] = attributeDescriptor;
+                        }
 
                         if (!string.IsNullOrEmpty(attributeDescriptor.IndexerNamePrefix))
                         {
@@ -131,7 +125,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var completionResult = AttributeCompletionResult.Create(attributeCompletions);
             return completionResult;
 
-            void UpdateCompletions(string attributeName, BoundAttributeDescriptor possibleDescriptor)
+            void UpdateCompletions(string attributeName, BoundAttributeDescriptor? possibleDescriptor)
             {
                 if (completionContext.Attributes.Any(attribute => string.Equals(attribute.Key, attributeName, StringComparison.OrdinalIgnoreCase)) &&
                     (completionContext.CurrentAttributeName is null ||
@@ -155,13 +149,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext)
+        public override ElementCompletionResult GetElementCompletions(ElementCompletionContext completionContext!!)
         {
-            if (completionContext is null)
-            {
-                throw new ArgumentNullException(nameof(completionContext));
-            }
-
             var elementCompletions = new Dictionary<string, HashSet<TagHelperDescriptor>>(StringComparer.OrdinalIgnoreCase);
 
             AddAllowedChildrenCompletions(completionContext, elementCompletions);
@@ -279,10 +268,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var binding = _tagHelperFactsService.GetTagHelperBinding(
                 completionContext.DocumentContext,
-                completionContext.ContainingTagName,
-                completionContext.Attributes,
                 completionContext.ContainingParentTagName,
-                completionContext.ContainingParentIsTagHelper);
+                completionContext.Attributes,
+                parentTag: null,
+                parentIsTagHelper: false);
 
             if (binding is null)
             {
@@ -298,7 +287,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     var descriptors = _tagHelperFactsService.GetTagHelpersGivenTag(
                         completionContext.DocumentContext,
                         prefixedName,
-                        completionContext.ContainingTagName);
+                        completionContext.ContainingParentTagName);
 
                     if (descriptors.Count == 0)
                     {

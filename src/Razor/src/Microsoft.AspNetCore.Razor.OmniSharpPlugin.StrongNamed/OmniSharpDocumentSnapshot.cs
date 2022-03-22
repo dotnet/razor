@@ -16,13 +16,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private OmniSharpHostDocument _hostDocument;
         private OmniSharpProjectSnapshot _project;
 
-        internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
+        internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot!!)
         {
-            if (documentSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
             _documentSnapshot = documentSnapshot;
             _projectLock = new object();
         }

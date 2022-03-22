@@ -41,37 +41,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         private readonly ILogger _logger;
 
         public RazorDiagnosticsEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
-            RazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            DocumentVersionCache documentVersionCache!!,
+            RazorDocumentMappingService documentMappingService!!,
+            ILoggerFactory loggerFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
@@ -79,13 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             _logger = loggerFactory.CreateLogger<RazorDiagnosticsEndpoint>();
         }
 
-        public async Task<RazorDiagnosticsResponse> Handle(RazorDiagnosticsParams request, CancellationToken cancellationToken)
+        public async Task<RazorDiagnosticsResponse> Handle(RazorDiagnosticsParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             _logger.LogInformation($"Received {request.Kind:G} diagnostic request for {request.RazorDocumentUri} with {request.Diagnostics.Length} diagnostics.");
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -273,7 +243,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 }
 
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(
-                    n => n.StartTag.Name.Content.Equals("style", StringComparison.Ordinal));
+                    n => n.StartTag?.Name.Content.Equals("style", StringComparison.Ordinal) == true);
                 var cSharp = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
 
                 return element.Body.Any(c => c is CSharpCodeBlockSyntax) || cSharp is not null;
@@ -291,13 +261,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
                 var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
-                if (!element.StartTag.Name.Content.Equals("html", StringComparison.Ordinal))
+                if (element.StartTag?.Name.Content.Equals("html", StringComparison.Ordinal) != true)
                 {
                     return false;
                 }
 
-                var bodyElement = (MarkupElementSyntax)element.ChildNodes().SingleOrDefault(c => c is MarkupElementSyntax tag && tag.StartTag.Name.Content.Equals("body", StringComparison.Ordinal));
-                return bodyElement is not null && bodyElement.StartTag.Bang is not null;
+                var bodyElement = (MarkupElementSyntax)element.ChildNodes().SingleOrDefault(c => c is MarkupElementSyntax tag && tag.StartTag?.Name.Content.Equals("body", StringComparison.Ordinal) == true);
+                return bodyElement is not null && bodyElement.StartTag?.Bang is not null;
             }
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
@@ -355,7 +325,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     return false;
                 }
 
-                var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag.Name.Content.Equals("body", StringComparison.Ordinal));
+                var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag?.Name.Content.Equals("body", StringComparison.Ordinal) == true);
 
                 if (ReferenceEquals(body, owner))
                 {
@@ -367,7 +337,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     return false;
                 }
 
-                return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag.Bang != null;
+                return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag?.Bang != null;
             }
         }
 #nullable disable

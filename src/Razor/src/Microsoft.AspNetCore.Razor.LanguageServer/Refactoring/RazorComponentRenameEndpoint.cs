@@ -37,17 +37,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public RazorComponentRenameEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            RazorComponentSearchEngine componentSearchEngine,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            RazorComponentSearchEngine componentSearchEngine!!,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions!!)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
+            _componentSearchEngine = componentSearchEngine;
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-            _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         public RenameRegistrationOptions GetRegistrationOptions(RenameCapability capability, ClientCapabilities clientCapabilities)
@@ -59,13 +59,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             };
         }
 
-        public async Task<WorkspaceEdit> Handle(RenameParams request, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit> Handle(RenameParams request!!, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             if (!_languageServerFeatureOptions.SupportsFileManipulation)
             {
                 // If we cannot rename a component file then return early indicating a failure to rename anything.
@@ -243,7 +238,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 if (originTagHelper?.IsComponentFullyQualifiedNameMatch() == true)
                 {
                     // Fully qualified binding, our "new name" needs to be fully qualified.
-                    if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(originTagHelper.Name, out var @namespace, out _))
+                    var @namespace = originTagHelper.GetTypeNamespace();
+                    if (@namespace == null)
                     {
                         return;
                     }

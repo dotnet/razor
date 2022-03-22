@@ -4,19 +4,16 @@
 #nullable disable
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
@@ -27,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly CodeAction s_defaultResolvedCodeAction = new CodeAction()
         {
             Title = "@using System.Net",
-            Data = JToken.FromObject(new object()),
+            Data = null,
             Edit = new WorkspaceEdit()
             {
                 DocumentChanges = new Container<WorkspaceEditDocumentChange>(
@@ -68,114 +65,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Equal($"@using System.Net{Environment.NewLine}", returnedTextDocumentEdit.NewText);
         }
 
-        [Fact]
-        public async Task ResolveAsync_NoDocumentChanges_ReturnsOriginalCodeAction()
-        {
-            // Arrange
-            var resolvedCodeAction = new CodeAction()
-            {
-                Title = "ResolvedCodeAction",
-                Data = JToken.FromObject(new object()),
-                Edit = new WorkspaceEdit()
-                {
-                    DocumentChanges = null
-                }
-            };
-
-            var languageServer = CreateLanguageServer(resolvedCodeAction);
-
-            CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
-
-            // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
-
-            // Assert
-            Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
-        }
-
-        [Fact]
-        public async Task ResolveAsync_MultipleDocumentChanges_ReturnsOriginalCodeAction()
-        {
-            // Arrange
-            var resolvedCodeAction = new CodeAction()
-            {
-                Title = "ResolvedCodeAction",
-                Data = JToken.FromObject(new object()),
-                Edit = new WorkspaceEdit()
-                {
-                    DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                        new WorkspaceEditDocumentChange(
-                            new TextDocumentEdit()
-                            {
-                                Edits = new TextEditContainer(
-                                    new TextEdit()
-                                    {
-                                        NewText = "1. Generated C# Based Edit"
-                                    }
-                                )
-                            }
-                        ),
-                        new WorkspaceEditDocumentChange(
-                            new TextDocumentEdit()
-                            {
-                                Edits = new TextEditContainer(
-                                    new TextEdit()
-                                    {
-                                        NewText = "2. Generated C# Based Edit"
-                                    }
-                                )
-                            }
-                        ))
-                }
-            };
-
-            var languageServer = CreateLanguageServer(resolvedCodeAction);
-
-            CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
-
-            // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
-
-            // Assert
-            Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
-        }
-
-        [Fact]
-        public async Task ResolveAsync_NonTextDocumentEdit_ReturnsOriginalCodeAction()
-        {
-            // Arrange
-            var resolvedCodeAction = new CodeAction()
-            {
-                Title = "ResolvedCodeAction",
-                Data = JToken.FromObject(new object()),
-                Edit = new WorkspaceEdit()
-                {
-                    DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                        new WorkspaceEditDocumentChange(
-                            new CreateFile()
-                            {
-                                Uri = new Uri("c:/some/uri.razor")
-                            }
-                        ))
-                }
-            };
-
-            var languageServer = CreateLanguageServer(resolvedCodeAction);
-
-            CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
-
-            // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
-
-            // Assert
-            Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
-        }
-
         private void CreateCodeActionResolver(
             out CSharpCodeActionParams codeActionParams,
-            out AddUsingsCSharpCodeActionResolver addUsingResolver,
-            ClientNotifierServiceBase languageServer = null,
-            DocumentVersionCache documentVersionCache = null)
+            out AddUsingsCSharpCodeActionResolver addUsingResolver)
         {
             var documentPath = "c:/Test.razor";
             var documentUri = new Uri(documentPath);
@@ -188,11 +80,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 RazorFileUri = documentUri
             };
 
-            languageServer ??= CreateLanguageServer();
-            documentVersionCache ??= CreateDocumentVersionCache();
+            var languageServer = CreateLanguageServer();
+            var documentVersionCache = CreateDocumentVersionCache();
 
             addUsingResolver = new AddUsingsCSharpCodeActionResolver(
-                LegacyDispatcher,
+                Dispatcher,
                 CreateDocumentResolver(documentPath, codeDocument),
                 languageServer,
                 documentVersionCache);
@@ -205,17 +97,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return documentVersionCache;
         }
 
-        private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction = null)
+        private static ClientNotifierServiceBase CreateLanguageServer()
         {
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<CodeAction>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(resolvedCodeAction ?? s_defaultResolvedCodeAction));
-
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-            languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>()))
-                .Returns(Task.FromResult(responseRouterReturns.Object));
 
             return languageServer.Object;
         }

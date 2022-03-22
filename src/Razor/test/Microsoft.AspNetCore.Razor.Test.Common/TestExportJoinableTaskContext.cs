@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
     // Starting with 15.3 the editor took a dependency on JoinableTaskContext
     // in Text.Logic and IntelliSense layers as an editor host provided service.
     [Export]
-    internal partial class TestExportJoinableTaskContext
+    public partial class TestExportJoinableTaskContext
     {
         [ImportingConstructor]
         //[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

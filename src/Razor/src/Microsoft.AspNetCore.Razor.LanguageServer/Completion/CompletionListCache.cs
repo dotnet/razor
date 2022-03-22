@@ -22,13 +22,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _resultIdToCompletionList = new List<(long, IReadOnlyList<RazorCompletionItem>)>();
         }
 
-        public long Set(IReadOnlyList<RazorCompletionItem> razorCompletionList)
+        public long Set(IReadOnlyList<RazorCompletionItem> razorCompletionList!!)
         {
-            if (razorCompletionList is null)
-            {
-                throw new ArgumentNullException(nameof(razorCompletionList));
-            }
-
             lock (_accessLock)
             {
                 // If cache exceeds maximum size, remove the oldest list in the cache

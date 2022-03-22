@@ -32,13 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
         }
 
-        public static ITextBuffer GetTextBuffer(this LanguageServerKind languageServerKind, LSPDocumentSnapshot documentSnapshot)
+        public static ITextBuffer GetTextBuffer(this LanguageServerKind languageServerKind, LSPDocumentSnapshot documentSnapshot!!)
         {
-            if (documentSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
             switch (languageServerKind)
             {
                 case LanguageServerKind.CSharp:

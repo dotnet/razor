@@ -33,37 +33,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public OnAutoInsertHandler(
-            LSPDocumentManager documentManager,
-            LSPRequestInvoker requestInvoker,
-            LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
+            LSPDocumentManager documentManager!!,
+            LSPRequestInvoker requestInvoker!!,
+            LSPProjectionProvider projectionProvider!!,
+            LSPDocumentMappingProvider documentMappingProvider!!,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
         {
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            if (projectionProvider is null)
-            {
-                throw new ArgumentNullException(nameof(projectionProvider));
-            }
-
-            if (documentMappingProvider is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingProvider));
-            }
-
-            if (loggerProvider is null)
-            {
-                throw new ArgumentNullException(nameof(loggerProvider));
-            }
-
             _documentManager = documentManager;
             _requestInvoker = requestInvoker;
             _projectionProvider = projectionProvider;
@@ -72,13 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(OnAutoInsertHandler));
         }
 
-        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request!!, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             if (!s_allAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
                 // We haven't built support for this character yet.

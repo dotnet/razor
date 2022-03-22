@@ -14,7 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -70,6 +70,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _documents.TryAdd("/" + path, codeDocument);
         }
 
+        private RazorDocumentFormattingResponse Format(DocumentOnTypeFormattingParams @params)
+        {
+            var response = new RazorDocumentFormattingResponse();
+
+            response.Edits = Array.Empty<TextEdit>();
+
+            // TODO: Update WebTools dependency and call via reflection
+
+            return response;
+        }
+
         private RazorDocumentFormattingResponse Format(DocumentFormattingParams @params)
         {
             var options = @params.Options;
@@ -86,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
             var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
 
-            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var exportProvider = TestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
             var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
             if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))
@@ -250,6 +261,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
             {
                 var response = Format(formattingParams);
+
+                return Task.FromResult(Convert(response));
+            }
+            else if (@params is DocumentOnTypeFormattingParams onTypeFormattingParams &&
+                string.Equals(method, "textDocument/onTypeFormatting", StringComparison.Ordinal))
+            {
+                var response = Format(onTypeFormattingParams);
 
                 return Task.FromResult(Convert(response));
             }

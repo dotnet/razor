@@ -19,18 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ClientNotifierServiceBase _server;
         private readonly ILogger _logger;
 
-        public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer, ILoggerFactory loggerFactory)
+        public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer!!, ILoggerFactory loggerFactory!!)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _server = languageServer;
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }

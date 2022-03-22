@@ -12,13 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal static class JsonConverterCollectionExtensions
     {
-        public static JsonConverterCollection RegisterRazorConverters(this JsonConverterCollection collection)
+        public static JsonConverterCollection RegisterRazorConverters(this JsonConverterCollection collection!!)
         {
-            if (collection is null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
             collection.Add(TagHelperDescriptorJsonConverter.Instance);
             collection.Add(RazorDiagnosticJsonConverter.Instance);
             collection.Add(RazorExtensionJsonConverter.Instance);

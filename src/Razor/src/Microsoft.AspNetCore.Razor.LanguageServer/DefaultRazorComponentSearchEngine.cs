@@ -23,16 +23,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ILogger<DefaultRazorComponentSearchEngine> _logger;
 
         public DefaultRazorComponentSearchEngine(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory!!)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
             _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
         }
@@ -47,14 +42,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
         /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="tagHelper"/> is null.</exception>
-        public override async Task<DocumentSnapshot> TryLocateComponentAsync(TagHelperDescriptor tagHelper)
+        public override async Task<DocumentSnapshot> TryLocateComponentAsync(TagHelperDescriptor tagHelper!!)
         {
-            if (tagHelper is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelper));
-            }
-
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName))
+            var typeName = tagHelper.GetTypeNameIdentifier();
+            var namespaceName = tagHelper.GetTypeNamespace();
+            if (typeName == null || namespaceName == null)
             {
                 _logger.LogWarning($"Could not split namespace and type for name {tagHelper.Name}.");
                 return null;

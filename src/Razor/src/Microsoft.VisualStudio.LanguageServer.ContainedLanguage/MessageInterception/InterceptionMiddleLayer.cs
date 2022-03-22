@@ -22,9 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
         /// </summary>
         /// <param name="interceptorManager">Interception manager</param>
         /// <param name="contentType">The content type name of the language for the ILanguageClient using this middle layer</param>
-        public InterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
+        public InterceptionMiddleLayer(InterceptorManager interceptorManager!!, string contentType)
         {
-            _interceptorManager = interceptorManager ?? throw new ArgumentNullException(nameof(interceptorManager));
+            _interceptorManager = interceptorManager;
             _contentType = !string.IsNullOrEmpty(contentType) ? contentType : throw new ArgumentException("Cannot be empty", nameof(contentType));
         }
 
@@ -48,10 +48,19 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             }
         }
 
-        public Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+        public async Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
         {
-            // until we have a request operation that needs to support interception, just pass the request through
-            return sendRequest(methodParam);
+            // First send the request through.
+            // We don't yet have a scenario where the request needs to be intercepted, but if one does come up, we may need to redesign the interception handshake
+            // to handle both request and response interception.
+            var response = await sendRequest(methodParam);
+
+            if (response is not null && CanHandle(methodName))
+            {
+                response = await _interceptorManager.ProcessInterceptorsAsync(methodName, response, _contentType, CancellationToken.None);
+            }
+
+            return response;
         }
     }
 }

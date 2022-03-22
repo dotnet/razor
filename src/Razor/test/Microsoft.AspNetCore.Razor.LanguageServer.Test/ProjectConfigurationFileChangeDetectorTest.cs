@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var cts = new CancellationTokenSource();
             var detector = new TestProjectConfigurationFileChangeDetector(
                 cts,
-                LegacyDispatcher,
+                Dispatcher,
                 new[] { listener1.Object, listener2.Object },
                 existingConfigurationFiles);
 
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 CancellationTokenSource cancellationTokenSource,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                IReadOnlyList<string> existingConfigurationFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingConfigurationFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners, TestLanguageServerFeatureOptions.Instance)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingConfigurationFiles = existingConfigurationFiles;

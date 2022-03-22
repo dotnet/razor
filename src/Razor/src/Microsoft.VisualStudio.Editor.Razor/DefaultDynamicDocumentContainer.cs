@@ -20,13 +20,8 @@ namespace Microsoft.CodeAnalysis.Razor
         private RazorDocumentExcerptService _excerptService;
         private RazorSpanMappingService _mappingService;
 
-        public DefaultDynamicDocumentContainer(DocumentSnapshot documentSnapshot)
+        public DefaultDynamicDocumentContainer(DocumentSnapshot documentSnapshot!!)
         {
-            if (documentSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
             _documentSnapshot = documentSnapshot;
         }
 

@@ -26,31 +26,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
-            AdhocWorkspaceFactory workspaceFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            DocumentResolver documentResolver!!,
+            IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider!!,
+            AdhocWorkspaceFactory workspaceFactory!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (onAutoInsertProvider is null)
-            {
-                throw new ArgumentNullException(nameof(onAutoInsertProvider));
-            }
-
-            if (workspaceFactory is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceFactory));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _workspaceFactory = workspaceFactory;
@@ -115,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false))
+            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory))
             {
                 for (var i = 0; i < applicableProviders.Count; i++)
                 {

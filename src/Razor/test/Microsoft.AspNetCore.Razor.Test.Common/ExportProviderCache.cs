@@ -24,6 +24,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         private static readonly ConcurrentDictionary<string, Scope> s_scopes = new();
         private const string DefaultScope = "default";
 
+        private static readonly object s_lock = new();
+
         internal static bool Enabled { get; private set; }
 
         internal static ExportProvider[] ExportProvidersForCleanup
@@ -44,12 +46,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         internal static void SetEnabled_OnlyUseExportProviderAttributeCanCall(bool value)
         {
-            Enabled = value;
-            if (!Enabled)
+            lock (s_lock)
             {
-                foreach (var scope in s_scopes.Values.ToArray())
+                Enabled = value;
+                if (!Enabled)
                 {
-                    scope.Clear();
+                    foreach (var scope in s_scopes.Values.ToArray())
+                    {
+                        scope.Clear();
+                    }
                 }
             }
         }
@@ -146,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 _exportProviderFactory = exportProviderFactory;
             }
 
-            public ExportProvider GetOrCreateExportProvider()
+            private ExportProvider GetOrCreateExportProvider()
             {
                 if (!Enabled)
                 {
@@ -210,7 +215,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 //
                 // It may be clearer to refactor the implementation to only allow one call to CreateExportProvider in
                 // the context of a single test. https://github.com/dotnet/roslyn/issues/25863
-                return GetOrCreateExportProvider();
+                lock (s_lock)
+                {
+                    return GetOrCreateExportProvider();
+                }
             }
 
             private void RequireForSingleExportProvider([DoesNotReturnIf(false)] bool condition)

@@ -12,20 +12,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class CSharpVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         public CSharpVirtualDocumentSnapshot(
-            Uri uri,
-            ITextSnapshot snapshot,
+            Uri uri!!,
+            ITextSnapshot snapshot!!,
             long? hostDocumentSyncVersion)
         {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (snapshot is null)
-            {
-                throw new ArgumentNullException(nameof(snapshot));
-            }
-
             Uri = uri;
             Snapshot = snapshot;
             HostDocumentSyncVersion = hostDocumentSyncVersion;

@@ -26,18 +26,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly RazorDocumentManager _documentManager;
 
         [ImportingConstructor]
-        public RazorTextViewConnectionListener(JoinableTaskContext joinableTaskContext, RazorDocumentManager documentManager)
+        public RazorTextViewConnectionListener(JoinableTaskContext joinableTaskContext!!, RazorDocumentManager documentManager!!)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
             _joinableTaskContext = joinableTaskContext;
             _documentManager = documentManager;
         }

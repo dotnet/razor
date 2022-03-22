@@ -18,38 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private const string TextBufferUri = "__MsLspTextBufferUri";
 
         [ImportingConstructor]
-        public DefaultFileUriProvider(ITextDocumentFactoryService textDocumentFactory)
+        public DefaultFileUriProvider(ITextDocumentFactoryService textDocumentFactory!!)
         {
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
             _textDocumentFactory = textDocumentFactory;
         }
 
-        public override void AddOrUpdate(ITextBuffer textBuffer, Uri uri)
+        public override void AddOrUpdate(ITextBuffer textBuffer!!, Uri uri!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
             textBuffer.Properties[TextBufferUri] = uri;
         }
 
-        public override Uri GetOrCreate(ITextBuffer textBuffer)
+        public override Uri GetOrCreate(ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (TryGet(textBuffer, out var uri))
             {
                 return uri;
@@ -71,13 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return uri;
         }
 
-        public override bool TryGet(ITextBuffer textBuffer, out Uri uri)
+        public override bool TryGet(ITextBuffer textBuffer!!, out Uri uri)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             if (textBuffer.Properties.TryGetProperty(TextBufferUri, out uri))
             {
                 return true;
@@ -86,13 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return false;
         }
 
-        public override void Remove(ITextBuffer textBuffer)
+        public override void Remove(ITextBuffer textBuffer!!)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
             textBuffer.Properties.RemoveProperty(TextBufferUri);
         }
     }

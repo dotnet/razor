@@ -16,13 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         public string MethodName { get; }
 
-        public ExportLspMethodAttribute(string methodName) : base(typeof(IRequestHandler))
+        public ExportLspMethodAttribute(string methodName!!) : base(typeof(IRequestHandler))
         {
-            if (methodName is null)
-            {
-                throw new ArgumentNullException(nameof(methodName));
-            }
-
             MethodName = methodName;
         }
     }

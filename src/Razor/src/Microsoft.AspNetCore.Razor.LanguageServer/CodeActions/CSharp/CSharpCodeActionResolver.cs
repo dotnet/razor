@@ -15,13 +15,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         protected readonly ClientNotifierServiceBase LanguageServer;
 
-        public CSharpCodeActionResolver(ClientNotifierServiceBase languageServer)
+        public CSharpCodeActionResolver(ClientNotifierServiceBase languageServer!!)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             LanguageServer = languageServer;
         }
 

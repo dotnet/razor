@@ -20,8 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public class OptimizedCompletionListJsonConverter : JsonConverter
         {
-            public static readonly OptimizedCompletionListJsonConverter Instance = new OptimizedCompletionListJsonConverter();
-            private static readonly ConcurrentDictionary<object, string> s_commitCharactersRawJson;
+            public static readonly OptimizedCompletionListJsonConverter Instance = new();
+            protected static readonly ConcurrentDictionary<object, string> s_commitCharactersRawJson;
             private static readonly JsonSerializer s_defaultSerializer;
 
             static OptimizedCompletionListJsonConverter()
@@ -84,6 +84,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             {
                 writer.WriteStartObject();
 
+                WriteCompletionItemProperties(writer, completionItem, serializer, suppressData);
+
+                writer.WriteEndObject();
+            }
+
+            protected virtual void WriteCompletionItemProperties(JsonWriter writer, CompletionItem completionItem, JsonSerializer serializer, bool suppressData)
+            {
                 var label = completionItem.Label;
                 if (label != null)
                 {
@@ -173,8 +180,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     writer.WritePropertyName("data");
                     serializer.Serialize(writer, completionItem.Data);
                 }
-
-                writer.WriteEndObject();
             }
         }
     }

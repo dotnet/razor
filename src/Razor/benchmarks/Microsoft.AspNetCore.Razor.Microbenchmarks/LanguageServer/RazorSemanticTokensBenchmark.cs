@@ -81,11 +81,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
-            var semanticVersion = new VersionStamp();
+            var semanticVersion = VersionStamp.Create();
 
             await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
             await RazorSemanticTokenService.GetSemanticTokensAsync(
-                textDocumentIdentifier, DocumentSnapshot, documentVersion, semanticVersion, Range, cancellationToken).ConfigureAwait(false);
+                textDocumentIdentifier, DocumentSnapshot, semanticVersion, documentVersion, Range, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             ProjectSnapshotManagerDispatcher = languageServer.GetService(typeof(ProjectSnapshotManagerDispatcher)) as ProjectSnapshotManagerDispatcher;
         }
 
-        private class TestRazorSemanticTokensInfoService : DefaultRazorSemanticTokensInfoService
+        internal class TestRazorSemanticTokensInfoService : DefaultRazorSemanticTokensInfoService
         {
             public TestRazorSemanticTokensInfoService(
                 ClientNotifierServiceBase languageServer,

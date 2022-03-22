@@ -26,31 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         protected IContentTypeRegistryService ContentTypeRegistry { get; }
 
         public VirtualDocumentFactoryBase(
-            IContentTypeRegistryService contentTypeRegistry,
-            ITextBufferFactoryService textBufferFactory,
-            ITextDocumentFactoryService textDocumentFactory,
-            FileUriProvider filePathProvider)
+            IContentTypeRegistryService contentTypeRegistry!!,
+            ITextBufferFactoryService textBufferFactory!!,
+            ITextDocumentFactoryService textDocumentFactory!!,
+            FileUriProvider filePathProvider!!)
         {
-            if (contentTypeRegistry is null)
-            {
-                throw new ArgumentNullException(nameof(contentTypeRegistry));
-            }
-
-            if (textBufferFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textBufferFactory));
-            }
-
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
-            if (filePathProvider is null)
-            {
-                throw new ArgumentNullException(nameof(filePathProvider));
-            }
-
             ContentTypeRegistry = contentTypeRegistry;
 
             _textBufferFactory = textBufferFactory;
@@ -60,13 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         protected abstract IContentType LanguageContentType { get; }
 
-        public override bool TryCreateFor(ITextBuffer hostDocumentBuffer, out VirtualDocument virtualDocument)
+        public override bool TryCreateFor(ITextBuffer hostDocumentBuffer!!, out VirtualDocument virtualDocument)
         {
-            if (hostDocumentBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(hostDocumentBuffer));
-            }
-
             if (!hostDocumentBuffer.ContentType.IsOfType(HostDocumentContentTypeName))
             {
                 // Another content type we don't care about.

@@ -26,4 +26,9 @@
   <Extension path = "/MonoDevelop/ProjectModel/ProjectModelExtensions">
     <Class class="Microsoft.VisualStudio.Mac.RazorAddin.RazorProjectExtension" insertafter="FinalStep" />
   </Extension>
+
+  <!-- Feature Switches -->
+  <Extension path="/MonoDevelop/Core/FeatureSwitches">
+    <FeatureSwitch id="Razor.LSP.Editor" _description="Enables the Razor LSP editor for ASP.NET Core scenarios" defaultValue="false" />
+  </Extension>
 </ExtensionModel>

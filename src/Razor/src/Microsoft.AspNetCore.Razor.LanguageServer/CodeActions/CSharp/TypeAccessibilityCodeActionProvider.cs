@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -38,20 +39,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         };
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
-            RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions,
+            RazorCodeActionContext context!!,
+            IEnumerable<RazorCodeAction> codeActions!!,
             CancellationToken cancellationToken)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (codeActions is null)
-            {
-                throw new ArgumentNullException(nameof(codeActions));
-            }
-
             if (context.Request?.Context?.Diagnostics is null)
             {
                 return EmptyResult;
@@ -144,9 +135,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
                     typeAccessibilityCodeActions.Add(fqnCodeAction);
 
-                    var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fqn, context.Request.TextDocument.Uri);
-                    if (addUsingCodeAction != null)
+                    if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
                     {
+                        var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, resolutionParams);
                         typeAccessibilityCodeActions.Add(addUsingCodeAction);
                     }
                 }
@@ -192,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 // For add using suggestions, the code action title is of the form:
                 // `using System.Net;`
                 else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
-                    AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
+                    AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
                     var newCodeAction = codeAction with { Title = $"@using {@namespace}" };
                     typeAccessibilityCodeActions.Add(newCodeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
@@ -234,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static RazorCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            RazorCodeAction codeAction,
+            RazorCodeAction nonFQNCodeAction,
             string fullyQualifiedName)
         {
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
@@ -256,11 +247,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
             };
 
-            return new RazorCodeAction()
-            {
-                Title = codeAction.Title,
-                Edit = fqnWorkspaceEdit
-            };
+            var codeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(nonFQNCodeAction.Title, fqnWorkspaceEdit);
+            return codeAction;
         }
     }
 }

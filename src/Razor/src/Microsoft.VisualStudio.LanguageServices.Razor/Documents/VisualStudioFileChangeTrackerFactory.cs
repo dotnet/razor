@@ -18,31 +18,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly JoinableTaskContext _joinableTaskContext;
 
         public VisualStudioFileChangeTrackerFactory(
-            ErrorReporter errorReporter,
-            IVsAsyncFileChangeEx fileChangeService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext)
+            ErrorReporter errorReporter!!,
+            IVsAsyncFileChangeEx fileChangeService!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            JoinableTaskContext joinableTaskContext!!)
         {
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (fileChangeService is null)
-            {
-                throw new ArgumentNullException(nameof(fileChangeService));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _errorReporter = errorReporter;
             _fileChangeService = fileChangeService;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;

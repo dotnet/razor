@@ -381,11 +381,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
             builder.TagMatchingRule(rule => rule.TagName = tagName);
             builder.SetTypeName(fullyQualifiedName);
+            builder.SetTypeNameIdentifier(tagName);
+            builder.SetTypeNamespace(namespaceName);
             yield return builder.Build();
 
             var fullyQualifiedBuilder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
             fullyQualifiedBuilder.TagMatchingRule(rule => rule.TagName = fullyQualifiedName);
             fullyQualifiedBuilder.SetTypeName(fullyQualifiedName);
+            fullyQualifiedBuilder.SetTypeNameIdentifier(tagName);
+            fullyQualifiedBuilder.SetTypeNamespace(namespaceName);
             fullyQualifiedBuilder.AddMetadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
             yield return fullyQualifiedBuilder.Build();
         }
@@ -490,9 +494,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 d.TryResolveDocument(itemDirectory1.FilePath, out directory1Component) == true &&
                 d.TryResolveDocument(itemDirectory2.FilePath, out directory2Component) == true, MockBehavior.Strict);
 
-            var searchEngine = new DefaultRazorComponentSearchEngine(LegacyDispatcher, projectSnapshotManagerAccessor, LoggerFactory);
+            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
-            var endpoint = new RazorComponentRenameEndpoint(LegacyDispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
+            var endpoint = new RazorComponentRenameEndpoint(Dispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
             return endpoint;
         }
 

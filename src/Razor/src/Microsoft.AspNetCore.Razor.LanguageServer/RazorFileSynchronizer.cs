@@ -16,30 +16,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly RazorProjectService _projectService;
 
         public RazorFileSynchronizer(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            RazorProjectService projectService)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            RazorProjectService projectService!!)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
         }
 
-        public void RazorFileChanged(string filePath, RazorFileChangeKind kind)
+        public void RazorFileChanged(string filePath!!, RazorFileChangeKind kind)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (kind)

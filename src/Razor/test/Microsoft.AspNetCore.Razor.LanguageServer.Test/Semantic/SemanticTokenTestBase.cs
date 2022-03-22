@@ -3,27 +3,44 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
+using OS = OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
-        private static readonly AsyncLocal<string?> s_fileName = new AsyncLocal<string?>();
+        private static readonly AsyncLocal<string?> s_fileName = new();
 
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
+
+        protected static readonly ServerCapabilities SemanticTokensServerCapabilities = new()
+        {
+            SemanticTokensOptions = new()
+            {
+                Full = false,
+                Range = true
+            }
+        };
 
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
@@ -41,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         protected int BaselineTestCount { get; set; }
         protected int BaselineEditTestCount { get; set; }
 
-        internal void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
+        protected void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
         {
             if (FileName is null)
             {
@@ -81,16 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Assert.True(semanticArray.Length == actual.Length, $"Expected length: {semanticArray.Length}, Actual length: {actual.Length}");
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal void GetAllBaselineTokens(out int[]? baselineOriginal, out int[]? baselineExpected, out SemanticTokensFullOrDelta? baselineDelta)
-#pragma warning restore CS0618 // Type or member is obsolete
-        {
-            baselineOriginal = GetBaselineTokens(FileName + ".semanticoriginal.txt");
-            baselineExpected = GetBaselineTokens(FileName + ".semanticexpected.txt");
-            baselineDelta = GetBaselineDeltaTokens(FileName + ".semanticedit.txt");
-        }
-
-        internal int[]? GetBaselineTokens(string baselineFileName)
+        protected int[]? GetBaselineTokens(string baselineFileName)
         {
             var semanticFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
             if (!semanticFile.Exists())
@@ -103,103 +111,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticArray;
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal void AssertSemanticTokensEditsMatchesBaseline(SemanticTokensFullOrDelta edits)
-#pragma warning restore CS0618 // Type or member is obsolete
+        private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
+            string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
-            if (FileName is null)
+            var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
+            var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
+            var csharpTokens = Array.Empty<int>();
+            var isFinalized = true;
+
+            if (csharpRange is not null)
             {
-                var message = $"{nameof(AssertSemanticTokensEditsMatchesBaseline)} should only be called from a Semantic test ({nameof(FileName)} is null).";
-                throw new InvalidOperationException(message);
+                var csharpSourceText = codeDocument.GetCSharpSourceText();
+                var files = new List<(Uri, SourceText)>();
+                var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+                files.Add((documentUri, csharpSourceText));
+
+                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+                using var workspace = CreateTestWorkspace(files, exportProvider);
+                await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
+
+                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                    Methods.TextDocumentSemanticTokensRangeName,
+                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
+
+                csharpTokens = result?.Data;
+                isFinalized = result?.IsFinalized ?? false;
             }
 
-            var fileName = BaselineEditTestCount > 0 ? FileName + $"_{BaselineEditTestCount}" : FileName;
-            var baselineFileName = Path.ChangeExtension(fileName, ".semanticedit.txt");
-
-            BaselineEditTestCount++;
-            if (GenerateBaselines)
-            {
-                GenerateSemanticEditBaseline(edits, baselineFileName);
-            }
-
-            var semanticEdits = GetBaselineDeltaTokens(baselineFileName);
-
-            if (semanticEdits!.IsDelta && edits.IsDelta)
-            {
-                // We can't compare the ResultID because it's from a previous run
-                Assert.Equal(semanticEdits.Delta?.Edits, edits.Delta?.Edits, SemanticEditComparer.Instance);
-            }
-            else if (semanticEdits.IsFull && edits.IsFull)
-            {
-                Assert.Equal(semanticEdits.Full, edits.Full);
-            }
-            else
-            {
-                Assert.True(false, $"Expected and actual semantic edits did not match.");
-            }
+            var csharpResponse = new ProvideSemanticTokensResponse(
+                tokens: csharpTokens, isFinalized, hostDocumentSyncVersion);
+            return csharpResponse;
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal SemanticTokensFullOrDelta? GetBaselineDeltaTokens(string baselineFileName)
-#pragma warning restore CS0618 // Type or member is obsolete
+        protected static OS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, OS.Range razorRange)
         {
-            var semanticEditFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
-            if (!semanticEditFile.Exists())
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+            if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
+                !DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {
-                throw new XunitException($"The resource {baselineFileName} was not found.");
+                // No C# in the range.
+                return null;
             }
 
-            var semanticEditStr = semanticEditFile.ReadAllText();
-            var semanticEdits = ParseSemanticEditBaseline(semanticEditStr);
-            return semanticEdits;
+            return csharpRange;
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal static RazorSemanticTokensEdit[] GetRazorEdits(SemanticTokensFullOrDelta? baselineDelta)
-#pragma warning restore CS0618 // Type or member is obsolete
-        {
-            var edits = baselineDelta!.Delta!.Edits.ToArray();
-            var razorSemanticTokenEdits = new RazorSemanticTokensEdit[edits.Length];
-            for (var i = 0; i < edits.Length; i++)
+        protected static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+            => new()
             {
-                razorSemanticTokenEdits[i] = new RazorSemanticTokensEdit(edits[i].Start, edits[i].DeleteCount, edits[i].Data?.ToArray());
-            }
-
-            return razorSemanticTokenEdits;
-        }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal static void GenerateSemanticEditBaseline(SemanticTokensFullOrDelta edits, string baselineFileName)
-#pragma warning restore CS0618 // Type or member is obsolete
-        {
-            var builder = new StringBuilder();
-            if (edits.IsDelta)
-            {
-                builder.AppendLine("Delta");
-                foreach (var edit in edits.Delta!.Edits)
-                {
-                    builder.Append(edit.Start).Append(' ');
-                    builder.Append(edit.DeleteCount).Append(" [ ");
-
-                    foreach (var i in edit.Data!)
-                    {
-                        builder.Append(i).Append(' ');
-                    }
-
-                    builder.AppendLine("]");
-                }
-            }
-            else
-            {
-                foreach (var d in edits.Full!.Data)
-                {
-                    builder.Append(d).Append(' ');
-                }
-            }
-
-            var semanticBaselineEditPath = Path.Combine(s_projectPath, baselineFileName);
-            File.WriteAllText(semanticBaselineEditPath, builder.ToString());
-        }
+                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                Range = range
+            };
 
         private static void GenerateSemanticBaseline(IEnumerable<int>? actual, string baselineFileName)
         {
@@ -250,115 +212,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return results.ToArray();
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        private static SemanticTokensFullOrDelta? ParseSemanticEditBaseline(string semanticEditStr)
+        private class VSSemanticTokensResponse : SemanticTokens
         {
-            if (string.IsNullOrEmpty(semanticEditStr))
-            {
-                return null;
-            }
-
-            var strArray = semanticEditStr.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-            if (strArray[0].Equals("Delta", StringComparison.Ordinal))
-            {
-                var edits = new List<SemanticTokensEdit>();
-                var i = 1;
-                while (i < strArray.Length - 1)
-                {
-                    var edit = new SemanticTokensEdit
-                    {
-                        Start = int.Parse(strArray[i], Thread.CurrentThread.CurrentCulture),
-                        DeleteCount = int.Parse(strArray[i + 1], Thread.CurrentThread.CurrentCulture),
-                    };
-                    i += 3;
-                    var inArray = true;
-                    var data = new List<int>();
-                    while (inArray)
-                    {
-                        var str = strArray[i];
-                        if (str.Equals("]", StringComparison.Ordinal))
-                        {
-                            inArray = false;
-                        }
-                        else
-                        {
-                            data.Add(int.Parse(str, Thread.CurrentThread.CurrentCulture));
-                        }
-
-                        i++;
-                    }
-
-                    edit = edit with { Data = data.ToImmutableArray(), };
-                    edits.Add(edit);
-                }
-
-                var delta = new SemanticTokensDelta()
-                {
-                    Edits = edits,
-                };
-
-                return new SemanticTokensFullOrDelta(delta);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class SemanticEditComparer : IEqualityComparer<SemanticTokensEdit>
-        {
-            public static SemanticEditComparer Instance = new SemanticEditComparer();
-
-            public bool Equals(SemanticTokensEdit? x, SemanticTokensEdit? y)
-            {
-                if (x is null && y is null)
-                {
-                    return true;
-                }
-                else if (x is null || y is null)
-                {
-                    return false;
-                }
-
-                Assert.Equal(x.DeleteCount, y.DeleteCount);
-                Assert.Equal(x.Start, y.Start);
-                if (x.Data.HasValue && y.Data.HasValue)
-                {
-                    Assert.Equal(x.Data.Value, y.Data.Value, ImmutableArrayIntComparer.Instance);
-                }
-
-                return x.DeleteCount == y.DeleteCount &&
-                    x.Start == y.Start;
-            }
-
-            public int GetHashCode(SemanticTokensEdit obj)
-            {
-                throw new NotImplementedException();
-            }
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
-
-        private class ImmutableArrayIntComparer : IEqualityComparer<ImmutableArray<int>>
-        {
-            public static ImmutableArrayIntComparer Instance = new ImmutableArrayIntComparer();
-
-            public bool Equals(ImmutableArray<int> x, ImmutableArray<int> y)
-            {
-                for (var i = 0; i < Math.Min(x.Length, y.Length); i++)
-                {
-                    Assert.True(x[i] == y[i], $"x {x[i]} y {y[i]} i {i}");
-                }
-
-                Assert.Equal(x.Length, y.Length);
-
-                return true;
-            }
-
-            public int GetHashCode(ImmutableArray<int> obj)
-            {
-                throw new NotImplementedException();
-            }
+            [DataMember(Name = "isFinalized")]
+            public bool IsFinalized { get; set; }
         }
     }
 }

@@ -44,31 +44,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+        public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor!!, ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
             _optionsMonitor = optionsMonitor;
         }
 
         public override string TriggerCharacter => ">";
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position!!, FormattingContext context!!, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
-            if (position is null)
-            {
-                throw new ArgumentNullException(nameof(position));
-            }
-
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (!_optionsMonitor.CurrentValue.AutoClosingTags)
             {
                 format = default;
@@ -249,9 +234,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 //
                 // The owner will be the </div>. Note this does not happen outside of C# blocks.
 
-                var closeAngleIndex = afterCloseAngleIndex - 1;
-                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                var closeAngleSourceChange = new SourceChange(afterCloseAngleIndex - 1, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
+
+                // Get the real closing angle if we get the quote from an attribute syntax. See https://github.com/dotnet/razor-tooling/issues/5694
+                switch (currentOwner)
+                {
+                    case MarkupTextLiteralSyntax { Parent.Parent: MarkupStartTagSyntax startTag }:
+                        currentOwner = startTag.CloseAngle;
+                        break;
+                    case MarkupTextLiteralSyntax { Parent.Parent: MarkupTagHelperStartTagSyntax startTagHelper }:
+                        currentOwner = startTagHelper.CloseAngle;
+                        break;
+                }
             }
             else if (currentOwner.Parent is MarkupStartTagSyntax startTag &&
                 startTag.OpenAngle.Position == afterCloseAngleIndex)
@@ -367,12 +362,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 RazorSyntaxNode? endTag = null;
                 if (node is MarkupTagHelperElementSyntax parentTagHelper)
                 {
-                    potentialStartTagName = parentTagHelper.StartTag.Name.Content;
+                    potentialStartTagName = parentTagHelper.StartTag?.Name.Content ?? parentTagHelper.EndTag?.Name.Content;
                     endTag = parentTagHelper.EndTag;
                 }
                 else if (node is MarkupElementSyntax parentElement)
                 {
-                    potentialStartTagName = parentElement.StartTag.Name.Content;
+                    potentialStartTagName = parentElement.StartTag?.Name.Content ?? parentElement.EndTag?.Name.Content;
                     endTag = parentElement.EndTag;
                 }
 

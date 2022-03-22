@@ -203,9 +203,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         protected ILogger Logger { get; } = NullLogger.Instance;
 
-        internal static RazorCodeDocument CreateCodeDocument(string text, params TagHelperDescriptor[] tagHelpers)
+        internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, params TagHelperDescriptor[] tagHelpers)
         {
-            return CreateCodeDocument(text, CSHtmlFile, tagHelpers);
+            return CreateCodeDocument(text, isRazorFile ? RazorFile : CSHtmlFile, tagHelpers);
         }
 
         protected static TextDocumentIdentifier GetIdentifier(bool isRazor)
@@ -214,14 +214,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return new TextDocumentIdentifier(new Uri($"c:\\${file}"));
         }
 
-        internal static (Queue<DocumentSnapshot>, Queue<TextDocumentIdentifier>) CreateDocumentSnapshot(string?[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
+        internal static (Queue<DocumentSnapshot>, Queue<TextDocumentIdentifier>) CreateDocumentSnapshot(string[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
         {
             var documentSnapshots = new Queue<DocumentSnapshot>();
             var identifiers = new Queue<TextDocumentIdentifier>();
-            foreach (var (text, isRazor) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
+            foreach (var (text, isRazorFile) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
             {
-                var file = isRazor ? RazorFile : CSHtmlFile;
-                var document = CreateCodeDocument(text, file, tagHelpers);
+                var document = CreateCodeDocument(text, isRazorFile, tagHelpers);
 
                 var projectSnapshot = new Mock<ProjectSnapshot>(MockBehavior.Strict);
                 projectSnapshot
@@ -240,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     .Returns(projectSnapshot.Object);
 
                 documentSnapshots.Enqueue(documentSnapshot.Object);
-                var identifier = GetIdentifier(isRazor);
+                var identifier = GetIdentifier(isRazorFile);
                 identifiers.Enqueue(identifier);
             }
 

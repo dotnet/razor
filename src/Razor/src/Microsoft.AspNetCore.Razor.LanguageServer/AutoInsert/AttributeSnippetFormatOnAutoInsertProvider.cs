@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -22,29 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public override string TriggerCharacter => "=";
 
-        public AttributeSnippetOnAutoInsertProvider(TagHelperFactsService tagHelperFactsService, ILoggerFactory loggerFactory)
+        public AttributeSnippetOnAutoInsertProvider(TagHelperFactsService tagHelperFactsService!!, ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
-            if (tagHelperFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperFactsService));
-            }
-
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position!!, FormattingContext context!!, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
-            if (position is null)
-            {
-                throw new ArgumentNullException(nameof(position));
-            }
-
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (!IsAtAttributeValueStart(context, position))
             {
                 format = default;
@@ -101,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             var boundAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(context.CodeDocument.GetTagHelperContext(), attribute.Name.GetContent(), tagHelperElement.TagHelperInfo.BindingResult);
-            var isStringProperty = boundAttributes.FirstOrDefault(a => a.Name == attribute.Name.GetContent())?.IsStringProperty ?? true;
+            var isStringProperty = boundAttributes.FirstOrDefault(a => a.Name == attribute.Name.GetContent() || a.IndexerNamePrefix?.StartsWith(attribute.Name.GetContent()) == true)?.IsStringProperty ?? true;
 
             return !isStringProperty;
         }
