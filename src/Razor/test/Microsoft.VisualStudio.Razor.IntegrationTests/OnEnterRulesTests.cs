@@ -153,7 +153,6 @@ A
         // Arrange
         await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(content, HangMitigatingCancellationToken);
-        await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "HTML Attribute Name");
     }
 }
 
