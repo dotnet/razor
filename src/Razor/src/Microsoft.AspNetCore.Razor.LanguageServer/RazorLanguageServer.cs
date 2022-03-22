@@ -134,6 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<WrapWithTagEndpoint>()
                     .WithHandler<InlineCompletionEndpoint>()
                     .WithHandler<RazorBreakpointSpanEndpoint>()
+                    .WithHandler<RazorProximityExpressionsEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
                     .WithHandler<FoldingRangeEndpoint>()
                     .WithServices(services =>

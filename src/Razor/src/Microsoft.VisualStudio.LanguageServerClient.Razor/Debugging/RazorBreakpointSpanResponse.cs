@@ -5,10 +5,10 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     internal class RazorBreakpointSpanResponse
     {
-        public Range Range{ get; set; }
+        public Range Range { get; set; }
     }
 }
