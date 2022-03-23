@@ -16,27 +16,37 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     {
         private const string RazorPaneName = "Razor Language Server Client";
 
-        public async Task<string> GetOutputContentAsync(CancellationToken cancellationToken)
+        /// <summary>
+        /// This method returns the current content of the "Razor Language Server Client" output pane.
+        /// </summary>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The contents of the RLSC output pane.</returns>
+        public Task<string> GetRazorOutputPaneContentAsync(CancellationToken cancellationToken)
         {
             var outputPaneTextView = GetOutputPaneTextView(RazorPaneName);
-            return await outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
+            return outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
         }
 
         private static IVsTextView GetOutputPaneTextView(string paneName)
         {
             var sVSOutputWindow = ServiceProvider.GlobalProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
-            if (sVSOutputWindow is not IVsExtensibleObject extensibleObject)
-            {
-                throw new InvalidOperationException($"{nameof(SVsOutputWindow)} should implement {nameof(IVsExtensibleObject)}");
-            }
+            var extensibleObject = ServiceProvider.GlobalProvider.GetService<SVsOutputWindow, IVsExtensibleObject>();
 
-            extensibleObject.GetAutomationObject(null, out var outputWindowObj);
+            // The null propName gives use the OutputWindow object
+            ErrorHandler.ThrowOnFailure(extensibleObject.GetAutomationObject(pszPropName: null, out var outputWindowObj));
             var outputWindow = (EnvDTE.OutputWindow)outputWindowObj;
 
+            // This is a public entry point to COutputWindow::GetPaneByName
             var pane = outputWindow.OutputWindowPanes.Item(paneName);
+            var textView = OutputWindowPaneToIVsTextView(pane, sVSOutputWindow);
 
-            var guid = Guid.Parse(pane.Guid);
-            sVSOutputWindow.GetPane(guid, out var result);
+            return textView;
+        }
+
+        private static IVsTextView OutputWindowPaneToIVsTextView(EnvDTE.OutputWindowPane outputWindowPane, IVsOutputWindow sVsOutputWindow)
+        {
+            var guid = Guid.Parse(outputWindowPane.Guid);
+            ErrorHandler.ThrowOnFailure(sVsOutputWindow.GetPane(guid, out var result));
 
             if (result is not IVsTextView textView)
             {
