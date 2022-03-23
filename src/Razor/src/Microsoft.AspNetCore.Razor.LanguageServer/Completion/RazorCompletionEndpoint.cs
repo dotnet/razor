@@ -229,18 +229,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 completionItem = completionItem with { Documentation = documentation };
             }
 
+            // We might strip out the commitcharacters for speed, bring them back
+            var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters) : null;
+            completionItem = completionItem with { CommitCharacters = container };
+            var vsCompletionItem = completionItem.ToVSCompletionItem(_capability?.VSCompletionList);
+
             if (tagHelperClassifiedTextTooltip != null)
             {
-                // We might strip out the commitcharacters for speed, bring them back
-                var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters) : null;
-                var withCommit = completionItem with { CommitCharacters = container };
-                var vsCompletionItem = withCommit.ToVSCompletionItem(_capability?.VSCompletionList);
-                completionItem = completionItem with { Documentation = string.Empty };
                 vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
             }
 
-            return Task.FromResult(completionItem);
+            return Task.FromResult<CompletionItem>(vsCompletionItem);
         }
 
         // Internal for testing
