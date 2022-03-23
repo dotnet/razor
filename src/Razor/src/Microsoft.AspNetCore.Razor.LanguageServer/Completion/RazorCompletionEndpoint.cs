@@ -236,7 +236,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (tagHelperClassifiedTextTooltip != null)
             {
-                completionItem = completionItem with { Documentation = string.Empty };
                 vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
             }
@@ -449,7 +448,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             {
                 var attributeCompletionTypes = razorCompletionItem.GetAttributeCompletionTypes();
                 // If the attribute is a boolean than just its name is a legal response. Therefor don't do the snippet
-                if (attributeCompletionTypes.Any() && attributeCompletionTypes.Any(type => string.Equals(type, typeof(bool).ToString(), StringComparison.Ordinal)))
+                if (attributeCompletionTypes.Any(type => string.Equals(type, typeof(bool).ToString(), StringComparison.Ordinal)))
                 {
                     insertText = razorCompletionItem.InsertText;
                     return false;
