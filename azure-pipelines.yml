@@ -209,6 +209,8 @@ stages:
           displayName: Build and Deploy Vsix
           condition: succeeded()
         - script: eng\CIBuild.ps1
+            -configuration $(_BuildConfig)
+            -prepareMachine
             -test
             -integrationTest
           name: Run_Tests
