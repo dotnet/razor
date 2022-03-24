@@ -41,19 +41,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var textView = OutputWindowPaneToIVsTextView(pane, sVSOutputWindow);
 
             return textView;
-        }
 
-        private static IVsTextView OutputWindowPaneToIVsTextView(EnvDTE.OutputWindowPane outputWindowPane, IVsOutputWindow sVsOutputWindow)
-        {
-            var guid = Guid.Parse(outputWindowPane.Guid);
-            ErrorHandler.ThrowOnFailure(sVsOutputWindow.GetPane(guid, out var result));
-
-            if (result is not IVsTextView textView)
+            static IVsTextView OutputWindowPaneToIVsTextView(EnvDTE.OutputWindowPane outputWindowPane, IVsOutputWindow sVsOutputWindow)
             {
-                throw new InvalidOperationException($"{nameof(IVsOutputWindowPane)} should implement {nameof(IVsTextView)}");
-            }
+                var guid = Guid.Parse(outputWindowPane.Guid);
+                ErrorHandler.ThrowOnFailure(sVsOutputWindow.GetPane(guid, out var result));
 
-            return textView;
+                if (result is not IVsTextView textView)
+                {
+                    throw new InvalidOperationException($"{nameof(IVsOutputWindowPane)} should implement {nameof(IVsTextView)}");
+                }
+
+                return textView;
+            }
         }
     }
 }
