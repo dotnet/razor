@@ -191,7 +191,6 @@ stages:
             -configuration $(_BuildConfig)
             -msbuildEngine dotnet
             -prepareMachine
-            -integrationTest
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
