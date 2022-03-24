@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 {
