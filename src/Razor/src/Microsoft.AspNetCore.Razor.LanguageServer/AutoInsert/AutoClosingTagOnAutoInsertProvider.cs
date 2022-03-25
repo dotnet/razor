@@ -329,7 +329,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 for (var i = 0; i < tagMatchingRules.Count; i++)
                 {
                     var tagMatchingRule = tagMatchingRules[i];
-                    if (tagMatchingRule.TagStructure == TagStructure.NormalOrSelfClosing)
+
+                    if (tagMatchingRule.TagStructure == TagStructure.Unspecified)
+                    {
+                        // The current tag matching rule isn't specified so it should never be used as the resolved tag structure since it
+                        // says it doesn't have an opinion.
+                    }
+                    else if (tagMatchingRule.TagStructure == TagStructure.NormalOrSelfClosing)
                     {
                         // We have a rule that indicates it can be normal or self-closing, that always wins because
                         // it's all encompassing. Meaning, even if all previous rules indicate "no children" and at least
@@ -337,8 +343,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                         autoClosingBehavior = AutoClosingBehavior.EndTag;
                         return true;
                     }
-
-                    resolvedTagStructure = tagMatchingRule.TagStructure;
+                    else
+                    {
+                        resolvedTagStructure = tagMatchingRule.TagStructure;
+                    }
                 }
             }
 
