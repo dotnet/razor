@@ -3,18 +3,18 @@
 
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.RpcContracts.Logging;
 using VSShell = Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging
 {
     [Shared]
     [Export(typeof(RazorLogHubTraceProvider))]
-    internal class RazorLogHubTraceProvider
+    internal class VisualStudioWindowsLogHubTraceProvider : RazorLogHubTraceProvider
     {
         private static readonly LoggerOptions s_logOptions = new(
             requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
@@ -23,12 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly SemaphoreSlim _initializationSemaphore;
         private IServiceBroker? _serviceBroker = null;
 
-        public RazorLogHubTraceProvider()
+        public VisualStudioWindowsLogHubTraceProvider()
         {
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
-        public async Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
+        public override async Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
         {
             if ((await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false)) is false)
             {
@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             return traceSource;
         }
 
-        [MemberNotNullWhen(returnValue: true, member: $"{nameof(_serviceBroker)}")]
         public async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)
         {
             await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
