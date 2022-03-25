@@ -7,7 +7,6 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -22,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly TrackingLSPDocumentManager _lspDocumentManager;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-        private readonly SVsServiceProvider _serviceProvider;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
         private readonly IFileToContentTypeService _fileToContentTypeService;
 
@@ -31,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ITextDocumentFactoryService textDocumentFactory!!,
             LSPDocumentManager lspDocumentManager!!,
             LSPEditorFeatureDetector lspEditorFeatureDetector!!,
-            SVsServiceProvider serviceProvider!!,
             IEditorOptionsFactoryService editorOptionsFactory!!,
             IFileToContentTypeService fileToContentTypeService!!)
         {
@@ -44,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _textDocumentFactory = textDocumentFactory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
-            _serviceProvider = serviceProvider;
             _editorOptionsFactory = editorOptionsFactory;
             _fileToContentTypeService = fileToContentTypeService;
         }

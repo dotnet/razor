@@ -17,8 +17,6 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
@@ -111,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
-            _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
+            _ = _server.InitializedAsync(token);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
@@ -136,32 +134,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private Trace GetVerbosity()
         {
-            Trace result;
-
-            // Since you can't set an Environment variable in CodeSpaces we need to default that scenario to Verbose.
-            if (IsVSServer())
-            {
-                result = Trace.Verbose;
-            }
-            else
-            {
-                var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
-                result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
-            }
+            var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
+            var result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
 
             return result;
-        }
-
-        /// <summary>
-        /// Returns true if the client is a CodeSpace instance.
-        /// </summary>
-        protected virtual bool IsVSServer()
-        {
-            var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
-            var result = shell!.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
-
-            var isVSServer = ErrorHandler.Succeeded(result) && (int)mode == (int)__VSShellMode.VSSM_Server;
-            return isVSServer;
         }
 
         private async Task EnsureCleanedUpServerAsync(CancellationToken token)
