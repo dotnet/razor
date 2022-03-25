@@ -6,16 +6,15 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
-using Microsoft.VisualStudio.OperationProgress;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
 using Shared = System.Composition.SharedAttribute;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -34,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private const string TempFileExt = ".temp";
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-        private readonly IVsOperationProgressStatusService? _operationProgressStatusService = null;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+        private readonly RazorSolutionStatusService _solutionStatusService;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
@@ -60,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public ProjectRazorJsonPublisher(
             LSPEditorFeatureDetector lSPEditorFeatureDetector!!,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider!!,
+            RazorSolutionStatusService solutionStatusService,
             RazorLogger logger!!)
         {
             DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -70,16 +69,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _lspEditorFeatureDetector = lSPEditorFeatureDetector;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+            _solutionStatusService = solutionStatusService;
             _logger = logger;
 
             _serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
             _serializer.Converters.Add(RazorConfigurationJsonConverter.Instance);
             _serializer.Converters.Add(ProjectRazorJsonJsonConverter.Instance);
-
-            if (serviceProvider.GetService(typeof(SVsOperationProgress)) is IVsOperationProgressStatusService service)
-            {
-                _operationProgressStatusService = service;
-            }
         }
 
         // Internal settable for testing
@@ -298,8 +293,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return true;
             }
 
-            var status = _operationProgressStatusService?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
-
             // Don't serialize our understanding until we're "ready"
             if (!_documentsProcessed)
             {
@@ -331,12 +324,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
             }
 
-            if (status is null)
+            if (!_solutionStatusService.TryGetIntelliSenseStatus(out var status))
             {
                 return true;
             }
 
-            return !status.IsInProgress && _documentsProcessed;
+            return status.IsAvailable && _documentsProcessed;
         }
 
         private void ImmediatePublish(ProjectSnapshot projectSnapshot)

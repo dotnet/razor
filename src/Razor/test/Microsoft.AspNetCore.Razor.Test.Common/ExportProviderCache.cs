@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 }
             }
 
-            private void RequireForSingleExportProvider([DoesNotReturnIf(false)] bool condition)
+            private void RequireForSingleExportProvider(bool condition)
             {
                 if (!condition)
                 {
