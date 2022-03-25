@@ -101,11 +101,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Act
             var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
 
-            // Assert
-            var edited = ApplyEdits(source, edits);
-            var actual = edited.ToString();
+            if (input.Equals(expected))
+            {
+                Assert.Empty(edits);
+            }
+            else
+            {
+                // Assert
+                var edited = ApplyEdits(source, edits);
+                var actual = edited.ToString();
 
-            new XUnitVerifier().EqualOrDiff(expected, actual);
+                new XUnitVerifier().EqualOrDiff(expected, actual);
+            }
         }
 
         protected async Task RunOnTypeFormattingTestAsync(

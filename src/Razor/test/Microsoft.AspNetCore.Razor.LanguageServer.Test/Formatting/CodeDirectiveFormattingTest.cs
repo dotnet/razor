@@ -1419,6 +1419,23 @@ line 1
 ");
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
+        public async Task Formats_NoEditsForNoChanges(bool useSourceTextDiffer)
+        {
+            var input = @"@code {
+    public void M()
+    {
+        Console.WriteLine(""Hello"");
+        Console.WriteLine(""World""); // <-- type/replace semicolon here
+    }
+}
+";
+
+            await RunFormattingTestAsync(input, input, useSourceTextDiffer: useSourceTextDiffer, fileKind: FileKinds.Component);
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()
         {
             var input = @"

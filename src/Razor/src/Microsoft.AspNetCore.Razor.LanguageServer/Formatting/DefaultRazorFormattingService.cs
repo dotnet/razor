@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
+            var originalText = context.SourceText;
 
             var result = new FormattingResult(Array.Empty<TextEdit>());
             foreach (var pass in _formattingPasses)
@@ -49,8 +50,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 result = await pass.ExecuteAsync(context, result, cancellationToken);
             }
 
-            var filteredEdits = result.Edits.Where(e => range.LineOverlapsWith(e.Range)).ToArray();
-            return filteredEdits;
+            var filteredEdits = result.Edits.Where(e => range.LineOverlapsWith(e.Range));
+
+            // Make sure the edits actually change something, or its not worth responding
+            var textChanges = filteredEdits.Select(e => e.AsTextChange(originalText));
+            var changedText = originalText.WithChanges(textChanges);
+            if (changedText.ContentEquals(originalText))
+            {
+                return Array.Empty<TextEdit>();
+            }
+
+            // Only send back the minimum edits
+            var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            var finalEdits = minimalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+
+            return finalEdits;
         }
 
         public override Task<TextEdit[]> FormatOnTypeAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
