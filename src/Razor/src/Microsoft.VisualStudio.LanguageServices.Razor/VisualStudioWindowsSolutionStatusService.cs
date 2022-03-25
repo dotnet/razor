@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return false;
             }
 
-            var shellStatus = _operationProgressStatusService?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
+            var shellStatus = _operationProgressStatusService.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
             if (shellStatus == null)
             {
                 status = null;
