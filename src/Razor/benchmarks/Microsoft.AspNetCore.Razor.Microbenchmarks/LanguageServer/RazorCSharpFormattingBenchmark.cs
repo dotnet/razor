@@ -24,12 +24,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         Unformatted
     }
 
-    public enum DifferType
-    {
-        GetTextChanges,
-        SourceTextDiffer,
-    }
-
     [CsvExporter]
     [RPlotExporter]
     public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
@@ -55,9 +49,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [ParamsAllValues]
         public InputType InputType { get; set; }
 
-        [ParamsAllValues]
-        public DifferType DifferType { get; set; }
-
         [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
         public async Task InitializeRazorCSharpFormattingAsync()
         {
@@ -76,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             DocumentText = await DocumentSnapshot.GetTextAsync();
         }
 
-        private void WriteSampleFormattingFile(string filePath, bool preformatted, int blocks)
+        private static void WriteSampleFormattingFile(string filePath, bool preformatted, int blocks)
         {
             var data = @"
 @{
@@ -128,9 +119,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 TabSize = 4,
                 InsertSpaces = true
             };
-
-            var useSourceTextDiffer = DifferType != DifferType.GetTextChanges;
-            options["UseSourceTextDiffer"] = new OmniSharp.Extensions.LanguageServer.Protocol.Models.BooleanNumberString(useSourceTextDiffer);
 
             var range = TextSpan.FromBounds(0, DocumentText.Length).AsRange(DocumentText);
             var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range, options, CancellationToken.None);

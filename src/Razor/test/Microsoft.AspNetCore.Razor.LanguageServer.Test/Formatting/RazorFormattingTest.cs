@@ -17,11 +17,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlock_SpansMultipleLines(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlock_SpansMultipleLines()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code
         {
@@ -45,11 +44,10 @@ expected: @"@code
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlock_IndentedBlock_MaintainsIndent(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlock_IndentedBlock_MaintainsIndent()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <boo>
     @code
@@ -78,11 +76,10 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlock_TooMuchWhitespace(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlock_TooMuchWhitespace()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code        {
     private int currentCount = 0;
@@ -104,11 +101,10 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlock_NonSpaceWhitespace(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlock_NonSpaceWhitespace()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code	{
     private int currentCount = 0;
@@ -130,11 +126,10 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlock_NoWhitespace(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlock_NoWhitespace()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code{
     private int currentCount = 0;
@@ -156,11 +151,10 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FunctionsBlock_BraceOnNewLine(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FunctionsBlock_BraceOnNewLine()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions
         {
@@ -185,11 +179,10 @@ expected: @"@functions
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FunctionsBlock_TooManySpaces(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FunctionsBlock_TooManySpaces()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions        {
     private int currentCount = 0;
@@ -212,11 +205,10 @@ expected: @"@functions {
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Layout(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Layout()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @layout    MyLayout
 ",
@@ -224,11 +216,10 @@ expected: @"@layout MyLayout
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Inherits(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Inherits()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @inherits    MyBaseClass
 ",
@@ -236,11 +227,10 @@ expected: @"@inherits MyBaseClass
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Implements(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Implements()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @implements    IDisposable
 ",
@@ -248,11 +238,10 @@ expected: @"@implements IDisposable
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task PreserveWhitespace(bool useSourceTextDiffer)
+        [Fact]
+        public async Task PreserveWhitespace()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @preservewhitespace    true
 ",
@@ -260,11 +249,10 @@ expected: @"@preservewhitespace true
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Inject(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Inject()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @inject    MyClass     myClass
 ",
@@ -272,11 +260,10 @@ expected: @"@inject MyClass myClass
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Inject_TrailingWhitespace(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Inject_TrailingWhitespace()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @inject    MyClass     myClass
 ",
@@ -284,11 +271,10 @@ expected: @"@inject MyClass myClass
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Attribute(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Attribute()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @attribute     [Obsolete(   ""asdf""   , error:    false)]
 ",
@@ -296,11 +282,10 @@ expected: @"@attribute [Obsolete(""asdf"", error: false)]
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Model(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Model()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @model    MyModel
 ",
@@ -309,11 +294,10 @@ expected: @"@model MyModel
             fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Page(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Page()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page    ""MyPage""
 ",
@@ -323,11 +307,10 @@ expected: @"@page ""MyPage""
         }
 
         // Regression prevention tests:
-        [Theory]
-        [CombinatorialData]
-        public async Task Using(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Using()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @using   System;
 ",
@@ -335,11 +318,10 @@ expected: @"@using System;
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task UsingStatic(bool useSourceTextDiffer)
+        [Fact]
+        public async Task UsingStatic()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @using  static   System.Math;
 ",
@@ -347,11 +329,10 @@ expected: @"@using static System.Math;
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task UsingAlias(bool useSourceTextDiffer)
+        [Fact]
+        public async Task UsingAlias()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @using  M   =    System.Math;
 ",
@@ -359,11 +340,10 @@ expected: @"@using M = System.Math;
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TagHelpers(bool useSourceTextDiffer)
+        [Fact]
+        public async Task TagHelpers()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
 @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers

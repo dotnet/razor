@@ -70,7 +70,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             bool insertSpaces = true,
             string? fileKind = null,
             IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
-            bool useSourceTextDiffer = false,
             bool allowDiagnostics = false)
         {
             // Arrange
@@ -90,11 +89,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 TabSize = tabSize,
                 InsertSpaces = insertSpaces,
             };
-
-            if (useSourceTextDiffer)
-            {
-                options["UseSourceTextDiffer"] = true;
-            }
 
             var formattingService = CreateFormattingService(codeDocument);
 
