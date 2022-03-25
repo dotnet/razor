@@ -1,26 +1,25 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     [Export(typeof(RazorUIContextManager))]
-    internal class DefaultRazorUIContextManager : RazorUIContextManager
+    internal class VisualStudioWindowsRazorUIContextManager : RazorUIContextManager
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
         [ImportingConstructor]
-        public DefaultRazorUIContextManager(SVsServiceProvider serviceProvider!!, JoinableTaskContext joinableTaskContext!!)
+        public VisualStudioWindowsRazorUIContextManager(SVsServiceProvider serviceProvider!!, JoinableTaskContext joinableTaskContext!!)
         {
             _serviceProvider = serviceProvider;
             _joinableTaskFactory = joinableTaskContext.Factory;
