@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -62,24 +61,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return result;
             }
 
-            // Allow benchmarks to specify a different diff algorithm
-            if (!context.Options.TryGetValue("UseSourceTextDiffer", out var useSourceTextDiffer))
-            {
-                useSourceTextDiffer = new BooleanNumberString(false);
-            }
-
-            var normalizedEdits = htmlEdits;
-            if (useSourceTextDiffer.Bool)
-            {
-                normalizedEdits = NormalizeTextEdits(originalText, htmlEdits);
-            }
-
             var changedText = originalText;
             var changedContext = context;
 
-            if (normalizedEdits.Length > 0)
+            if (htmlEdits.Length > 0)
             {
-                var changes = normalizedEdits.Select(e => e.AsTextChange(originalText));
+                var changes = htmlEdits.Select(e => e.AsTextChange(originalText));
                 changedText = originalText.WithChanges(changes);
                 // Create a new formatting context for the changed razor document.
                 changedContext = await context.WithTextAsync(changedText);
@@ -92,19 +79,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedText = changedText.WithChanges(indentationChanges);
             }
 
-            var finalChanges = useSourceTextDiffer.Bool ? SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false) : changedText.GetTextChanges(originalText);
+            var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
-        }
-
-        private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
-        {
-            var changes = edits.Select(e => e.AsTextChange(originalText));
-            var changedText = originalText.WithChanges(changes);
-            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
-            var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
-            return cleanEdits;
         }
 
         private static List<TextChange> AdjustRazorIndentation(FormattingContext context)

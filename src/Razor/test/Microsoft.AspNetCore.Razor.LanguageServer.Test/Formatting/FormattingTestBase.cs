@@ -70,7 +70,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             bool insertSpaces = true,
             string? fileKind = null,
             IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
-            bool useSourceTextDiffer = false,
             bool allowDiagnostics = false)
         {
             // Arrange
@@ -91,21 +90,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 InsertSpaces = insertSpaces,
             };
 
-            if (useSourceTextDiffer)
-            {
-                options["UseSourceTextDiffer"] = true;
-            }
-
             var formattingService = CreateFormattingService(codeDocument);
 
             // Act
             var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
 
-            // Assert
-            var edited = ApplyEdits(source, edits);
-            var actual = edited.ToString();
+            if (input.Equals(expected))
+            {
+                Assert.Empty(edits);
+            }
+            else
+            {
+                // Assert
+                var edited = ApplyEdits(source, edits);
+                var actual = edited.ToString();
 
-            new XUnitVerifier().EqualOrDiff(expected, actual);
+                new XUnitVerifier().EqualOrDiff(expected, actual);
+            }
         }
 
         protected async Task RunOnTypeFormattingTestAsync(
