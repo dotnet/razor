@@ -120,20 +120,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var previousIndentationLevel = 0;
                 for (var i = 0; i < sourceText.Lines.Count; i++)
                 {
+                    var line = sourceText.Lines[i];
                     // Get first non-whitespace character position
-                    var nonWsPos = sourceText.Lines[i].GetFirstNonWhitespacePosition();
-                    var existingIndentation = (nonWsPos ?? sourceText.Lines[i].End) - sourceText.Lines[i].Start;
+                    var nonWsPos = line.GetFirstNonWhitespacePosition();
+                    var existingIndentation = (nonWsPos ?? line.End) - line.Start;
 
                     // The existingIndentation above is measured in characters, and is used to create text edits
                     // The below is measured in columns, so takes into account tab size. This is useful for creating
                     // new indentation strings
-                    var existingIndentationSize = sourceText.Lines[i].GetIndentationSize(this.Options.TabSize);
+                    var existingIndentationSize = line.GetIndentationSize(this.Options.TabSize);
 
                     var emptyOrWhitespaceLine = false;
                     if (nonWsPos is null)
                     {
                         emptyOrWhitespaceLine = true;
-                        nonWsPos = sourceText.Lines[i].Start;
+                        nonWsPos = line.Start;
                     }
 
                     // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
