@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -71,13 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedText = changedText.WithChanges(indentationChanges);
             }
 
-            // Allow benchmarks to specify a different diff algorithm
-            if (!context.Options.TryGetValue("UseSourceTextDiffer", out var useSourceTextDiffer))
-            {
-                useSourceTextDiffer = new BooleanNumberString(false);
-            }
-
-            var finalChanges = useSourceTextDiffer.Bool ? SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false) : changedText.GetTextChanges(originalText);
+            var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);

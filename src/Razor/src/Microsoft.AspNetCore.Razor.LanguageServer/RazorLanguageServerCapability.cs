@@ -9,10 +9,22 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal record RazorLanguageServerCapability(bool LanguageQuery, bool RangeMapping, bool EditMapping, bool MonitorProjectConfigurationFilePath, bool BreakpointSpan)
+    internal record RazorLanguageServerCapability(
+        bool LanguageQuery,
+        bool RangeMapping,
+        bool EditMapping,
+        bool MonitorProjectConfigurationFilePath,
+        bool BreakpointSpan,
+        bool ProximityExpressions)
     {
         private const string RazorCapabilityKey = "razor";
-        private static readonly RazorLanguageServerCapability s_default = new RazorLanguageServerCapability(LanguageQuery: true, RangeMapping: true, EditMapping: true, MonitorProjectConfigurationFilePath: true, BreakpointSpan: true);
+        private static readonly RazorLanguageServerCapability s_default = new RazorLanguageServerCapability(
+            LanguageQuery: true,
+            RangeMapping: true,
+            EditMapping: true,
+            MonitorProjectConfigurationFilePath: true,
+            BreakpointSpan: true,
+            ProximityExpressions: true);
 
         public static void AddTo(ServerCapabilities capabilities)
         {

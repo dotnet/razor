@@ -23,11 +23,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsCodeBlockDirective(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsCodeBlockDirective()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -44,11 +43,10 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Format_DocumentWithDiagnostics(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Format_DocumentWithDiagnostics()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page
 @model BlazorApp58.Pages.Index2Model
@@ -95,11 +93,10 @@ expected: @"@page
             allowDiagnostics: true);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_MultipleBlocksInADirective(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_MultipleBlocksInADirective()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @{
 void Method(){
@@ -126,11 +123,10 @@ expected: @"@{
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_NonCodeBlockDirectives(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_NonCodeBlockDirectives()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @{
 var x = ""foo"";
@@ -146,11 +142,10 @@ expected: @"@{
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -172,11 +167,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_CodeBlockDirectiveWithMarkup(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithMarkup()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -196,11 +190,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_CodeBlockDirectiveWithImplicitExpressions(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithImplicitExpressions()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{
@@ -220,11 +213,10 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task DoesNotFormat_CodeBlockDirectiveWithExplicitExpressions(bool useSourceTextDiffer)
+        [Fact]
+        public async Task DoesNotFormat_CodeBlockDirectiveWithExplicitExpressions()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -245,11 +237,10 @@ expected: @"@functions {
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Format_SectionDirectiveBlock1(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Format_SectionDirectiveBlock1()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -275,11 +266,10 @@ expected: @"@functions {
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Format_SectionDirectiveBlock2(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Format_SectionDirectiveBlock2()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -311,11 +301,10 @@ expected: @"@functions {
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Format_SectionDirectiveBlock3(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Format_SectionDirectiveBlock3()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -349,11 +338,10 @@ expected: @"@functions {
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_CodeBlockDirectiveWithRazorComments(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithRazorComments()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -372,11 +360,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_CodeBlockDirectiveWithRazorStatements(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithRazorStatements()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{
@@ -393,11 +380,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task DoesNotFormat_CodeBlockDirective_NotInSelectedRange(bool useSourceTextDiffer)
+        [Fact]
+        public async Task DoesNotFormat_CodeBlockDirective_NotInSelectedRange()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 [|<div>Foo</div>|]
 @functions {
@@ -416,11 +402,10 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task OnlyFormatsWithinRange(bool useSourceTextDiffer)
+        [Fact]
+        public async Task OnlyFormatsWithinRange()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{}
@@ -438,11 +423,10 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task MultipleCodeBlockDirectives(bool useSourceTextDiffer)
+        [Fact]
+        public async Task MultipleCodeBlockDirectives()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
  public class Foo{}
@@ -475,11 +459,10 @@ Hello World
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task MultipleCodeBlockDirectives2(bool useSourceTextDiffer)
+        [Fact]
+        public async Task MultipleCodeBlockDirectives2()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 Hello World
 @code {
@@ -507,11 +490,10 @@ expected: @"Hello World
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeOnTheSameLineAsCodeBlockDirectiveStart(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeOnTheSameLineAsCodeBlockDirectiveStart()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {public class Foo{
 }
@@ -525,11 +507,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeOnTheSameLineAsCodeBlockDirectiveEnd(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeOnTheSameLineAsCodeBlockDirectiveEnd()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {
 public class Foo{
@@ -543,11 +524,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task SingleLineCodeBlockDirective(bool useSourceTextDiffer)
+        [Fact]
+        public async Task SingleLineCodeBlockDirective()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions {public class Foo{}
 }
@@ -558,11 +538,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task IndentsCodeBlockDirectiveStart(bool useSourceTextDiffer)
+        [Fact]
+        public async Task IndentsCodeBlockDirectiveStart()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 Hello World
      @functions {public class Foo{}
@@ -575,11 +554,10 @@ expected: @"Hello World
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task IndentsCodeBlockDirectiveEnd(bool useSourceTextDiffer)
+        [Fact]
+        public async Task IndentsCodeBlockDirectiveEnd()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
  @functions {
 public class Foo{}
@@ -591,11 +569,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task ComplexCodeBlockDirective(bool useSourceTextDiffer)
+        [Fact]
+        public async Task ComplexCodeBlockDirective()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @using System.Buffers
 @functions{
@@ -652,11 +629,10 @@ be indented.
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Strings(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Strings()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @functions{
 private string str1 = ""hello world"";
@@ -704,11 +680,10 @@ expected: @"@functions {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlockDirective_UseTabs(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlockDirective_UseTabs()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -726,11 +701,10 @@ expected: @"@code {
 insertSpaces: false);
 
         }
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -750,11 +724,10 @@ tabSize: 8,
 insertSpaces: false);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlockDirective_UseTabsWithTabSize8(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlockDirective_UseTabsWithTabSize8()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -773,11 +746,10 @@ tabSize: 8,
 insertSpaces: false);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlockDirective_WithTabSize3(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlockDirective_WithTabSize3()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -795,11 +767,10 @@ expected: @"@code {
 tabSize: 3);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlockDirective_WithTabSize8(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlockDirective_WithTabSize8()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -817,11 +788,10 @@ expected: @"@code {
 tabSize: 8);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task CodeBlockDirective_WithTabSize12(bool useSourceTextDiffer)
+        [Fact]
+        public async Task CodeBlockDirective_WithTabSize12()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
  public class Foo{}
@@ -839,12 +809,11 @@ expected: @"@code {
 tabSize: 12);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-        public async Task CodeBlock_SemiColon_SingleLine(bool useSourceTextDiffer)
+        public async Task CodeBlock_SemiColon_SingleLine()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <div></div>
 @{ Debugger.Launch()$$;}
@@ -859,12 +828,11 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/29837")]
-        public async Task CodeBlock_NestedComponents(bool useSourceTextDiffer)
+        public async Task CodeBlock_NestedComponents()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
     private WeatherForecast[] forecasts;
@@ -898,14 +866,13 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/34320")]
-        public async Task CodeBlock_ObjectCollectionArrayInitializers(bool useSourceTextDiffer)
+        public async Task CodeBlock_ObjectCollectionArrayInitializers()
         {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
     public List<object> AList = new List<object>()
@@ -957,14 +924,13 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
-        public async Task CodeBlock_ArrayInitializers(bool useSourceTextDiffer)
+        public async Task CodeBlock_ArrayInitializers()
         {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
     private void M()
@@ -992,14 +958,13 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
-        public async Task CodeBlock_ObjectInitializers(bool useSourceTextDiffer)
+        public async Task CodeBlock_ObjectInitializers()
         {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
     private void M()
@@ -1025,14 +990,13 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
-        public async Task CodeBlock_CollectionInitializers(bool useSourceTextDiffer)
+        public async Task CodeBlock_CollectionInitializers()
         {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
     private void M()
@@ -1060,13 +1024,12 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/5618")]
-        public async Task CodeBlock_EmptyObjectCollectionInitializers(bool useSourceTextDiffer)
+        public async Task CodeBlock_EmptyObjectCollectionInitializers()
         {
             // The C# Formatter _does_ touch these types of initializers if they're empty. Who knew ¯\_(ツ)_/¯
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code {
     public void Foo()
@@ -1100,12 +1063,11 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
-        public async Task IfBlock_TopLevel(bool useSourceTextDiffer)
+        public async Task IfBlock_TopLevel()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
         @if (true)
 {
@@ -1117,12 +1079,11 @@ expected: @"@if (true)
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
-        public async Task IfBlock_TopLevel_WithOtherCode(bool useSourceTextDiffer)
+        public async Task IfBlock_TopLevel_WithOtherCode()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @{
     // foo
@@ -1142,12 +1103,11 @@ expected: @"@{
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
-        public async Task IfBlock_Nested(bool useSourceTextDiffer)
+        public async Task IfBlock_Nested()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <div>
         @if (true)
@@ -1164,12 +1124,11 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
-        public async Task GenericComponentWithCascadingTypeParameter(bool useSourceTextDiffer)
+        public async Task GenericComponentWithCascadingTypeParameter()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page ""/counter""
 
@@ -1220,12 +1179,11 @@ expected: @"@page ""/counter""
 tagHelpers: GetComponentWithCascadingTypeParameter());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
-        public async Task GenericComponentWithCascadingTypeParameter_Nested(bool useSourceTextDiffer)
+        public async Task GenericComponentWithCascadingTypeParameter_Nested()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page ""/counter""
 
@@ -1268,12 +1226,11 @@ expected: @"@page ""/counter""
 tagHelpers: GetComponentWithCascadingTypeParameter());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
-        public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters(bool useSourceTextDiffer)
+        public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page ""/counter""
 
@@ -1306,11 +1263,10 @@ expected: @"@page ""/counter""
 tagHelpers: GetComponentWithTwoCascadingTypeParameter());
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_MultilineExpressionAtStartOfBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_MultilineExpressionAtStartOfBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @{
     var x = DateTime
@@ -1326,11 +1282,10 @@ expected: @"@{
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_MultilineExpressionAfterWhitespaceAtStartOfBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_MultilineExpressionAfterWhitespaceAtStartOfBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @{
     
@@ -1352,11 +1307,10 @@ expected: @"@{
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_MultilineExpressionNotAtStartOfBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_MultilineExpressionNotAtStartOfBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @{
     //
@@ -1374,11 +1328,10 @@ expected: @"@{
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task Formats_MultilineRazorComment(bool useSourceTextDiffer)
+        [Fact]
+        public async Task Formats_MultilineRazorComment()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <div></div>
     @*
@@ -1417,6 +1370,22 @@ line 1
     }
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
+        public async Task Formats_NoEditsForNoChanges()
+        {
+            var input = @"@code {
+    public void M()
+    {
+        Console.WriteLine(""Hello"");
+        Console.WriteLine(""World""); // <-- type/replace semicolon here
+    }
+}
+";
+
+            await RunFormattingTestAsync(input, input, fileKind: FileKinds.Component);
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()

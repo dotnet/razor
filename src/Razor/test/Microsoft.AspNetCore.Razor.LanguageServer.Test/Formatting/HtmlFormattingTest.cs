@@ -23,11 +23,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsSimpleHtmlTag(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsSimpleHtmlTag()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
    <html>
 <head>
@@ -50,11 +49,10 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsSimpleHtmlTag_Range(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsSimpleHtmlTag_Range()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <html>
 <head>
@@ -79,11 +77,10 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsRazorHtmlBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsRazorHtmlBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@page ""/error""
 
         <h1 class=
@@ -135,11 +132,10 @@ expected: @"@page ""/error""
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsMixedHtmlBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsMixedHtmlBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@page ""/test""
 @{
 <p>
@@ -186,11 +182,10 @@ expected: @"@page ""/test""
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsMixedRazorBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsMixedRazorBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@page ""/test""
 
 <div class=@className>Some Text</div>
@@ -237,11 +232,10 @@ expected: @"@page ""/test""
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsMixedContentWithMultilineExpressions(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsMixedContentWithMultilineExpressions()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@page ""/test""
 
 <div
@@ -302,11 +296,10 @@ expected: @"@page ""/test""
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsComplexBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsComplexBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@page ""/""
 
 <h1>Hello, world!</h1>
@@ -387,12 +380,11 @@ expected: @"@page ""/""
 ", tagHelpers: GetSurveyPrompt());
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsComponentTags(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsComponentTags()
         {
             var tagHelpers = GetComponents();
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
    <Counter>
     @if(true){
@@ -431,23 +423,21 @@ expected: @"
 tagHelpers: tagHelpers);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FormatsShortBlock(bool useSourceTextDiffer)
+        [Fact]
+        public async Task FormatsShortBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
                 input: @"@{<p></p>}",
                 expected: @"@{
     <p></p>
 }");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
-        public async Task FormatNestedBlock(bool useSourceTextDiffer)
+        public async Task FormatNestedBlock()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@code {
     public string DoSomething()
     {
@@ -472,12 +462,11 @@ expected: @"@code {
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
-        public async Task FormatNestedBlock_Tabs(bool useSourceTextDiffer)
+        public async Task FormatNestedBlock_Tabs()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"@code {
     public string DoSomething()
     {
@@ -504,12 +493,11 @@ tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
 insertSpaces: false);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
-        public async Task FormatHtmlWithTabs1(bool useSourceTextDiffer)
+        public async Task FormatHtmlWithTabs1()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page ""/""
 @{
@@ -550,12 +538,11 @@ insertSpaces: false,
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
-        public async Task FormatHtmlWithTabs2(bool useSourceTextDiffer)
+        public async Task FormatHtmlWithTabs2()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @page ""/""
 
@@ -592,12 +579,11 @@ insertSpaces: false,
 fileKind: FileKinds.Legacy);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents(bool useSourceTextDiffer)
+        public async Task FormatNestedComponents()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <CascadingAuthenticationState>
 <Router AppAssembly=""@typeof(Program).Assembly"">
@@ -638,12 +624,11 @@ expected: @"
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents2(bool useSourceTextDiffer)
+        public async Task FormatNestedComponents2()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <GridTable>
 <ChildContent>
@@ -686,12 +671,11 @@ expected: @"
 ", tagHelpers: GetComponents());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents2_Range(bool useSourceTextDiffer)
+        public async Task FormatNestedComponents2_Range()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 <GridTable>
 <ChildContent>
@@ -734,12 +718,11 @@ expected: @"
 ", tagHelpers: GetComponents());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
-        public async Task FormatHtmlInIf(bool useSourceTextDiffer)
+        public async Task FormatHtmlInIf()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @if (true)
 {
@@ -779,12 +762,11 @@ else
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
-        public async Task FormatHtmlInIf_Range(bool useSourceTextDiffer)
+        public async Task FormatHtmlInIf_Range()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @if (true)
 {
@@ -825,10 +807,9 @@ else
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/5749")]
-        public async Task FormatRenderFragmentInCSharpCodeBlock(bool useSourceTextDiffer)
+        public async Task FormatRenderFragmentInCSharpCodeBlock()
         {
             // Sadly the first thing the HTML formatter does with this input
             // is put a newline after the @, which means <SurveyPrompt /> won't be
@@ -836,7 +817,7 @@ else
             // or the test fails before we have a chance to fix the formatting.
             FormattingContext.SkipValidateComponents = true;
 
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @code
 {
@@ -868,12 +849,11 @@ expected: @"@code
 tagHelpers: GetSurveyPrompt());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
-        public async Task FormatHtmlCommentsInsideCSharp1(bool useSourceTextDiffer)
+        public async Task FormatHtmlCommentsInsideCSharp1()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @foreach (var num in Enumerable.Range(1, 10))
 {
@@ -903,12 +883,11 @@ expected: @"@foreach (var num in Enumerable.Range(1, 10))
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
-        public async Task FormatHtmlCommentsInsideCSharp2(bool useSourceTextDiffer)
+        public async Task FormatHtmlCommentsInsideCSharp2()
         {
-            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+            await RunFormattingTestAsync(
 input: @"
 @foreach (var num in Enumerable.Range(1, 10))
 {

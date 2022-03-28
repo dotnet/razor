@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,11 +14,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     [Shared]
-    [Export(typeof(LSPBreakpointSpanProvider))]
-    internal class DefaultLSPBreakpointSpanProvider : LSPBreakpointSpanProvider
+    [Export(typeof(LSPProximityExpressionsProvider))]
+    internal class DefaultLSPProximityExpressionsProvider : LSPProximityExpressionsProvider
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private ILogger? _logHubLogger = null;
 
         [ImportingConstructor]
-        public DefaultLSPBreakpointSpanProvider(
+        public DefaultLSPProximityExpressionsProvider(
             LSPRequestInvoker requestInvoker!!,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
         {
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _loggerProvider = loggerProvider;
         }
 
-        public async override Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot!!, Position position!!, CancellationToken cancellationToken)
+        public async override Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot!!, Position position!!, CancellationToken cancellationToken)
         {
 
             // We initialize the logger here instead of the constructor as the breakpoint span provider is constructed
@@ -41,28 +42,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // create the logger at that time.
             await InitializeLogHubAsync(cancellationToken).ConfigureAwait(false);
 
-            var languageQueryParams = new RazorBreakpointSpanParams()
+            var proximityExpressionsParams = new RazorProximityExpressionsParams()
             {
                 Position = position,
                 Uri = documentSnapshot.Uri
             };
 
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorBreakpointSpanParams, RazorBreakpointSpanResponse>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorProximityExpressionsParams, RazorProximityExpressionsResponse>(
                 documentSnapshot.Snapshot.TextBuffer,
-                LanguageServerConstants.RazorBreakpointSpanEndpoint,
+                LanguageServerConstants.RazorProximityExpressionsEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
-                CheckRazorBreakpointSpanCapability,
-                languageQueryParams,
+                CheckRazorProximityExpressionsCapability,
+                proximityExpressionsParams,
                 cancellationToken).ConfigureAwait(false);
 
             var languageResponse = response?.Response;
             if (languageResponse is null)
             {
-                _logHubLogger.LogInformation("The breakpoint position could not be mapped to a valid range.");
+                _logHubLogger.LogInformation("The proximity expressions could not be resolved.");
                 return null;
             }
 
-            return languageResponse.Range;
+            return languageResponse.Expressions;
         }
 
         private async Task InitializeLogHubAsync(CancellationToken cancellationToken)
@@ -77,14 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private static bool CheckRazorBreakpointSpanCapability(JToken token)
+        private static bool CheckRazorProximityExpressionsCapability(JToken token)
         {
             if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
             {
                 return false;
             }
 
-            return razorCapability.BreakpointSpan;
+            return razorCapability.ProximityExpressions;
         }
     }
 }
