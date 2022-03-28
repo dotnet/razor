@@ -5,9 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\Microsoft.AspNetCore.Razor.Test.Common\NullableAttributes.cs" Link="NullableAttributes.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />

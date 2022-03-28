@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.OperationProgress;
+using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
@@ -352,7 +353,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
                     serializationSuccessful = true;
                 },
-                useRealShouldSerialize: true)
+                useRealShouldSerialize: true,
+                statusAvailable: true)
             {
                 EnqueueDelay = 10,
                 _active = true,
@@ -599,8 +601,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 bool shouldSerialize = true,
-                bool useRealShouldSerialize = false)
-                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), TestRazorLogger.Instance)
+                bool useRealShouldSerialize = false,
+                bool statusAvailable = false)
+                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestRazorSolutionStatusService(statusAvailable), TestRazorLogger.Instance)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;
@@ -627,45 +630,41 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }
         }
 
-        private class TestServiceProvider : IServiceProvider
+        private class TestRazorSolutionStatusService : RazorSolutionStatusService
         {
-            public TestServiceProvider()
+            private readonly bool _statusAvailable;
+
+            public TestRazorSolutionStatusService(bool statusAvailable)
             {
+                _statusAvailable = statusAvailable;
             }
 
-            public object GetService(Type serviceType)
+            public override bool TryGetIntelliSenseStatus([NotNullWhenAttribute(true)] out RazorSolutionStatus status)
             {
-                return new TestVsOperationProgressStatusService();
+                if (_statusAvailable)
+                {
+                    status = TestRazorSolutionStatus.Instance;
+                    return true;
+                }
+
+                status = null;
+                return false;
             }
 
-            private class TestVsOperationProgressStatusService : IVsOperationProgressStatusService
+            private class TestRazorSolutionStatus : RazorSolutionStatus
             {
+                public static readonly TestRazorSolutionStatus Instance = new();
 
-                public TestVsOperationProgressStatusService()
+                private TestRazorSolutionStatus()
                 {
                 }
 
-                public IVsOperationProgressStageStatus GetStageStatus(string operationProgressStageId)
+                public override bool IsAvailable => true;
+
+                public override event PropertyChangedEventHandler PropertyChanged
                 {
-                    throw new NotImplementedException();
-                }
-
-                public IVsOperationProgressStageStatusForSolutionLoad GetStageStatusForSolutionLoad(string operationProgressStageId)
-                {
-                    return new TestVsOperationProgressStageStatusForSolutionLoad();
-                }
-
-                private class TestVsOperationProgressStageStatusForSolutionLoad : IVsOperationProgressStageStatusForSolutionLoad
-                {
-                    public bool IsInProgress => false;
-
-                    public event PropertyChangedEventHandler PropertyChanged;
-
-                    public Task WaitForCompletionAsync()
-                    {
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("name"));
-                        throw new NotImplementedException();
-                    }
+                    add { }
+                    remove { }
                 }
             }
         }
