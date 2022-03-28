@@ -213,7 +213,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 textDocumentFactory,
                 lspDocumentManager,
                 lspEditorFeatureDetector,
-                Mock.Of<SVsServiceProvider>(s => s.GetService(It.IsAny<Type>()) == textManager.Object, MockBehavior.Strict),
                 Mock.Of<IEditorOptionsFactoryService>(s => s.GetOptions(It.IsAny<ITextBuffer>()) == Mock.Of<IEditorOptions>(MockBehavior.Strict), MockBehavior.Strict),
                 fileToContentTypeService);
 
