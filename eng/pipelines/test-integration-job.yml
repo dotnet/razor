@@ -9,17 +9,42 @@ parameters:
 steps:
   - ${{ if eq(parameters.shallowCheckout, true) }}:
     - template: checkout-windows-task.yml
+
   - task: NodeTool@0
     displayName: Install Node 10.x
     inputs:
       versionSpec: 10.x
-  - script: eng\common\cibuild.cmd
+
+  - script: eng\cibuild.cmd
+      -configuration ${{ parameters.configuration }}
+      -msbuildEngine dotnet
+      -prepareMachine
+      -restore
+      -build
+      -pack
+      -sign
+      -publish
+    name: Build
+    displayName: Build
+    condition: succeeded()
+
+  - script: eng\cibuild.cmd
+      -configuration ${{ parameters.configuration }}
+      -msbuildEngine dotnet
+      -prepareMachine
+      /p:BuildVsix=true
+      /p:BuildProjectReferences=false
+    name: BuildVSIX
+    displayName: Build and Deploy VSIX
+    condition: succeeded()
+
+  - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine dotnet
       -prepareMachine
       -integrationTest
-    name: BuildAndTest
-    displayName: Build and Test
+    name: RunIntegrationTests
+    displayName: Run Integration Tests
     condition: succeeded()
 
   - task: PublishTestResults@2

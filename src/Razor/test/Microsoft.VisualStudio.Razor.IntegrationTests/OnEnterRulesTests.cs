@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class OnEnterRulesTests : AbstractRazorEditorTest
 {
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_BetweenStartAndEnd()
     {
         // Arrange
@@ -28,7 +28,7 @@ public class OnEnterRulesTests : AbstractRazorEditorTest
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_AtEndOfTag()
     {
         // Arrange
@@ -48,7 +48,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_BeforeAttribute()
     {
         // Arrange
@@ -68,7 +68,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_EmptyAttribute()
     {
         // Arrange
@@ -87,7 +87,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_DoubleQuote()
     {
         // Arrange
@@ -106,7 +106,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_DirectiveAttribute()
     {
         // Arrange
@@ -125,7 +125,7 @@ A
 ", HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "VSIX Deployment issues")]
+    [IdeFact]
     public async Task OnEnterRules_UnfinishedTag()
     {
         // Arrange
