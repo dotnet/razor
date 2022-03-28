@@ -151,6 +151,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
 
+                        services.AddSingleton<WorkspaceChangedPublisher, DefaultWorkspaceChangedPublisher>();
+
+                        services.AddSingleton<DefaultWorkspaceChangedRefresh, DefaultWorkspaceChangedRefresh>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DefaultWorkspaceChangedRefresh>());
+
                         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());
 
