@@ -354,7 +354,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
                     serializationSuccessful = true;
                 },
-                useRealShouldSerialize: true)
+                useRealShouldSerialize: true,
+                statusAvailable: true)
             {
                 EnqueueDelay = 10,
                 _active = true,
@@ -601,8 +602,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 bool shouldSerialize = true,
-                bool useRealShouldSerialize = false)
-                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, TestRazorSolutionStatusService.Instance, TestRazorLogger.Instance)
+                bool useRealShouldSerialize = false,
+                bool statusAvailable = false)
+                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestRazorSolutionStatusService(statusAvailable), TestRazorLogger.Instance)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;
@@ -631,16 +633,36 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         private class TestRazorSolutionStatusService : RazorSolutionStatusService
         {
-            public static readonly TestRazorSolutionStatusService Instance = new();
+            private readonly bool _statusAvailable;
 
-            private TestRazorSolutionStatusService()
+            public TestRazorSolutionStatusService(bool statusAvailable)
             {
+                _statusAvailable = statusAvailable;
             }
 
             public override bool TryGetIntelliSenseStatus([NotNullWhenAttribute(true)] out RazorSolutionStatus status)
             {
+                if (_statusAvailable)
+                {
+                    status = TestRazorSolutionStatus.Instance;
+                    return true;
+                }
+
                 status = null;
                 return false;
+            }
+
+            private class TestRazorSolutionStatus : RazorSolutionStatus
+            {
+                public static readonly TestRazorSolutionStatus Instance = new();
+
+                private TestRazorSolutionStatus()
+                {
+                }
+
+                public override bool IsAvailable => true;
+
+                public override event PropertyChangedEventHandler PropertyChanged;
             }
         }
     }
