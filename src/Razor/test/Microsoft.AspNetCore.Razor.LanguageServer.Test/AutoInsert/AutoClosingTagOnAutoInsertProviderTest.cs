@@ -14,6 +14,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         private RazorLSPOptions Options { get; set; } = RazorLSPOptions.Default;
 
+        private static TagHelperDescriptor CatchAllTagHelper
+        {
+            get
+            {
+                var descriptor = TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "TestAssembly");
+                descriptor.SetTypeName("TestNamespace.CatchAllTagHelper");
+                descriptor.TagMatchingRule(builder => builder.RequireTagName("*").RequireTagStructure(TagStructure.Unspecified));
+
+                return descriptor.Build();
+            }
+        }
+
         private static TagHelperDescriptor UnspecifiedInputMirroringTagHelper
         {
             get
@@ -84,6 +96,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
                 return descriptor.Build();
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6217")]
+        public void OnTypeCloseAngle_ConflictingAutoClosingBehaviorsChoosesMostSpecific()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<test>$$
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<test />
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { WithoutEndTagTagHelper, CatchAllTagHelper });
+
         }
 
         [Fact]
