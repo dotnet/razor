@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -907,6 +908,79 @@ expected: @"@foreach (var num in Enumerable.Range(1, 10))
     </span>
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6211")]
+        public async Task FormatCascadingValueWithCascadingTypeParameter()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<div>
+    @foreach ( var i in new int[] { 1, 23 } )
+    {
+        <div></div>
+    }
+</div>
+<Select TValue=""string"">
+    @foreach ( var i in new int[] { 1, 23 } )
+    {
+        <SelectItem Value=""@i"">@i</SelectItem>
+    }
+</Select>
+",
+expected: @"
+<div>
+    @foreach (var i in new int[] { 1, 23 })
+    {
+        <div></div>
+    }
+</div>
+<Select TValue=""string"">
+    @foreach (var i in new int[] { 1, 23 })
+    {
+        <SelectItem Value=""@i"">@i</SelectItem>
+    }
+</Select>
+", tagHelpers: CreateTagHelpers());
+
+            IReadOnlyList<TagHelperDescriptor> CreateTagHelpers()
+            {
+                var select = @"
+@typeparam TValue
+@attribute [CascadingTypeParameter(nameof(TValue))]
+<CascadingValue Value=""@this"" IsFixed>
+    <select>
+        @ChildContent
+    </select>
+</CascadingValue>
+
+@code
+{
+    [Parameter] public TValue SelectedValue { get; set; }
+}
+";
+                var selectItem = @"
+@typeparam TValue
+<option value=""@StringValue"">@ChildContent</option>
+
+@code
+{
+    [Parameter] public TValue Value { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    protected string StringValue => Value?.ToString();
+}
+";
+
+                var selectComponent = CompileToCSharp("Select.razor", select, throwOnFailure: true, fileKind: FileKinds.Component);
+                var selectItemComponent = CompileToCSharp("SelectItem.razor", selectItem, throwOnFailure: true, fileKind: FileKinds.Component);
+
+                var tagHelpers = new List<TagHelperDescriptor>();
+                tagHelpers.AddRange(selectComponent.CodeDocument.GetTagHelperContext().TagHelpers);
+                tagHelpers.AddRange(selectItemComponent.CodeDocument.GetTagHelperContext().TagHelpers);
+                return tagHelpers.AsReadOnly();
+            }
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()

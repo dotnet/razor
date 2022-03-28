@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var isComponent = IsComponentTagHelperNode(node);
             // Components with cascading type parameters cause an extra level of indentation
-            var componentIndentationLevels = isComponent && DoesComponentHaveCascadingTypeParameter(node) ? 2 : 1;
+            var componentIndentationLevels = isComponent && HasUnspecifiedCascadingTypeParameter(node) ? 2 : 1;
 
             var causesIndentation = isComponent;
             if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
@@ -261,7 +261,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return false;
             }
 
-            static bool DoesComponentHaveCascadingTypeParameter(MarkupTagHelperElementSyntax node)
+            static bool HasUnspecifiedCascadingTypeParameter(MarkupTagHelperElementSyntax node)
             {
                 var tagHelperInfo = node.TagHelperInfo;
 
@@ -276,7 +276,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return false;
                 }
 
-                return descriptors.Any(d => d.SuppliesCascadingGenericParameters());
+                // A cascading type parameter will mean the generated code will get a TypeInference class generated
+                // for it, which we need to account for with an extra level of indentation in our expected C# indentation
+                var hasCascadingGenericParameters = descriptors.Any(d => d.SuppliesCascadingGenericParameters());
+                if (!hasCascadingGenericParameters)
+                {
+                    return false;
+                }
+
+                // BUT, because life wasn't mean to be easy, the indentation is only affected when the developer
+                // doesn't specify any type parameter in the element itself as an attribute.
+
+                // Get all type parameters for later use. Array is fine to use as the list should be tiny (I hope!!)
+                var typeParameterNames = descriptors.SelectMany(d => d.GetTypeParameters().Select(p => p.Name)).ToArray();
+
+                var attributes = node.StartTag.Attributes.OfType<MarkupTagHelperAttributeSyntax>();
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.TagHelperAttributeInfo.Bound)
+                    {
+                        var name = attribute.TagHelperAttributeInfo.Name;
+                        if (typeParameterNames.Contains(name))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             }
         }
 
