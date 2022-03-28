@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultTagHelperCompletionServiceTest
+    public class LegacyTagHelperCompletionServiceTest
     {
         [Fact]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
@@ -1264,7 +1264,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["bold"] = new HashSet<TagHelperDescriptor>(),
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div", containingParentTagName: "");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1294,7 +1294,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["div"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div", containingParentTagName: "");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1330,7 +1330,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 ["div"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0], documentDescriptors[1] },
             });
 
-            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "div", containingParentTagName: "");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1340,10 +1340,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             AssertCompletionsAreEquivalent(expectedCompletions, completions);
         }
 
-        private static DefaultTagHelperCompletionService CreateTagHelperCompletionFactsService()
+        private static LegacyTagHelperCompletionService CreateTagHelperCompletionFactsService()
         {
             var tagHelperFactsService = new DefaultTagHelperFactsService();
-            var completionFactService = new DefaultTagHelperCompletionService(tagHelperFactsService);
+            var completionFactService = new LegacyTagHelperCompletionService(tagHelperFactsService);
 
             return completionFactService;
         }

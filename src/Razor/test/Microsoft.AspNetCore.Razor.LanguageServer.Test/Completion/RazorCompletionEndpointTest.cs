@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Working around strong naming restriction.
             var tagHelperFactsService = new DefaultTagHelperFactsService();
-            var tagHelperCompletionService = new DefaultTagHelperCompletionService(tagHelperFactsService);
+            var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
             var completionProviders = new RazorCompletionItemProvider[]
             {
                 new DirectiveCompletionItemProvider(),

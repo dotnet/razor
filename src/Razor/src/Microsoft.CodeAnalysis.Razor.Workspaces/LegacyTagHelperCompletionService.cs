@@ -11,15 +11,17 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
+    // This class is utilized entirely by the legacy Razor editor and should not be touched to avoid breaking functionality.
+
     [Shared]
     [Export(typeof(TagHelperCompletionService))]
-    internal class DefaultTagHelperCompletionService : TagHelperCompletionService
+    internal class LegacyTagHelperCompletionService : TagHelperCompletionService
     {
         private readonly TagHelperFactsService _tagHelperFactsService;
         private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
         [ImportingConstructor]
-        public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService!!)
+        public LegacyTagHelperCompletionService(TagHelperFactsService tagHelperFactsService!!)
         {
             _tagHelperFactsService = tagHelperFactsService;
         }
@@ -169,7 +171,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
             var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
-            var possibleChildDescriptors = _tagHelperFactsService.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingParentTagName);
+            var possibleChildDescriptors = _tagHelperFactsService.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingTagName);
             possibleChildDescriptors = FilterFullyQualifiedCompletions(possibleChildDescriptors);
             foreach (var possibleDescriptor in possibleChildDescriptors)
             {
@@ -178,7 +180,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 foreach (var rule in possibleDescriptor.TagMatchingRules)
                 {
-                    if (!TagHelperMatchingConventions.SatisfiesParentTag(completionContext.ContainingParentTagName, rule))
+                    if (!TagHelperMatchingConventions.SatisfiesParentTag(completionContext.ContainingTagName, rule))
                     {
                         continue;
                     }
@@ -268,10 +270,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var binding = _tagHelperFactsService.GetTagHelperBinding(
                 completionContext.DocumentContext,
-                completionContext.ContainingParentTagName,
+                completionContext.ContainingTagName,
                 completionContext.Attributes,
-                parentTag: null,
-                parentIsTagHelper: false);
+                completionContext.ContainingParentTagName,
+                completionContext.ContainingParentIsTagHelper);
 
             if (binding is null)
             {
@@ -287,7 +289,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     var descriptors = _tagHelperFactsService.GetTagHelpersGivenTag(
                         completionContext.DocumentContext,
                         prefixedName,
-                        completionContext.ContainingParentTagName);
+                        completionContext.ContainingTagName);
 
                     if (descriptors.Count == 0)
                     {

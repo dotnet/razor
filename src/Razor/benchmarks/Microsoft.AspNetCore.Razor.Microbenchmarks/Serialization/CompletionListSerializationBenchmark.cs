@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
         public CompletionListSerializationBenchmark()
         {
             var tagHelperFactsService = new DefaultTagHelperFactsService();
-            var completionService = new DefaultTagHelperCompletionService(tagHelperFactsService);
+            var completionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
             var htmlFactsService = new DefaultHtmlFactsService();
             var tagHelperCompletionProvider = new TagHelperCompletionProvider(completionService, htmlFactsService, tagHelperFactsService);
 

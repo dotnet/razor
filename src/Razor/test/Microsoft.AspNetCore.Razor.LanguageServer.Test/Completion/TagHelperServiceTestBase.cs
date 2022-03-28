@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.DefaultTagHelperCompletionService;
+using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.LanguageServerTagHelperCompletionService;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
