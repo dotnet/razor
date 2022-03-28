@@ -2,8 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
@@ -41,7 +44,11 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 </div>
 ";
 
+        private const string RazorOutputLogId = "RazorOutputLog";
+
         protected override string LanguageName => LanguageNames.Razor;
+
+        private static bool CustomLoggersAdded = false;
 
         public override async Task InitializeAsync()
         {
@@ -61,6 +68,20 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
+
+            // Add custom logs on failure if they haven't already been.
+            if (!CustomLoggersAdded)
+            {
+                DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
+
+                CustomLoggersAdded = true;
+            }
+
+            async void RazorOutputPaneLogger(string filePath)
+            {
+                var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
+                File.WriteAllText(filePath, paneContent);
+            }
         }
     }
 }

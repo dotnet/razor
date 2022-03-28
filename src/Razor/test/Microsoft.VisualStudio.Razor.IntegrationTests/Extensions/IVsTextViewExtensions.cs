@@ -19,5 +19,11 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests.Extensions
             ErrorHandler.ThrowOnFailure(((IVsUserData)textView).GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost));
             return (IWpfTextViewHost)wpfTextViewHost;
         }
+
+        public static async Task<string> GetContentAsync(this IVsTextView vsTextView, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+        {
+            var textViewHost = await vsTextView.GetTextViewHostAsync(joinableTaskFactory, cancellationToken);
+            return textViewHost.TextView.TextSnapshot.GetText();
+        }
     }
 }
