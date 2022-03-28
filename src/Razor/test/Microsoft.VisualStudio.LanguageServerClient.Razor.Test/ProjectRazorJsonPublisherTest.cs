@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.OperationProgress;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
@@ -662,7 +661,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
                 public override bool IsAvailable => true;
 
-                public override event PropertyChangedEventHandler PropertyChanged;
+                public override event PropertyChangedEventHandler PropertyChanged
+                {
+                    add { }
+                    remove { }
+                }
             }
         }
     }
