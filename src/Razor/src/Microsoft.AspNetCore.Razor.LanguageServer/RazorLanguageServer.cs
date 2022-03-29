@@ -153,8 +153,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
 
-                        services.AddSingleton<DefaultWorkspaceChangedRefresh, DefaultWorkspaceChangedRefresh>();
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DefaultWorkspaceChangedRefresh>());
+                        services.AddSingleton<DefaultWorkspaceSemanticTokensRefreshTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DefaultWorkspaceSemanticTokensRefreshTrigger>());
 
                         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());

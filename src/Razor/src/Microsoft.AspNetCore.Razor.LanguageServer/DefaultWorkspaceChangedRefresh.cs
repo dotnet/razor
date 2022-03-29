@@ -9,12 +9,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// <summary>
     /// Sends a 'workspace\semanticTokens\refresh' request each time the project changes.
     /// </summary>
-    internal class DefaultWorkspaceChangedRefresh : ProjectSnapshotChangeTrigger
+    internal class DefaultWorkspaceSemanticTokensRefreshTrigger : ProjectSnapshotChangeTrigger
     {
         private readonly WorkspaceSemanticTokensRefreshPublisher _workspaceChangedPublisher;
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
-        internal DefaultWorkspaceChangedRefresh(WorkspaceSemanticTokensRefreshPublisher workspaceChangedPublisher!!)
+        internal DefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceChangedPublisher!!)
         {
             _workspaceChangedPublisher = workspaceChangedPublisher;
         }

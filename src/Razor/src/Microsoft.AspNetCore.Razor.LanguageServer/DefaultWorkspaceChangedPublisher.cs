@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
@@ -15,10 +18,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher
     {
         private readonly IClientLanguageServer _languageServer;
+        private readonly BatchingWorkQueue _workQueue;
+        private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(50);
 
         public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!)
         {
             _languageServer = languageServer;
+            var errorReporterObj = _languageServer.GetService(typeof(ErrorReporter));
+            if (errorReporterObj is null || errorReporterObj is not ErrorReporter errorReporter)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter);
         }
 
         public override void PublishWorkspaceSemanticTokensRefresh()
