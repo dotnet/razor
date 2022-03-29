@@ -32,10 +32,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             };
             var serverClient = new TestClient(clientSettings);
-            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceChangedPublisher(serverClient);
+            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
 
             // Act
-            defaultWorkspaceChangedPublisher.PublishWorkspaceChanged();
+            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
 
             // Assert
             Assert.Equal(0, serverClient.Requests.Count);
@@ -59,10 +59,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             };
             var serverClient = new TestClient(clientSettings);
-            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceChangedPublisher(serverClient);
+            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
 
             // Act
-            defaultWorkspaceChangedPublisher.PublishWorkspaceChanged();
+            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
 
             // Assert
             Assert.Collection(serverClient.Requests,
@@ -90,8 +90,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishesOnWorkspaceUpdate()
         {
             // Arrange
-            var workspaceChangedPublisher = new Mock<WorkspaceChangedPublisher>(MockBehavior.Strict);
-            workspaceChangedPublisher.Setup(w => w.PublishWorkspaceChanged());
+            var workspaceChangedPublisher = new Mock<WorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
+            workspaceChangedPublisher.Setup(w => w.PublishWorkspaceSemanticTokensRefresh());
             var defaultWorkspaceChangedRefresh = new DefaultWorkspaceChangedRefresh(workspaceChangedPublisher.Object);
             defaultWorkspaceChangedRefresh.Initialize(ProjectManager);
 

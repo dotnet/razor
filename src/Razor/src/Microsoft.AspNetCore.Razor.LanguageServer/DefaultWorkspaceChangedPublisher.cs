@@ -7,21 +7,21 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class WorkspaceChangedPublisher
+    internal abstract class WorkspaceSemanticTokensRefreshPublisher
     {
-        public abstract void PublishWorkspaceChanged();
+        public abstract void PublishWorkspaceSemanticTokensRefresh();
     }
 
-    internal class DefaultWorkspaceChangedPublisher : WorkspaceChangedPublisher
+    internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher
     {
         private readonly IClientLanguageServer _languageServer;
 
-        public DefaultWorkspaceChangedPublisher(IClientLanguageServer languageServer!!)
+        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!)
         {
             _languageServer = languageServer;
         }
 
-        public override void PublishWorkspaceChanged()
+        public override void PublishWorkspaceSemanticTokensRefresh()
         {
             var useWorkspaceRefresh = _languageServer.ClientSettings.Capabilities?.Workspace is not null &&
                 _languageServer.ClientSettings.Capabilities.Workspace.SemanticTokens.IsSupported &&

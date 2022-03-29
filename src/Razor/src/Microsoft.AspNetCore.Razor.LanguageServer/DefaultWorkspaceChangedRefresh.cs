@@ -11,10 +11,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// </summary>
     internal class DefaultWorkspaceChangedRefresh : ProjectSnapshotChangeTrigger
     {
-        private readonly WorkspaceChangedPublisher _workspaceChangedPublisher;
+        private readonly WorkspaceSemanticTokensRefreshPublisher _workspaceChangedPublisher;
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
-        internal DefaultWorkspaceChangedRefresh(WorkspaceChangedPublisher workspaceChangedPublisher!!)
+        internal DefaultWorkspaceChangedRefresh(WorkspaceSemanticTokensRefreshPublisher workspaceChangedPublisher!!)
         {
             _workspaceChangedPublisher = workspaceChangedPublisher;
         }
@@ -39,9 +39,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Does not handle C# files
-        private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs? args)
+        private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _workspaceChangedPublisher.PublishWorkspaceChanged();
+            // Don't send for a simple Document edit. The platform should re-request any range that
+            // is edited and if a parameter or type change is made it should be reflected as a ProjectChanged.
+            if (args.Kind != ProjectChangeKind.DocumentChanged)
+            {
+                _workspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
+            }
         }
     }
 }
