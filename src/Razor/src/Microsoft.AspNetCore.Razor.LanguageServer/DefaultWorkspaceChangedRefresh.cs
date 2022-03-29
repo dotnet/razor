@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -40,18 +39,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Does not handle C# files
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs? args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs? args)
         {
-            try
-            {
-                await _workspaceChangedPublisher.PublishWorkspaceChangedAsync(CancellationToken.None);
-            }
-            catch (Exception)
-            {
-                // Catch all exceptions to prevent crashing the process.
-            }
+            _workspaceChangedPublisher.PublishWorkspaceChanged();
         }
     }
 }

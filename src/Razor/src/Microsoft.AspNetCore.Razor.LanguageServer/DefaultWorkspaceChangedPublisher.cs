@@ -2,26 +2,26 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class WorkspaceChangedPublisher
     {
-        public abstract Task PublishWorkspaceChangedAsync(CancellationToken cancellationToken);
+        public abstract void PublishWorkspaceChanged();
     }
 
     internal class DefaultWorkspaceChangedPublisher : WorkspaceChangedPublisher
     {
-        private readonly ClientNotifierServiceBase _languageServer;
+        private readonly IClientLanguageServer _languageServer;
 
-        public DefaultWorkspaceChangedPublisher(ClientNotifierServiceBase languageServer!!)
+        public DefaultWorkspaceChangedPublisher(IClientLanguageServer languageServer!!)
         {
             _languageServer = languageServer;
         }
 
-        public override async Task PublishWorkspaceChangedAsync(CancellationToken cancellationToken)
+        public override void PublishWorkspaceChanged()
         {
             var useWorkspaceRefresh = _languageServer.ClientSettings.Capabilities?.Workspace is not null &&
                 _languageServer.ClientSettings.Capabilities.Workspace.SemanticTokens.IsSupported &&
@@ -29,8 +29,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (useWorkspaceRefresh)
             {
-                var request = await _languageServer.SendRequestAsync(WorkspaceNames.SemanticTokensRefresh);
-                await request.ReturningVoid(cancellationToken);
+                var request = _languageServer.SendRequest(WorkspaceNames.SemanticTokensRefresh);
+                _ = request.ReturningVoid(CancellationToken.None);
             }
         }
     }
