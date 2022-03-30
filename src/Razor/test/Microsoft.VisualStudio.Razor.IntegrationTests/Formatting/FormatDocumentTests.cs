@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         [InlineData("FormatIfBlockInsideForBlock.cshtml")]
         [InlineData("FormatOnPaste.cshtml")]
         [InlineData("FormatOnPasteContainedLanguageCode.cshtml")]
-        [InlineData("FormatRazorAttribute.cshtml")]
         [InlineData("FormatSelection.cshtml")]
         [InlineData("FormatSelectionStartingWithContainedLanguageCode.cshtml")]
         [InlineData("FormatSwitchCaseBlock.cshtml")]
