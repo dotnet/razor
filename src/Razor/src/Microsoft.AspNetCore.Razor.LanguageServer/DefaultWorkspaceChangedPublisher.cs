@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using OmniSharp.Extensions.LanguageServer.Protocol;
@@ -17,9 +18,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
     internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher
     {
+        private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
         private readonly IClientLanguageServer _languageServer;
         private readonly BatchingWorkQueue _workQueue;
-        private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(50);
+        private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(25);
 
         public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!)
         {
@@ -30,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException();
             }
 
-            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter);
+            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }
 
         public override void PublishWorkspaceSemanticTokensRefresh()
@@ -41,8 +43,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (useWorkspaceRefresh)
             {
+                var workItem = new SemanticTokensRefreshWorkItem(_languageServer);
+                _workQueue.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
+            }
+        }
+
+        private class SemanticTokensRefreshWorkItem : BatchableWorkItem
+        {
+            private readonly IClientLanguageServer _languageServer;
+
+            public SemanticTokensRefreshWorkItem(IClientLanguageServer languageServer)
+            {
+                _languageServer = languageServer;
+            }
+
+            public override ValueTask ProcessAsync(CancellationToken cancellationToken)
+            {
                 var request = _languageServer.SendRequest(WorkspaceNames.SemanticTokensRefresh);
-                _ = request.ReturningVoid(CancellationToken.None);
+                return new ValueTask(request.ReturningVoid(cancellationToken));
             }
         }
     }

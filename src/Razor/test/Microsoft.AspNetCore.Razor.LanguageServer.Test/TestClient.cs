@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.CodeAnalysis.Razor;
 using Moq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
@@ -83,6 +84,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public object GetService(Type serviceType)
         {
+            if (serviceType == typeof(ErrorReporter))
+            {
+                return new DefaultErrorReporter();
+            }
+
             throw new NotImplementedException();
         }
 
