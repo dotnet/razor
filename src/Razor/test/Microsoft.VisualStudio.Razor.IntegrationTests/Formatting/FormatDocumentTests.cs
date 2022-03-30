@@ -57,7 +57,14 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            if (testFileName.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
+            {
+                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            }
+            else
+            {
+                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ErrorCshtmlFile, HangMitigatingCancellationToken);
+            }
 
             await TestServices.Editor.SetTextAsync(input, HangMitigatingCancellationToken);
 
