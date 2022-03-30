@@ -22,7 +22,6 @@ steps:
       -restore
       -build
       -pack
-      -sign
       -publish
     name: Build
     displayName: Build

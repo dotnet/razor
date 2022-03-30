@@ -203,6 +203,7 @@ stages:
             -restore
             -build
             -pack
+            -sign
             /p:BuildVsix=true
             /p:BuildProjectReferences=false
             $(_BuildArgs)
