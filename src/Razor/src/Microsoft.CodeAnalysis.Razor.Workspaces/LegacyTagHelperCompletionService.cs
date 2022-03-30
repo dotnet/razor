@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    // This class is utilized entirely by the legacy Razor editor and should not be touched to avoid breaking functionality.
+    // This class is utilized entirely by the legacy Razor editor and should not be touched except when specifically working on the legacy editor to avoid breaking functionality.
 
     [Shared]
     [Export(typeof(TagHelperCompletionService))]
