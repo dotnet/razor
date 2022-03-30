@@ -32,6 +32,7 @@ steps:
       -configuration ${{ parameters.configuration }}
       -msbuildEngine dotnet
       -prepareMachine
+      -sign
       /p:BuildVsix=true
       /p:BuildProjectReferences=false
     name: BuildVSIX
