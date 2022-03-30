@@ -1174,8 +1174,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var completionContext = BuildElementCompletionContext(
                 documentDescriptors,
                 existingCompletions: Enumerable.Empty<string>(),
-                containingTagName: "child-tag",
-                containingParentTagName: "parent-tag");
+                containingTagName: "parent-tag",
+                containingParentTagName: null);
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
@@ -1236,7 +1236,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             });
 
             var existingCompletions = new[] { "p", "em" };
-            var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions, containingTagName: "thing", containingParentTagName: "div");
+            var completionContext = BuildElementCompletionContext(documentDescriptors, existingCompletions, containingTagName: "div", containingParentTagName: "thing");
             var service = CreateTagHelperCompletionFactsService();
 
             // Act
