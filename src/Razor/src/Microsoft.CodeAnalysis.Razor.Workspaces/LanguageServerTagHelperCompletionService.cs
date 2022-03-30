@@ -11,15 +11,13 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    [Shared]
-    [Export(typeof(TagHelperCompletionService))]
-    internal class DefaultTagHelperCompletionService : TagHelperCompletionService
+    internal class LanguageServerTagHelperCompletionService : TagHelperCompletionService
     {
         private readonly TagHelperFactsService _tagHelperFactsService;
         private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
         [ImportingConstructor]
-        public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService!!)
+        public LanguageServerTagHelperCompletionService(TagHelperFactsService tagHelperFactsService!!)
         {
             _tagHelperFactsService = tagHelperFactsService;
         }

@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
                         // Completion
-                        services.AddSingleton<TagHelperCompletionService, DefaultTagHelperCompletionService>();
+                        services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
