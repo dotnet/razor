@@ -22,7 +22,6 @@ steps:
       -restore
       -build
       -pack
-      -sign
       -publish
     name: Build
     displayName: Build
@@ -32,7 +31,6 @@ steps:
       -configuration ${{ parameters.configuration }}
       -msbuildEngine dotnet
       -prepareMachine
-      -sign
       /p:BuildVsix=true
       /p:BuildProjectReferences=false
     name: BuildVSIX
