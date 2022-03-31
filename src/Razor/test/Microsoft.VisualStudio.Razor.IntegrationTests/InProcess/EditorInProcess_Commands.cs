@@ -13,6 +13,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
+        public async Task InvokeFormatDocumentAsync(CancellationToken cancellationToken)
+        {
+            var commandGuid = typeof(VSStd2KCmdID).GUID;
+            var commandId = VSStd2KCmdID.FORMATDOCUMENT;
+            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
+        }
+
         public async Task InvokeGoToDefinitionAsync(CancellationToken cancellationToken)
         {
             var commandGuid = typeof(VSStd97CmdID).GUID;
