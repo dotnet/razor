@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// </summary>
     internal class DefaultWorkspaceSemanticTokensRefreshTrigger : ProjectSnapshotChangeTrigger
     {
-        private IWorkspaceSemanticTokensRefreshPublisher? _workspaceChangedPublisher;
+        private WorkspaceSemanticTokensRefreshPublisher? _workspaceChangedPublisher;
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
         private readonly IClientLanguageServer _clientLanguageServer;
 
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private IWorkspaceSemanticTokensRefreshPublisher WorkspaceChangedPublisher
+        private WorkspaceSemanticTokensRefreshPublisher WorkspaceChangedPublisher
         {
             get
             {
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        internal virtual IWorkspaceSemanticTokensRefreshPublisher GetWorkspaceSemanticTokensRefreshPublisher(ProjectSnapshotManagerBase projectManager)
+        internal virtual WorkspaceSemanticTokensRefreshPublisher GetWorkspaceSemanticTokensRefreshPublisher(ProjectSnapshotManagerBase projectManager)
         {
             var errorReporter = projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
             return new DefaultWorkspaceSemanticTokensRefreshPublisher(_clientLanguageServer, errorReporter);

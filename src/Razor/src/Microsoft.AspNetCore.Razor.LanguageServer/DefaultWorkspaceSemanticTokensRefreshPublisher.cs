@@ -11,12 +11,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal interface IWorkspaceSemanticTokensRefreshPublisher
-    {
-        public void PublishWorkspaceSemanticTokensRefresh();
-    }
-
-    internal class DefaultWorkspaceSemanticTokensRefreshPublisher : IWorkspaceSemanticTokensRefreshPublisher
+    internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher
     {
         private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
         private readonly IClientLanguageServer _languageServer;
@@ -29,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }
 
-        public void PublishWorkspaceSemanticTokensRefresh()
+        public override void PublishWorkspaceSemanticTokensRefresh()
         {
             var useWorkspaceRefresh = _languageServer.ClientSettings.Capabilities?.Workspace is not null &&
                 _languageServer.ClientSettings.Capabilities.Workspace.SemanticTokens.IsSupported &&
@@ -40,6 +35,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var workItem = new SemanticTokensRefreshWorkItem(_languageServer);
                 _workQueue.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
             }
+        }
+
+        public override void Dispose()
+        {
+            _workQueue.Dispose();
         }
 
         private class SemanticTokensRefreshWorkItem : BatchableWorkItem
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             private readonly DefaultWorkspaceSemanticTokensRefreshPublisher _publisher;
 
-            public TestAccessor(DefaultWorkspaceSemanticTokensRefreshPublisher publisher)
+            internal TestAccessor(DefaultWorkspaceSemanticTokensRefreshPublisher publisher)
             {
                 _publisher = publisher;
             }

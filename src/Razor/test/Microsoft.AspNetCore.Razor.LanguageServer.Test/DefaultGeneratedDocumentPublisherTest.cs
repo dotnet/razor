@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public partial class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
+    public class DefaultGeneratedDocumentPublisherTest : LanguageServerTestBase
     {
         public DefaultGeneratedDocumentPublisherTest()
         {
