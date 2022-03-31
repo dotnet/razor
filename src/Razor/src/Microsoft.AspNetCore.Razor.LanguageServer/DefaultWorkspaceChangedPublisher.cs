@@ -57,5 +57,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return new ValueTask(request.ReturningVoid(cancellationToken));
             }
         }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal class TestAccessor
+        {
+            private readonly DefaultWorkspaceSemanticTokensRefreshPublisher _publisher;
+
+            public TestAccessor(DefaultWorkspaceSemanticTokensRefreshPublisher publisher)
+            {
+                _publisher = publisher;
+            }
+
+            public void WaitForEmpty()
+            {
+                var workQueueTestAccessor = _publisher._workQueue.GetTestAccessor();
+                workQueueTestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+                while (workQueueTestAccessor.IsScheduledOrRunning)
+                {
+                    workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromMilliseconds(50));
+                }
+            }
+        }
     }
 }

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -24,10 +23,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
             var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
-            Thread.Sleep(100);
+            testAccessor.WaitForEmpty();
 
             // Assert
             Assert.Equal(0, serverClient.Requests.Count);
@@ -41,10 +41,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
             var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
-            Thread.Sleep(100);
+            testAccessor.WaitForEmpty();
 
             // Assert
             Assert.Collection(serverClient.Requests,
@@ -59,15 +60,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
             var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
-            Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            testAccessor.WaitForEmpty();
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
-
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            testAccessor.WaitForEmpty();
 
             // Assert
             Assert.Collection(serverClient.Requests,
