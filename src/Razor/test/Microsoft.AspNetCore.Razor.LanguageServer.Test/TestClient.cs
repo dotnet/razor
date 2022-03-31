@@ -84,11 +84,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public object GetService(Type serviceType)
         {
-            if (serviceType == typeof(ErrorReporter))
-            {
-                return new DefaultErrorReporter();
-            }
-
             throw new NotImplementedException();
         }
 

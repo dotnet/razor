@@ -4,6 +4,9 @@
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -19,7 +22,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: false);
             var serverClient = new TestClient(clientSettings);
-            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
+            var errorReporter = new TestErrorReporter();
+            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
 
             // Act
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
@@ -35,7 +39,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
             var serverClient = new TestClient(clientSettings);
-            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
+            var errorReporter = new TestErrorReporter();
+            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
 
             // Act
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
@@ -52,7 +57,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
             var serverClient = new TestClient(clientSettings);
-            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
+            var errorReporter = new TestErrorReporter();
+            var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
 
             // Act
             defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
@@ -84,6 +90,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 }
             };
+        }
+
+        private class TestErrorReporter : ErrorReporter
+        {
+            public override void ReportError(Exception exception)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void ReportError(Exception exception, ProjectSnapshot project)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void ReportError(Exception exception, Project workspaceProject)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

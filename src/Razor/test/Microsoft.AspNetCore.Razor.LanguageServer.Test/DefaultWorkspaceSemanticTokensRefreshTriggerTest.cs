@@ -4,7 +4,9 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -29,16 +31,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishesOnWorkspaceUpdate()
         {
             // Arrange
-            var workspaceChangedPublisher = new Mock<WorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
+            var workspaceChangedPublisher = new Mock<IWorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
             workspaceChangedPublisher.Setup(w => w.PublishWorkspaceSemanticTokensRefresh());
-            var defaultWorkspaceChangedRefresh = new DefaultWorkspaceSemanticTokensRefreshTrigger(workspaceChangedPublisher.Object);
+            var clientLanguageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
+            var defaultWorkspaceChangedRefresh = new TestDefaultWorkspaceSemanticTokensRefreshTrigger(clientLanguageServer.Object, workspaceChangedPublisher.Object);
             defaultWorkspaceChangedRefresh.Initialize(ProjectManager);
 
             // Act
-            ProjectManager.DocumentChanged(HostProject.FilePath, HostDocument.FilePath, new EmptyTextLoader(HostDocument.FilePath));
+            var newDocument = new HostDocument("/path/to/newFile.razor", "newFile.razor");
+            ProjectManager.DocumentAdded(HostProject, newDocument, new EmptyTextLoader(newDocument.FilePath));
 
             // Assert
             workspaceChangedPublisher.VerifyAll();
+        }
+
+        private class TestDefaultWorkspaceSemanticTokensRefreshTrigger : DefaultWorkspaceSemanticTokensRefreshTrigger
+        {
+            private readonly IWorkspaceSemanticTokensRefreshPublisher _workspaceSemanticTokensRefreshPublisher;
+
+            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(IClientLanguageServer clientLanguageServer, IWorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(clientLanguageServer)
+            {
+                _workspaceSemanticTokensRefreshPublisher = workspaceSemanticTokensRefreshPublisher;
+            }
+
+            internal override IWorkspaceSemanticTokensRefreshPublisher GetWorkspaceSemanticTokensRefreshPublisher(ProjectSnapshotManagerBase projectManager)
+            {
+                return _workspaceSemanticTokensRefreshPublisher;
+            }
         }
     }
 }
