@@ -1,1 +1,0 @@
-Exists for quickly noticing if the Shim was installed.
