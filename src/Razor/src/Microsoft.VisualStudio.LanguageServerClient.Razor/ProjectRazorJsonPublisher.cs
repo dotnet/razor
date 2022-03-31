@@ -43,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
         private bool _documentsProcessed = false;
 
+        private bool _hadAnyTagHelpers = false;
+
         private ProjectSnapshotManagerBase ProjectSnapshotManager
         {
             get
@@ -140,6 +142,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     // No open documents and not active. No-op.
                     return;
                 }
+            }
+
+            if (!_hadAnyTagHelpers && args.Newer.ProjectWorkspaceState?.TagHelpers.Count > 0)
+            {
+                _logger.LogWarning("First publish opportunity with tag helpers. Event kind: " + args.Kind);
             }
 
             // All the below Publish's (except ProjectRemoved) wait until our project has been initialized (ProjectWorkspaceState != null)
@@ -323,13 +330,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     _documentsProcessed = true;
                 }
             }
-
+            
             if (!_solutionStatusService.TryGetIntelliSenseStatus(out var status))
             {
+                _logger.LogWarning("Couldn't get intellisense status, so returning true");
                 return true;
             }
 
-            return status.IsAvailable && _documentsProcessed;
+            if (!status.IsAvailable)
+            {
+                _logger.LogWarning("Intellisense is not available, so previously we wouldn't have serialized.");
+            }
+
+            if (!_documentsProcessed)
+            {
+                _logger.LogWarning("Not serializing because there haven't been any documents processed. This might be totally fine of course.");
+            }
+
+            return _documentsProcessed;
         }
 
         private void ImmediatePublish(ProjectSnapshot projectSnapshot)
