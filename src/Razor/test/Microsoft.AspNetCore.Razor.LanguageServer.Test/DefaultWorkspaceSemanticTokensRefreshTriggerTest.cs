@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
