@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
             }
 
-            if (!_hadAnyTagHelpers && args.Newer.ProjectWorkspaceState?.TagHelpers.Count > 0)
+            if (!_hadAnyTagHelpers && args.Newer?.ProjectWorkspaceState?.TagHelpers.Count > 0)
             {
                 _logger.LogWarning("First publish opportunity with tag helpers. Event kind: " + args.Kind);
             }
