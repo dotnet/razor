@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
-using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
 using Shared = System.Composition.SharedAttribute;
 
@@ -34,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private readonly RazorSolutionStatusService _solutionStatusService;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
@@ -42,8 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly JsonSerializer _serializer = new();
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
         private bool _documentsProcessed = false;
-
-        private bool _hadAnyTagHelpers = false;
 
         private ProjectSnapshotManagerBase ProjectSnapshotManager
         {
@@ -61,7 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public ProjectRazorJsonPublisher(
             LSPEditorFeatureDetector lSPEditorFeatureDetector!!,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            RazorSolutionStatusService solutionStatusService,
             RazorLogger logger!!)
         {
             DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -71,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _lspEditorFeatureDetector = lSPEditorFeatureDetector;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-            _solutionStatusService = solutionStatusService;
             _logger = logger;
 
             _serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
@@ -144,11 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
             }
 
-            if (!_hadAnyTagHelpers && args.Newer?.ProjectWorkspaceState?.TagHelpers.Count > 0)
-            {
-                _logger.LogWarning("First publish opportunity with tag helpers. Event kind: " + args.Kind);
-            }
-
             // All the below Publish's (except ProjectRemoved) wait until our project has been initialized (ProjectWorkspaceState != null)
             // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash"
             // when they update repeatedly as they load.
@@ -160,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         break;
                     }
 
-                    if (!ReferenceEquals(args.Newer!.ProjectWorkspaceState, args.Older.ProjectWorkspaceState))
+                    if (!ReferenceEquals(args.Newer.ProjectWorkspaceState, args.Older.ProjectWorkspaceState))
                     {
                         // If our workspace state has changed since our last snapshot then this means pieces influencing
                         // TagHelper resolution have also changed. Fast path the TagHelper publish.
@@ -181,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     {
                         // These changes can come in bursts so we don't want to overload the publishing system. Therefore,
                         // we enqueue publishes and then publish the latest project after a delay.
-                        EnqueuePublish(args.Newer!);
+                        EnqueuePublish(args.Newer);
                     }
 
                     break;
@@ -190,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                     if (ProjectWorkspacePublishable(args))
                     {
-                        ImmediatePublish(args.Newer!);
+                        ImmediatePublish(args.Newer);
                     }
 
                     break;
@@ -329,22 +318,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     // This project has no Components and thus cannot suffer from the lagging compilation problem.
                     _documentsProcessed = true;
                 }
-            }
-            
-            if (!_solutionStatusService.TryGetIntelliSenseStatus(out var status))
-            {
-                _logger.LogWarning("Couldn't get intellisense status, so returning true");
-                return true;
-            }
-
-            if (!status.IsAvailable)
-            {
-                _logger.LogWarning("Intellisense is not available, so previously we wouldn't have serialized.");
-            }
-
-            if (!_documentsProcessed)
-            {
-                _logger.LogWarning("Not serializing because there haven't been any documents processed. This might be totally fine of course.");
             }
 
             return _documentsProcessed;

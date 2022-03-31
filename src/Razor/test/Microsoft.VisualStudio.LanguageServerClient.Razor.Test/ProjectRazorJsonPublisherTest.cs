@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
@@ -353,8 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
                     serializationSuccessful = true;
                 },
-                useRealShouldSerialize: true,
-                statusAvailable: true)
+                useRealShouldSerialize: true)
             {
                 EnqueueDelay = 10,
                 _active = true,
@@ -601,9 +597,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 bool shouldSerialize = true,
-                bool useRealShouldSerialize = false,
-                bool statusAvailable = false)
-                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestRazorSolutionStatusService(statusAvailable), TestRazorLogger.Instance)
+                bool useRealShouldSerialize = false)
+                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, TestRazorLogger.Instance)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;
@@ -626,45 +621,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 else
                 {
                     return _shouldSerialize;
-                }
-            }
-        }
-
-        private class TestRazorSolutionStatusService : RazorSolutionStatusService
-        {
-            private readonly bool _statusAvailable;
-
-            public TestRazorSolutionStatusService(bool statusAvailable)
-            {
-                _statusAvailable = statusAvailable;
-            }
-
-            public override bool TryGetIntelliSenseStatus([NotNullWhenAttribute(true)] out RazorSolutionStatus status)
-            {
-                if (_statusAvailable)
-                {
-                    status = TestRazorSolutionStatus.Instance;
-                    return true;
-                }
-
-                status = null;
-                return false;
-            }
-
-            private class TestRazorSolutionStatus : RazorSolutionStatus
-            {
-                public static readonly TestRazorSolutionStatus Instance = new();
-
-                private TestRazorSolutionStatus()
-                {
-                }
-
-                public override bool IsAvailable => true;
-
-                public override event PropertyChangedEventHandler PropertyChanged
-                {
-                    add { }
-                    remove { }
                 }
             }
         }
