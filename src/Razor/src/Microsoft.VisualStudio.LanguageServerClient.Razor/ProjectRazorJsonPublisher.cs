@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         break;
                     }
 
-                    if (!ReferenceEquals(args.Newer.ProjectWorkspaceState, args.Older.ProjectWorkspaceState))
+                    if (!ReferenceEquals(args.Newer!.ProjectWorkspaceState, args.Older.ProjectWorkspaceState))
                     {
                         // If our workspace state has changed since our last snapshot then this means pieces influencing
                         // TagHelper resolution have also changed. Fast path the TagHelper publish.
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     {
                         // These changes can come in bursts so we don't want to overload the publishing system. Therefore,
                         // we enqueue publishes and then publish the latest project after a delay.
-                        EnqueuePublish(args.Newer);
+                        EnqueuePublish(args.Newer!);
                     }
 
                     break;
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                     if (ProjectWorkspacePublishable(args))
                     {
-                        ImmediatePublish(args.Newer);
+                        ImmediatePublish(args.Newer!);
                     }
 
                     break;
