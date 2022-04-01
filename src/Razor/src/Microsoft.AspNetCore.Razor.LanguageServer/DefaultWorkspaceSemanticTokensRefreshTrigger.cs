@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -10,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// </summary>
     internal class DefaultWorkspaceSemanticTokensRefreshTrigger : ProjectSnapshotChangeTrigger
     {
-        private readonly WorkspaceSemanticTokensRefreshPublisher? _workspaceChangedPublisher;
+        private readonly WorkspaceSemanticTokensRefreshPublisher _workspaceChangedPublisher;
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
         internal DefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
@@ -23,6 +24,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager = projectManager;
 
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+
+            var errorReporter = _projectSnapshotManager.Workspace.Services.GetRequiredService<ErrorReporter>();
+            _workspaceChangedPublisher.Initialize(errorReporter);
         }
 
         // Does not handle C# files
@@ -32,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // is edited and if a parameter or type change is made it should be reflected as a ProjectChanged.
             if (args.Kind != ProjectChangeKind.DocumentChanged)
             {
-                _workspaceChangedPublisher!.PublishWorkspaceSemanticTokensRefresh();
+                _workspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
             }
         }
     }

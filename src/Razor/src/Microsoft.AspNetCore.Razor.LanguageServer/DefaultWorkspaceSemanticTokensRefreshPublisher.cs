@@ -15,13 +15,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
         private readonly IClientLanguageServer _languageServer;
-        private readonly BatchingWorkQueue _workQueue;
+        private BatchingWorkQueue? _workQueue;
         private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(25);
 
-        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!, ErrorReporter errorReporter!!)
+        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!)
         {
             _languageServer = languageServer;
-            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }
 
         public override void PublishWorkspaceSemanticTokensRefresh()
@@ -33,13 +32,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (useWorkspaceRefresh)
             {
                 var workItem = new SemanticTokensRefreshWorkItem(_languageServer);
-                _workQueue.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
+                _workQueue?.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
             }
         }
 
         public override void Dispose()
         {
-            _workQueue.Dispose();
+            _workQueue?.Dispose();
         }
 
         private class SemanticTokensRefreshWorkItem : BatchableWorkItem
@@ -61,6 +60,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal TestAccessor GetTestAccessor()
             => new(this);
 
+        public override void Initialize(ErrorReporter errorReporter)
+        {
+            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
+        }
+
         internal class TestAccessor
         {
             private readonly DefaultWorkspaceSemanticTokensRefreshPublisher _publisher;
@@ -72,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public void WaitForEmpty()
             {
-                var workQueueTestAccessor = _publisher._workQueue.GetTestAccessor();
+                var workQueueTestAccessor = _publisher._workQueue!.GetTestAccessor();
                 workQueueTestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
                 while (workQueueTestAccessor.IsScheduledOrRunning)
                 {
