@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -32,8 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var workspaceChangedPublisher = new Mock<WorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
             workspaceChangedPublisher.Setup(w => w.PublishWorkspaceSemanticTokensRefresh());
-            var clientLanguageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
-            var defaultWorkspaceChangedRefresh = new TestDefaultWorkspaceSemanticTokensRefreshTrigger(clientLanguageServer.Object, workspaceChangedPublisher.Object);
+            var defaultWorkspaceChangedRefresh = new TestDefaultWorkspaceSemanticTokensRefreshTrigger(workspaceChangedPublisher.Object);
             defaultWorkspaceChangedRefresh.Initialize(ProjectManager);
 
             // Act
@@ -46,16 +44,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestDefaultWorkspaceSemanticTokensRefreshTrigger : DefaultWorkspaceSemanticTokensRefreshTrigger
         {
-            private readonly WorkspaceSemanticTokensRefreshPublisher _workspaceSemanticTokensRefreshPublisher;
-
-            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(IClientLanguageServer clientLanguageServer, WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(clientLanguageServer)
+            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(workspaceSemanticTokensRefreshPublisher)
             {
-                _workspaceSemanticTokensRefreshPublisher = workspaceSemanticTokensRefreshPublisher;
-            }
-
-            internal override WorkspaceSemanticTokensRefreshPublisher GetWorkspaceSemanticTokensRefreshPublisher(ProjectSnapshotManagerBase projectManager)
-            {
-                return _workspaceSemanticTokensRefreshPublisher;
             }
         }
     }
