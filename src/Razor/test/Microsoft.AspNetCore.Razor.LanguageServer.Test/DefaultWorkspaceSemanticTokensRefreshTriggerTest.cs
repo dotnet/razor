@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
@@ -31,6 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var workspaceChangedPublisher = new Mock<WorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
             workspaceChangedPublisher.Setup(w => w.PublishWorkspaceSemanticTokensRefresh());
+            workspaceChangedPublisher.Setup(w => w.Initialize(It.IsAny<ErrorReporter>()));
             var defaultWorkspaceChangedRefresh = new TestDefaultWorkspaceSemanticTokensRefreshTrigger(workspaceChangedPublisher.Object);
             defaultWorkspaceChangedRefresh.Initialize(ProjectManager);
 
@@ -46,6 +50,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(workspaceSemanticTokensRefreshPublisher)
             {
+            }
+
+            internal override ErrorReporter GetErrorReporter()
+            {
+                return new TestErrorReporter();
+            }
+        }
+
+        private class TestErrorReporter : ErrorReporter
+        {
+            public override void ReportError(Exception exception)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void ReportError(Exception exception, ProjectSnapshot project)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void ReportError(Exception exception, Project workspaceProject)
+            {
+                throw new NotImplementedException();
             }
         }
     }

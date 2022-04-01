@@ -25,8 +25,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
 
-            var errorReporter = _projectSnapshotManager.Workspace.Services.GetRequiredService<ErrorReporter>();
+            var errorReporter = GetErrorReporter();
             _workspaceChangedPublisher.Initialize(errorReporter);
+        }
+
+        internal virtual ErrorReporter GetErrorReporter()
+        {
+            return _projectSnapshotManager!.Workspace.Services.GetRequiredService<ErrorReporter>();
         }
 
         // Does not handle C# files

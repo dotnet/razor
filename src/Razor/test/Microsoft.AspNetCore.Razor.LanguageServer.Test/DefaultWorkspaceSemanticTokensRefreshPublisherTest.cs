@@ -22,7 +22,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: false);
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
-            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
+            defaultWorkspaceChangedPublisher.Initialize(errorReporter);
             var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
@@ -40,7 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
-            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
+            defaultWorkspaceChangedPublisher.Initialize(errorReporter);
             var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
@@ -59,7 +61,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
-            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
+            defaultWorkspaceChangedPublisher.Initialize(errorReporter);
             var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
