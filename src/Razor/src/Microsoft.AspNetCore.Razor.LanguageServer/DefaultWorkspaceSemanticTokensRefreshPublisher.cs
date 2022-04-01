@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
         private readonly IClientLanguageServer _languageServer;
         private BatchingWorkQueue? _workQueue;
-        private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(25);
+        private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(250);
 
         public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!)
         {
