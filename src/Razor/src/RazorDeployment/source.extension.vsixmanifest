@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="RazorDeployment" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>RazorDeployment</DisplayName>
+    <Description xml:space="preserve">Language services for ASP.NET Core Razor</Description>
+
+    <!-- This is needed to mark this extension as cloud compliant. -->
+    <AllowClientRole>true</AllowClientRole>
+  </Metadata>
+  <Installation AllUsers="true" Experimental="true">
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency DisplayName="Razor Language Services"
+                Version="[|RazorExtension;GetVsixVersion|,)"
+                d:Source="Project"
+                Id="Microsoft.VisualStudio.RazorExtension"
+                d:ProjectName="RazorExtension"
+                Location="|RazorExtension;VSIXContainerProjectOutputGroup|"/>
+  </Dependencies>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[17.0,)" DisplayName="Roslyn Language Services" />
+  </Prerequisites>
+  
+</PackageManifest>
