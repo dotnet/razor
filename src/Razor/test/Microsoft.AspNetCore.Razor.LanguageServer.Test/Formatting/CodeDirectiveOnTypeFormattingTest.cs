@@ -624,7 +624,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
         }
 
-        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/5676")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
         public async Task IfStatementInsideLambda()
         {
@@ -654,6 +654,64 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                                 @if (true)
                                 {
 
+                                }
+                            };
+                        }
+                    }
+                    """,
+                triggerCharacter: '}');
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
+        public async Task Format_NestedLambdas()
+        {
+            await RunOnTypeFormattingTestAsync(
+                input: """
+                    @code {
+
+                        protected Action Goo(string input)
+                        {
+                            return async () =>
+                            {
+                                foreach (var x in input)
+                                {
+                                    if (true)
+                                    {
+                                        await Task.Delay(1);
+
+                                        if (true)
+                                        {
+                                            // do some stufff
+                                            if (true)
+                                            {}$$
+                                        }
+                                    }
+                                }
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+
+                        protected Action Goo(string input)
+                        {
+                            return async () =>
+                            {
+                                foreach (var x in input)
+                                {
+                                    if (true)
+                                    {
+                                        await Task.Delay(1);
+
+                                        if (true)
+                                        {
+                                            // do some stufff
+                                            if (true)
+                                            { }
+                                        }
+                                    }
                                 }
                             };
                         }

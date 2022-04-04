@@ -1479,6 +1479,96 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await RunFormattingTestAsync(input, input, fileKind: FileKinds.Component);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
+        public async Task Format_NestedLambdas()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @code {
+
+                        protected Action Goo(string input)
+                        {
+                            return async () =>
+                            {
+                            foreach (var x in input)
+                            {
+                            if (true)
+                            {
+                            await Task.Delay(1);
+
+                            if (true)
+                            {
+                            // do some stufff
+                            if (true)
+                            {
+                            }
+                            }
+                            }
+                            }
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+
+                        protected Action Goo(string input)
+                        {
+                            return async () =>
+                            {
+                                foreach (var x in input)
+                                {
+                                    if (true)
+                                    {
+                                        await Task.Delay(1);
+
+                                        if (true)
+                                        {
+                                            // do some stufff
+                                            if (true)
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+                        }
+                    }
+                    """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
+        public async Task Format_NestedLambdasWithAtIf()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @code {
+
+                        public RenderFragment RenderFoo()
+                        {
+                            return (__builder) =>
+                            {
+                                @if (true) { }
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+
+                        public RenderFragment RenderFoo()
+                        {
+                            return (__builder) =>
+                            {
+                                @if (true) { }
+                            };
+                        }
+                    }
+                    """);
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()
         {
             var input = """
