@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public int Line { get; init; }
 
 #if DEBUG
-        public string LineText { get; init; }
+        public string? LineText { get; init; }
 #endif
 
         public int RazorIndentationLevel { get; init; }
