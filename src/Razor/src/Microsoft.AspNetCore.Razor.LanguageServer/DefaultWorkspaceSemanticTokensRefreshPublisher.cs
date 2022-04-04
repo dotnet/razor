@@ -15,12 +15,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
         private readonly IClientLanguageServer _languageServer;
-        private BatchingWorkQueue? _workQueue;
+        private BatchingWorkQueue _workQueue;
         private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(250);
 
-        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!)
+        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!, ErrorReporter errorReporter)
         {
             _languageServer = languageServer;
+            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }
 
         public override void PublishWorkspaceSemanticTokensRefresh()
@@ -59,11 +60,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         internal TestAccessor GetTestAccessor()
             => new(this);
-
-        public override void Initialize(ErrorReporter errorReporter)
-        {
-            _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
-        }
 
         internal class TestAccessor
         {
