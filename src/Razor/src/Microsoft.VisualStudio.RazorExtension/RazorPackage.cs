@@ -84,12 +84,12 @@ namespace Microsoft.VisualStudio.RazorExtension
             // is actually the only one. The last flag is set to true so that if the tool window does not exist
             // it will be created.
             var window = FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
-            if (window?.Frame is IVsWindowFrame windowFrame)
+            if (window?.Frame is not IVsWindowFrame windowFrame)
             {
-                ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                throw new NotSupportedException("Can not create window");
             }
 
-            throw new NotSupportedException("Can not create window");
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
     }
 }
