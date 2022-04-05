@@ -141,7 +141,7 @@ stages:
         - _DotNetPublishToBlobFeed : false
         - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
         - _BuildArgs: ''
-        - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\Debug'
+        - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)'
 
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -220,6 +220,15 @@ stages:
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
+        - task: PublishBuildArtifacts@1
+          displayName: Update Integration Tests Data
+          condition: always()
+          continueOnError: true
+          inputs:
+            pathtoPublish: artifacts/log/$(_BuildConfig)/Screenshots/
+            artifactName: $(Agent.Os)_$(Agent.JobName) IntegrationTestsData $(_BuildConfig)
+            artifactType: Container
+            parallel: true
         # Run VSCode functional tests
         # - powershell: |
         #     . ../../../../activate.ps1
