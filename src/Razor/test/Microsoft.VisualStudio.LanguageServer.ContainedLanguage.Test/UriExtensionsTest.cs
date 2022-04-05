@@ -3,9 +3,10 @@
 
 using System;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class UriExtensionsTest
     {
