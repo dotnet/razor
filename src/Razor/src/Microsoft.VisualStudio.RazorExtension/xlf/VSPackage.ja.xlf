@@ -12,6 +12,11 @@
         <target state="translated">ASP.NET Core Razor の言語サービスを提供します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="RazorSyntaxVisualizer">
+        <source>Razor Syntax Visualizer</source>
+        <target state="new">Razor Syntax Visualizer</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
