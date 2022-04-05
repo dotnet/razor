@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions
             }
 
             // Absolute paths are usually encoded.
-            return WebUtility.UrlDecode(uri.AbsolutePath);
+            return uri.AbsolutePath.Contains("%") ? WebUtility.UrlDecode(uri.AbsolutePath) : uri.AbsolutePath;
         }
     }
 }
