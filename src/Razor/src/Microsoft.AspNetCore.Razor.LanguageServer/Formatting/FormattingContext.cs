@@ -144,7 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         {
                             Line = i,
 #if DEBUG
-                            LineText = line.ToString(),
+                            DebugOnly_LineText = line.ToString(),
 #endif
                             RazorIndentationLevel = span.RazorIndentationLevel,
                             HtmlIndentationLevel = span.HtmlIndentationLevel,
@@ -173,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         {
                             Line = i,
 #if DEBUG
-                            LineText = line.ToString(),
+                            DebugOnly_LineText = line.ToString(),
 #endif
                             RazorIndentationLevel = 0,
                             HtmlIndentationLevel = 0,

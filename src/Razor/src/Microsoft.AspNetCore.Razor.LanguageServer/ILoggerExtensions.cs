@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -9,14 +10,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static bool TestOnlyLoggingEnabled = false;
 
+        [Conditional("DEBUG")]
         public static void LogTestOnly(this ILogger logger, string message)
         {
-            if (!TestOnlyLoggingEnabled)
+            if (TestOnlyLoggingEnabled)
             {
-                return;
+                logger.LogDebug(message);
             }
-
-            logger.LogDebug(message);
         }
     }
 }
