@@ -143,6 +143,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             .SetMinimumLevel(logLevel)
                             .AddLanguageProtocolLogging());
 
+                        services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
+
                         services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
                         services.AddSingleton<FilePathNormalizer>();

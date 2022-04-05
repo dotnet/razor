@@ -22,12 +22,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: false);
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
-            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
-            defaultWorkspaceChangedPublisher.Initialize(errorReporter);
+            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
             var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
-            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
+            defaultWorkspaceChangedPublisher.EnqueueWorkspaceSemanticTokensRefresh();
             testAccessor.WaitForEmpty();
 
             // Assert
@@ -41,12 +40,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
-            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
-            defaultWorkspaceChangedPublisher.Initialize(errorReporter);
+            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
             var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
-            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
+            defaultWorkspaceChangedPublisher.EnqueueWorkspaceSemanticTokensRefresh();
             testAccessor.WaitForEmpty();
 
             // Assert
@@ -61,16 +59,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
-            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient);
-            defaultWorkspaceChangedPublisher.Initialize(errorReporter);
+            using var defaultWorkspaceChangedPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
             var testAccessor = defaultWorkspaceChangedPublisher.GetTestAccessor();
 
             // Act
-            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
-            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
+            defaultWorkspaceChangedPublisher.EnqueueWorkspaceSemanticTokensRefresh();
+            defaultWorkspaceChangedPublisher.EnqueueWorkspaceSemanticTokensRefresh();
             testAccessor.WaitForEmpty();
-            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
-            defaultWorkspaceChangedPublisher.PublishWorkspaceSemanticTokensRefresh();
+            defaultWorkspaceChangedPublisher.EnqueueWorkspaceSemanticTokensRefresh();
+            defaultWorkspaceChangedPublisher.EnqueueWorkspaceSemanticTokensRefresh();
             testAccessor.WaitForEmpty();
 
             // Assert

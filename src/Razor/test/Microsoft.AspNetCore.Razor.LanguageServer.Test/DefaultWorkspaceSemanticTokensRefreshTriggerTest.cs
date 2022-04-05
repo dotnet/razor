@@ -33,8 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var workspaceChangedPublisher = new Mock<WorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
-            workspaceChangedPublisher.Setup(w => w.PublishWorkspaceSemanticTokensRefresh());
-            workspaceChangedPublisher.Setup(w => w.Initialize(It.IsAny<ErrorReporter>()));
+            workspaceChangedPublisher.Setup(w => w.EnqueueWorkspaceSemanticTokensRefresh());
             var defaultWorkspaceChangedRefresh = new TestDefaultWorkspaceSemanticTokensRefreshTrigger(workspaceChangedPublisher.Object);
             defaultWorkspaceChangedRefresh.Initialize(ProjectManager);
 
@@ -50,11 +49,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(workspaceSemanticTokensRefreshPublisher)
             {
-            }
-
-            internal override ErrorReporter GetErrorReporter()
-            {
-                return new TestErrorReporter();
             }
         }
 

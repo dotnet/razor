@@ -11,20 +11,20 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher
+    internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher, IDisposable
     {
         private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
         private readonly IClientLanguageServer _languageServer;
-        private BatchingWorkQueue _workQueue;
+        private readonly BatchingWorkQueue _workQueue;
         private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(250);
 
-        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!, ErrorReporter errorReporter)
+        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!, ErrorReporter errorReporter!!)
         {
             _languageServer = languageServer;
             _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }
 
-        public override void PublishWorkspaceSemanticTokensRefresh()
+        public override void EnqueueWorkspaceSemanticTokensRefresh()
         {
             var useWorkspaceRefresh = _languageServer.ClientSettings.Capabilities?.Workspace is not null &&
                 _languageServer.ClientSettings.Capabilities.Workspace.SemanticTokens.IsSupported &&
@@ -33,13 +33,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (useWorkspaceRefresh)
             {
                 var workItem = new SemanticTokensRefreshWorkItem(_languageServer);
-                _workQueue?.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
+                _workQueue.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
-            _workQueue?.Dispose();
+            _workQueue.Dispose();
         }
 
         private class SemanticTokensRefreshWorkItem : BatchableWorkItem
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public void WaitForEmpty()
             {
-                var workQueueTestAccessor = _publisher._workQueue!.GetTestAccessor();
+                var workQueueTestAccessor = _publisher._workQueue.GetTestAccessor();
                 workQueueTestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
                 while (workQueueTestAccessor.IsScheduledOrRunning)
                 {
