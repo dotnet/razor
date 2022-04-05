@@ -1,66 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--
-      This project deploys extra dependencies that may not be included in the host VS.
-      Used by integration tests to deploy dependencies not available on public preview. 
+      This project defines a 'deployment' project that references all vsixes relevant to local development and integration testing.
+      It ensures that a single F5 command will build and deploy the independent MS.VS.RazorExtension vsix and MS.VS.RazorExtension.Dependencies vsix.
+      We rely on launch settings to run devenv with the appropriate hive that the vsixes have been deployed to.
     -->
     
     <TargetFramework>net472</TargetFramework>
 
     <!-- Use the RoslynDev Experimental instance so we can mingle with local builds of Roslyn -->
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-
-    <!-- Required to run the project localy -->
-    <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
-
-    <IsShipping>false</IsShipping>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-    <IsPackable>false</IsPackable>
-
-    <!-- Don't automatically include dependencies -->
-    <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
-
-    <CreateVsixContainer>true</CreateVsixContainer>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <DeployExtension>true</DeployExtension>
-    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
-    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
-    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
-
   <ItemGroup>
-    <AvailableItemName Include="VSIXSourceItem" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="source.extension.vsixmanifest">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- To include the ProvideCodeBase attribute type. -->
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Reference the LSP protocol dlls so that we can include them in the code base and output them with the VSIX. -->
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj">
-      <Name>RazorExtension</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+    <!-- References the main RazorExtension vsix to ensure all the actual code is deployed to the hive. -->
+    <ProjectReference Include="..\Microsoft.VisualStudio.RazorExtension.Dependencies\Microsoft.VisualStudio.RazorExtension.Dependencies.csproj" />
+    <!-- References the dependencies vsix to ensure that we also deploy any dependencies needed by the RazorExtension that might not be included in public VS instances. -->
+    <ProjectReference Include="..\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" />
   </ItemGroup>
 </Project>
