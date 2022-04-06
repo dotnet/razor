@@ -59,6 +59,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var csharpChanges = csharpEdits.Select(c => c.AsTextChange(changedText));
                 changedText = changedText.WithChanges(csharpChanges);
                 changedContext = await changedContext.WithTextAsync(changedText);
+
+                _logger.LogTestOnly($"After FormatCSharpAsync:\r\n{changedText}");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -68,7 +70,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 // Apply the edits that modify indentation.
                 changedText = changedText.WithChanges(indentationChanges);
+
+                _logger.LogTestOnly($"After AdjustIndentationAsync:\r\n{changedText}");
             }
+
+            _logger.LogTestOnly($"Generated C#:\r\n{context.CSharpSourceText}");
 
             var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
