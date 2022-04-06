@@ -176,7 +176,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent.Value, completionList);
                 }
 
-                completionList = TranslateTextEdits(request.Position, projectedPosition, wordExtent, completionList);
+                var wordRange = wordExtent.HasValue && wordExtent.Value.IsSignificant ? wordExtent?.Span.AsRange() : null;
+                completionList = TranslateTextEdits(request.Position, projectedPosition, wordRange, completionList);
+
+                if (completionList.ItemDefaults?.EditRange != null)
+                {
+                    completionList.ItemDefaults.EditRange = TranslateRange(request.Position, projectedPosition, wordRange, completionList.ItemDefaults.EditRange);
+                }
 
                 var requestContext = new CompletionRequestContext(documentSnapshot.Uri, projectedDocumentUri, serverKind);
                 var resultId = _completionRequestContextCache.Set(requestContext);
@@ -604,10 +610,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         internal static CompletionList TranslateTextEdits(
             Position hostDocumentPosition,
             Position projectedPosition,
-            TextExtent? wordExtent,
+            Range? wordRange,
             CompletionList completionList)
         {
-            var wordRange = wordExtent.HasValue && wordExtent.Value.IsSignificant ? wordExtent?.Span.AsRange() : null;
             var newItems = completionList.Items.Select(item => TranslateTextEdits(hostDocumentPosition, projectedPosition, wordRange, item)).ToArray();
             completionList.Items = newItems;
 
@@ -617,23 +622,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 if (item.TextEdit != null)
                 {
-                    var offset = projectedPosition.Character - hostDocumentPosition.Character;
-
-                    var editStartPosition = item.TextEdit.Range.Start;
-                    var translatedStartPosition = TranslatePosition(offset, hostDocumentPosition, editStartPosition);
-                    var editEndPosition = item.TextEdit.Range.End;
-                    var translatedEndPosition = TranslatePosition(offset, hostDocumentPosition, editEndPosition);
-                    var translatedRange = new Range()
+                    var translatedRange = TranslateRange(hostDocumentPosition, projectedPosition, wordRange, item.TextEdit.Range);
+                    item.TextEdit = new TextEdit
                     {
-                        Start = translatedStartPosition,
-                        End = translatedEndPosition,
-                    };
-
-                    var translatedText = item.TextEdit.NewText;
-                    item.TextEdit = new TextEdit()
-                    {
+                        NewText = item.TextEdit.NewText,
                         Range = translatedRange,
-                        NewText = translatedText,
                     };
                 }
                 else if (item.AdditionalTextEdits != null)
@@ -643,16 +636,33 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 return item;
+            }
+        }
 
-                static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
-                {
-                    var translatedCharacter = editPosition.Character - offset;
+        internal static Range TranslateRange(Position hostDocumentPosition, Position projectedPosition, Range? wordRange, Range textEditRange)
+        {
+            var offset = projectedPosition.Character - hostDocumentPosition.Character;
 
-                    // Note: If this completion handler ever expands to deal with multi-line TextEdits, this logic will likely need to change since
-                    // it assumes we're only dealing with single-line TextEdits.
-                    var translatedPosition = new Position(hostDocumentPosition.Line, translatedCharacter);
-                    return translatedPosition;
-                }
+            var editStartPosition = textEditRange.Start;
+            var translatedStartPosition = TranslatePosition(offset, hostDocumentPosition, editStartPosition);
+            var editEndPosition = textEditRange.End;
+            var translatedEndPosition = TranslatePosition(offset, hostDocumentPosition, editEndPosition);
+            var translatedRange = new Range()
+            {
+                Start = translatedStartPosition,
+                End = translatedEndPosition,
+            };
+
+            return translatedRange;
+
+            static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
+            {
+                var translatedCharacter = editPosition.Character - offset;
+
+                // Note: If this completion handler ever expands to deal with multi-line TextEdits, this logic will likely need to change since
+                // it assumes we're only dealing with single-line TextEdits.
+                var translatedPosition = new Position(hostDocumentPosition.Line, translatedCharacter);
+                return translatedPosition;
             }
         }
 

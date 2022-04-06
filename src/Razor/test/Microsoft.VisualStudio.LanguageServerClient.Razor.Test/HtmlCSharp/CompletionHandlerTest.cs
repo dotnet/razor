@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -1427,7 +1428,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            var result = CompletionHandler.TranslateTextEdits(razorDocPosition, cSharpDocPosition, wordRange, completionList);
+            var result = CompletionHandler.TranslateTextEdits(razorDocPosition, cSharpDocPosition, wordRange.Span.AsRange(), completionList);
             var actualRange = result.Items.First().TextEdit.Range;
             Assert.Equal(expectedRange, actualRange);
         }
@@ -1510,6 +1511,71 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Act
             Assert.Equal(8, indentation);
+        }
+
+        [Fact]
+        public async Task HandleRequestAsync_CSharpProjection_ItemDefault()
+        {
+            // Arrange
+            var called = false;
+            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
+            var completionRequest = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Context = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked, InvokeKind = VSInternalCompletionInvokeKind.Explicit },
+                Position = new Position(0, 1)
+            };
+
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
+
+            var returnedCompletionList = new VSInternalCompletionList
+            {
+                Items = new CompletionItem[] { expectedItem },
+                ItemDefaults = new CompletionListItemDefaults
+                {
+                    EditRange = new LanguageServer.Protocol.Range
+                    {
+                        Start = new Position(20, 30),
+                        End = new Position(20, 30),
+                    }
+                }
+            };
+
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentCompletionName, method);
+                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
+                    var vsCompletionContext = Assert.IsType<VSInternalCompletionContext>(completionParams.Context);
+                    Assert.Equal(VSInternalCompletionInvokeKind.Explicit, vsCompletionContext.InvokeKind);
+                    called = true;
+                })
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, returnedCompletionList)));
+
+            var projectionResult = new ProjectionResult()
+            {
+                LanguageKind = RazorLanguageKind.CSharp,
+                Position = new Position(10, 30),
+            };
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
+            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
+
+            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+
+            // Act
+            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(called);
+            var item = ((CompletionList)result.Value).Items.First();
+            Assert.Equal(expectedItem.InsertText, item.InsertText);
+            Assert.Equal(new LanguageServer.Protocol.Range
+            {
+                Start = new Position(0, 1), End = new Position(0, 1)
+            }, ((CompletionList)result.Value).ItemDefaults.EditRange);
         }
 
         private static ITextStructureNavigatorSelectorService BuildNavigatorSelector(TextExtent wordRange)
