@@ -172,7 +172,7 @@ stages:
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
-        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1 $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig) (Get-Date).AddMinutes(25) dotnet, msbuild
+        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1 $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig) (Get-Date).AddMinutes(25) dotnet, msbuild, devenv, vbcscompiler, xunit.console, xunit.console.x86
           displayName: Start background dump collection
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: PowerShell@2
