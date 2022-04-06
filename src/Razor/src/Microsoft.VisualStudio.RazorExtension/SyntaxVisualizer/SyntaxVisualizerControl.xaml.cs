@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             {
                 if (_runningDocumentTable == null)
                 {
-                    _runningDocumentTable = Helpers.GetRequiredMefService<IVsRunningDocumentTable, SVsRunningDocumentTable>();
+                    _runningDocumentTable = VSServiceHelpers.GetRequiredMefService<IVsRunningDocumentTable, SVsRunningDocumentTable>();
                 }
 
                 return _runningDocumentTable;
@@ -47,9 +48,9 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 
             InitializeRunningDocumentTable();
 
-            _codeDocumentProvider = Helpers.GetRequiredMefService<RazorCodeDocumentProvidingSnapshotChangeTrigger>();
-            _textDocumentFactoryService = Helpers.GetRequiredMefService<ITextDocumentFactoryService>();
-            _joinableTaskFactory = Helpers.GetRequiredMefService<JoinableTaskContext>().Factory;
+            _codeDocumentProvider = VSServiceHelpers.GetRequiredMefService<RazorCodeDocumentProvidingSnapshotChangeTrigger>();
+            _textDocumentFactoryService = VSServiceHelpers.GetRequiredMefService<ITextDocumentFactoryService>();
+            _joinableTaskFactory = VSServiceHelpers.GetRequiredMefService<JoinableTaskContext>().Factory;
         }
 
         private void InitializeRunningDocumentTable()
@@ -164,7 +165,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
         {
             if (IsVisible && isFirstShow == 0)
             {
-                var wpfTextView = Helpers.GetWpfTextView(vsWindowFrame);
+                var wpfTextView = GetWpfTextView(vsWindowFrame);
                 if (wpfTextView != null)
                 {
                     var contentType = wpfTextView.TextBuffer.ContentType;
@@ -196,7 +197,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
         {
             if (IsVisible && _activeWpfTextView != null)
             {
-                var wpfTextView = Helpers.GetWpfTextView(vsWindowFrame);
+                var wpfTextView = GetWpfTextView(vsWindowFrame);
                 if (wpfTextView == _activeWpfTextView)
                 {
                     Clear();
@@ -271,8 +272,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 
         private TreeViewItem? FindNodeForPosition(TreeViewItem item, int caret)
         {
-            var node = item.Tag as RazorSyntaxNode;
-            if (node is null)
+            if (item.Tag is not RazorSyntaxNode node)
             {
                 return null;
             }
@@ -326,7 +326,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             var item = new TreeViewItem()
             {
                 Tag = node,
-                IsExpanded = (parent == null),
+                IsExpanded = parent == null,
                 ToolTip = node.ToString(),
                 Header = $"{node.Kind} [{node.SpanStart}-{node.SpanEnd}]"
             };
@@ -392,5 +392,24 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
         }
 
         #endregion
+
+        private static IWpfTextView? GetWpfTextView(IVsWindowFrame vsWindowFrame)
+        {
+            IWpfTextView? wpfTextView = null;
+            var vsTextView = VsShellUtilities.GetTextView(vsWindowFrame);
+
+            if (vsTextView != null)
+            {
+                // TODO: Work out what dependency to bump, and use DefGuidList.guidIWpfTextViewHost
+                var guidTextViewHost = new Guid("8C40265E-9FDB-4f54-A0FD-EBB72B7D0476");
+                if (((IVsUserData)vsTextView).GetData(ref guidTextViewHost, out var textViewHost) == VSConstants.S_OK &&
+                    textViewHost != null)
+                {
+                    wpfTextView = ((IWpfTextViewHost)textViewHost).TextView;
+                }
+            }
+
+            return wpfTextView;
+        }
     }
 }

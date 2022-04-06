@@ -5,29 +5,26 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
-    internal static class Helpers
+    internal static class VSServiceHelpers
     {
-        internal static IServiceProvider? _globalServiceProvider;
+        private static IServiceProvider? s_globalServiceProvider;
 
-        internal static IServiceProvider GlobalServiceProvider
+        private static IServiceProvider GlobalServiceProvider
         {
             get
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
 
-                if (_globalServiceProvider == null)
+                if (s_globalServiceProvider == null)
                 {
-                    _globalServiceProvider = (IServiceProvider)Package.GetGlobalService(typeof(IServiceProvider));
+                    s_globalServiceProvider = (IServiceProvider)Package.GetGlobalService(typeof(IServiceProvider));
                 }
 
-                return _globalServiceProvider;
+                return s_globalServiceProvider;
             }
         }
 
@@ -39,20 +36,20 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             Assumes.Present(service);
             return service;
         }
+
         internal static TServiceInterface GetRequiredMefService<TServiceInterface>() where TServiceInterface : class
         {
             var componentModel = GetRequiredMefService<IComponentModel, SComponentModel>();
             Assumes.Present(componentModel);
-            return componentModel.GetService<TServiceInterface>(); ;
+            return componentModel.GetService<TServiceInterface>();
         }
 
-        internal static object? GetService(IServiceProvider serviceProvider, Guid guidService, bool unique)
+        private static object? GetService(IServiceProvider serviceProvider, Guid guidService, bool unique)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             var guidInterface = VSConstants.IID_IUnknown;
             object? service = null;
-
             if (serviceProvider.QueryService(ref guidService, ref guidInterface, out var ptr) == 0 &&
                 ptr != IntPtr.Zero)
             {
@@ -74,25 +71,6 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
 
             return service;
-        }
-
-        internal static IWpfTextView? GetWpfTextView(IVsWindowFrame vsWindowFrame)
-        {
-            IWpfTextView? wpfTextView = null;
-            var vsTextView = VsShellUtilities.GetTextView(vsWindowFrame);
-
-            if (vsTextView != null)
-            {
-                // TODO: Work out what dependency to bump, and use DefGuidList.guidIWpfTextViewHost
-                var guidTextViewHost = new Guid("8C40265E-9FDB-4f54-A0FD-EBB72B7D0476");
-                if (((IVsUserData)vsTextView).GetData(ref guidTextViewHost, out var textViewHost) == VSConstants.S_OK &&
-                    textViewHost != null)
-                {
-                    wpfTextView = ((IWpfTextViewHost)textViewHost).TextView;
-                }
-            }
-
-            return wpfTextView;
         }
     }
 }
