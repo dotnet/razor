@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <Nullable>enable</Nullable>
@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" />
+    <ProjectReference Include="..\..\src\RazorDeployment\RazorDeployment.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
@@ -26,6 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Semantic\TestFiles\**\*" />
+    <EmbeddedResource Include="**\TestFiles\**\*" />
   </ItemGroup>
 </Project>

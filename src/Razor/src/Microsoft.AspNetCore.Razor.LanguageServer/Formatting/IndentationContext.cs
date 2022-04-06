@@ -7,6 +7,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public int Line { get; init; }
 
+#if DEBUG
+        public string? DebugOnly_LineText { get; init; }
+#endif
+
         public int RazorIndentationLevel { get; init; }
 
         public int HtmlIndentationLevel { get; init; }

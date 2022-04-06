@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
-using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
 using Shared = System.Composition.SharedAttribute;
 
@@ -34,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private readonly RazorSolutionStatusService _solutionStatusService;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
@@ -59,7 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public ProjectRazorJsonPublisher(
             LSPEditorFeatureDetector lSPEditorFeatureDetector!!,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            RazorSolutionStatusService solutionStatusService,
             RazorLogger logger!!)
         {
             DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -69,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _lspEditorFeatureDetector = lSPEditorFeatureDetector;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-            _solutionStatusService = solutionStatusService;
             _logger = logger;
 
             _serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
@@ -324,12 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
             }
 
-            if (!_solutionStatusService.TryGetIntelliSenseStatus(out var status))
-            {
-                return true;
-            }
-
-            return status.IsAvailable && _documentsProcessed;
+            return _documentsProcessed;
         }
 
         private void ImmediatePublish(ProjectSnapshot projectSnapshot)

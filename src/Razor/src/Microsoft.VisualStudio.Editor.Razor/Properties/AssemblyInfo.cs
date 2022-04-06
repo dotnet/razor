@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 [assembly: TypeForwardedTo(typeof(TagHelperFactsService))]
 [assembly: TypeForwardedTo(typeof(DefaultTagHelperFactsService))]
 [assembly: TypeForwardedTo(typeof(TagHelperCompletionService))]
-[assembly: TypeForwardedTo(typeof(DefaultTagHelperCompletionService))]
+[assembly: TypeForwardedTo(typeof(LanguageServerTagHelperCompletionService))]
 [assembly: TypeForwardedTo(typeof(AttributeCompletionContext))]
 [assembly: TypeForwardedTo(typeof(AttributeCompletionResult))]
 [assembly: TypeForwardedTo(typeof(ElementCompletionContext))]

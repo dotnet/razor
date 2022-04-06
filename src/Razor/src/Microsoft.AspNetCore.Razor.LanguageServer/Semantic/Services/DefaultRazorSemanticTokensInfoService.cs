@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range range,
             CancellationToken cancellationToken)
         {
-            var documentPath = textDocumentIdentifier.Uri.GetAbsolutePath();
+            var documentPath = textDocumentIdentifier.Uri.GetAbsoluteOrUNCPath();
             if (documentPath is null)
             {
                 return null;

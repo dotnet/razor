@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultTagHelperCompletionServiceTest
+    public class LanguageServerTagHelperCompletionServiceTest
     {
         [Fact]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
@@ -1340,10 +1340,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             AssertCompletionsAreEquivalent(expectedCompletions, completions);
         }
 
-        private static DefaultTagHelperCompletionService CreateTagHelperCompletionFactsService()
+        private static LanguageServerTagHelperCompletionService CreateTagHelperCompletionFactsService()
         {
             var tagHelperFactsService = new DefaultTagHelperFactsService();
-            var completionFactService = new DefaultTagHelperCompletionService(tagHelperFactsService);
+            var completionFactService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
 
             return completionFactService;
         }

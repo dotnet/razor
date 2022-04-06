@@ -143,6 +143,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         indentations[i] = new IndentationContext(firstSpan: span)
                         {
                             Line = i,
+#if DEBUG
+                            DebugOnly_LineText = line.ToString(),
+#endif
                             RazorIndentationLevel = span.RazorIndentationLevel,
                             HtmlIndentationLevel = span.HtmlIndentationLevel,
                             RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
@@ -169,6 +172,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
                         {
                             Line = i,
+#if DEBUG
+                            DebugOnly_LineText = line.ToString(),
+#endif
                             RazorIndentationLevel = 0,
                             HtmlIndentationLevel = 0,
                             RelativeIndentationLevel = previousIndentationLevel,

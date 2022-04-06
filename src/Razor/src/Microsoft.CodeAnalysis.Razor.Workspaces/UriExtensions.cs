@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Razor
             }
 
             // Absolute paths are usually encoded.
-            return uri.AbsolutePath.Contains("%")? WebUtility.UrlDecode(uri.AbsolutePath) : uri.AbsolutePath;
+            return uri.AbsolutePath.Contains("%") ? WebUtility.UrlDecode(uri.AbsolutePath) : uri.AbsolutePath;
         }
     }
 }
