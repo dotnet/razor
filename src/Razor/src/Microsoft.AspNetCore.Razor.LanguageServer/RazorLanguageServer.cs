@@ -143,6 +143,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             .SetMinimumLevel(logLevel)
                             .AddLanguageProtocolLogging());
 
+                        services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
+
                         services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
                         services.AddSingleton<FilePathNormalizer>();
@@ -150,6 +152,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
                         services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
+
+                        services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
 
                         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());
