@@ -7,7 +7,7 @@
 
     <!-- Must use "dotnet test" to get blame-hang options -->
     <TestRunnerName>MSTest</TestRunnerName>
-    <TestRunnerAdditionalArguments>"--blame-hang-dump-type:full" "--blame-hang-timeout:4m"</TestRunnerAdditionalArguments>
+    <TestRunnerAdditionalArguments>"--blame-hang-dump-type:full" "--blame-hang-timeout:20m"</TestRunnerAdditionalArguments>
   </PropertyGroup>
 
   <ItemGroup>
