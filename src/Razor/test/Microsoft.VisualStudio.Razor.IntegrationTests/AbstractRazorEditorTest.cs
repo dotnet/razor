@@ -78,14 +78,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
 
-            // Add custom logs on failure if they haven't already been.
-            if (!s_customLoggersAdded)
-            {
-                DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
-
-                s_customLoggersAdded = true;
-            }
-
             async void RazorOutputPaneLogger(string filePath)
             {
                 var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
