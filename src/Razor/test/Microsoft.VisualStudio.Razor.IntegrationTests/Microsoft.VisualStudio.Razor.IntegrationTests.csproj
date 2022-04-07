@@ -4,6 +4,10 @@
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
+
+    <!-- Must use "dotnet test" to get blame-hang options -->
+    <TestRunnerName>MSTest</TestRunnerName>
+    <TestRunnerAdditionalArguments>"--blame-hang-dump-type:full" "--blame-hang-timeout:20m"</TestRunnerAdditionalArguments>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +27,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisensePackageVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(MicrosoftInternalVisualStudioShellFrameworkPackageVersion)" />
+    <PackageReference Include="xunit" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)" />
   </ItemGroup>
 
   <ItemGroup>
