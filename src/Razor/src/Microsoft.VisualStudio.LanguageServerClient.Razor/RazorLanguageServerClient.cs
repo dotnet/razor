@@ -27,7 +27,7 @@ using Trace = Microsoft.AspNetCore.Razor.LanguageServer.Trace;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(ILanguageClient))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
     {
         private const string LogFileIdentifier = "Razor.RazorLanguageServerClient";

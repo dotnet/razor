@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         /// Exports the Razor LSP content type
         /// </summary>
         [Export]
-        [Name(RazorLSPConstants.RazorLSPContentTypeName)]
+        [Name(RazorConstants.RazorLSPContentTypeName)]
         [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteContentTypeName)]
         public ContentTypeDefinition RazorLSPContentType { get; set; }
 

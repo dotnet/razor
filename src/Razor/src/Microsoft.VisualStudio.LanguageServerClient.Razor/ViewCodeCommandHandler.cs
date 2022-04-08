@@ -9,17 +9,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.VS.LSClientRazor;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
+using Resources = Microsoft.VisualStudio.LanguageServerClient.Razor.VS.LSClientRazor.Resources;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Name(nameof(ViewCodeCommandHandler))]
     [Export(typeof(ICommandHandler))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandArgs>
     {
         // Because query status happens all the time we want to cache the File.Exists checks for a reasonable amount of time
