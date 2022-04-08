@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageServerKind.CSharp => RazorLSPConstants.CSharpContentTypeName,
                 LanguageServerKind.Html => RazorLSPConstants.HtmlLSPDelegationContentTypeName,
-                _ => RazorLSPConstants.RazorLSPContentTypeName,
+                _ => RazorConstants.RazorLSPContentTypeName,
             };
         }
 

@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 using Microsoft.VisualStudio.Shell;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.RazorExtension
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
     [ProvideService(typeof(RazorLanguageService))]
-    [ProvideLanguageService(typeof(RazorLanguageService), RazorLSPConstants.RazorLSPContentTypeName, 110)]
+    [ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Threading;
@@ -15,7 +16,7 @@ using Nerdbank.Streams;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Export(typeof(ILanguageClient))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class RazorHtmlCSharpLanguageServerClient : ILanguageClient, IDisposable
     {
         private readonly IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;

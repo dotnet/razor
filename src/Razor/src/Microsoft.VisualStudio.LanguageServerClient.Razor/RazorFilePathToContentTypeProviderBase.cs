@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             if (_lspEditorFeatureDetector.IsLSPEditorAvailable(filePath, hierarchy: null))
             {
-                contentType = _contentTypeRegistryService.GetContentType(RazorLSPConstants.RazorLSPContentTypeName);
+                contentType = _contentTypeRegistryService.GetContentType(RazorConstants.RazorLSPContentTypeName);
                 return true;
             }
 

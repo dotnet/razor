@@ -3,11 +3,12 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Guid(RazorLSPConstants.RazorLanguageServiceString)]
+    [Guid(RazorConstants.RazorLanguageServiceString)]
     internal partial class RazorLanguageService : IVsLanguageInfo
     {
         public int GetLanguageName(out string bstrName)
