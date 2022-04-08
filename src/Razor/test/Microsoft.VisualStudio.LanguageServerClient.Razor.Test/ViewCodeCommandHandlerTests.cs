@@ -5,9 +5,11 @@
 
 using System.CodeDom.Compiler;
 using System.IO;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
@@ -86,7 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
             var textDocument = Mock.Of<ITextDocument>(doc => doc.FilePath == razorFilePath, MockBehavior.Strict);
             var textDocumentFactory = Mock.Of<ITextDocumentFactoryService>(factory => factory.TryGetTextDocument(textBuffer, out textDocument) == true, MockBehavior.Strict);
-            var handler = new ViewCodeCommandHandler(textDocumentFactory);
+            var joinableTaskContext = new JoinableTaskContext();
+            var documentInteractionManager = Mock.Of<DocumentInteractionManager>(MockBehavior.Strict);
+            var handler = new ViewCodeCommandHandler(documentInteractionManager, textDocumentFactory, joinableTaskContext);
 
             var textView = Mock.Of<ITextView>(MockBehavior.Strict);
             args = new ViewCodeCommandArgs(textView, textBuffer);

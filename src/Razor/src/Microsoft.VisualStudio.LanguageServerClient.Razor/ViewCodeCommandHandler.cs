@@ -8,12 +8,14 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.VS.LSClientRazor;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
+using Resources = Microsoft.VisualStudio.LanguageServerClient.Razor.VS.LSClientRazor.Resources;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -30,15 +32,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { RazorLSPConstants.CSHTMLFileExtension, RazorLSPConstants.RazorFileExtension });
 
         private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: Resources.View_Code);
-
+        private readonly DocumentInteractionManager _documentInteractionManager;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         public string DisplayName => nameof(ViewCodeCommandHandler);
 
         [ImportingConstructor]
-        public ViewCodeCommandHandler(ITextDocumentFactoryService textDocumentFactoryService)
+        public ViewCodeCommandHandler(
+            DocumentInteractionManager documentInteractionManager,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            JoinableTaskContext joinableTaskContext)
         {
+            _documentInteractionManager = documentInteractionManager;
             _textDocumentFactoryService = textDocumentFactoryService;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public CommandState GetCommandState(ViewCodeCommandArgs args)
@@ -53,9 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public bool ExecuteCommand(ViewCodeCommandArgs args, CommandExecutionContext executionContext)
         {
-            if (TryGetCSharpFilePath(args.SubjectBuffer, out var cSharpFilePath))
+            if (TryGetCSharpFilePath(args.SubjectBuffer, out var csharpFilePath))
             {
-                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, cSharpFilePath);
+                _joinableTaskContext.Factory.Run(() => _documentInteractionManager.OpenDocumentAsync(csharpFilePath, CancellationToken.None));
 
                 return true;
             }
