@@ -37,6 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private JoinableTaskContext JoinableTaskContext { get; }
 
+        private EditorSettingsManager EditorSettingsManager { get; } = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+
         [Fact]
         public void UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
         {
@@ -85,12 +87,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -121,12 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -177,12 +177,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -298,12 +297,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
             var request = new CodeActionParams()
             {
                 TextDocument = new LanguageServer.Protocol.TextDocumentIdentifier()
@@ -360,12 +358,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
             var codeAction = new VSInternalCodeAction()
             {
                 Title = "Something",
@@ -458,14 +455,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer.Setup(r => r.TrySynchronizeVirtualDocumentAsync(0, It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
             var request = new ProvideSemanticTokensRangeParams(
                 textDocument: new OmniSharpTextDocumentIdentifier()
                 {
@@ -517,12 +513,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             disposable
                 .Setup(d => d.Dispose())
                 .Verifiable();
-            var clientOptionsMonitor = new Mock<RazorLSPClientOptionsMonitor>(MockBehavior.Strict);
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
 
             // Act
             await target.RazorServerReadyAsync(CancellationToken.None);

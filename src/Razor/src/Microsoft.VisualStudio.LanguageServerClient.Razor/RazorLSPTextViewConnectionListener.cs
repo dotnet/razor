@@ -6,15 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
-using MediatR;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -22,15 +17,22 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json.Linq;
-using DidChangeConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.DidChangeConfigurationParams;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    /// <summary>
-    /// The entire purpose of this class is to enable us to apply our TextView filter to Razor text views in order to work around lacking debugging support in the
-    /// LSP platform for default language servers. Ultimately this enables us to provide "hover" results
-    /// </summary>
+    // The entire purpose of this class is to workaround quirks in Visual Studio's core editor handling. In Razor scenarios
+    // we can have a multitude of content types that represents a Razor file:
+    //
+    // ** Content Type Mappings **
+    // RazorCSharp = .NET Framework Razor editor
+    // RazorCoreCSharp = .NET Core Legacy Razor editor
+    // Razor = .NET Core Razor editor (LSP / new)
+    //
+    // Because we have these content types that are applied based on what project the user is operating in we have to workaround
+    // quirks on the core editor side to ensure that language services for our "Razor" content type properly get applied. For
+    // instance we need to set a language service ID, we need to update options and we need to hookup data tip filters for
+    // debugging. Typically all of this would be handled for us but due to bugs on the platform front we need to manually do this.
+    // That is what this classes purpose is.
     [Export(typeof(ITextViewConnectionListener))]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [ContentType(RazorConstants.RazorLSPContentTypeName)]
@@ -39,8 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly LSPEditorFeatureDetector _editorFeatureDetector;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly LSPRequestInvoker _requestInvoker;
-        private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
+        private readonly EditorSettingsManager _editorSettingsManager;
         private readonly IVsTextManager4 _textManager;
 
         /// <summary>
@@ -60,15 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             IVsEditorAdaptersFactoryService editorAdaptersFactory!!,
             LSPEditorFeatureDetector editorFeatureDetector!!,
             IEditorOptionsFactoryService editorOptionsFactory!!,
-            LSPRequestInvoker requestInvoker!!,
-            RazorLSPClientOptionsMonitor clientOptionsMonitor!!,
+            EditorSettingsManager editorSettingsManager!!,
             SVsServiceProvider serviceProvider!!)
         {
             _editorAdaptersFactory = editorAdaptersFactory;
             _editorFeatureDetector = editorFeatureDetector;
             _editorOptionsFactory = editorOptionsFactory;
-            _requestInvoker = requestInvoker;
-            _clientOptionsMonitor = clientOptionsMonitor;
+            _editorSettingsManager = editorSettingsManager;
             _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
 
             Assumes.Present(_textManager);
@@ -194,30 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Keep track of accurate settings on the client side so we can easily retrieve the
             // options later when the server sends us a workspace/configuration request.
-            _clientOptionsMonitor.UpdateOptions(settings);
-
-            // Make sure the server updates the settings on their side by sending a
-            // workspace/didChangeConfiguration request. This notifies the server that the user's
-            // settings have changed. The server will then query the client's options monitor (already
-            // updated via the line above) by sending a workspace/configuration request.
-            // NOTE: This flow uses polyfilling because VS doesn't yet support workspace configuration
-            // updates. Once they do, we can get rid of this extra logic.
-            _ = _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
-                Methods.WorkspaceDidChangeConfigurationName,
-                RazorLSPConstants.RazorLanguageServerName,
-                CheckRazorServerCapability,
-                new DidChangeConfigurationParams(),
-                CancellationToken.None);
-        }
-
-        private static bool CheckRazorServerCapability(JToken token)
-        {
-            // We're talking cross-language servers here. Given the workspace/didChangeConfiguration is a normal LSP message this will only fail
-            // if the Razor language server is not running. Typically this would be OK from a platform perspective; however VS will explode if
-            // there's not a corresponding language server to accept the message. To protect ourselves from this scenario we can utilize capabilities
-            // and just lookup generic Razor language server specific capabilities. If they exist we can succeed.
-            var isRazorLanguageServer = RazorLanguageServerCapability.TryGet(token, out _);
-            return isRazorLanguageServer;
+            _editorSettingsManager.Update(settings);
         }
 
         private static void InitializeRazorTextViewOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
@@ -262,8 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private static EditorSettings UpdateRazorEditorOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
         {
-            var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
-            var tabSize = RazorLSPOptions.Default.TabSize;
+            var insertSpaces = true;
+            var tabSize = 4;
 
             var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorConstants.RazorLanguageServiceGuid } }; ;
             if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))

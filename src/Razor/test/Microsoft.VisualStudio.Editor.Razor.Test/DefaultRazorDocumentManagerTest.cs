@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private ProjectSnapshotManager ProjectManager => Mock.Of<ProjectSnapshotManager>(p => p.Projects == new List<ProjectSnapshot>() && p.GetOrCreateProject(It.IsAny<string>()) == null, MockBehavior.Strict);
 
-        private WorkspaceEditorSettings WorkspaceEditorSettings => new DefaultWorkspaceEditorSettings(Dispatcher, Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
+        private WorkspaceEditorSettings WorkspaceEditorSettings => new DefaultWorkspaceEditorSettings(Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
 
         private ImportDocumentManager ImportDocumentManager
         {

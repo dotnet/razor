@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
-        private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
+        private readonly EditorSettingsManager _editorSettingsManager;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
 
         private const string RazorReadyFeature = "Razor-Initialization";
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IRazorAsynchronousOperationListenerProviderAccessor asyncOpListenerProvider,
-            RazorLSPClientOptionsMonitor clientOptionsMonitor,
+            EditorSettingsManager editorSettingsManager,
             LSPDocumentSynchronizer documentSynchronizer)
                 : this(
                     documentManager,
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     requestInvoker,
                     uIContextManager,
                     asyncOpListenerProvider.GetListener(RazorReadyFeature).BeginAsyncOperation(RazorReadyFeature),
-                    clientOptionsMonitor,
+                    editorSettingsManager,
                     documentSynchronizer)
         {
         }
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker!!,
             RazorUIContextManager uIContextManager!!,
             IDisposable razorReadyListener!!,
-            RazorLSPClientOptionsMonitor clientOptionsMonitor!!,
+            EditorSettingsManager editorSettingsManager!!,
             LSPDocumentSynchronizer documentSynchronizer!!)
         {
             _documentManager = (TrackingLSPDocumentManager)documentManager;
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _requestInvoker = requestInvoker;
             _uIContextManager = uIContextManager;
             _razorReadyListener = razorReadyListener;
-            _clientOptionsMonitor = clientOptionsMonitor;
+            _editorSettingsManager = editorSettingsManager;
             _documentSynchronizer = documentSynchronizer;
         }
 
@@ -516,7 +516,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // Right now in VS we only care about editor settings, but we should update this logic later if
                 // we want to support Razor and HTML settings as well.
                 var setting = item.Section == "vs.editor.razor"
-                    ? _clientOptionsMonitor.EditorSettings
+                    ? _editorSettingsManager.Current
                     : new object();
                 result.Add(setting);
             }
