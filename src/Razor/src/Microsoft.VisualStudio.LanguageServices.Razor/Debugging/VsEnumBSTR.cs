@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     internal class VsEnumBSTR : IVsEnumBSTR
     {

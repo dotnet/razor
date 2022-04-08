@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+using Microsoft.VisualStudio.Editor.Razor.Debugging;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -18,7 +18,7 @@ using Xunit;
 using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     public class RazorLanguageService_IVsLanguageDebugInfoTest
     {
