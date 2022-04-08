@@ -120,4 +120,10 @@
   <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or an empty string.</value>
   </data>
+  <data name="ProximityExpression_Dialog_Description" xml:space="preserve">
+    <value>Razor Debugger</value>
+  </data>
+  <data name="ProximityExpression_Dialog_Title" xml:space="preserve">
+    <value>Determining proximity expressions...</value>
+  </data>
 </root>

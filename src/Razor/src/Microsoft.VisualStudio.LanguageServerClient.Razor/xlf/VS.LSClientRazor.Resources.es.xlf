@@ -7,16 +7,6 @@
         <target state="translated">{0}no se pudo inicializar.  Informe de un problema a través de la Ayuda -&gt; Enviar comentarios -&gt; Notificar un problema.  Estado = {1}.  Excepción = {2}</target>
         <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
       </trans-unit>
-      <trans-unit id="ProximityExpression_Dialog_Description">
-        <source>Razor Debugger</source>
-        <target state="translated">Depurador de Razor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ProximityExpression_Dialog_Title">
-        <source>Determining proximity expressions...</source>
-        <target state="translated">Determinando las expresiones de proximidad...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="View Code">
         <source>View Code</source>
         <target state="translated">Ver código</target>
