@@ -44,15 +44,24 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 </div>
 ";
 
+        private const string RazorComponentElementClassification = "RazorComponentElement";
         private const string RazorOutputLogId = "RazorOutputLog";
 
         protected override string LanguageName => LanguageNames.Razor;
 
-        private static bool CustomLoggersAdded = false;
+        private static bool s_customLoggersAdded = false;
 
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
+
+            // Add custom logs on failure if they haven't already been.
+            if (!s_customLoggersAdded)
+            {
+                DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
+
+                s_customLoggersAdded = true;
+            }
 
             await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, HangMitigatingCancellationToken);
@@ -64,18 +73,10 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // We open the Index.razor file, and wait for the SurveyPrompt component to be classified, as that
             // way we know the LSP server is up and running and responding
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: "RazorComponentElement");
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
-
-            // Add custom logs on failure if they haven't already been.
-            if (!CustomLoggersAdded)
-            {
-                DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
-
-                CustomLoggersAdded = true;
-            }
 
             async void RazorOutputPaneLogger(string filePath)
             {

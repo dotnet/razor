@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 
@@ -14,11 +13,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         public static string GetAbsoluteOrUNCPath(this DocumentUri documentUri!!)
         {
             return documentUri.ToUri().GetAbsoluteOrUNCPath();
-        }
-
-        public static string GetAbsolutePath(this DocumentUri documentUri!!)
-        {
-            return documentUri.ToUri().AbsolutePath;
         }
     }
 }

@@ -48,6 +48,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             TestProjectPath = GetProjectDirectory();
             FilePathNormalizer = new FilePathNormalizer();
             LoggerFactory = new FormattingTestLoggerFactory(output);
+
+            ILoggerExtensions.TestOnlyLoggingEnabled = true;
         }
 
         public static string? TestProjectPath { get; private set; }
@@ -95,17 +97,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Act
             var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
 
+            // Assert
+            var edited = ApplyEdits(source, edits);
+            var actual = edited.ToString();
+
+            new XUnitVerifier().EqualOrDiff(expected, actual);
+
             if (input.Equals(expected))
             {
                 Assert.Empty(edits);
-            }
-            else
-            {
-                // Assert
-                var edited = ApplyEdits(source, edits);
-                var actual = edited.ToString();
-
-                new XUnitVerifier().EqualOrDiff(expected, actual);
             }
         }
 
@@ -141,16 +141,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, CancellationToken.None);
 
             // Assert
+            var edited = ApplyEdits(razorSourceText, edits);
+            var actual = edited.ToString();
+
+            new XUnitVerifier().EqualOrDiff(expected, actual);
+
             if (input.Equals(expected))
             {
                 Assert.Empty(edits);
-            }
-            else
-            {
-                var edited = ApplyEdits(razorSourceText, edits);
-                var actual = edited.ToString();
-
-                new XUnitVerifier().EqualOrDiff(expected, actual);
             }
         }
 

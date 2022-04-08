@@ -442,7 +442,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private CSharpVirtualDocumentSnapshot? GetCSharpDocumentSnapshsot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
-            var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));
+            var normalizedUri = new Uri(normalizedString);
 
             if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
             {
