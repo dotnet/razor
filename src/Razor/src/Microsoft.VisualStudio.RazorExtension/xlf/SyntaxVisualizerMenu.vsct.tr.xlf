@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidRazorSyntaxVisualizer|CommandName">
-        <source>cmdidRazorSyntaxVisualizer</source>
-        <target state="new">cmdidRazorSyntaxVisualizer</target>
+        <source>RazorSyntaxVisualizer</source>
+        <target state="new">RazorSyntaxVisualizer</target>
         <note />
       </trans-unit>
     </body>

@@ -53,8 +53,9 @@
 
       <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidRazorSyntaxVisualizer" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <CommandFlag>CommandWellOnly</CommandFlag>
         <Strings>
-          <CommandName>cmdidRazorSyntaxVisualizer</CommandName>
+          <CommandName>RazorSyntaxVisualizer</CommandName>
           <ButtonText>Razor Syntax Visualizer</ButtonText>
         </Strings>
       </Button>

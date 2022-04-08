@@ -14,7 +14,8 @@
         <ToolBarTray IsLocked="true" DockPanel.Dock="Top">
             <ToolBar>
                 <ToggleButton x:Name="showSourceMappingsButton" Content="Show C# Transitions" Click="ShowSourceMappingsButton_Click" />
-                <Button x:Name="showGeneratedCode" Content="Show Generated Code" Click="ShowGeneratedCode_Click" />
+                <Button x:Name="showGeneratedCode" Content="Show Generated C#" Click="ShowGeneratedCode_Click" />
+                <Button x:Name="showGeneratedHtml" Content="Show Generated Html" Click="ShowGeneratedHtml_Click" />
             </ToolBar>
         </ToolBarTray>
         <TreeView x:Name="treeView" />

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer;
 using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.Shell;
@@ -108,6 +109,40 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
         }
 
+        private void ShowGeneratedHtml_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeWpfTextView is null)
+            {
+                return;
+            }
+
+            var textBuffer = _activeWpfTextView.TextBuffer;
+
+            if (!_textDocumentFactoryService.TryGetTextDocument(textBuffer, out var textDocument))
+            {
+                return;
+            }
+
+            var codeDocument = _joinableTaskFactory.Run(() => _codeDocumentProvider.GetRazorCodeDocumentAsync(textDocument.FilePath, CancellationToken.None));
+            if (codeDocument is null)
+            {
+                return;
+            }
+
+            var fileName = Path.GetFileName(textDocument.FilePath);
+            var tempFileName = Path.Combine(Path.GetTempPath(), fileName + ".g.html");
+
+            // Ignore any I/O errors
+            try
+            {
+                File.WriteAllText(tempFileName, codeDocument.GetHtmlSourceText().ToString());
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
+            }
+            catch
+            {
+            }
+        }
+
         private void ShowSourceMappingsButton_Click(object sender, RoutedEventArgs e)
         {
             if (_activeWpfTextView is null)
@@ -115,7 +150,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return;
             }
 
-            SourceMappingTagger.Enabled = !SourceMappingTagger.Enabled;
+            SourceMappingTagger.Enabled = showSourceMappingsButton.IsChecked.GetValueOrDefault();
             if (_activeWpfTextView.Properties.TryGetProperty<SourceMappingAdornmentTagger>(typeof(SourceMappingAdornmentTagger), out var tagger))
             {
                 tagger.Refresh();
