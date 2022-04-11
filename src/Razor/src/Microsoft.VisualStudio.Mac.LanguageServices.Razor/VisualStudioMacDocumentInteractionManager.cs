@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Core;
 using MonoDevelop.Ide;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     [Shared]
     [Export(typeof(DocumentInteractionManager))]
