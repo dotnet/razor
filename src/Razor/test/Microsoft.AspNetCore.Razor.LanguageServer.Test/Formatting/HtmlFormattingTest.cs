@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -981,6 +980,73 @@ expected: @"
                 tagHelpers.AddRange(selectItemComponent.CodeDocument.GetTagHelperContext().TagHelpers);
                 return tagHelpers.AsReadOnly();
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6110")]
+        public async Task FormatExplicitCSharpInsideHtml()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@using System.Text;
+
+<div>
+    @(new C()
+            .M(""Hello"")
+        .M(""World"")
+        .M(source =>
+        {
+        if (source.Length > 0)
+        {
+        source.ToString();
+        }
+        }))
+
+    @(DateTime.Now)
+
+    @(DateTime
+.Now
+.ToString())
+</div>
+
+@functions {
+    class C
+    {
+        C M(string a) => this;
+        C M(Func<string, C> a) => this;
+    }
+}
+",
+expected: @"@using System.Text;
+
+<div>
+    @(new C()
+        .M(""Hello"")
+        .M(""World"")
+        .M(source =>
+        {
+            if (source.Length > 0)
+            {
+                source.ToString();
+            }
+        }))
+
+    @(DateTime.Now)
+
+    @(DateTime
+        .Now
+        .ToString())
+</div>
+
+@functions {
+    class C
+    {
+        C M(string a) => this;
+        C M(Func<string, C> a) => this;
+    }
+}
+",
+            fileKind: FileKinds.Legacy);
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
