@@ -226,7 +226,7 @@ stages:
           condition: always()
           continueOnError: true
           inputs:
-            pathtoPublish: artifacts/log/$(_BuildConfig)/Screenshots/
+            pathtoPublish: artifacts/bin/Microsoft.VisualStudio.Razor.IntegrationTests/$(_BuildConfig)/net472/xUnitResults/Screenshots/
             artifactName: $(Agent.Os)_$(Agent.JobName) IntegrationTestsData $(_BuildConfig)
             artifactType: Container
             parallel: true
