@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
+namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
     [Export(typeof(RazorCodeDocumentProvidingSnapshotChangeTrigger))]
     [Export(typeof(ProjectSnapshotChangeTrigger))]
