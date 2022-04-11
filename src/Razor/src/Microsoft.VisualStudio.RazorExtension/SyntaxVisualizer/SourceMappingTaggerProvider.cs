@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
     [TagType(typeof(SourceMappingTag))]
     internal sealed class SourceMappingTaggerProvider : ITaggerProvider
     {
-        private readonly RazorCodeDocumentProvidingSnapshotChangeTrigger _sourceMappingProjectChangeTrigger;
+        private readonly Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> _sourceMappingProjectChangeTrigger;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
         [ImportingConstructor]
-        public SourceMappingTaggerProvider(RazorCodeDocumentProvidingSnapshotChangeTrigger sourceMappingProjectChangeTrigger, ITextDocumentFactoryService textDocumentFactoryService)
+        public SourceMappingTaggerProvider(Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> sourceMappingProjectChangeTrigger, ITextDocumentFactoryService textDocumentFactoryService)
         {
             _sourceMappingProjectChangeTrigger = sourceMappingProjectChangeTrigger;
             _textDocumentFactoryService = textDocumentFactoryService;

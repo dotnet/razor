@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -21,9 +22,9 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
     public partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEvents, IDisposable
     {
-        private readonly RazorCodeDocumentProvidingSnapshotChangeTrigger _codeDocumentProvider;
-        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-        private readonly JoinableTaskFactory _joinableTaskFactory;
+        private RazorCodeDocumentProvidingSnapshotChangeTrigger? _codeDocumentProvider;
+        private ITextDocumentFactoryService? _textDocumentFactoryService;
+        private JoinableTaskFactory? _joinableTaskFactory;
         private uint _runningDocumentTableCookie;
         private IVsRunningDocumentTable? _runningDocumentTable;
         private IWpfTextView? _activeWpfTextView;
@@ -48,6 +49,15 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             InitializeComponent();
 
             InitializeRunningDocumentTable();
+        }
+
+        [MemberNotNull(nameof(_codeDocumentProvider), nameof(_textDocumentFactoryService), nameof(_joinableTaskFactory))]
+        private void EnsureInitialized()
+        {
+            if (_codeDocumentProvider is not null && _textDocumentFactoryService is not null && _joinableTaskFactory is not null)
+            {
+                return;
+            }
 
             _codeDocumentProvider = VSServiceHelpers.GetRequiredMefService<RazorCodeDocumentProvidingSnapshotChangeTrigger>();
             _textDocumentFactoryService = VSServiceHelpers.GetRequiredMefService<ITextDocumentFactoryService>();
@@ -82,6 +92,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return;
             }
 
+            EnsureInitialized();
+
             var textBuffer = _activeWpfTextView.TextBuffer;
 
             if (!_textDocumentFactoryService.TryGetTextDocument(textBuffer, out var textDocument))
@@ -115,6 +127,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             {
                 return;
             }
+
+            EnsureInitialized();
 
             var textBuffer = _activeWpfTextView.TextBuffer;
 
@@ -337,6 +351,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
 
             var textBuffer = _activeWpfTextView.TextBuffer;
+
+            EnsureInitialized();
 
             if (!_textDocumentFactoryService.TryGetTextDocument(textBuffer, out var textDocument))
             {

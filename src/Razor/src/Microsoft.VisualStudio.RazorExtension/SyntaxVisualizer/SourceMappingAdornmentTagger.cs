@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
     internal sealed class SourceMappingAdornmentTagger : IntraTextAdornmentTagger<SourceMappingTag, SourceMappingAdornment>
     {
-        internal static ITagger<IntraTextAdornmentTag> GetTagger(IWpfTextView view, Lazy<ITagAggregator<SourceMappingTag>> sourceMappingTagger, RazorCodeDocumentProvidingSnapshotChangeTrigger sourceMappingProjectChangeTrigger)
+        internal static ITagger<IntraTextAdornmentTag> GetTagger(IWpfTextView view, Lazy<ITagAggregator<SourceMappingTag>> sourceMappingTagger, Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> sourceMappingProjectChangeTrigger)
         {
-            return view.Properties.GetOrCreateSingletonProperty(() => new SourceMappingAdornmentTagger(view, sourceMappingTagger.Value, sourceMappingProjectChangeTrigger));
+            return view.Properties.GetOrCreateSingletonProperty(() => new SourceMappingAdornmentTagger(view, sourceMappingTagger.Value, sourceMappingProjectChangeTrigger.Value));
         }
 
         private ITagAggregator<SourceMappingTag> _sourceMappingTagger;

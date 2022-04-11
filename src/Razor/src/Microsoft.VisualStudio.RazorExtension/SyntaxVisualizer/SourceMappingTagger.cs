@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
         }
 
         private readonly ITextBuffer _buffer;
-        private readonly RazorCodeDocumentProvidingSnapshotChangeTrigger _sourceMappingProjectChangeTrigger;
+        private readonly Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> _sourceMappingProjectChangeTrigger;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public static bool Enabled { get; set; }
 
-        internal SourceMappingTagger(ITextBuffer buffer, RazorCodeDocumentProvidingSnapshotChangeTrigger sourceMappingProjectChangeTrigger, ITextDocumentFactoryService textDocumentFactoryService)
+        internal SourceMappingTagger(ITextBuffer buffer, Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> sourceMappingProjectChangeTrigger, ITextDocumentFactoryService textDocumentFactoryService)
         {
             _buffer = buffer;
             _sourceMappingProjectChangeTrigger = sourceMappingProjectChangeTrigger;
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return Enumerable.Empty<ITagSpan<SourceMappingTag>>();
             }
 
-            var codeDocument = ThreadHelper.JoinableTaskFactory.Run(() => _sourceMappingProjectChangeTrigger.GetRazorCodeDocumentAsync(textDocument.FilePath, CancellationToken.None));
+            var codeDocument = ThreadHelper.JoinableTaskFactory.Run(() => _sourceMappingProjectChangeTrigger.Value.GetRazorCodeDocumentAsync(textDocument.FilePath, CancellationToken.None));
 
             if (codeDocument is null)
             {

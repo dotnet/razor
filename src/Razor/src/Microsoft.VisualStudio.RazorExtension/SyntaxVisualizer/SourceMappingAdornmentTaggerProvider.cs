@@ -17,10 +17,10 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
     internal sealed class SourceMappingAdornmentTaggerProvider : IViewTaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
-        private readonly RazorCodeDocumentProvidingSnapshotChangeTrigger _sourceMappingProjectChangeTrigger;
+        private readonly Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> _sourceMappingProjectChangeTrigger;
 
         [ImportingConstructor]
-        public SourceMappingAdornmentTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, RazorCodeDocumentProvidingSnapshotChangeTrigger sourceMappingProjectChangeTrigger)
+        public SourceMappingAdornmentTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> sourceMappingProjectChangeTrigger)
         {
             _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             _sourceMappingProjectChangeTrigger = sourceMappingProjectChangeTrigger;
