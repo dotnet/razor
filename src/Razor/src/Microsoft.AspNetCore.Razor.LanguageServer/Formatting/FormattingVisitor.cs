@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private const string HtmlTagName = "html";
 
-        private readonly RazorSourceDocument _source;
         private readonly List<FormattingSpan> _spans;
         private FormattingBlockKind _currentBlockKind;
         private SyntaxNode? _currentBlock;
@@ -27,9 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private int _currentComponentIndentationLevel = 0;
         private bool _isInClassBody = false;
 
-        public FormattingVisitor(RazorSourceDocument source!!)
+        public FormattingVisitor()
         {
-            _source = source;
             _spans = new List<FormattingSpan>();
             _currentBlockKind = FormattingBlockKind.Markup;
         }
