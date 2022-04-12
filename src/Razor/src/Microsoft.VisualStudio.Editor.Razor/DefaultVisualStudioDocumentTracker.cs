@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -138,7 +139,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _importDocumentManager.OnSubscribed(this);
 
-            OnContextChanged(ContextChangeKind.ProjectChanged);
+            _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
         }
 
         public void Unsubscribe()
@@ -160,12 +161,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _isSupportedProject = false;
             _projectSnapshot = null;
 
-            OnContextChanged(kind: ContextChangeKind.ProjectChanged);
+            _ = OnContextChangedAsync(kind: ContextChangeKind.ProjectChanged);
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void OnContextChanged(ContextChangeKind kind)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private async Task OnContextChangedAsync(ContextChangeKind kind)
         {
             await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
             ContextChanged?.Invoke(this, new ContextChangeEventArgs(kind));
@@ -201,12 +200,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     case ProjectChangeKind.ProjectChanged:
 
                         // Just an update
-                        OnContextChanged(ContextChangeKind.ProjectChanged);
+                        _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
 
                         if (e.Older is null ||
                             !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer.TagHelpers))
                         {
-                            OnContextChanged(ContextChangeKind.TagHelpersChanged);
+                            _ = OnContextChangedAsync(ContextChangeKind.TagHelpersChanged);
                         }
 
                         break;
@@ -215,7 +214,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                         // Fall back to ephemeral project
                         _projectSnapshot = _projectManager.GetOrCreateProject(ProjectPath);
-                        OnContextChanged(ContextChangeKind.ProjectChanged);
+                        _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
                         break;
 
                     default:
@@ -226,7 +225,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         // Internal for testing
         internal void EditorSettingsManager_Changed(object sender, EditorSettingsChangedEventArgs args)
-            => OnContextChanged(ContextChangeKind.EditorSettingsChanged);
+            => _ = OnContextChangedAsync(ContextChangeKind.EditorSettingsChanged);
 
         // Internal for testing
         internal void Import_Changed(object sender, ImportChangedEventArgs args)
@@ -237,7 +236,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 if (string.Equals(_filePath, path, StringComparison.OrdinalIgnoreCase))
                 {
-                    OnContextChanged(ContextChangeKind.ImportsChanged);
+                    _ = OnContextChangedAsync(ContextChangeKind.ImportsChanged);
                     break;
                 }
             }

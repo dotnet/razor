@@ -35,9 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Mock.Get(ImportDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
             Mock.Get(ImportDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
 
-            var projectSnapshotManagerDispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-            projectSnapshotManagerDispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
-            WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(projectSnapshotManagerDispatcher.Object, Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
+            WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
 
             SomeTagHelpers = new List<TagHelperDescriptor>()
             {

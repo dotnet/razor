@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
@@ -27,9 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var editorSettings = new EditorSettings(indentWithTabs: true, indentSize: 4);
-            var clientOptionsMonitor = new RazorLSPClientOptionsMonitor();
-            clientOptionsMonitor.UpdateOptions(editorSettings);
-            var optionsService = new RazorDocumentOptionsService(clientOptionsMonitor);
+            var editorSettingsManager = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+            editorSettingsManager.Update(editorSettings);
+            var optionsService = new RazorDocumentOptionsService(editorSettingsManager);
 
             var document = InitializeDocument(SourceText.From("text"));
 
@@ -54,9 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var editorSettings = new EditorSettings(indentWithTabs: false, indentSize: 2);
-            var clientOptionsMonitor = new RazorLSPClientOptionsMonitor();
-            clientOptionsMonitor.UpdateOptions(editorSettings);
-            var optionsService = new RazorDocumentOptionsService(clientOptionsMonitor);
+            var editorSettingsManager = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+            editorSettingsManager.Update(editorSettings);
+            var optionsService = new RazorDocumentOptionsService(editorSettingsManager);
 
             var document = InitializeDocument(SourceText.From("text"));
 

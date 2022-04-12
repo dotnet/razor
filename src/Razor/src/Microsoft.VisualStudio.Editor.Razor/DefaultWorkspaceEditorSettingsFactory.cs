@@ -15,19 +15,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(WorkspaceEditorSettings), RazorLanguage.Name)]
     internal class DefaultWorkspaceEditorSettingsFactory : ILanguageServiceFactory
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly EditorSettingsManager _editorSettingsManager;
 
         [ImportingConstructor]
-        public DefaultWorkspaceEditorSettingsFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!, EditorSettingsManager editorSettingsManager!!)
+        public DefaultWorkspaceEditorSettingsFactory(EditorSettingsManager editorSettingsManager!!)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _editorSettingsManager = editorSettingsManager;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
         {
-            return new DefaultWorkspaceEditorSettings(_projectSnapshotManagerDispatcher, _editorSettingsManager);
+            return new DefaultWorkspaceEditorSettings(_editorSettingsManager);
         }
     }
 }
