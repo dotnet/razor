@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             foreach (var textBuffer in subjectBuffers)
             {
-                if (!textBuffer.IsRazorBuffer())
+                if (!textBuffer.IsLegacyCoreRazorBuffer())
                 {
                     continue;
                 }
