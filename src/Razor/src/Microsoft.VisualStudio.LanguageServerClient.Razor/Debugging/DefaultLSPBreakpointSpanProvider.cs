@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var languageResponse = response?.Response;
             if (languageResponse is null)
             {
-                _logHubLogger.LogInformation("The breakpoint position could not be mapped to a valid range.");
+                _logHubLogger?.LogInformation("The breakpoint position could not be mapped to a valid range.");
                 return null;
             }
 
