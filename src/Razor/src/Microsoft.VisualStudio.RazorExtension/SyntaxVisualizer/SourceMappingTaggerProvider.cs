@@ -3,8 +3,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
-using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     [TagType(typeof(SourceMappingTag))]
     internal sealed class SourceMappingTaggerProvider : ITaggerProvider
     {

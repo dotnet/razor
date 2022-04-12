@@ -9,9 +9,9 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer;
-using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 if (wpfTextView != null)
                 {
                     var contentType = wpfTextView.TextBuffer.ContentType;
-                    if (contentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
+                    if (contentType.IsOfType(RazorConstants.RazorLSPContentTypeName))
                     {
                         if (_activeWpfTextView != wpfTextView)
                         {
