@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Name(nameof(ViewCodeCommandHandler))]
     [Export(typeof(ICommandHandler))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandArgs>
     {
         // Because query status happens all the time we want to cache the File.Exists checks for a reasonable amount of time

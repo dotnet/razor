@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Text;
@@ -18,7 +19,7 @@ using CodeAnalysisWorkspace = Microsoft.CodeAnalysis.Workspace;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(LSPDocumentChangeListener))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
     {
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;

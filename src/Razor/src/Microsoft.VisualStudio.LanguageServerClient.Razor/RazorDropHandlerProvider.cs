@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.DragDrop;
 using Microsoft.VisualStudio.Utilities;
@@ -11,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(IDropHandlerProvider))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     [DropFormat(RazorLSPConstants.VSProjectItemsIdentifier)]
     [Name(nameof(RazorDropHandlerProvider))]
     [Order(Before = "LanguageServiceTextDropHandler")]
