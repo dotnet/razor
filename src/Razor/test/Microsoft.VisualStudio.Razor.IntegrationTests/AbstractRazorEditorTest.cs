@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static readonly string s_pagesDir = Path.Combine("Pages");
         private static readonly string s_sharedDir = Path.Combine("Shared");
+        internal static readonly string FetchDataRazorFile = Path.Combine(s_pagesDir, "FetchData.razor");
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
         internal static readonly string IndexRazorFile = Path.Combine(s_pagesDir, "Index.razor");
         internal static readonly string ModifiedIndexRazorFile = Path.Combine(s_pagesDir, "ModifiedIndex.razor");
@@ -31,6 +32,10 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<div>
+    SomeValue
+</div>
 
 <SurveyPrompt Title=""How is Blazor working for you?"" />";
 
@@ -85,6 +90,9 @@ Welcome to your new app.
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
             await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
+
+            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForOutlineRegionsAsync(HangMitigatingCancellationToken);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);

@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Xunit;
 
@@ -12,6 +13,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
+        public async Task UndoTextAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            dte.ActiveDocument.Undo();
+        }
+
         public async Task SetTextAsync(string text, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -19,7 +28,33 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var view = await GetActiveTextViewAsync(cancellationToken);
             var textSnapshot = view.TextSnapshot;
             var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-            view.TextBuffer.Replace(replacementSpan, text);
+            _ = view.TextBuffer.Replace(replacementSpan, text);
+        }
+
+        public async Task WaitForTextChangeAsync(Action action, CancellationToken cancellationToken)
+        {
+            using var semaphore = new SemaphoreSlim(1);
+            await semaphore.WaitAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            view.TextBuffer.PostChanged += TextBuffer_PostChanged;
+
+            action.Invoke();
+
+            try
+            {
+                await semaphore.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                view.TextBuffer.PostChanged -= TextBuffer_PostChanged;
+            }
+
+            void TextBuffer_PostChanged(object sender, EventArgs e)
+            {
+                semaphore.Release();
+                view.TextBuffer.PostChanged -= TextBuffer_PostChanged;
+            }
         }
 
         public async Task<string> WaitForTextChangeAsync(string text, CancellationToken cancellationToken)

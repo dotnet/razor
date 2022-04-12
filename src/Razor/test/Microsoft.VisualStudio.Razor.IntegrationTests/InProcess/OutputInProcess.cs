@@ -16,6 +16,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     {
         private const string RazorPaneName = "Razor Language Server Client";
 
+        public async Task<bool> HasNoErrorsAsync(CancellationToken cancellationToken)
+        {
+            var content = await GetRazorOutputPaneContentAsync(cancellationToken);
+
+            return !content.Contains("Warning");
+        }
+
         /// <summary>
         /// This method returns the current content of the "Razor Language Server Client" output pane.
         /// </summary>
