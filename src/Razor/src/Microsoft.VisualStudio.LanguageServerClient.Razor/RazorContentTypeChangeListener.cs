@@ -6,6 +6,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Name(nameof(RazorContentTypeChangeListener))]
     [Export(typeof(ITextBufferContentTypeListener))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
     {
         private readonly TrackingLSPDocumentManager _lspDocumentManager;
@@ -47,8 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public void ContentTypeChanged(ITextBuffer textBuffer, IContentType oldContentType, IContentType newContentType)
         {
-            var supportedBefore = oldContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
-            var supportedAfter = newContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
+            var supportedBefore = oldContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
+            var supportedAfter = newContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
 
             if (supportedBefore == supportedAfter)
             {
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1161307/
             // To counteract this we need to re-calculate the content type based off of the filepath.
             var newContentType = _fileToContentTypeService.GetContentTypeForFilePath(textDocument.FilePath);
-            if (newContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
+            if (newContentType.IsOfType(RazorConstants.RazorLSPContentTypeName))
             {
                 // Renamed to another RazorLSP based document, lets treat it as a re-creation.
                 RazorBufferCreated(textBuffer);

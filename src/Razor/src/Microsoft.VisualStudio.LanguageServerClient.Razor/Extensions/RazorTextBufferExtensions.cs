@@ -3,7 +3,7 @@
 
 #nullable disable
 
-using System;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
     {
         public static bool IsRazorLSPBuffer(this ITextBuffer textBuffer!!)
         {
-            var matchesContentType = textBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
+            var matchesContentType = textBuffer.ContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
             return matchesContentType;
         }
     }

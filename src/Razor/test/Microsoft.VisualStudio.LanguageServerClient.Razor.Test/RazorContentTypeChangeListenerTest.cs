@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public RazorContentTypeChangeListenerTest()
         {
             NonRazorContentType = Mock.Of<IContentType>(c => c.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
-            RazorContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName) == true, MockBehavior.Strict);
+            RazorContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(RazorConstants.RazorLSPContentTypeName) == true, MockBehavior.Strict);
             RazorBuffer ??= Mock.Of<ITextBuffer>(buffer => buffer.ContentType == RazorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
             DisposedRazorBuffer ??= Mock.Of<ITextBuffer>(buffer => buffer.ContentType == NonRazorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
             RazorTextDocument = Mock.Of<ITextDocument>(td => td.TextBuffer == RazorBuffer && td.FilePath == "C:/path/to/file.razor", MockBehavior.Strict);

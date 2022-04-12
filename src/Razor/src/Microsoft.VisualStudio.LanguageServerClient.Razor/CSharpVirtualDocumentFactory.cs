@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -13,7 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(VirtualDocumentFactory))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
         public static readonly string CSharpClientName = "RazorCSharp";
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-        protected override string HostDocumentContentTypeName => RazorLSPConstants.RazorLSPContentTypeName;
+        protected override string HostDocumentContentTypeName => RazorConstants.RazorLSPContentTypeName;
         protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualCSharpFileNameSuffix;
         protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => s_languageBufferProperties;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new CSharpVirtualDocument(uri, textBuffer);

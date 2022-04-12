@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     /// </summary>
     [Export(typeof(ITextViewConnectionListener))]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
@@ -82,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (!_editorFeatureDetector.IsRemoteClient())
             {
                 vsTextView.GetBuffer(out var vsBuffer);
-                vsBuffer.SetLanguageServiceID(RazorLSPConstants.RazorLanguageServiceGuid);
+                vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
             }
 
             RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
@@ -221,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private static void InitializeRazorTextViewOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
         {
-            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } }; ;
+            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorConstants.RazorLanguageServiceGuid } }; ;
             if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
             {
                 return;
@@ -264,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             var tabSize = RazorLSPOptions.Default.TabSize;
 
-            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } }; ;
+            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorConstants.RazorLanguageServiceGuid } }; ;
             if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
             {
                 return new EditorSettings(indentWithTabs: !insertSpaces, tabSize);
