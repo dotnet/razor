@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor
         public Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
             => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
 
-        public virtual void AssertDispatcherThread([CallerMemberName] string caller = null)
+        public virtual void AssertDispatcherThread([CallerMemberName] string? caller = null)
         {
             if (!IsDispatcherThread)
             {

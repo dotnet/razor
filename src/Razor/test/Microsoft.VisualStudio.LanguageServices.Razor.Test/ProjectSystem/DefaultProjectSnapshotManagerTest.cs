@@ -633,10 +633,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectManager.ProjectAdded(HostProject);
             ProjectManager.Reset();
 
-            ProjectManager.Changed += (sender, args) =>
-            {
-                Assert.True(args.SolutionIsClosing);
-            };
+            ProjectManager.Changed += (sender, args) => Assert.True(args.SolutionIsClosing);
             ProjectManager.NotifyChangedEvents = true;
 
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);

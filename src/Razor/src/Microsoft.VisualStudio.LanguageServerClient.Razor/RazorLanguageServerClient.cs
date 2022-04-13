@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer? _server;
@@ -54,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory!!,
             VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions!!,
+            JoinableTaskContext joinableTaskContext!!,
             [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
         {
             _customMessageTarget = customTarget;
@@ -62,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
             _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
+            _joinableTaskContext = joinableTaskContext;
             _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
             _shutdownLock = new object();
         }
@@ -212,23 +215,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void ProjectConfigurationFilePathStore_Changed(object sender, ProjectConfigurationFilePathChangedEventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void ProjectConfigurationFilePathStore_Changed(object sender, ProjectConfigurationFilePathChangedEventArgs args)
         {
             try
             {
-                var parameter = new MonitorProjectConfigurationFilePathParams()
-                {
-                    ProjectFilePath = args.ProjectFilePath,
-                    ConfigurationFilePath = args.ConfigurationFilePath,
-                };
+                _joinableTaskContext.Factory.Run(async () => {
+                    var parameter = new MonitorProjectConfigurationFilePathParams()
+                    {
+                        ProjectFilePath = args.ProjectFilePath,
+                        ConfigurationFilePath = args.ConfigurationFilePath,
+                    };
 
-                await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
-                    LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
-                    RazorLSPConstants.RazorLanguageServerName,
-                    parameter,
-                    CancellationToken.None);
+                    await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
+                        LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
+                        RazorLSPConstants.RazorLanguageServerName,
+                        parameter,
+                        CancellationToken.None);
+                });
             }
             catch (Exception)
             {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     // The implementation will create a ProjectSnapshot for each HostProject.
     internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     {
-        public override event EventHandler<ProjectChangeEventArgs> Changed;
+        public override event EventHandler<ProjectChangeEventArgs>? Changed;
 
         private readonly ErrorReporter _errorReporter;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override Workspace Workspace { get; }
 
-        public override ProjectSnapshot GetLoadedProject(string filePath!!)
+        public override ProjectSnapshot? GetLoadedProject(string filePath!!)
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
@@ -146,9 +144,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 else
                 {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     var loader = textLoader is null
-                    ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
+                        ? DocumentState.EmptyLoader
+                        : (() => textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, CancellationToken.None));
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                     var state = entry.State.WithAddedHostDocument(document, loader);
 
                     // Document updates can no-op.
@@ -256,9 +256,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 else
                 {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     var state = entry.State.WithChangedHostDocument(
-                    older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+                        older.HostDocument,
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, cancellationToken: default));
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
                     _openDocuments.Remove(documentFilePath);
 
@@ -338,9 +340,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 else
                 {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     var state = entry.State.WithChangedHostDocument(
-                    older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+                        older.HostDocument,
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, cancellationToken: default));
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
                     // Document updates can no-op.
                     if (!ReferenceEquals(state, entry.State))
@@ -467,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _errorReporter.ReportError(exception, snapshot);
         }
 
-        private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
+        private void NotifyListeners(ProjectSnapshot? older, ProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
         {
             NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
         }
@@ -501,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class Entry
         {
-            private ProjectSnapshot _snapshotUnsafe;
+            private ProjectSnapshot? _snapshotUnsafe;
             public readonly ProjectState State;
 
             public Entry(ProjectState state)

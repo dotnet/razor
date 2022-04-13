@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,17 +24,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDisposable
     {
-        public override event EventHandler<DocumentStructureChangedEventArgs> DocumentStructureChanged;
+        public override event EventHandler<DocumentStructureChangedEventArgs>? DocumentStructureChanged;
 
         // Internal for testing.
         internal TimeSpan _idleDelay = TimeSpan.FromSeconds(3);
-        internal Timer _idleTimer;
-        internal BackgroundParser _parser;
-        internal ChangeReference _latestChangeReference;
-        internal RazorSyntaxTreePartialParser _partialParser;
+        internal Timer? _idleTimer;
+        internal BackgroundParser? _parser;
+        internal ChangeReference? _latestChangeReference;
+        internal RazorSyntaxTreePartialParser? _partialParser;
 
-        private readonly object _idleLock = new object();
-        private readonly object _updateStateLock = new object();
+        private readonly object _idleLock = new();
+        private readonly object _updateStateLock = new();
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly JoinableTaskContext _joinableTaskContext;
@@ -43,14 +42,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ErrorReporter _errorReporter;
         private readonly List<CodeDocumentRequest> _codeDocumentRequests;
         private readonly TaskScheduler _uiThreadScheduler;
-        private RazorProjectEngine _projectEngine;
-        private RazorCodeDocument _codeDocument;
-        private ITextSnapshot _snapshot;
+        private RazorProjectEngine? _projectEngine;
+        private RazorCodeDocument? _codeDocument;
+        private ITextSnapshot? _snapshot;
         private bool _disposed;
-        private ITextSnapshot _latestParsedSnapshot;
+        private ITextSnapshot? _latestParsedSnapshot;
 
         // For testing only
-        internal DefaultVisualStudioRazorParser(RazorCodeDocument codeDocument)
+        [Obsolete("Testing Only")]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        internal DefaultVisualStudioRazorParser(RazorCodeDocument? codeDocument)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _codeDocument = codeDocument;
         }
@@ -77,19 +79,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override string FilePath => _documentTracker.FilePath;
 
-        public override RazorCodeDocument CodeDocument => _codeDocument;
+        public override RazorCodeDocument CodeDocument => _codeDocument ?? throw new InvalidOperationException($"{nameof(CodeDocument)} called before {nameof(_codeDocument)} was set");
 
-        public override ITextSnapshot Snapshot => _snapshot;
+        public override ITextSnapshot Snapshot => _snapshot ?? throw new InvalidOperationException($"{nameof(Snapshot)} called before {nameof(_snapshot)} was set");
 
         public override ITextBuffer TextBuffer => _documentTracker.TextBuffer;
 
         public override bool HasPendingChanges => _latestChangeReference != null;
 
         // Used in unit tests to ensure we can be notified when idle starts.
-        internal ManualResetEventSlim NotifyUIIdleStart { get; set; }
+        internal ManualResetEventSlim? NotifyUIIdleStart { get; set; }
 
         // Used in unit tests to ensure we can block background idle work.
-        internal ManualResetEventSlim BlockBackgroundIdleWork { get; set; }
+        internal ManualResetEventSlim? BlockBackgroundIdleWork { get; set; }
 
         internal override Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot!!, CancellationToken cancellationToken = default)
         {
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     return Task.FromResult(CodeDocument);
                 }
 
-                CodeDocumentRequest request = null;
+                CodeDocumentRequest? request = null;
                 for (var i = _codeDocumentRequests.Count - 1; i >= 0; i--)
                 {
                     if (_codeDocumentRequests[i].Snapshot == atOrNewerSnapshot)
@@ -147,7 +149,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Dispose()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             StopParser();
 
@@ -168,7 +170,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void DocumentTracker_ContextChanged(object sender, ContextChangeEventArgs args)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (!TryReinitializeParser())
             {
@@ -183,7 +185,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal bool TryReinitializeParser()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             StopParser();
 
@@ -200,9 +202,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
+        [MemberNotNull(nameof(_parser))]
         internal void StartParser()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             // Make sure any tests use the real thing or a good mock. These tests can cause failures
             // that are hard to understand when this throws.
@@ -212,7 +215,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _projectEngine = _projectEngineFactory.Create(_documentTracker.ProjectSnapshot, ConfigureProjectEngine);
 
             Debug.Assert(_projectEngine != null);
-            Debug.Assert(_projectEngine.Engine != null);
+            Debug.Assert(_projectEngine!.Engine != null);
             Debug.Assert(_projectEngine.FileSystem != null);
 
             // We might not have a document snapshot in the case of an ephemeral project.
@@ -230,7 +233,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StopParser()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_parser != null)
             {
@@ -246,7 +249,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StartIdleTimer()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             lock (_idleLock)
             {
@@ -275,7 +278,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (args.Changes.Count > 0)
             {
@@ -288,14 +291,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             if (!args.TextChangeOccurred(out var changeInformation))
             {
                 // Ensure we get a parse for latest snapshot.
-                QueueChange(null, snapshot);
+                QueueChange(change: null, snapshot);
                 return;
             }
 
             var change = new SourceChange(changeInformation.firstChange.OldPosition, changeInformation.oldText.Length, changeInformation.newText);
             var result = PartialParseResultInternal.Rejected;
-            RazorSyntaxTree partialParseSyntaxTree = null;
-            using (_parser.SynchronizeMainThreadState())
+            RazorSyntaxTree? partialParseSyntaxTree = null;
+            using (_parser!.SynchronizeMainThreadState())
             {
                 // Check if we can partial-parse
                 if (_partialParser != null && _parser.IsIdle)
@@ -332,7 +335,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnIdle()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -357,7 +360,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void ReparseOnUIThread()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -365,12 +368,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             var snapshot = TextBuffer.CurrentSnapshot;
-            QueueChange(null, snapshot);
+            QueueChange(change: null, snapshot);
         }
 
-        private void QueueChange(SourceChange change, ITextSnapshot snapshot)
+        private void QueueChange(SourceChange? change, ITextSnapshot snapshot)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             // _parser can be null if we're in the midst of rebuilding the internal parser (TagHelper refresh/solution teardown)
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
@@ -416,17 +419,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        internal async void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        internal void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
         {
             try
             {
-                UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
+                _joinableTaskContext.Factory.Run(async () =>
+                {
+                    UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
-                // Jump back to UI thread to notify structure changes.
-                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-                OnDocumentStructureChanged(args);
+                    // Jump back to UI thread to notify structure changes.
+                    await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                    OnDocumentStructureChanged(args);
+                });
             }
             catch (Exception ex)
             {
@@ -438,7 +442,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnDocumentStructureChanged(object state)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -574,7 +578,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 _tagHelpers = tagHelpers;
             }
 
-            public RazorEngine Engine { get; set; }
+            public RazorEngine? Engine { get; set; }
 
             public IReadOnlyList<TagHelperDescriptor> GetDescriptors()
             {
@@ -585,7 +589,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal class CodeDocumentRequest
         {
-            private readonly object _completionLock = new object();
+            private readonly object _completionLock = new();
             private readonly TaskCompletionSource<RazorCodeDocument> _taskCompletionSource;
             private readonly CancellationTokenRegistration _cancellationTokenRegistration;
             private bool _done;

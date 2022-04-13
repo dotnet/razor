@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,8 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
-        private ProjectSnapshotManagerBase _projectManager;
-        private Timer _timer;
+        private ProjectSnapshotManagerBase? _projectManager;
+        private Timer? _timer;
         private bool _solutionIsClosing;
 
         public BackgroundDocumentGenerator(
@@ -55,20 +54,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public bool IsScheduledOrRunning => _timer != null;
 
         // Used in tests to ensure we can control when background work starts.
-        public ManualResetEventSlim BlockBackgroundWorkStart { get; set; }
+        public ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
 
         // Used in tests to ensure we can know when background work finishes.
-        public ManualResetEventSlim NotifyBackgroundWorkStarting { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundWorkStarting { get; set; }
 
         // Used in unit tests to ensure we can know when background has captured its current workload.
-        public ManualResetEventSlim NotifyBackgroundCapturedWorkload { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundCapturedWorkload { get; set; }
 
         // Used in tests to ensure we can control when background work completes.
-        public ManualResetEventSlim BlockBackgroundWorkCompleting { get; set; }
+        public ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
 
         // Used in tests to ensure we can know when background work finishes.
-        public ManualResetEventSlim NotifyBackgroundWorkCompleted { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
 
+        [MemberNotNull(nameof(_projectManager))]
         public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
         {
             _projectManager = projectManager;
@@ -145,9 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void Timer_Tick(object state)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void Timer_Tick(object state)
         {
             try
             {
@@ -172,7 +170,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     var document = work[i].Value;
                     try
                     {
-                        await document.GetGeneratedOutputAsync();
+                        _ = document.GetGeneratedOutputAsync();
                     }
                     catch (Exception ex)
                     {
@@ -184,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 if (!_solutionIsClosing)
                 {
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
                         CancellationToken.None).ConfigureAwait(false);
                 }
@@ -192,7 +190,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 lock (_work)
                 {
                     // Resetting the timer allows another batch of work to start.
-                    _timer.Dispose();
+                    _timer?.Dispose();
                     _timer = null;
 
                     // If more work came in while we were running start the worker again.
@@ -243,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             {
                 case ProjectChangeKind.ProjectAdded:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
                         {
                             var document = projectSnapshot.GetDocument(documentFilePath);
@@ -254,7 +252,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     }
                 case ProjectChangeKind.ProjectChanged:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
                         {
                             var document = projectSnapshot.GetDocument(documentFilePath);
@@ -266,7 +264,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 case ProjectChangeKind.DocumentAdded:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         var document = projectSnapshot.GetDocument(args.DocumentFilePath);
                         Enqueue(document);
 
@@ -280,7 +278,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 case ProjectChangeKind.DocumentChanged:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         var document = projectSnapshot.GetDocument(args.DocumentFilePath);
                         Enqueue(document);
 
@@ -294,12 +292,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 case ProjectChangeKind.DocumentRemoved:
                     {
-                        var olderProject = args.Older;
+                        var olderProject = args.Older!;
                         var document = olderProject.GetDocument(args.DocumentFilePath);
 
                         foreach (var relatedDocument in olderProject.GetRelatedDocuments(document))
                         {
-                            var newerRelatedDocument = args.Newer.GetDocument(relatedDocument.FilePath);
+                            var newerRelatedDocument = args.Newer!.GetDocument(relatedDocument.FilePath);
                             Enqueue(newerRelatedDocument);
                         }
 
@@ -319,7 +317,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private void ReportError(Exception ex)
         {
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectManager.ReportError(ex),
+                () => _projectManager?.ReportError(ex),
                 CancellationToken.None).ConfigureAwait(false);
         }
     }

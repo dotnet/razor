@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -32,9 +30,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _documentManager = documentManager;
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        public async void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             try
             {
@@ -48,8 +44,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
-                _joinableTaskContext.AssertUIThread();
-                await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
+                _joinableTaskContext.Factory.Run(async () => {
+                    _joinableTaskContext.AssertUIThread();
+                    await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
+                });
             }
             catch (Exception ex)
             {
@@ -58,9 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        public async void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             try
             {
@@ -74,8 +70,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
-                _joinableTaskContext.AssertUIThread();
-                await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
+                _joinableTaskContext.Factory.Run(async () => {
+                    _joinableTaskContext.AssertUIThread();
+                    await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
+                });
             }
             catch (Exception ex)
             {

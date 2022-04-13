@@ -40,24 +40,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             Log(__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, message);
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
         {
             // This is an async void method. Catch all exceptions so it doesn't crash the process.
             try
             {
-                await _joinableTaskFactory.SwitchToMainThreadAsync();
+                _joinableTaskFactory.Run(async () => {
+                    await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-                var activityLog = GetActivityLog();
-                if (activityLog != null)
-                {
-                    var hr = activityLog.LogEntry(
-                        (uint)logType,
-                        "Razor LSP Client",
-                        $"Info:{Environment.NewLine}{message}");
-                    ErrorHandler.ThrowOnFailure(hr);
-                }
+                    var activityLog = GetActivityLog();
+                    if (activityLog != null)
+                    {
+                        var hr = activityLog.LogEntry(
+                            (uint)logType,
+                            "Razor LSP Client",
+                            $"Info:{Environment.NewLine}{message}");
+                        ErrorHandler.ThrowOnFailure(hr);
+                    }
+                });
             }
             catch (Exception ex)
             {

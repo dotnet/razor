@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -14,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class RazorServerReadyPublisher : ProjectSnapshotChangeTrigger
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private ProjectSnapshotManagerBase _projectManager;
+        private ProjectSnapshotManagerBase? _projectManager;
         private readonly ClientNotifierServiceBase _clientNotifierService;
         private bool _hasNotified = false;
 
@@ -33,9 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
             try
             {
@@ -51,17 +48,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 if (projectSnapshot?.ProjectWorkspaceState != null && !_hasNotified)
                 {
                     // Un-register this method, we only need to send this once.
-                    _projectManager.Changed -= ProjectSnapshotManager_Changed;
-
-                    var response = await _clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
-                    await response.ReturningVoid(CancellationToken.None);
+                    _projectManager!.Changed -= ProjectSnapshotManager_Changed;
+                    _ = SendRequestAsync(_clientNotifierService);
 
                     _hasNotified = true;
                 }
             }
             catch (Exception ex)
             {
-                _projectManager.ReportError(ex);
+                _projectManager?.ReportError(ex);
+            }
+
+            static async Task SendRequestAsync(ClientNotifierServiceBase clientNotifierService)
+            {
+                var response = await clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
+                await response.ReturningVoid(CancellationToken.None);
             }
         }
     }
