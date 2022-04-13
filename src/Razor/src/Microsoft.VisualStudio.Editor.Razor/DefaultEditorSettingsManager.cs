@@ -4,8 +4,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -16,15 +16,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override event EventHandler<EditorSettingsChangedEventArgs> Changed;
 
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly object _settingsAccessorLock = new object();
         private EditorSettings _settings;
 
         [ImportingConstructor]
-        public DefaultEditorSettingsManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        public DefaultEditorSettingsManager([ImportMany] IEnumerable<EditorSettingsChangedTrigger> editorSettingsChangeTriggers)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _settings = EditorSettings.Default;
+
+            foreach (var changeTrigger in editorSettingsChangeTriggers)
+            {
+                changeTrigger.Initialize(this);
+            }
         }
 
         public override EditorSettings Current
@@ -40,8 +43,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override void Update(EditorSettings updatedSettings!!)
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             lock (_settingsAccessorLock)
             {
                 if (!_settings.Equals(updatedSettings))
@@ -54,8 +55,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnChanged()
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             var args = new EditorSettingsChangedEventArgs(Current);
             Changed?.Invoke(this, args);
         }

@@ -62,8 +62,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
             if (version < new System.Version(17, 1, 32113, 165))
             {
-                // Functionality under test was added in v17 Preview 3 (17.1.32113.165) so this test will
-                // file until CI is updated, so we'll skip it.
+                // Functionality under test was added in v17.1-Preview3 (17.1.32113.165) so this test will
+                // fail until CI is updated, so we'll skip it.
                 return;
             }
 

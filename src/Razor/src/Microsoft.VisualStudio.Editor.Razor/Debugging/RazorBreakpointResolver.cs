@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
+namespace Microsoft.VisualStudio.Editor.Razor.Debugging
 {
     internal abstract class RazorBreakpointResolver
     {

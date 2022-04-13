@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Text
     {
         public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph!!)
         {
-            return bufferGraph.GetTextBuffers(TextBufferExtensions.IsRazorBuffer);
+            return bufferGraph.GetTextBuffers(TextBufferExtensions.IsLegacyCoreRazorBuffer);
         }
     }
 }

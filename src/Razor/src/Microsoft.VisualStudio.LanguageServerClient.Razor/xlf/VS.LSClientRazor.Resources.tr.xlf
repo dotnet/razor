@@ -7,16 +7,6 @@
         <target state="translated">{0} başlatılamadı. Lütfen Yardım -&gt; Geri Bildirim Gönder -&gt; Sorun Bildir aracılığıyla sorunu bildirin.  Durum = {1}.  Özel durum = {2}</target>
         <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
       </trans-unit>
-      <trans-unit id="ProximityExpression_Dialog_Description">
-        <source>Razor Debugger</source>
-        <target state="translated">Razor Hata Ayıklayıcısı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ProximityExpression_Dialog_Title">
-        <source>Determining proximity expressions...</source>
-        <target state="translated">Yakınlık ifadeleri belirleniyor...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="View Code">
         <source>View Code</source>
         <target state="translated">Kodu Görüntüle</target>

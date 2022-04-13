@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var editorSettingsManager = Mock.Of<EditorSettingsManager>(m => m.Current == editorSettings, MockBehavior.Strict);
 
             // Act
-            var manager = new DefaultWorkspaceEditorSettings(Dispatcher, editorSettingsManager);
+            var manager = new DefaultWorkspaceEditorSettings(editorSettingsManager);
 
             // Assert
             Assert.Equal(editorSettings, manager.Current);
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var editorSettingsManager = new Mock<EditorSettingsManager>(MockBehavior.Strict);
             editorSettingsManager.SetupGet(m => m.Current).Returns((EditorSettings)null);
-            var manager = new DefaultWorkspaceEditorSettings(Dispatcher, editorSettingsManager.Object);
+            var manager = new DefaultWorkspaceEditorSettings(editorSettingsManager.Object);
             var called = false;
             manager.Changed += (caller, args) => called = true;
 
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void Attach_CalledOnceForMultipleListeners()
         {
             // Arrange
-            var manager = new TestEditorSettingsManagerInternal(Dispatcher);
+            var manager = new TestEditorSettingsManagerInternal();
 
             // Act
             manager.Changed += (caller, args) => { };
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void Detach_CalledOnceWhenNoMoreListeners()
         {
             // Arrange
-            var manager = new TestEditorSettingsManagerInternal(Dispatcher);
+            var manager = new TestEditorSettingsManagerInternal();
             static void Listener1(object caller, EditorSettingsChangedEventArgs args) { }
 
             static void Listener2(object caller, EditorSettingsChangedEventArgs args) { }
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class TestEditorSettingsManagerInternal : DefaultWorkspaceEditorSettings
         {
-            public TestEditorSettingsManagerInternal(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher, Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
+            public TestEditorSettingsManagerInternal() : base(Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
             {
             }
 

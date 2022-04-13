@@ -81,7 +81,6 @@
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Configuration.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Configuration.Abstractions.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Logging.dll" />
   </ItemGroup>
 
   <ItemGroup Condition="$(DebugType) != 'embedded'">
