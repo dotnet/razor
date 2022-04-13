@@ -41,6 +41,34 @@ using Microsoft.VisualStudio.Shell;
     OldVersionUpperBound = "7.0.0.0",
     NewVersion = "7.0.0.0")]
 [assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.Logging.Abstractions",
+    GenerateCodeBase = true,
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "2.0.0.0",
+    OldVersionUpperBound = "2.0.0.0",
+    NewVersion = "6.0.0.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.Logging",
+    GenerateCodeBase = true,
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "2.0.0.0",
+    OldVersionUpperBound = "2.0.0.0",
+    NewVersion = "6.0.0.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.DependencyInjection",
+    GenerateCodeBase = true,
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "2.0.0.0",
+    OldVersionUpperBound = "2.0.0.0",
+    NewVersion = "6.0.0.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.DependencyInjection.Abstractions",
+    GenerateCodeBase = true,
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "2.0.0.0",
+    OldVersionUpperBound = "2.0.0.0",
+    NewVersion = "6.0.0.0")]
+[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.Extensions.Configuration.Abstractions",
     GenerateCodeBase = true,
     PublicKeyToken = "adb9793829ddae60",
