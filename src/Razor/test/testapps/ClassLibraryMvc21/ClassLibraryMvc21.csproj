@@ -16,5 +16,8 @@
       <!-- Avoid exporting types from real MVC that will conflict with the test shim -->
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.22">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>
