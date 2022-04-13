@@ -82,7 +82,6 @@
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <!-- dotnet/runtime packages -->
-    <MicrosoftExtensionsDependencyModelPackageVersion>6.0.0</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>6.0.0</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemResourcesExtensionsPackageVersion>6.0.0</SystemResourcesExtensionsPackageVersion>
