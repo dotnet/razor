@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             var content = await GetRazorOutputPaneContentAsync(cancellationToken);
 
-            return !content.Contains("Warning");
+            return !content.Contains("Error");
         }
 
         /// <summary>

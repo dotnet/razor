@@ -33,10 +33,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
 Welcome to your new app.
 
-<div>
-    SomeValue
-</div>
-
 <SurveyPrompt Title=""How is Blazor working for you?"" />";
 
         internal static readonly string MainLayoutContent = @"@inherits LayoutComponentBase
@@ -90,9 +86,6 @@ Welcome to your new app.
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
             await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
-
-            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForOutlineRegionsAsync(HangMitigatingCancellationToken);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
