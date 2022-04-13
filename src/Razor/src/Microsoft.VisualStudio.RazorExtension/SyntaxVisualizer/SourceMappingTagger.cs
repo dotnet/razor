@@ -57,9 +57,9 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return Enumerable.Empty<ITagSpan<SourceMappingTag>>();
             }
 
-            return GetTagsWorker();
+            return GetTagsWorker(codeDocument, snapshot);
 
-            IEnumerable<ITagSpan<SourceMappingTag>> GetTagsWorker()
+            static IEnumerable<ITagSpan<SourceMappingTag>> GetTagsWorker(RazorCodeDocument codeDocument, ITextSnapshot snapshot)
             {
                 var csharpDocument = codeDocument.GetCSharpDocument();
                 foreach (var mapping in csharpDocument.SourceMappings)

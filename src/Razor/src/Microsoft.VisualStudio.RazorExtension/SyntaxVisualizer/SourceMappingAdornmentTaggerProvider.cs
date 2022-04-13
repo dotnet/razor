@@ -27,14 +27,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             _sourceMappingProjectChangeTrigger = sourceMappingProjectChangeTrigger;
         }
 
-        public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        public ITagger<T>? CreateTagger<T>(ITextView textView!!, ITextBuffer buffer!!) where T : ITag
         {
-            if (textView == null)
-                throw new ArgumentNullException("textView");
-
-            if (buffer == null)
-                throw new ArgumentNullException("buffer");
-
             if (buffer != textView.TextBuffer)
                 return null;
 

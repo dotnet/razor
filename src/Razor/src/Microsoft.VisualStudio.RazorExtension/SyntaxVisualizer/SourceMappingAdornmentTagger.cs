@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             return view.Properties.GetOrCreateSingletonProperty(() => new SourceMappingAdornmentTagger(view, sourceMappingTagger.Value, sourceMappingProjectChangeTrigger.Value));
         }
 
-        private ITagAggregator<SourceMappingTag> _sourceMappingTagger;
+        private readonly ITagAggregator<SourceMappingTag> _sourceMappingTagger;
 
         private SourceMappingAdornmentTagger(IWpfTextView view, ITagAggregator<SourceMappingTag> sourceMappingTagger, RazorCodeDocumentProvidingSnapshotChangeTrigger sourceMappingProjectChangeTrigger)
             : base(view)

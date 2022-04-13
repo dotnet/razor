@@ -26,11 +26,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             _textDocumentFactoryService = textDocumentFactoryService;
         }
 
-        public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T>? CreateTagger<T>(ITextBuffer buffer!!) where T : ITag
         {
-            if (buffer == null)
-                throw new ArgumentNullException("buffer");
-
             return SourceMappingTagger.GetOrCreateTagger(
                 buffer,
                 () => new SourceMappingTagger(buffer, _sourceMappingProjectChangeTrigger, _textDocumentFactoryService))

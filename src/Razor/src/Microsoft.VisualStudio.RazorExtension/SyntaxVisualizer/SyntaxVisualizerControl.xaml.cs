@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
     public partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEvents, IDisposable
     {
+        private static string s_baseTempPath = Path.Combine(Path.GetTempPath(), "RazorDevTools");
+
         private RazorCodeDocumentProvidingSnapshotChangeTrigger? _codeDocumentProvider;
         private ITextDocumentFactoryService? _textDocumentFactoryService;
         private JoinableTaskFactory? _joinableTaskFactory;
@@ -79,6 +81,17 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            try
+            {
+                if (Directory.Exists(s_baseTempPath))
+                {
+                    Directory.Delete(s_baseTempPath, recursive: true);
+                }
+            }
+            catch
+            {
+            }
+
             if (_runningDocumentTableCookie != 0)
             {
                 _runningDocumentTable?.UnadviseRunningDocTableEvents(_runningDocumentTableCookie);
@@ -108,14 +121,18 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return;
             }
 
-            var fileName = Path.GetFileName(textDocument.FilePath);
-            var tempFileName = Path.Combine(Path.GetTempPath(), fileName + ".g.cs");
+            OpenGeneratedCode(textDocument.FilePath, ".g.cs", codeDocument.GetCSharpDocument().GeneratedCode);
+        }
+
+        private void OpenGeneratedCode(string filePath, string extension, string generatedCode)
+        {
+            var tempFileName = GetTempFileName(filePath, extension);
 
             // Ignore any I/O errors
             try
             {
-                File.WriteAllText(tempFileName, codeDocument.GetCSharpDocument().GeneratedCode);
-                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
+                File.WriteAllText(tempFileName, generatedCode);
+                VsShellUtilities.OpenAsMiscellaneousFile(ServiceProvider.GlobalProvider, tempFileName, Path.GetFileName(tempFileName) + " [generated]", VSConstants.VsEditorFactoryGuid.TextEditor_guid, string.Empty, VSConstants.LOGVIEWID.TextView_guid);
             }
             catch
             {
@@ -144,18 +161,16 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return;
             }
 
-            var fileName = Path.GetFileName(textDocument.FilePath);
-            var tempFileName = Path.Combine(Path.GetTempPath(), fileName + ".g.html");
+            OpenGeneratedCode(textDocument.FilePath, ".g.html", codeDocument.GetHtmlSourceText().ToString());
+        }
 
-            // Ignore any I/O errors
-            try
-            {
-                File.WriteAllText(tempFileName, codeDocument.GetHtmlSourceText().ToString());
-                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
-            }
-            catch
-            {
-            }
+        private static string GetTempFileName(string originalFilePath, string extension)
+        {
+            var fileName = Path.GetFileName(originalFilePath);
+            var tempPath = Path.Combine(s_baseTempPath, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempPath);
+            var tempFileName = Path.Combine(tempPath, fileName + ".g.html");
+            return tempFileName;
         }
 
         private void ShowSourceMappingsButton_Click(object sender, RoutedEventArgs e)
