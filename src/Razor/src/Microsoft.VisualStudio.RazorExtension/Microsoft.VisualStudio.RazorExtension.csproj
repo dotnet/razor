@@ -26,6 +26,9 @@
 
     <SetupProductArch>neutral</SetupProductArch>
     <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
+
+    <!-- for the syntax visualizer -->
+    <UseWPF>true</UseWPF>
     <!-- Cause the vsix to get deployed to the RootSuffix.
          Without this the Razor Extension won't be deployed for IntegrationTests
          to use in the "build.cmd" scenario -->
@@ -44,6 +47,10 @@
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\Rules\</VSIXSubPath>
     </Content>
+    <VSCTCompile Include="SyntaxVisualizerMenu.vsct">
+      <ResourceName>SyntaxVisualizerMenu.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
   </ItemGroup>
 
   <ItemGroup>
@@ -90,6 +97,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+
+
+    <Resource Include="SyntaxTree.bmp" />
 
     <!-- Embedded grammars -->
 

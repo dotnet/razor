@@ -14,7 +14,9 @@ using Microsoft.VisualStudio.Editor.Razor.Debugging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 using Microsoft.VisualStudio.LanguageServices.Razor;
+using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -32,10 +34,16 @@ namespace Microsoft.VisualStudio.RazorExtension
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
+    [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
     [Guid(PackageGuidString)]
     public sealed class RazorPackage : AsyncPackage
     {
         public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
+
+        internal const string GuidSyntaxVisualizerMenuCmdSetString = "a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec";
+        internal static readonly Guid GuidSyntaxVisualizerMenuCmdSet = new Guid(GuidSyntaxVisualizerMenuCmdSetString);
+        internal const uint CmdIDRazorSyntaxVisualizer = 0x101;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -55,6 +63,36 @@ namespace Microsoft.VisualStudio.RazorExtension
 
                 return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
             }, promote: true);
+
+            // Add our command handlers for menu (commands must exist in the .vsct file).
+            if (await GetServiceAsync(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
+            {
+                // Create the command for the tool window.
+                var toolwndCommandID = new CommandID(GuidSyntaxVisualizerMenuCmdSet, (int)CmdIDRazorSyntaxVisualizer);
+                var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
+                mcs.AddCommand(menuToolWin);
+            }
+        }
+
+        /// <summary>
+        /// This function is called when the user clicks the menu item that shows the
+        /// tool window. See the Initialize method to see how the menu item is associated to
+        /// this function using the OleMenuCommandService service and the MenuCommand class.
+        /// </summary>
+        private void ShowToolWindow(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Get the instance number 0 of this tool window. This window is single instance so this instance
+            // is actually the only one. The last flag is set to true so that if the tool window does not exist
+            // it will be created.
+            var window = FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
+            if (window?.Frame is not IVsWindowFrame windowFrame)
+            {
+                throw new NotSupportedException("Can not create window");
+            }
+
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
     }
 }
