@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
@@ -124,6 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     range,
                     out var mappedRange))
                 {
+                    FixRangeStart(mappedRange, codeDocument);
                     mappedRanges.Add(GetFoldingRange(mappedRange));
                 }
             }
@@ -137,6 +140,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             }
 
             return new Container<FoldingRange>(mappedRanges);
+        }
+
+        /// <summary>
+        /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
+        /// it so collapsing will still show the text instead of just "..."
+        /// </summary>
+        private void FixRangeStart(Range mappedRange, RazorCodeDocument codeDocument)
+        {
+            Debug.Assert(mappedRange.Start.Line > mappedRange.End.Line);
+
+            var sourceText = codeDocument.GetSourceText();
+            var startLine = mappedRange.Start.Line;
+            var lineSpan = sourceText.Lines[startLine].Span;
+
+            // Search from the end of the line to the beginning for the first non whitespace character. We want that
+            // to be the offset for the range
+            var offset = sourceText.GetLastNonWhitespaceOffset(lineSpan, out _);
+
+            if (offset.HasValue)
+            {
+                mappedRange.Start.Character = offset.Value;
+            }
         }
 
         private static Range GetRange(FoldingRange foldingRange)
