@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             try
             {
                 File.WriteAllText(tempFileName, generatedCode);
-                VsShellUtilities.OpenAsMiscellaneousFile(ServiceProvider.GlobalProvider, tempFileName, Path.GetFileName(tempFileName) + " [generated]", VSConstants.VsEditorFactoryGuid.TextEditor_guid, string.Empty, VSConstants.LOGVIEWID.TextView_guid);
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
             }
             catch
             {
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             var fileName = Path.GetFileName(originalFilePath);
             var tempPath = Path.Combine(s_baseTempPath, Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(tempPath);
-            var tempFileName = Path.Combine(tempPath, fileName + ".g.html");
+            var tempFileName = Path.Combine(tempPath, fileName + extension);
             return tempFileName;
         }
 
