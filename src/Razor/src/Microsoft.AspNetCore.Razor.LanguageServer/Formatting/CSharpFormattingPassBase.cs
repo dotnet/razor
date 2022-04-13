@@ -299,7 +299,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 IsInHtmlTag() ||
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
-                IsImplicitOrExplicitExpression() ||
+                IsImplicitExpression() ||
                 IsInSectionDirectiveCloseBrace() ||
                 (!allowImplicitStatements && IsImplicitStatementStart()))
             {
@@ -382,14 +382,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
             }
 
-            bool IsImplicitOrExplicitExpression()
+            bool IsImplicitExpression()
             {
                 // E.g, (| is position)
                 //
                 // `@|foo` - true
-                // `@(|foo)` - true
                 //
-                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
+                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
             }
 
             bool IsInSectionDirectiveCloseBrace()

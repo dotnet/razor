@@ -116,6 +116,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, List<int> projectedDocumentLocations, CancellationToken cancellationToken)
         {
+            // No point calling the C# formatting if we won't be interested in any of its work anyway
+            if (projectedDocumentLocations.Count == 0)
+            {
+                return new Dictionary<int, int>();
+            }
+
             var (indentationMap, syntaxTree) = InitializeIndentationData(context, projectedDocumentLocations, cancellationToken);
 
             var root = await syntaxTree.GetRootAsync(cancellationToken);
