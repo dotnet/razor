@@ -1,10 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Xunit.Harness;
 
@@ -58,6 +61,7 @@ Welcome to your new app.
 
         private const string RazorComponentElementClassification = "RazorComponentElement";
         private const string RazorOutputLogId = "RazorOutputLog";
+        private const string LogHubLogId = "RazorLogHub";
 
         protected override string LanguageName => LanguageNames.Razor;
 
@@ -71,6 +75,7 @@ Welcome to your new app.
             if (!s_customLoggersAdded)
             {
                 DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
+                DataCollectionService.RegisterCustomLogger(RazorLogHubLogger, LogHubLogId, "zip");
 
                 s_customLoggersAdded = true;
             }
@@ -90,10 +95,63 @@ Welcome to your new app.
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
 
-            async void RazorOutputPaneLogger(string filePath)
+            void RazorLogHubLogger(string filePath)
             {
-                var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
-                File.WriteAllText(filePath, paneContent);
+                // We need to get off our current thread because we're blocking it from writing out any of the files that don't already exist.
+                // Generally we want to avoid _ = Task.Run, but this is test code, run AFTER a faillure already, that can't return a task but needs to run async code, so we're a bit against the wall.
+                // JoinableTaskFactory.Run isn't an option because we might be disposing already (saw it happen).
+                _ = Task.Run(async () =>
+                {
+                    var componentModel = await TestServices.Shell.GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(HangMitigatingCancellationToken);
+                    var feedbackFileProviders = componentModel.GetExtensions<IFeedbackDiagnosticFileProvider>();
+
+                    // Collect all the file names first since they can kick of file creation events that might need extra time to resolve.
+                    var files = new List<string>();
+                    foreach (var feedbackFileProvider in feedbackFileProviders)
+                    {
+                        files.AddRange(feedbackFileProvider.GetFiles());
+                    }
+
+                    foreach (var file in files)
+                    {
+                        var name = Path.GetFileName(file);
+
+                        WaitForFileExists(file);
+                        // Only caputre loghub
+                        if (name.Contains("LogHub") && Path.GetExtension(file) == ".zip")
+                        {
+                            if (File.Exists(file))
+                            {
+                                File.Copy(file, filePath);
+                            }
+                        }
+                    }
+                });
+            }
+
+            void RazorOutputPaneLogger(string filePath)
+            {
+                // Generally we want to avoid _ = Task.Run, but this is test code, run AFTER a faillure already, that can't return a task but needs to run async code, so we're a bit against the wall.
+                // JoinableTaskFactory.Run isn't an option because we might be disposing already (saw it happen).
+                _ = Task.Run(async () =>
+                {
+                    var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
+                    File.WriteAllText(filePath, paneContent);
+                });
+            }
+
+            static void WaitForFileExists(string file)
+            {
+                const int MaxRetries = 20;
+                var retries = 0;
+                while (!File.Exists(file) && retries < MaxRetries)
+                {
+                    retries++;
+                    // Free your thread
+                    Thread.Yield();
+                    // Wait a bit
+                    Thread.Sleep(100);
+                }
             }
         }
     }
