@@ -1007,6 +1007,19 @@ input: @"
     @(DateTime
 .Now
 .ToString())
+
+                @(   Html.DisplayNameFor (@<text>
+        <p >
+        <h2 ></h2>
+        </p>
+        </text>)
+        .ToString())
+
+@{
+var x = @<p>Hi there!</p>
+}
+@x()
+@(@x())
 </div>
 
 @functions {
@@ -1036,6 +1049,19 @@ expected: @"@using System.Text;
     @(DateTime
         .Now
         .ToString())
+
+    @(Html.DisplayNameFor(@<text>
+        <p>
+            <h2></h2>
+        </p>
+    </text>)
+        .ToString())
+
+    @{
+        var x = @<p>Hi there!</p>
+    }
+    @x()
+    @(@x())
 </div>
 
 @functions {
