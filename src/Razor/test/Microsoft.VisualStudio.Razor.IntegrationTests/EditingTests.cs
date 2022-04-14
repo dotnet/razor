@@ -108,8 +108,8 @@ else
             }
 
             // Assert
-            var hasNoErrors = await TestServices.Output.HasNoErrorsAsync(HangMitigatingCancellationToken);
-            Assert.True(hasNoErrors);
+            var hasErrors = await TestServices.Output.HasErrorsAsync(HangMitigatingCancellationToken);
+            Assert.False(hasErrors);
         }
     }
 }

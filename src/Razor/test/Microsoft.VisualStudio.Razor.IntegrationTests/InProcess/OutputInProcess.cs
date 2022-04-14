@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     {
         private const string RazorPaneName = "Razor Language Server Client";
 
-        public async Task<bool> HasNoErrorsAsync(CancellationToken cancellationToken)
+        public async Task<bool> HasErrorsAsync(CancellationToken cancellationToken)
         {
             var content = await GetRazorOutputPaneContentAsync(cancellationToken);
 
-            return !content.Contains("Error");
+            return content is null || content.Contains("Error");
         }
 
         /// <summary>
@@ -28,13 +28,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The contents of the RLSC output pane.</returns>
-        public Task<string> GetRazorOutputPaneContentAsync(CancellationToken cancellationToken)
+        public async Task<string?> GetRazorOutputPaneContentAsync(CancellationToken cancellationToken)
         {
             var outputPaneTextView = GetOutputPaneTextView(RazorPaneName);
-            return outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
+
+            if (outputPaneTextView is null)
+            {
+                return null;
+            }
+
+            return await outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
         }
 
-        private static IVsTextView GetOutputPaneTextView(string paneName)
+        private static IVsTextView? GetOutputPaneTextView(string paneName)
         {
             var sVSOutputWindow = ServiceProvider.GlobalProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
             var extensibleObject = ServiceProvider.GlobalProvider.GetService<SVsOutputWindow, IVsExtensibleObject>();
@@ -44,7 +50,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var outputWindow = (EnvDTE.OutputWindow)outputWindowObj;
 
             // This is a public entry point to COutputWindow::GetPaneByName
-            var pane = outputWindow.OutputWindowPanes.Item(paneName);
+            EnvDTE.OutputWindowPane? pane = null;
+            try
+            {
+                pane = outputWindow.OutputWindowPanes.Item(paneName);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+
             var textView = OutputWindowPaneToIVsTextView(pane, sVSOutputWindow);
 
             return textView;
