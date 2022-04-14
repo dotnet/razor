@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -126,7 +128,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     range,
                     out var mappedRange))
                 {
-                    FixRangeStart(mappedRange, codeDocument);
                     mappedRanges.Add(GetFoldingRange(mappedRange));
                 }
             }
@@ -139,19 +140,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 mappedRanges.AddRange(ranges);
             }
 
-            return new Container<FoldingRange>(mappedRanges);
+            var finalRanges = mappedRanges.Select(r => FixFoldingRangeStart(r, codeDocument)).ToImmutableArray();
+            return new Container<FoldingRange>(finalRanges);
         }
 
         /// <summary>
         /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
         /// it so collapsing will still show the text instead of just "..."
         /// </summary>
-        private void FixRangeStart(Range mappedRange, RazorCodeDocument codeDocument)
+        private FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
         {
-            Debug.Assert(mappedRange.Start.Line < mappedRange.End.Line);
+            Debug.Assert(range.StartLine < range.EndLine);
 
             var sourceText = codeDocument.GetSourceText();
-            var startLine = mappedRange.Start.Line;
+            var startLine = range.StartLine;
             var lineSpan = sourceText.Lines[startLine].Span;
 
             // Search from the end of the line to the beginning for the first non whitespace character. We want that
@@ -160,8 +162,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
             if (offset.HasValue)
             {
-                mappedRange.Start.Character = offset.Value;
+                // +1 to the offset value because the helper goes to the character position
+                // that we want to be after. Make sure we don't exceed the line end
+                var newCharacter = Math.Min(offset.Value + 1, lineSpan.Length);
+                return range with { StartCharacter = newCharacter };
             }
+
+            return range;
         }
 
         private static Range GetRange(FoldingRange foldingRange)
