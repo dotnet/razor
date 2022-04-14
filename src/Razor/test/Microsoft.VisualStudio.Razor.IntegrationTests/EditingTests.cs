@@ -97,6 +97,7 @@ else
 
             // Act
             await TestServices.Editor.SetTextAsync(LengthyFetchDataContent, HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("<c", charsOffset: 1, HangMitigatingCancellationToken);
 
             await TestServices.Editor.WaitForTextChangeAsync(() => TestServices.Input.Send("{ENTER}"), HangMitigatingCancellationToken);
