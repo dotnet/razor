@@ -4,7 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Intentionally not including SimpleMvc11 and SimpleMvc11NetFx here because they are restored in a separate target. -->
     <ProjectReference Include="..\SimpleMvc21\SimpleMvc21.csproj" />
     <ProjectReference Include="..\SimpleMvc21NetFx\SimpleMvc21NetFx.csproj" />
     <ProjectReference Include="..\SimpleMvc22\SimpleMvc22.csproj" />
