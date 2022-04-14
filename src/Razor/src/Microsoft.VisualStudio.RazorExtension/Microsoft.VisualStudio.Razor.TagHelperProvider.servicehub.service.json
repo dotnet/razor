@@ -1,5 +1,5 @@
 ﻿{
-  "host": "desktopClr.x86",
+  "host": "netfx.x86",
   "hostId": "RoslynCodeAnalysisService32",
   "hostGroupAllowed": true,
   "entryPoint": {
