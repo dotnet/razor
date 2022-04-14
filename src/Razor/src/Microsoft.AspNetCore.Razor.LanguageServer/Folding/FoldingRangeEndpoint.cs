@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         /// </summary>
         private void FixRangeStart(Range mappedRange, RazorCodeDocument codeDocument)
         {
-            Debug.Assert(mappedRange.Start.Line > mappedRange.End.Line);
+            Debug.Assert(mappedRange.Start.Line < mappedRange.End.Line);
 
             var sourceText = codeDocument.GetSourceText();
             var startLine = mappedRange.Start.Line;
