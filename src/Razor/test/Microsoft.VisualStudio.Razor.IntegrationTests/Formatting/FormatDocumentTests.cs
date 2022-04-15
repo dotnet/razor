@@ -67,6 +67,9 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             await TestServices.Editor.SetTextAsync(input, HangMitigatingCancellationToken);
 
+            // Wait for the document to settle
+            await TestServices.Editor.WaitForOutlineRegionsAsync(HangMitigatingCancellationToken);
+
             // Act
             await TestServices.Editor.InvokeFormatDocumentAsync(HangMitigatingCancellationToken);
 
