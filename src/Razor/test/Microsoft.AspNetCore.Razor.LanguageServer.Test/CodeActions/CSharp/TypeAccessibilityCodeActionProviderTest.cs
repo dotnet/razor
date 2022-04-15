@@ -18,6 +18,7 @@ using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Newtonsoft.Json.Linq;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -228,6 +229,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6015")]
+        public async Task Handle_CodeActionInSingleLineDirective_VS_ReturnsOnlyUsingCodeAction()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = "@inject Path";
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Range = new Range(),
+                Context = new CodeActionContext()
+                {
+                    Diagnostics = new Container<Diagnostic>()
+                }
+            };
+
+            var location = new SourceLocation(8, 0, 8);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
+            context.CodeDocument.SetFileKind(FileKinds.Legacy);
+
+            var provider = new TypeAccessibilityCodeActionProvider();
+            var csharpCodeActions = new[] {
+                new RazorCodeAction()
+                {
+                    Title = "System.IO.Path",
+                    Name = "FullyQualify"
+                },
+                new RazorCodeAction()
+                {
+                    Title = "using System.IO;",
+                    Name = "AddImport"
+                }
+            };
+
+            // Act
+            var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+
+            // Assert
+            Assert.Collection(results,
+                r =>
+                {
+                    Assert.Equal("@using System.IO", r.Title);
+                    Assert.Null(r.Edit);
+                    Assert.NotNull(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                    Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
+                }
+            );
+        }
+
+        [Fact]
         public async Task Handle_ValidCodeAction_VS_ReturnsCodeActions()
         {
             // Arrange
@@ -390,7 +442,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var tagHelpers = new[] { shortComponent.Build(), fullyQualifiedComponent.Build() };
 
             var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
-            var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));
+            var projectEngine = RazorProjectEngine.Create(builder =>
+            {
+                builder.AddTagHelpers(tagHelpers);
+                builder.AddDirective(InjectDirective.Directive);
+            });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
             var cSharpDocument = codeDocument.GetCSharpDocument();
