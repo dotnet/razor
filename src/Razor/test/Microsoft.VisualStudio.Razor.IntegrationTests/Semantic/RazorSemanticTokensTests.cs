@@ -39,46 +39,31 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
         }
 
-        private static readonly Version ColorationFixedVSVersion = new(17, 2, 32209, 0);
-
         [IdeFact]
         public async Task Components_AreColored()
         {
-            if (await IsVSVersionOrNewerAsync(ColorationFixedVSVersion))
-            {
-                // Arrange
-                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
-                await TestServices.Editor.SetTextAsync(MainLayoutContent, HangMitigatingCancellationToken);
+            // Arrange
+            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(MainLayoutContent, HangMitigatingCancellationToken);
 
-                // Act
-                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement", 3);
+            // Act
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement", 3);
 
-                // Assert
-                var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
-                await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
-            }
+            // Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task Directives_AreColored()
         {
-            if (await IsVSVersionOrNewerAsync(ColorationFixedVSVersion))
-            {
-                // Arrange
-                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
-                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
+            // Arrange
+            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
 
-                // Act and Assert
-                var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
-                await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
-            }
-        }
-
-        private async Task<bool> IsVSVersionOrNewerAsync(Version referenceVersion)
-        {
-            var vsVersion = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
-
-            return vsVersion >= referenceVersion;
+            // Act and Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
         }
 
         private async Task<IEnumerable<ClassificationSpan>> GetExpectedClassificationSpansAsync(string testName, CancellationToken cancellationToken)
