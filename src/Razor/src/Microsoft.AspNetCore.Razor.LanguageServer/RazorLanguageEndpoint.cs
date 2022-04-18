@@ -49,9 +49,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+            var documentUri = request.Uri.GetAbsoluteOrUNCPath()
+            var info = await TryGetDocumentSnapshotAndVersionAsync(documentUri, cancellationToken).ConfigureAwait(false);
 
-            Debug.Assert(info != null, "Failed to get the document snapshot, could not map to document ranges.");
+            _logger.LogWarning("Failed to get the document snapshot '{documentUri}', could not map to document ranges.", documentUri);
 
             if (info is null)
             {
