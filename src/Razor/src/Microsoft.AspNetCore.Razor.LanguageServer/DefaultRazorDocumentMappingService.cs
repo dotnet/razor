@@ -11,8 +11,8 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -220,6 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 (originalRange.End.Line == originalRange.Start.Line &&
                  originalRange.End.Character < originalRange.Start.Character))
             {
+                _logger.LogWarning("DefaultRazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'", originalRange);
                 Debug.Fail($"DefaultRazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'");
                 return false;
             }
@@ -548,7 +549,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private static bool s_haveAsserted = false;
 
-        private static bool IsRangeWithinDocument(Range range, SourceText sourceText)
+        private bool IsRangeWithinDocument(Range range, SourceText sourceText)
         {
             // This might happen when the document that ranges were created against was not the same as the document we're consulting.
             var result = IsPositionWithinDocument(range.Start, sourceText) && IsPositionWithinDocument(range.End, sourceText);
@@ -556,7 +557,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (!s_haveAsserted && !result)
             {
                 s_haveAsserted = true;
-                Debug.Fail($"Attempted to map a range {range} outside of the Source (line count {sourceText.Lines.Count}.) This could happen if the Roslyn and Razor LSP servers are not in sync.");
+                var sourceTextLinesCount = sourceText.Lines.Count;
+                _logger.LogWarning("Attempted to map a range {range} outside of the Source (line count {sourceTextLinesCount}.) This could happen if the Roslyn and Razor LSP servers are not in sync.", range, sourceTextLinesCount);
             }
 
             return result;
