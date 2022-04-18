@@ -52,10 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentUri = request.Uri.GetAbsoluteOrUNCPath();
             var info = await TryGetDocumentSnapshotAndVersionAsync(documentUri, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogWarning("Failed to get the document snapshot '{documentUri}', could not map to document ranges.", documentUri);
-
             if (info is null)
             {
+                _logger.LogError("Failed to get the document snapshot '{documentUri}', could not map to document ranges.", documentUri);
                 throw new InvalidOperationException($"Unable to resolve document {request.Uri.GetAbsoluteOrUNCPath()}.");
             }
 
