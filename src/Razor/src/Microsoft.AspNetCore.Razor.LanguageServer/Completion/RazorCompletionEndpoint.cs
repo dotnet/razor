@@ -158,6 +158,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var associatedRazorCompletion = cachedCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
             if (associatedRazorCompletion is null)
             {
+                _logger.LogError("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
                 Debug.Fail("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
                 return Task.FromResult(completionItem);
             }

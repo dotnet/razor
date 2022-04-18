@@ -151,13 +151,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         if (_publishedCSharpData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedCSharpData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
+                            if (!removed)
+                            {
+                                _logger.LogError("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
+                                Debug.Fail("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
+                            }
                         }
 
                         if (_publishedHtmlData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedHtmlData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
+                            if (!removed)
+                            {
+                                _logger.LogError("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
+                                Debug.Fail("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
+                            }
                         }
                     }
 
