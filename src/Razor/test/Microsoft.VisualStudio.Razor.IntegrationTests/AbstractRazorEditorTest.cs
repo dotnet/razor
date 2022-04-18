@@ -91,7 +91,20 @@ Welcome to your new app.
             // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
             await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
+            try
+            {
+                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
+            }
+            catch (OperationCanceledException)
+            {
+                // DataCollectionService does not fire in the case that errors or exceptions are thrown during Initialization.
+                // Let's capture some of the things we care about most manually.
+                var logHubFilePath = CreateLogFileName(LogHubLogId, "zip");
+                RazorLogHubLogger(logHubFilePath);
+                var outputPaneFilePath = CreateLogFileName(RazorOutputLogId, "log");
+                RazorOutputPaneLogger(outputPaneFilePath);
+                throw;
+            }
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
@@ -147,20 +160,36 @@ Welcome to your new app.
                     }
                 });
             }
+        }
 
-            static void WaitForFileExists(string file)
+        private static void WaitForFileExists(string file)
+        {
+            const int MaxRetries = 20;
+            var retries = 0;
+            while (!File.Exists(file) && retries < MaxRetries)
             {
-                const int MaxRetries = 20;
-                var retries = 0;
-                while (!File.Exists(file) && retries < MaxRetries)
-                {
-                    retries++;
-                    // Free your thread
-                    Thread.Yield();
-                    // Wait a bit
-                    Thread.Sleep(100);
-                }
+                retries++;
+                // Free your thread
+                Thread.Yield();
+                // Wait a bit
+                Thread.Sleep(100);
             }
+        }
+
+        // We use reflection to get at a couple of the internals of DataCollectionService so that we use the propper LogDirectory.
+        private static string CreateLogFileName(string logId, string extension)
+        {
+            var dataCollectionServiceType = typeof(DataCollectionService);
+            var getLogDirectoryMethod = dataCollectionServiceType.GetMethod("GetLogDirectory", System.Reflection.BindingFlags.Static);
+            var logDirectory = getLogDirectoryMethod.Invoke(obj: null, new object[] { });
+
+            var createLogFileNameMethod = dataCollectionServiceType.GetMethod("CreateLogFileName", System.Reflection.BindingFlags.Static);
+            var timestamp = DateTimeOffset.UtcNow;
+            var testName = "TestInitialization";
+            var errorId = "InitializationError";
+            var @params = new object[] { logDirectory, timestamp, testName, errorId, logId, extension };
+            var logFileName = (string)createLogFileNameMethod.Invoke(obj: null, @params);
+            return logFileName;
         }
     }
 }
