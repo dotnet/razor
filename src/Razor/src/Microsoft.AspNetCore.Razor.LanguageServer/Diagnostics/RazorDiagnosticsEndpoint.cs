@@ -545,7 +545,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(
                 codeDocument,
                 diagnostic.Range,
-                MappingBehavior.Inclusive,
+                MappingBehavior.Inferred,
                 out originalRange))
             {
                 // Couldn't remap the range correctly.
