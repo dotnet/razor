@@ -61,14 +61,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         public void ProjectLoaded(ProjectLoadedEventArgs args)
         {
-            try
-            {
-                _ = ProjectLoadedAsync(args);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Unexpected exception got thrown from the Razor plugin: " + ex);
-            }
+            _ = ProjectLoadedAsync(args, CancellationToken.None);
         }
 
         public void RazorDocumentChanged(RazorFileChangeEventArgs args)
@@ -85,30 +78,38 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
         }
 
         // Internal for testing
-        internal async Task ProjectLoadedAsync(ProjectLoadedEventArgs args)
+        internal async Task ProjectLoadedAsync(ProjectLoadedEventArgs args, CancellationToken cancellationToken)
         {
-            var projectInstance = args.ProjectInstance;
-            HandleDebug(projectInstance);
-
-            if (!TryResolveConfigurationOutputPath(projectInstance, out var configPath))
+            try
             {
-                return;
-            }
+                var projectInstance = args.ProjectInstance;
+                HandleDebug(projectInstance);
 
-            var projectFilePath = projectInstance.GetPropertyValue(MSBuildProjectFullPathPropertyName);
-            if (string.IsNullOrEmpty(projectFilePath))
+                if (!TryResolveConfigurationOutputPath(projectInstance, out var configPath))
+                {
+                    return;
+                }
+
+                var projectFilePath = projectInstance.GetPropertyValue(MSBuildProjectFullPathPropertyName);
+                if (string.IsNullOrEmpty(projectFilePath))
+                {
+                    // This should never be true but we're being extra careful.
+                    return;
+                }
+
+                _projectConfigurationPublisher.SetPublishFilePath(projectFilePath, configPath);
+
+                // Force project instance evaluation to ensure that all Razor specific targets have run.
+                projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
+
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => UpdateProjectState(projectInstance), cancellationToken).ConfigureAwait(false);
+
+            }
+            catch (Exception ex)
             {
-                // This should never be true but we're being extra careful.
-                return;
+                _logger.LogError("Unexpected exception got thrown from the Razor plugin: " + ex);
             }
-
-            _projectConfigurationPublisher.SetPublishFilePath(projectFilePath, configPath);
-
-            // Force project instance evaluation to ensure that all Razor specific targets have run.
-            projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
-
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => UpdateProjectState(projectInstance), CancellationToken.None).ConfigureAwait(false);
         }
 
         private void UpdateProjectState(ProjectInstance projectInstance)

@@ -34,6 +34,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
+            _ = ProjectSnapshotManager_ChangedAsync(args, CancellationToken.None);
+        }
+
+        private async Task ProjectSnapshotManager_ChangedAsync(ProjectChangeEventArgs args, CancellationToken cancellationToken)
+        {
             try
             {
                 // Don't do any work if the solution is closing
@@ -49,7 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     // Un-register this method, we only need to send this once.
                     _projectManager!.Changed -= ProjectSnapshotManager_Changed;
-                    _ = SendRequestAsync(_clientNotifierService);
+                    var response = await _clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
+                    await response.ReturningVoid(cancellationToken);
 
                     _hasNotified = true;
                 }
@@ -57,12 +63,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             catch (Exception ex)
             {
                 _projectManager?.ReportError(ex);
-            }
-
-            static async Task SendRequestAsync(ClientNotifierServiceBase clientNotifierService)
-            {
-                var response = await clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
-                await response.ReturningVoid(CancellationToken.None);
             }
         }
     }

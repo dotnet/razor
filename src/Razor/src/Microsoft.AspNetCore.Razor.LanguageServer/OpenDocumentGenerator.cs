@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
@@ -48,6 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
+        private ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was called because {nameof(Initialize)}");
+
         public TimeSpan Delay { get; set; } = TimeSpan.Zero;
 
         public bool IsScheduledOrRunning => _timer != null;
@@ -71,11 +74,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _projectManager = projectManager;
 
-            _projectManager.Changed += ProjectSnapshotManager_Changed;
+            ProjectManager.Changed += ProjectSnapshotManager_Changed;
 
             foreach (var documentProcessedListener in _documentProcessedListeners)
             {
-                documentProcessedListener.Initialize(_projectManager);
+                documentProcessedListener.Initialize(ProjectManager);
             }
         }
 
@@ -123,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (!_projectManager!.IsDocumentOpen(document.FilePath))
+            if (!ProjectManager.IsDocumentOpen(document.FilePath))
             {
                 // We don't parse closed documents
                 return;
@@ -151,6 +154,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void Timer_Tick(object state)
         {
+            _ = Timer_TickAsync(CancellationToken.None);
+        }
+
+        private async Task Timer_TickAsync(CancellationToken cancellationToken)
+        {
             try
             {
                 OnStartingBackgroundWork();
@@ -174,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var document = work[i].Value;
                     try
                     {
-                        _ = document.GetGeneratedOutputAsync().ConfigureAwait(false);
+                        await document.GetGeneratedOutputAsync().ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -186,9 +194,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 if (_documentProcessedListeners.Count != 0 && !_solutionIsClosing)
                 {
-                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
-                        CancellationToken.None).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 lock (_work)
@@ -302,8 +310,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ReportError(Exception ex)
         {
+            if (_projectManager is null)
+            {
+                return;
+            }
+
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectManager?.ReportError(ex),
+                () => _projectManager.ReportError(ex),
                 CancellationToken.None);
         }
     }

@@ -44,8 +44,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
+                _joinableTaskContext.AssertUIThread();
                 _joinableTaskContext.Factory.Run(async () => {
-                    _joinableTaskContext.AssertUIThread();
                     await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
                 });
             }

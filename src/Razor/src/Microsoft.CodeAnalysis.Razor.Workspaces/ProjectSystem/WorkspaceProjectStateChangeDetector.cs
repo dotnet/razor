@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Internal for testing, virtual for temporary VSCode workaround
         internal virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
+            _ = Workspace_WorkspaceChangedAsync(e, CancellationToken.None);
+        }
+
+        private async Task Workspace_WorkspaceChangedAsync(WorkspaceChangeEventArgs e, CancellationToken cancellationToken)
+        {
             try
             {
                 // Method needs to be run on the project snapshot manager's specialized thread
@@ -108,19 +113,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 switch (e.Kind)
                 {
                     case WorkspaceChangeKind.ProjectAdded:
-                        _ =  _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 var project = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
-                        _ =  _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 var project = state.NewSolution.GetRequiredProject(state.ProjectId!);
@@ -128,11 +133,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
-                        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 var project = state.OldSolution.GetRequiredProject(state.ProjectId!);
@@ -143,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.ProjectId, e.OldSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
-                        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 // This is the case when a component declaration file changes on disk. We have an MSBuild
@@ -175,11 +180,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentRemoved:
-                        _ =  _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 var project = state.OldSolution.GetRequiredProject(state.ProjectId!);
@@ -205,12 +210,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentChanged:
                     case WorkspaceChangeKind.DocumentReloaded:
-                        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 // This is the case when a component declaration file changes on disk. We have an MSBuild
@@ -240,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.SolutionAdded:
@@ -248,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     case WorkspaceChangeKind.SolutionCleared:
                     case WorkspaceChangeKind.SolutionReloaded:
                     case WorkspaceChangeKind.SolutionRemoved:
-                        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                             static (state, _) =>
                             {
                                 if (state.oldProjectPaths != null)
@@ -265,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.InitializeSolution(state.NewSolution);
                             },
                             (self: this, oldProjectPaths: e.OldSolution?.Projects.Select(p => p?.FilePath), e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
                 }
 

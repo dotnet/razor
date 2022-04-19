@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,11 +146,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 else
                 {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     var loader = textLoader is null
                         ? DocumentState.EmptyLoader
-                        : (() => textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, CancellationToken.None));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                        : (() => textLoader.LoadTextAndVersionAsync(Workspace, documentId: null, CancellationToken.None));
                     var state = entry.State.WithAddedHostDocument(document, loader);
 
                     // Document updates can no-op.
@@ -256,11 +256,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 else
                 {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     var state = entry.State.WithChangedHostDocument(
                         older.HostDocument,
-                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, cancellationToken: default));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: def, cancellationToken: default));
 
                     _openDocuments.Remove(documentFilePath);
 
@@ -340,11 +338,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 else
                 {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     var state = entry.State.WithChangedHostDocument(
                         older.HostDocument,
                         async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, cancellationToken: default));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
                     // Document updates can no-op.
                     if (!ReferenceEquals(state, entry.State))

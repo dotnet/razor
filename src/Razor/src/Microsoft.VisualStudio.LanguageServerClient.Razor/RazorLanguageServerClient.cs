@@ -219,7 +219,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             try
             {
-                _joinableTaskContext.Factory.Run(async () => {
+                _joinableTaskContext.Factory.Run(async () =>
+                {
                     var parameter = new MonitorProjectConfigurationFilePathParams()
                     {
                         ProjectFilePath = args.ProjectFilePath,

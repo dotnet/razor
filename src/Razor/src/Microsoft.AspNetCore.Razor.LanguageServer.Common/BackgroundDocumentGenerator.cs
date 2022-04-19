@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -147,6 +148,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void Timer_Tick(object state)
         {
+            _ = Timer_TickAsync(CancellationToken.None);
+        }
+
+        private async Task Timer_TickAsync(CancellationToken cancellationToken)
+        {
             try
             {
                 OnStartingBackgroundWork();
@@ -170,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     var document = work[i].Value;
                     try
                     {
-                        _ = document.GetGeneratedOutputAsync();
+                        await document.GetGeneratedOutputAsync();
                     }
                     catch (Exception ex)
                     {
@@ -182,9 +188,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 if (!_solutionIsClosing)
                 {
-                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
-                        CancellationToken.None).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 lock (_work)
@@ -316,8 +322,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ReportError(Exception ex)
         {
+            if (_projectManager is null)
+            {
+                return;
+            }
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectManager?.ReportError(ex),
+                () => _projectManager.ReportError(ex),
                 CancellationToken.None).ConfigureAwait(false);
         }
     }

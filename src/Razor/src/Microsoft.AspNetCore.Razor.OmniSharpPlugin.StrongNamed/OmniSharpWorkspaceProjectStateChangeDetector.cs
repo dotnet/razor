@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -45,19 +46,24 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             // that abnormality.
             protected override void InitializeSolution(Solution solution)
             {
-                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                _ = InitializeSolutionAsync(solution, CancellationToken.None);
+            }
+
+            private async Task InitializeSolutionAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
-                        try
-                        {
-                            base.InitializeSolution(solution);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Fail("Unexpected error when initializing solution: " + ex);
-                        }
+                        base.InitializeSolution(solution);
                     },
-                    CancellationToken.None).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Fail("Unexpected error when initializing solution: " + ex);
+                }
             }
 
             // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the project snapshot manager's
@@ -66,19 +72,24 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             // that abnormality.
             internal override void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
             {
-                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                _ = Workspace_WorkspaceChangedAsync(sender, args, CancellationToken.None);
+            }
+
+            private async Task Workspace_WorkspaceChangedAsync(object sender, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
-                        try
-                        {
-                            base.Workspace_WorkspaceChanged(sender, args);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
-                        }
+                        base.Workspace_WorkspaceChanged(sender, args);
                     },
                     CancellationToken.None).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
+                }
             }
         }
     }
