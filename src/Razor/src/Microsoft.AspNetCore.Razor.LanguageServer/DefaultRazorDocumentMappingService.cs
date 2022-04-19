@@ -476,7 +476,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, out Range? originalRange)
+        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
         {
             originalRange = default;
 
