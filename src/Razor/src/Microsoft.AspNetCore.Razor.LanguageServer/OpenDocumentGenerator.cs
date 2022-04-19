@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
-        private ProjectSnapshotManagerBase? _projectManager;
-        private Timer? _timer;
+        private ProjectSnapshotManagerBase _projectManager;
+        private Timer _timer;
         private bool _solutionIsClosing;
 
         public OpenDocumentGenerator(
@@ -56,19 +58,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public bool IsScheduledOrRunning => _timer != null;
 
         // Used in tests to ensure we can control when background work starts.
-        public ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
+        public ManualResetEventSlim BlockBackgroundWorkStart { get; set; }
 
         // Used in tests to ensure we can know when background work finishes.
-        public ManualResetEventSlim? NotifyBackgroundWorkStarting { get; set; }
+        public ManualResetEventSlim NotifyBackgroundWorkStarting { get; set; }
 
         // Used in unit tests to ensure we can know when background has captured its current workload.
-        public ManualResetEventSlim? NotifyBackgroundCapturedWorkload { get; set; }
+        public ManualResetEventSlim NotifyBackgroundCapturedWorkload { get; set; }
 
         // Used in tests to ensure we can control when background work completes.
-        public ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
+        public ManualResetEventSlim BlockBackgroundWorkCompleting { get; set; }
 
         // Used in tests to ensure we can know when background work finishes.
-        public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
+        public ManualResetEventSlim NotifyBackgroundWorkCompleted { get; set; }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
         {

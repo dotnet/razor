@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 sdkVersion: default);
 
             // Act
-            await msbuildProjectManager.ProjectLoadedAsync(args);
+            await msbuildProjectManager.ProjectLoadedAsync(args, System.Threading.CancellationToken.None);
 
             // Assert
             var project = await RunOnDispatcherThreadAsync(() => Assert.Single(projectManager.Projects)).ConfigureAwait(false);

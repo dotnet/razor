@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     // The implementation will create a ProjectSnapshot for each HostProject.
     internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     {
-        public override event EventHandler<ProjectChangeEventArgs>? Changed;
+        public override event EventHandler<ProjectChangeEventArgs> Changed;
 
         private readonly ErrorReporter _errorReporter;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override Workspace Workspace { get; }
 
-        public override ProjectSnapshot? GetLoadedProject(string filePath!!)
+        public override ProjectSnapshot GetLoadedProject(string filePath!!)
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     var state = entry.State.WithChangedHostDocument(
                         older.HostDocument,
-                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: def, cancellationToken: default));
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: null, cancellationToken: default));
 
                     _openDocuments.Remove(documentFilePath);
 
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _errorReporter.ReportError(exception, snapshot);
         }
 
-        private void NotifyListeners(ProjectSnapshot? older, ProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
+        private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
         {
             NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
         }
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class Entry
         {
-            private ProjectSnapshot? _snapshotUnsafe;
+            private ProjectSnapshot _snapshotUnsafe;
             public readonly ProjectState State;
 
             public Entry(ProjectState state)
