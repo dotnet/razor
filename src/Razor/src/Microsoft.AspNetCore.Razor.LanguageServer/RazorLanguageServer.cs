@@ -124,6 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
+                    .WithHandler<SemanticTokensRefreshEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()

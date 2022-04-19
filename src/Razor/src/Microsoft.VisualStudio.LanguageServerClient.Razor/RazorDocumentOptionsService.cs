@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -27,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document!!, CancellationToken cancellationToken)
         {
-
             // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
             var editorSettings = _optionsMonitor.EditorSettings;
             return Task.FromResult<IRazorDocumentOptions>(new RazorDocumentOptions(document, editorSettings));
