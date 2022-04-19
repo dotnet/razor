@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
                 {
-                    TriggerCharacters = new[] { "'", "/", "\n" }
+                    TriggerCharacters = new[] { "'", "/", "\n", "=" }
                 },
                 HoverProvider = true,
                 DefinitionProvider = true,
@@ -299,7 +299,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var purposefullyRemovedTriggerCharacters = new[]
             {
                 ">", // https://github.com/dotnet/aspnetcore-tooling/pull/3797
-                "=", // https://github.com/dotnet/aspnetcore/issues/33677
                 "-", // Typically used to auto-insert HTML comments, now provided by language-configuration.json
             };
             triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
