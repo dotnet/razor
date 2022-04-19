@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly object _compactLock;
         private readonly int _sizeLimit;
 
-        public MemoryCache(int sizeLimit = DefaultSizeLimit)
+        public MemoryCache(int sizeLimit = DefaultSizeLimit, int concurrencyLevel = 2)
         {
             _sizeLimit = sizeLimit;
-            _dict = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel: 2, capacity: _sizeLimit);
+            _dict = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel, capacity: _sizeLimit);
             _compactLock = new object();
         }
 
@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Razor
                 Value = value,
             };
         }
+
+        public void Clear() => _dict.Clear();
 
         protected virtual void Compact()
         {

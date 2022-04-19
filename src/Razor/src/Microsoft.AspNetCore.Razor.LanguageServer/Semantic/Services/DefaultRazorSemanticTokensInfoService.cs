@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -33,23 +34,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
+        private readonly SemanticTokensCacheService _tokensCacheService;
         private readonly ILogger _logger;
 
-        private readonly SemanticTokensCache _tokensCache = new();
-
         public DefaultRazorSemanticTokensInfoService(
-            ClientNotifierServiceBase languageServer!!,
-            RazorDocumentMappingService documentMappingService!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            DocumentVersionCache documentVersionCache!!,
-            ILoggerFactory loggerFactory!!)
+            ClientNotifierServiceBase languageServer,
+            RazorDocumentMappingService documentMappingService,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            DocumentVersionCache documentVersionCache,
+            SemanticTokensCacheService tokensCacheService,
+            ILoggerFactory loggerFactory)
         {
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (documentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingService));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
+            }
+
+            if (tokensCacheService is null)
+            {
+                throw new ArgumentNullException(nameof(tokensCacheService));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _languageServer = languageServer;
             _documentMappingService = documentMappingService;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
+            _tokensCacheService = tokensCacheService;
+
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
 
@@ -86,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
             // See if we can use our cache to at least partially avoid recomputation.
-            if (!_tokensCache.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, _logger, out var cachedResult))
+            if (!_tokensCacheService.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, _logger, out var cachedResult))
             {
                 // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
                 // results to use next time around.
@@ -358,7 +396,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (isCSharpFinalized && tokens is not null)
             {
-                _tokensCache.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
+                _tokensCacheService.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
             }
 
             return tokens;

@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 {
     /// <summary>
     /// Caches tokens on a per-line basis for documents based on semantic version.
@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     /// <remarks>
     /// The cache makes the assumption that the tokens passed in are complete for the given range.
     /// </remarks>
-    internal sealed class SemanticTokensCache
+    internal sealed class DefaultSemanticTokensCacheService : SemanticTokensCacheService
     {
         // A semantic token is composed of 5 integers: deltaLine, deltaStart, length, tokenType, tokenModifiers
         private const int IntegersPerToken = 5;
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly object _dictLock = new();
 
         // Nested cache mapping (URI -> (semanticVersion -> (line #s -> tokens on line)))
-        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>> _cache = new(MaxDocumentLimit);
+        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>> _cache = new(MaxDocumentLimit, concurrencyLevel: 1);
 
         /// <summary>
         /// Caches tokens on a per-line basis. If the given line has already been cached for the document
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="semanticVersion">The document's semantic version associated with the passed-in tokens.</param>
         /// <param name="range">The range associated with the passed-in tokens.</param>
         /// <param name="tokens">The complete set of tokens for the passed-in range.</param>
-        public void CacheTokens(
+        public override void CacheTokens(
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range range,
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (!_cache.TryGetValue(uri, out var documentCache))
             {
-                documentCache = new MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>(sizeLimit: MaxSemanticVersionPerDoc);
+                documentCache = new MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>(sizeLimit: MaxSemanticVersionPerDoc, concurrencyLevel: 1);
                 _cache.Set(uri, documentCache);
             }
 
@@ -75,6 +75,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             CacheTokensPerLine(range, tokens, lineToTokensDict);
             FillInEmptyLineGaps(range, lineToTokensDict);
         }
+
+        public override void ClearCache() => _cache.Clear();
 
         /// <summary>
         /// Attempts to retrieve the cached tokens for a given document/semanticVersion/range. If the cache does
@@ -91,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// the requested range that was found, and the 'Tokens' out var contains the tokens for that subset range.
         /// No results will be returned if the requested range contains partial lines.
         /// </returns>
-        public bool TryGetCachedTokens(
+        public override bool TryGetCachedTokens(
             DocumentUri uri,
             VersionStamp semanticVersion,
             Range requestedRange,

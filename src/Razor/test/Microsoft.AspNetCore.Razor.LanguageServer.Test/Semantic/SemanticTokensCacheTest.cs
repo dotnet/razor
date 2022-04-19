@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Xunit;
@@ -185,8 +186,8 @@ public class SemanticTokensCacheTest
             fragment: null);
     }
 
-    private static SemanticTokensCache GetSemanticTokensCache()
+    private static DefaultSemanticTokensCacheService GetSemanticTokensCache()
     {
-        return new SemanticTokensCache();
+        return new DefaultSemanticTokensCacheService();
     }
 }

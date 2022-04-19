@@ -42,6 +42,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -248,6 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
                         // Other
+                        services.AddSingleton<SemanticTokensCacheService, DefaultSemanticTokensCacheService>();
                         services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();

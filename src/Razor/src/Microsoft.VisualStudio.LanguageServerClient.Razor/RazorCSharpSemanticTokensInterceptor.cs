@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,22 +23,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
 
         [ImportingConstructor]
-        public RazorCSharpSemanticTokensInterceptor(LSPRequestInvoker requestInvoker!!)
+        public RazorCSharpSemanticTokensInterceptor(LSPRequestInvoker requestInvoker)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
             _requestInvoker = requestInvoker;
         }
 
-        public override Task<InterceptionResult> ApplyChangesAsync(
+        public async override Task<InterceptionResult> ApplyChangesAsync(
             JToken message, string containedLanguageName, CancellationToken cancellationToken)
         {
             var refreshParams = new SemanticTokensRefreshParams();
-            _ = _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
+            await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
                 LanguageServerConstants.RazorSemanticTokensRefreshEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 refreshParams,
                 cancellationToken);
 
-            return Task.FromResult(new InterceptionResult(null, false));
+            return new InterceptionResult(newToken: null, changedDocumentUri: false);
         }
     }
 }
