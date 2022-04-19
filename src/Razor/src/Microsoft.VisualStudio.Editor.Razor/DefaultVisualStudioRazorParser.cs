@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override string FilePath => _documentTracker.FilePath;
 
-        public override RazorCodeDocument CodeDocument => _codeDocument ?? throw new InvalidOperationException($"{nameof(CodeDocument)} called before {nameof(_codeDocument)} was set");
+        public override RazorCodeDocument? CodeDocument => _codeDocument;
 
         public override ITextSnapshot Snapshot => _snapshot ?? throw new InvalidOperationException($"{nameof(Snapshot)} called before {nameof(_snapshot)} was set");
 
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Used in unit tests to ensure we can block background idle work.
         internal ManualResetEventSlim? BlockBackgroundIdleWork { get; set; }
 
-        internal override Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot!!, CancellationToken cancellationToken = default)
+        internal override Task<RazorCodeDocument?> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot!!, CancellationToken cancellationToken = default)
         {
             lock (_updateStateLock)
             {
@@ -315,6 +315,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             else
             {
                 var currentCodeDocument = CodeDocument;
+                if (currentCodeDocument is null)
+                {
+                    // CodeDocument should have been initialized but was not.
+                    Debug.Fail($"{nameof(CodeDocument)} should have been initialized but was not.");
+                    return;
+                }
+
                 var codeDocument = RazorCodeDocument.Create(currentCodeDocument.Source, currentCodeDocument.Imports);
 
                 foreach (var item in currentCodeDocument.Items)
@@ -590,14 +597,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
         internal class CodeDocumentRequest
         {
             private readonly object _completionLock = new();
-            private readonly TaskCompletionSource<RazorCodeDocument> _taskCompletionSource;
+            private readonly TaskCompletionSource<RazorCodeDocument?> _taskCompletionSource;
             private readonly CancellationTokenRegistration _cancellationTokenRegistration;
             private bool _done;
 
             public CodeDocumentRequest(ITextSnapshot snapshot!!, CancellationToken cancellationToken)
             {
                 Snapshot = snapshot;
-                _taskCompletionSource = new TaskCompletionSource<RazorCodeDocument>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _taskCompletionSource = new TaskCompletionSource<RazorCodeDocument?>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _cancellationTokenRegistration = cancellationToken.Register(Cancel);
                 Task = _taskCompletionSource.Task;
 
@@ -610,7 +617,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public ITextSnapshot Snapshot { get; }
 
-            public Task<RazorCodeDocument> Task { get; }
+            public Task<RazorCodeDocument?> Task { get; }
 
             public void Complete(RazorCodeDocument codeDocument!!)
             {
