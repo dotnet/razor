@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [ImportingConstructor]
         public RazorCSharpInterceptionMiddleLayer(InterceptorManager interceptorManager)
         {
-            _underlyingMiddleLayer = new InterceptionMiddleLayer(interceptorManager, "CSharp");
+            _underlyingMiddleLayer = new InterceptionMiddleLayer(interceptorManager, RazorLSPConstants.CSharpContentTypeName);
         }
 
         public bool CanHandle(string methodName)
