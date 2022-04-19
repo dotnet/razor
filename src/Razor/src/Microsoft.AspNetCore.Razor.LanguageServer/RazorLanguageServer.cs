@@ -218,9 +218,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Folding Range Providers
                         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
 
-                        // Disabling equals => `="|"` OnAutoInsert support until dynamic overtyping is a thing: https://github.com/dotnet/aspnetcore/issues/33677
-                        // services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
-
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
 
