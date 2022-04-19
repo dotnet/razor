@@ -140,8 +140,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 mappedRanges.AddRange(ranges);
             }
 
-            var finalRanges = mappedRanges.Select(r => FixFoldingRangeStart(r, codeDocument)).ToImmutableArray();
+            var finalRanges = FinalizeFoldingRanges(mappedRanges, codeDocument);
             return new Container<FoldingRange>(finalRanges);
+        }
+
+        private IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
+        {
+            // Don't allow ranges to be reported if they aren't spanning at least one line
+            var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
+
+            // Reduce ranges that have the same start line to be a single instance with the largest
+            // range available, since only one button can be shown to collapse per line
+            var reducedRanges = validRanges
+                .GroupBy(r => r.StartLine)
+                .Select(ranges => ranges.OrderByDescending(r => r.EndLine).First());
+
+            // Fix the starting range so the "..." is shown at the end
+            return reducedRanges.Select(r => FixFoldingRangeStart(r, codeDocument));
         }
 
         /// <summary>
