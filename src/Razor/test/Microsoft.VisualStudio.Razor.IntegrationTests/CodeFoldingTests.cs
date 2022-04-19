@@ -21,20 +21,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             public int End { get; set; }
         }
 
-        private async Task<ICollapsible[]> GetOutlineRegionsAsync(Text.Editor.IWpfTextView textView)
-        {
-            await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var outliningService = await TestServices.Shell.GetComponentModelServiceAsync<IOutliningManagerService>(HangMitigatingCancellationToken);
-            var manager = outliningService.GetOutliningManager(textView);
-            var span = new SnapshotSpan(textView.TextSnapshot, 0, textView.TextSnapshot.Length);
-
-            var outlines = manager.GetAllRegions(span);
-
-            return outlines
-                    .OrderBy(s => s.Extent.GetStartPoint(textView.TextSnapshot))
-                    .ToArray();
-        }
-
         private async Task AssertFoldableBlocksAsync(params string[] blockTexts)
         {
             var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
@@ -59,7 +45,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             while (tries++ < MaxTries)
             {
                 textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
-                outlines = await GetOutlineRegionsAsync(textView);
+                outlines = await TestServices.Editor.GetOutlineRegionsAsync(textView, HangMitigatingCancellationToken);
 
                 (missingLines, var extraLines) = GetOutlineDiff(outlines, foldableSpans, textView);
                 if (missingLines.Length == 0)
@@ -288,6 +274,5 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     #endregion
 }");
         }
-
     }
 }

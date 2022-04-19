@@ -67,6 +67,17 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             await TestServices.Editor.SetTextAsync(input, HangMitigatingCancellationToken);
 
+            // Wait for the document to settle
+            if (testFileName == "FormatAndUndo.cshtml")
+            {
+                // This doesn't have anything to outline so we'll wait for semantic colors
+                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "method name");
+            }
+            else
+            {
+                await TestServices.Editor.WaitForOutlineRegionsAsync(HangMitigatingCancellationToken);
+            }
+
             // Act
             await TestServices.Editor.InvokeFormatDocumentAsync(HangMitigatingCancellationToken);
 
