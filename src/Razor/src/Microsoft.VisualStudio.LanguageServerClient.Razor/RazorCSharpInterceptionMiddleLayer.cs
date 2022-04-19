@@ -5,14 +5,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(IRazorCSharpInterceptionMiddleLayer))]
-    internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMiddleLayer, ILanguageClientMiddleLayer
+    internal class RazorCSharpInterceptionMiddleLayer : IRazorCSharpInterceptionMiddleLayer
     {
         private readonly InterceptionMiddleLayer _underlyingMiddleLayer;
 
