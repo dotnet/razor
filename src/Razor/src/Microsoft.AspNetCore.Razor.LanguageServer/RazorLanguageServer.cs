@@ -118,6 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
                     .WithHandler<RazorCompletionEndpoint>()
+                    .WithHandler<RazorCompletionResolveEndpoint>()
                     .WithHandler<RazorHoverEndpoint>()
                     .WithHandler<RazorLanguageEndpoint>()
                     .WithHandler<RazorDiagnosticsEndpoint>()
@@ -202,6 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
                         // Completion
+                        services.AddSingleton<CompletionListCache>();
                         services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
