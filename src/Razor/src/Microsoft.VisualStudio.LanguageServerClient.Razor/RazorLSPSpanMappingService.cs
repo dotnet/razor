@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,6 +15,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {

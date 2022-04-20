@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 

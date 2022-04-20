@@ -5,6 +5,7 @@
 
 using System;
 using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {

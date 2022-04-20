@@ -14,6 +14,7 @@
     <Import assembly="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
+    <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
     <Import assembly="MediatR.dll" />
     <Import assembly="OmniSharp.Extensions.JsonRpc.dll" />
     <Import assembly="OmniSharp.Extensions.LanguageProtocol.dll" />
@@ -43,7 +44,7 @@
     <Addin id="::MonoDevelop.Core" version="17.0" />
     <Addin id="::MonoDevelop.Ide" version="17.0" />
   </Dependencies>
-  
+
   <!-- MEF catalog -->
   <Extension path="/MonoDevelop/Ide/Composition">
     <Assembly file="Microsoft.VisualStudio.Editor.Razor.dll" />

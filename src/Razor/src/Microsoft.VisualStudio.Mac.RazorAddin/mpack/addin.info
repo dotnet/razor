@@ -14,6 +14,7 @@
     <Import assembly="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
+    <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
     <Import assembly="MediatR.dll" />
     <Import assembly="OmniSharp.Extensions.JsonRpc.dll" />
     <Import assembly="OmniSharp.Extensions.LanguageProtocol.dll" />
