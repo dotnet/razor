@@ -162,19 +162,21 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private void Document_ChangedInEditor(object sender, EventArgs e)
         {
+            _ = Document_ChangedInEditorAsync(sender, e, CancellationToken.None);
+        }
+
+        private async Task Document_ChangedInEditorAsync(object sender, EventArgs e, CancellationToken cancellationToken)
+        {
             try
             {
-                _joinableTaskContext.Factory.Run(async () =>
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
-                    // This event is called by the EditorDocumentManager, which runs on the UI thread.
-                    // However, due to accessing the project snapshot manager, we need to switch to
-                    // running on the project snapshot manager's specialized thread.
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-                    {
-                        var document = (EditorDocument)sender;
-                        ProjectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
-                    }, CancellationToken.None).ConfigureAwait(false);
-                });
+                    var document = (EditorDocument)sender;
+                    ProjectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                }, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

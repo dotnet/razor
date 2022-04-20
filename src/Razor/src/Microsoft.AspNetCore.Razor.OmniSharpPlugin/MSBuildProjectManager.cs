@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        public OmniSharpProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} called before {nameof(Initialize)}");
+        public OmniSharpProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager!!)
         {

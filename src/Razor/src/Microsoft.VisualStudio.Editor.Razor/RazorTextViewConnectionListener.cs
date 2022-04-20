@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -32,6 +34,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
+            _ = SubjectBuffersConnectedAsync(textView, reason, subjectBuffers, CancellationToken.None);
+        }
+
+        private async Task SubjectBuffersConnectedAsync(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers, CancellationToken cancellationToken)
+        {
             try
             {
                 if (textView is null)
@@ -45,9 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 }
 
                 _joinableTaskContext.AssertUIThread();
-                _joinableTaskContext.Factory.Run(async () => {
-                    await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
-                });
+                await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
             }
             catch (Exception ex)
             {

@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was called because {nameof(Initialize)}");
+        private ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
         public TimeSpan Delay { get; set; } = TimeSpan.Zero;
 

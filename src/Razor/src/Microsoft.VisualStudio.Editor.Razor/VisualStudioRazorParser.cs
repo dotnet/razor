@@ -19,8 +19,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract RazorCodeDocument CodeDocument { get; }
 
-        public abstract ITextSnapshot Snapshot { get; }
-
         public abstract ITextBuffer TextBuffer { get; }
 
         public abstract bool HasPendingChanges { get; }

@@ -81,8 +81,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override RazorCodeDocument? CodeDocument => _codeDocument;
 
-        public override ITextSnapshot Snapshot => _snapshot ?? throw new InvalidOperationException($"{nameof(Snapshot)} called before {nameof(_snapshot)} was set");
-
         public override ITextBuffer TextBuffer => _documentTracker.TextBuffer;
 
         public override bool HasPendingChanges => _latestChangeReference != null;
@@ -428,16 +426,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
         {
+            _ = OnResultsReadyAsync(args, CancellationToken.None);
+        }
+
+        private async Task OnResultsReadyAsync(BackgroundParserResultsReadyEventArgs args, CancellationToken cancellationToken)
+        {
             try
             {
-                _joinableTaskContext.Factory.Run(async () =>
-                {
-                    UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
+                UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
-                    // Jump back to UI thread to notify structure changes.
-                    await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-                    OnDocumentStructureChanged(args);
-                });
+                // Jump back to UI thread to notify structure changes.
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
+                OnDocumentStructureChanged(args);
             }
             catch (Exception ex)
             {
