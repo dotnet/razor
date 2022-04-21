@@ -133,6 +133,8 @@ Welcome to your new app.
 
             static async Task CollectLogHubAsync(IEnumerable<string> files, string destination)
             {
+                // What's important in this weird threading stuff is ensuring we vacate the thread RazorLogHubLogger was called on
+                // because if we don't it ends up blocking the thread that creates the zip file we need.
                 await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     foreach (var file in files)
