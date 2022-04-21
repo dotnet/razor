@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Microsoft.VisualStudio.Shell;
 using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
@@ -109,49 +110,61 @@ Welcome to your new app.
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
 
-            void RazorLogHubLogger(string filePath)
+            static void RazorLogHubLogger(string filePath)
             {
-                // We need to get off our current thread because we're blocking it from writing out any of the files that don't already exist.
-                // Generally we want to avoid _ = Task.Run, but this is test code, run AFTER a faillure already, that can't return a task but needs to run async code, so we're a bit against the wall.
-                // JoinableTaskFactory.Run isn't an option because we might be disposing already (saw it happen).
-                _ = Task.Run(async () =>
+                var componentModel = GlobalServiceProvider.ServiceProvider.GetService<SComponentModel, IComponentModel>();
+                if (componentModel is null)
                 {
-                    var componentModel = await TestServices.Shell.GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(HangMitigatingCancellationToken);
-                    var feedbackFileProviders = componentModel.GetExtensions<IFeedbackDiagnosticFileProvider>();
+                    // Unable to get componentModel
+                    return;
+                }
 
-                    // Collect all the file names first since they can kick of file creation events that might need extra time to resolve.
-                    var files = new List<string>();
-                    foreach (var feedbackFileProvider in feedbackFileProviders)
-                    {
-                        files.AddRange(feedbackFileProvider.GetFiles());
-                    }
+                var feedbackFileProviders = componentModel.GetExtensions<IFeedbackDiagnosticFileProvider>();
 
+                // Collect all the file names first since they can kick of file creation events that might need extra time to resolve.
+                var files = new List<string>();
+                foreach (var feedbackFileProvider in feedbackFileProviders)
+                {
+                    files.AddRange(feedbackFileProvider.GetFiles());
+                }
+
+                _ = CollectLogHubAsync(files, filePath);
+            }
+
+            static async Task CollectLogHubAsync(IEnumerable<string> files, string destination)
+            {
+                await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
                     foreach (var file in files)
                     {
                         var name = Path.GetFileName(file);
 
-                        WaitForFileExists(file);
                         // Only caputre loghub
                         if (name.Contains("LogHub") && Path.GetExtension(file) == ".zip")
                         {
-                            if (File.Exists(file))
+                            await Task.Run(() =>
                             {
-                                File.Copy(file, filePath);
-                            }
+                                WaitForFileExistsAsync(file);
+                                if (File.Exists(file))
+                                {
+                                    File.Copy(file, destination);
+                                }
+                            });
                         }
-                    }
+                    }     
                 });
             }
 
-            void RazorOutputPaneLogger(string filePath)
+            static void RazorOutputPaneLogger(string filePath)
             {
-                // Generally we want to avoid _ = Task.Run, but this is test code, run AFTER a faillure already, that can't return a task but needs to run async code, so we're a bit against the wall.
-                // JoinableTaskFactory.Run isn't an option because we might be disposing already (saw it happen).
-                _ = Task.Run(async () =>
+                // JoinableTaskFactory.Run isn't an option because we might be disposing already.
+                // Don't use ThreadHelper.JoinableTaskFactory in test methods, but it's correct here.
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
                     try
                     {
-                        var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
+                        var testServices = await Extensibility.Testing.TestServices.CreateAsync(ThreadHelper.JoinableTaskFactory);
+                        var paneContent = await testServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
                         File.WriteAllText(filePath, paneContent);
                     }
                     catch (Exception)
@@ -160,19 +173,19 @@ Welcome to your new app.
                     }
                 });
             }
-        }
 
-        private static void WaitForFileExists(string file)
-        {
-            const int MaxRetries = 20;
-            var retries = 0;
-            while (!File.Exists(file) && retries < MaxRetries)
+            static void WaitForFileExistsAsync(string file)
             {
-                retries++;
-                // Free your thread
-                Thread.Yield();
-                // Wait a bit
-                Thread.Sleep(100);
+                const int MaxRetries = 50;
+                var retries = 0;
+                while (!File.Exists(file) && retries < MaxRetries)
+                {
+                    retries++;
+                    // Free your thread
+                    Thread.Yield();
+                    // Wait a bit
+                    Thread.Sleep(100);
+                }
             }
         }
 
@@ -180,7 +193,7 @@ Welcome to your new app.
         private static string CreateLogFileName(string logId, string extension)
         {
             var dataCollectionServiceType = typeof(DataCollectionService);
-            var getLogDirectoryMethod = dataCollectionServiceType.GetMethod("GetLogDirectory", System.Reflection.BindingFlags.Static);
+            var getLogDirectoryMethod = dataCollectionServiceType.GetMethod("GetLogDirectory", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
             var logDirectory = getLogDirectoryMethod.Invoke(obj: null, new object[] { });
 
             var createLogFileNameMethod = dataCollectionServiceType.GetMethod("CreateLogFileName", System.Reflection.BindingFlags.Static);
