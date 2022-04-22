@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger.LogError(exception, "Error thrown from LanguageServer");
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot project)
+        public override void ReportError(Exception exception, ProjectSnapshot? project)
         {
-            _logger.LogError(exception, $"Error thrown from project {project.FilePath}");
+            _logger.LogError(exception, $"Error thrown from project {project?.FilePath}");
         }
 
         public override void ReportError(Exception exception, Project workspaceProject)

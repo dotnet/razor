@@ -99,9 +99,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing, virtual for temporary VSCode workaround
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        internal async virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        internal virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            _ = Workspace_WorkspaceChangedAsync(e, CancellationToken.None);
+        }
+
+        private async Task Workspace_WorkspaceChangedAsync(WorkspaceChangeEventArgs e, CancellationToken cancellationToken)
         {
             try
             {
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.ProjectId, e.OldSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentRemoved:
@@ -207,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentChanged:
@@ -242,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.SolutionAdded:
@@ -267,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.InitializeSolution(state.NewSolution);
                             },
                             (self: this, oldProjectPaths: e.OldSolution?.Projects.Select(p => p?.FilePath), e.NewSolution),
-                            CancellationToken.None).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
                         break;
                 }
 
@@ -372,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                     if (associatedWorkspaceProject != null)
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         EnqueueUpdateOnProjectAndDependencies(associatedWorkspaceProject.Id, associatedWorkspaceProject, associatedWorkspaceProject.Solution, projectSnapshot);
                     }
 
@@ -472,10 +475,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public override ValueTask ProcessAsync(CancellationToken cancellationToken)
             {
-                var task = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-                {
-                    _workspaceStateGenerator.Update(_workspaceProject, _projectSnapshot, cancellationToken);
-                }, cancellationToken);
+                var task = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => _workspaceStateGenerator.Update(_workspaceProject, _projectSnapshot, cancellationToken),
+                    cancellationToken);
                 return new ValueTask(task);
             }
         }

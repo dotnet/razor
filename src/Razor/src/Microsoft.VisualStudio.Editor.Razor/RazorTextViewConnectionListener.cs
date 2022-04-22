@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -32,9 +32,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _documentManager = documentManager;
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        public async void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+        {
+            _ = SubjectBuffersConnectedAsync(textView, reason, subjectBuffers, CancellationToken.None);
+        }
+
+        private async Task SubjectBuffersConnectedAsync(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers, CancellationToken cancellationToken)
         {
             try
             {
@@ -58,9 +61,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        public async void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             try
             {
@@ -74,8 +75,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
-                _joinableTaskContext.AssertUIThread();
-                await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
+                _joinableTaskContext.Factory.Run(async () => {
+                    _joinableTaskContext.AssertUIThread();
+                    await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
+                });
             }
             catch (Exception ex)
             {

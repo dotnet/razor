@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,8 +35,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         internal ChangeReference _latestChangeReference;
         internal RazorSyntaxTreePartialParser _partialParser;
 
-        private readonly object _idleLock = new object();
-        private readonly object _updateStateLock = new object();
+        private readonly object _idleLock = new();
+        private readonly object _updateStateLock = new();
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly JoinableTaskContext _joinableTaskContext;
@@ -50,6 +51,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private ITextSnapshot _latestParsedSnapshot;
 
         // For testing only
+        [Obsolete("Testing Only")]
         internal DefaultVisualStudioRazorParser(RazorCodeDocument codeDocument)
         {
             _codeDocument = codeDocument;
@@ -147,7 +149,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Dispose()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             StopParser();
 
@@ -168,7 +170,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void DocumentTracker_ContextChanged(object sender, ContextChangeEventArgs args)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (!TryReinitializeParser())
             {
@@ -183,7 +185,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal bool TryReinitializeParser()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             StopParser();
 
@@ -200,9 +202,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
+        [MemberNotNull(nameof(_parser))]
         internal void StartParser()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             // Make sure any tests use the real thing or a good mock. These tests can cause failures
             // that are hard to understand when this throws.
@@ -212,7 +215,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _projectEngine = _projectEngineFactory.Create(_documentTracker.ProjectSnapshot, ConfigureProjectEngine);
 
             Debug.Assert(_projectEngine != null);
-            Debug.Assert(_projectEngine.Engine != null);
+            Debug.Assert(_projectEngine!.Engine != null);
             Debug.Assert(_projectEngine.FileSystem != null);
 
             // We might not have a document snapshot in the case of an ephemeral project.
@@ -230,7 +233,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StopParser()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_parser != null)
             {
@@ -246,7 +249,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StartIdleTimer()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             lock (_idleLock)
             {
@@ -275,7 +278,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (args.Changes.Count > 0)
             {
@@ -288,14 +291,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             if (!args.TextChangeOccurred(out var changeInformation))
             {
                 // Ensure we get a parse for latest snapshot.
-                QueueChange(null, snapshot);
+                QueueChange(change: null, snapshot);
                 return;
             }
 
             var change = new SourceChange(changeInformation.firstChange.OldPosition, changeInformation.oldText.Length, changeInformation.newText);
             var result = PartialParseResultInternal.Rejected;
             RazorSyntaxTree partialParseSyntaxTree = null;
-            using (_parser.SynchronizeMainThreadState())
+            using (_parser!.SynchronizeMainThreadState())
             {
                 // Check if we can partial-parse
                 if (_partialParser != null && _parser.IsIdle)
@@ -312,6 +315,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             else
             {
                 var currentCodeDocument = CodeDocument;
+                if (currentCodeDocument is null)
+                {
+                    // CodeDocument should have been initialized but was not.
+                    Debug.Fail($"{nameof(CodeDocument)} should have been initialized but was not.");
+                    return;
+                }
+
                 var codeDocument = RazorCodeDocument.Create(currentCodeDocument.Source, currentCodeDocument.Imports);
 
                 foreach (var item in currentCodeDocument.Items)
@@ -332,7 +342,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnIdle()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -357,7 +367,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void ReparseOnUIThread()
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -365,12 +375,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             var snapshot = TextBuffer.CurrentSnapshot;
-            QueueChange(null, snapshot);
+            QueueChange(change: null, snapshot);
         }
 
         private void QueueChange(SourceChange change, ITextSnapshot snapshot)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             // _parser can be null if we're in the midst of rebuilding the internal parser (TagHelper refresh/solution teardown)
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
@@ -416,16 +426,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        internal async void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        internal void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
+        {
+            _ = OnResultsReadyAsync(args, CancellationToken.None);
+        }
+
+        private async Task OnResultsReadyAsync(BackgroundParserResultsReadyEventArgs args, CancellationToken cancellationToken)
         {
             try
             {
                 UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
                 // Jump back to UI thread to notify structure changes.
-                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
                 OnDocumentStructureChanged(args);
             }
             catch (Exception ex)
@@ -438,7 +451,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnDocumentStructureChanged(object state)
         {
-           _joinableTaskContext.AssertUIThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -585,7 +598,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal class CodeDocumentRequest
         {
-            private readonly object _completionLock = new object();
+            private readonly object _completionLock = new();
             private readonly TaskCompletionSource<RazorCodeDocument> _taskCompletionSource;
             private readonly CancellationTokenRegistration _cancellationTokenRegistration;
             private bool _done;
