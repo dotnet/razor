@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         /// <returns>The contents of the RLSC output pane.</returns>
         public async Task<string?> GetRazorOutputPaneContentAsync(CancellationToken cancellationToken)
         {
-            var outputPaneTextView = GetOutputPaneTextView(RazorPaneName);
+            var outputPaneTextView = await GetOutputPaneTextViewAsync(RazorPaneName, cancellationToken);
 
             if (outputPaneTextView is null)
             {
@@ -40,10 +40,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return await outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
         }
 
-        private static IVsTextView? GetOutputPaneTextView(string paneName)
+        private async Task<IVsTextView?> GetOutputPaneTextViewAsync(string paneName, CancellationToken cancellationToken)
         {
-            var sVSOutputWindow = ServiceProvider.GlobalProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
-            var extensibleObject = ServiceProvider.GlobalProvider.GetService<SVsOutputWindow, IVsExtensibleObject>();
+            var sVSOutputWindow = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken);
+            var extensibleObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsExtensibleObject>(cancellationToken);
 
             // The null propName gives use the OutputWindow object
             ErrorHandler.ThrowOnFailure(extensibleObject.GetAutomationObject(pszPropName: null, out var outputWindowObj));
