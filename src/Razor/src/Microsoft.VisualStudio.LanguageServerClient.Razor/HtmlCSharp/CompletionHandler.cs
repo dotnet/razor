@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -111,9 +112,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectedDocumentUri = projectionResult.Uri;
             var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
             var languageServerName = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.RazorCSharpLanguageServerName : RazorLSPConstants.HtmlLanguageServerName;
-
-            var (succeeded, result) = await TryGetProvisionalCompletionsAsync(request, documentSnapshot, projectionResult, cancellationToken).ConfigureAwait(false);
-            if (succeeded)
+            SumType<CompletionItem[], CompletionList>? result = null;
+            var provisionalCompletionResult = await TryGetProvisionalCompletionsAsync(request, documentSnapshot, projectionResult, cancellationToken).ConfigureAwait(false);
+            if (provisionalCompletionResult.Success)
             {
                 // This means the user has just typed a dot after some identifier such as (cursor is pipe): "DateTime.| "
                 // In this case Razor interprets after the dot as Html and before it as C#.
@@ -121,7 +122,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 serverKind = LanguageServerKind.CSharp;
                 if (documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocumentSnapshot))
                 {
+                    result = provisionalCompletionResult.Result;
                     projectedDocumentUri = csharpVirtualDocumentSnapshot.Uri;
+                    projectionResult = provisionalCompletionResult.ProvisionalProjection;
+                    projectedPosition = projectionResult!.Position;
                 }
                 else
                 {
@@ -171,7 +175,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (TryConvertToCompletionList(result, out var completionList))
             {
-
                 if (serverKind == LanguageServerKind.CSharp)
                 {
                     completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent.Value, completionList);
@@ -490,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return rewrittenContext;
         }
 
-        internal async Task<(bool, SumType<CompletionItem[], CompletionList>?)> TryGetProvisionalCompletionsAsync(
+        internal async Task<ProvisionalCompletionResult> TryGetProvisionalCompletionsAsync(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
             ProjectionResult projection,
@@ -503,14 +506,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 request.Context.TriggerCharacter != ".")
             {
                 _logger.LogInformation("Invalid provisional completion context.");
-                return (false, result);
+                return default;
             }
 
             if (projection.Position.Character == 0)
             {
                 // We're at the start of line. Can't have provisional completions here.
                 _logger.LogInformation("Start of line, invalid completion location.");
-                return (false, result);
+                return default;
             }
 
             var previousCharacterPosition = new Position(projection.Position.Line, projection.Position.Character - 1);
@@ -523,13 +526,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 previousCharacterProjection.HostDocumentVersion is null)
             {
                 _logger.LogInformation($"Failed to find previous char projection in {previousCharacterProjection?.LanguageKind:G} at version {previousCharacterProjection?.HostDocumentVersion}.");
-                return (false, result);
+                return default;
             }
 
             if (_documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
             {
                 _logger.LogInformation("Not a tracking document manager.");
-                return (false, result);
+                return default;
             }
 
             // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
@@ -571,11 +574,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
                 {
-                    return (false, result);
+                    return default;
                 }
 
+                var provisionalProjection = new ProjectionResult()
+                {
+                    HostDocumentVersion = previousCharacterProjection.HostDocumentVersion,
+                    LanguageKind = RazorLanguageKind.CSharp,
+                    Position = new Position(
+                        line: previousCharacterProjection.Position.Line,
+                        character: previousCharacterProjection.Position.Character + 1 /* +1 for provisional dot */),
+                    PositionIndex = previousCharacterProjection.PositionIndex + 1 /* +1 for provisional dot */,
+                    Uri = previousCharacterProjection.Uri,
+                };
+
                 _logger.LogInformation("Found provisional completion.");
-                return (true, result);
+                return new ProvisionalCompletionResult(Success: true, provisionalProjection, result);
             }
             finally
             {
@@ -857,5 +871,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             public int GetHashCode(CompletionItem obj) => obj?.Label?.GetHashCode() ?? 0;
         }
+
+        // Internal for testing
+        internal record struct ProvisionalCompletionResult(
+            bool Success,
+            ProjectionResult? ProvisionalProjection,
+            SumType<CompletionItem[], CompletionList>? Result);
     }
 }
