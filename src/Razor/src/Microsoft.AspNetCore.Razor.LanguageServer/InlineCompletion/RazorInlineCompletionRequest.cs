@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Runtime.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
