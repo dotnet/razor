@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -153,7 +154,7 @@ Welcome to your new app.
                                 }
                             });
                         }
-                    }     
+                    }
                 });
             }
 
@@ -195,10 +196,10 @@ Welcome to your new app.
         private static string CreateLogFileName(string logId, string extension)
         {
             var dataCollectionServiceType = typeof(DataCollectionService);
-            var getLogDirectoryMethod = dataCollectionServiceType.GetMethod("GetLogDirectory", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var getLogDirectoryMethod = dataCollectionServiceType.GetMethod("GetLogDirectory", BindingFlags.Static | BindingFlags.NonPublic);
             var logDirectory = getLogDirectoryMethod.Invoke(obj: null, new object[] { });
 
-            var createLogFileNameMethod = dataCollectionServiceType.GetMethod("CreateLogFileName", System.Reflection.BindingFlags.Static);
+            var createLogFileNameMethod = dataCollectionServiceType.GetMethod("CreateLogFileName", BindingFlags.Static | BindingFlags.NonPublic);
             var timestamp = DateTimeOffset.UtcNow;
             var testName = "TestInitialization";
             var errorId = "InitializationError";
