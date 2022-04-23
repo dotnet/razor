@@ -128,9 +128,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
-                SemanticTokensCacheService tokensCacheService,
+                SemanticTokensCacheService semanticTokensCacheService,
+                WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher,
                 LoggerFactory loggerFactory) :
-                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, tokensCacheService, loggerFactory)
+                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, semanticTokensCacheService, semanticTokensRefreshPublisher, loggerFactory)
             {
             }
 

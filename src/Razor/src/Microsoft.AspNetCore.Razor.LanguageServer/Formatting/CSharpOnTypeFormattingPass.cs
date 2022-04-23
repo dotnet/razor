@@ -61,8 +61,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
 
                 // Ask C# for formatting changes.
+#pragma warning disable CS0618 // Type or member is obsolete
                 var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                     context.CSharpWorkspaceDocument, typedChar: context.TriggerCharacter, projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (formattingChanges.IsEmpty)
                 {

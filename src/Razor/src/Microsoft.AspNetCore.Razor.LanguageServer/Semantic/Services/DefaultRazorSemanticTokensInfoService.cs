@@ -34,7 +34,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
-        private readonly SemanticTokensCacheService _tokensCacheService;
+        private readonly SemanticTokensCacheService _semanticTokensCacheService;
+        private readonly WorkspaceSemanticTokensRefreshPublisher _semanticTokensRefreshPublisher;
         private readonly ILogger _logger;
 
         public DefaultRazorSemanticTokensInfoService(
@@ -43,7 +44,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
-            SemanticTokensCacheService tokensCacheService,
+            SemanticTokensCacheService semanticTokensCacheService,
+            WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher,
             ILoggerFactory loggerFactory)
         {
             if (languageServer is null)
@@ -71,9 +73,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
-            if (tokensCacheService is null)
+            if (semanticTokensCacheService is null)
             {
-                throw new ArgumentNullException(nameof(tokensCacheService));
+                throw new ArgumentNullException(nameof(semanticTokensCacheService));
+            }
+
+            if (semanticTokensRefreshPublisher is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensRefreshPublisher));
             }
 
             if (loggerFactory is null)
@@ -86,7 +93,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
-            _tokensCacheService = tokensCacheService;
+            _semanticTokensCacheService = semanticTokensCacheService;
+            _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher;
 
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
@@ -124,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
 
             // See if we can use our cache to at least partially avoid recomputation.
-            if (!_tokensCacheService.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, _logger, out var cachedResult))
+            if (!_semanticTokensCacheService.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, _logger, out var cachedResult))
             {
                 // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
                 // results to use next time around.
@@ -133,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 return tokens;
             }
-
+            
             var cachedRange = cachedResult.Value.Range;
             var cachedTokens = cachedResult.Value.Tokens;
 
@@ -396,7 +404,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (isCSharpFinalized && tokens is not null)
             {
-                _tokensCacheService.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
+                _semanticTokensCacheService.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
             }
 
             return tokens;
@@ -459,7 +467,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
 
             // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
-            // Unrecoverable, return default to indicate no change. It will retry in a bit.
+            // Unrecoverable, return default to indicate no change.
             if (csharpResponse is null)
             {
                 _logger.LogWarning($"Issue with retrieving C# response for Razor range: {razorRange}");
@@ -555,12 +563,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (csharpResponse is null)
             {
-                // C# isn't ready yet, don't make Razor wait for it
+                // C# isn't ready yet, don't make Razor wait for it. Queue up a refresh notification to ask the client
+                // to request us again in a bit.
+                _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
                 return SemanticTokensResponse.Default;
             }
             else if (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion)
             {
-                // No C# response or C# is out of sync with us. Unrecoverable, return null to indicate no change. It will retry in a bit.
+                // No C# response or C# is out of sync with us. Unrecoverable, return null to indicate no change.
+                // Queue up a refresh notification to ask the client to request us again in a bit.
+                _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
                 return null;
             }
 

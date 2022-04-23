@@ -12,33 +12,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class SemanticTokensRefreshEndpoint : ISemanticTokensRefreshEndpoint
     {
-        private readonly WorkspaceSemanticTokensRefreshPublisher _workspaceSemanticTokensRefreshPublisher;
-        private readonly SemanticTokensCacheService _tokensCacheService;
+        private readonly WorkspaceSemanticTokensRefreshPublisher _semanticTokensRefreshPublisher;
+        private readonly SemanticTokensCacheService _semanticTokensCacheService;
 
         public SemanticTokensRefreshEndpoint(
-            WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher,
-            SemanticTokensCacheService tokensCacheService)
+            WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher,
+            SemanticTokensCacheService semanticTokensCacheService)
         {
-            if (workspaceSemanticTokensRefreshPublisher is null)
+            if (semanticTokensRefreshPublisher is null)
             {
-                throw new ArgumentNullException(nameof(workspaceSemanticTokensRefreshPublisher));
+                throw new ArgumentNullException(nameof(semanticTokensRefreshPublisher));
             }
 
-            if (tokensCacheService is null)
+            if (semanticTokensCacheService is null)
             {
-                throw new ArgumentNullException(nameof(tokensCacheService));
+                throw new ArgumentNullException(nameof(semanticTokensCacheService));
             }
 
-            _workspaceSemanticTokensRefreshPublisher = workspaceSemanticTokensRefreshPublisher;
-            _tokensCacheService = tokensCacheService;
+            _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher;
+            _semanticTokensCacheService = semanticTokensCacheService;
         }
 
         public Task<Unit> Handle(SemanticTokensRefreshParams request, CancellationToken cancellationToken)
         {
-            _workspaceSemanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
+            _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
 
             // We have to invalidate the tokens cache since it may no longer be up to date.
-            _tokensCacheService.ClearCache();
+            _semanticTokensCacheService.ClearCache();
 
             return Unit.Task;
         }

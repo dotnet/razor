@@ -828,6 +828,10 @@ things *@
 
             var semanticTokensCacheService = new DefaultSemanticTokensCacheService();
 
+            var testClient = new TestClient();
+            var errorReporter = new LanguageServerErrorReporter(loggingFactory);
+            var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(testClient, errorReporter);
+
             return new DefaultRazorSemanticTokensInfoService(
                 languageServer.Object,
                 documentMappingService,
@@ -835,6 +839,7 @@ things *@
                 documentResolver,
                 documentVersionCache.Object,
                 semanticTokensCacheService,
+                semanticTokensRefreshPublisher,
                 loggingFactory);
         }
 
