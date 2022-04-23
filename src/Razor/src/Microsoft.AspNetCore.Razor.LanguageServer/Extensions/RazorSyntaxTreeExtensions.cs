@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
     {
         public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree!!)
         {
-            var visitor = new FormattingVisitor(syntaxTree.Source);
+            var visitor = new FormattingVisitor();
             visitor.Visit(syntaxTree.Root);
 
             return visitor.FormattingSpans;
@@ -26,7 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
         public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree!!)
         {
-
             // We want all nodes of type RazorDirectiveSyntax which will contain code.
             // Since code block directives occur at the top-level, we don't need to dive deeper into unrelated nodes.
             var codeBlockDirectives = syntaxTree.Root

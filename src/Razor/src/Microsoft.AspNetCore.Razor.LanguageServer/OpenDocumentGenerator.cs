@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
@@ -50,6 +51,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
+        private ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
+
         public TimeSpan Delay { get; set; } = TimeSpan.Zero;
 
         public bool IsScheduledOrRunning => _timer != null;
@@ -73,11 +76,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _projectManager = projectManager;
 
-            _projectManager.Changed += ProjectSnapshotManager_Changed;
+            ProjectManager.Changed += ProjectSnapshotManager_Changed;
 
             foreach (var documentProcessedListener in _documentProcessedListeners)
             {
-                documentProcessedListener.Initialize(_projectManager);
+                documentProcessedListener.Initialize(ProjectManager);
             }
         }
 
@@ -125,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (!_projectManager.IsDocumentOpen(document.FilePath))
+            if (!ProjectManager.IsDocumentOpen(document.FilePath))
             {
                 // We don't parse closed documents
                 return;
@@ -147,13 +150,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (_timer is null)
             {
                 // Timer will fire after a fixed delay, but only once.
-                _timer = NonCapturingTimer.Create(Timer_Tick, null, Delay, Timeout.InfiniteTimeSpan);
+                _timer = NonCapturingTimer.Create(Timer_Tick, state: null, Delay, Timeout.InfiniteTimeSpan);
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void Timer_Tick(object state)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void Timer_Tick(object state)
+        {
+            _ = Timer_TickAsync(CancellationToken.None);
+        }
+
+        private async Task Timer_TickAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -192,13 +198,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
-                        CancellationToken.None).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 lock (_work)
                 {
                     // Resetting the timer allows another batch of work to start.
-                    _timer.Dispose();
+                    _timer?.Dispose();
                     _timer = null;
 
                     // If more work came in while we were running start the worker again.
@@ -249,7 +255,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 case ProjectChangeKind.ProjectChanged:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
                         {
                             var document = projectSnapshot.GetDocument(documentFilePath);
@@ -261,7 +267,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 case ProjectChangeKind.DocumentAdded:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         var document = projectSnapshot.GetDocument(args.DocumentFilePath);
 
                         // We don't enqueue the current document because added documents are by default closed.
@@ -276,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 case ProjectChangeKind.DocumentChanged:
                     {
-                        var projectSnapshot = args.Newer;
+                        var projectSnapshot = args.Newer!;
                         var document = projectSnapshot.GetDocument(args.DocumentFilePath);
                         Enqueue(document);
 
@@ -290,12 +296,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 case ProjectChangeKind.DocumentRemoved:
                     {
-                        var olderProject = args.Older;
+                        var olderProject = args.Older!;
                         var document = olderProject.GetDocument(args.DocumentFilePath);
 
                         foreach (var relatedDocument in olderProject.GetRelatedDocuments(document))
                         {
-                            var newerRelatedDocument = args.Newer.GetDocument(relatedDocument.FilePath);
+                            var newerRelatedDocument = args.Newer!.GetDocument(relatedDocument.FilePath);
                             Enqueue(newerRelatedDocument);
                         }
 
@@ -306,6 +312,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ReportError(Exception ex)
         {
+            if (_projectManager is null)
+            {
+                return;
+            }
+
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None);

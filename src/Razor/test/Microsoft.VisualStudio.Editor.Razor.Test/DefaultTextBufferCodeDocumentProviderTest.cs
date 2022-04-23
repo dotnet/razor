@@ -18,7 +18,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var expectedCodeDocument = TestRazorCodeDocument.Create("Hello World");
+#pragma warning disable CS0618 // Type or member is obsolete
             VisualStudioRazorParser parser = new DefaultVisualStudioRazorParser(expectedCodeDocument);
+#pragma warning restore CS0618 // Type or member is obsolete
             var properties = new PropertyCollection()
             {
                 [typeof(VisualStudioRazorParser)] = parser
@@ -38,7 +40,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void TryGetFromBuffer_FailsIfParserMissingCodeDocument()
         {
             // Arrange
+#pragma warning disable CS0618 // Type or member is obsolete
             VisualStudioRazorParser parser = new DefaultVisualStudioRazorParser(codeDocument: null);
+#pragma warning restore CS0618 // Type or member is obsolete
             var properties = new PropertyCollection()
             {
                 [typeof(VisualStudioRazorParser)] = parser

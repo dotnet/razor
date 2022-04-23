@@ -10,24 +10,25 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(IRazorDocumentOptionsService))]
     internal sealed class RazorDocumentOptionsService : IRazorDocumentOptionsService
     {
-        private readonly RazorLSPClientOptionsMonitor _optionsMonitor;
+        private readonly EditorSettingsManager _editorSettingsManager;
 
         [ImportingConstructor]
-        public RazorDocumentOptionsService(RazorLSPClientOptionsMonitor optionsMonitor!!)
+        public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager!!)
         {
-            _optionsMonitor = optionsMonitor;
+            _editorSettingsManager = editorSettingsManager;
         }
 
         public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document!!, CancellationToken cancellationToken)
         {
             // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
-            var editorSettings = _optionsMonitor.EditorSettings;
+            var editorSettings = _editorSettingsManager.Current;
             return Task.FromResult<IRazorDocumentOptions>(new RazorDocumentOptions(document, editorSettings));
         }
 

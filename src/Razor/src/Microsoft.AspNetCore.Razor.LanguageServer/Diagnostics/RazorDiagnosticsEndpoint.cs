@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -545,7 +546,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(
                 codeDocument,
                 diagnostic.Range,
-                MappingBehavior.Inclusive,
+                MappingBehavior.Inferred,
                 out originalRange))
             {
                 // Couldn't remap the range correctly.

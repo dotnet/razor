@@ -6,6 +6,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Position = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
 using TextEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {

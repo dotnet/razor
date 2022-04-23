@@ -28,15 +28,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
 
-            _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);;
+            _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
         public async Task<CodeAction> Handle(CodeAction request!!, CancellationToken cancellationToken)
         {
-            if (!(request.Data is JObject paramsObj))
+            if (request.Data is not JObject paramsObj)
             {
-                Debug.Fail($"Invalid CodeAction Received '{request.Title}'.");
+                _logger.LogError("Invalid CodeAction Received '{requestTitle}'.", request.Title);
                 return request;
             }
 
@@ -66,7 +66,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         resolutionParams,
                         cancellationToken);
                 default:
-                    Debug.Fail($"Invalid CodeAction.Data.Language. Received {GetCodeActionId(resolutionParams)}.");
+                    var codeActionId = GetCodeActionId(resolutionParams);
+                    _logger.LogError("Invalid CodeAction.Data.Language. Received {codeActionId}.", codeActionId);
                     return request;
             }
         }
@@ -79,7 +80,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             if (!_razorCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
-                Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
+                var codeActionId = GetCodeActionId(resolutionParams);
+                _logger.LogWarning("No resolver registered for {codeActionId}", codeActionId);
+                Debug.Fail($"No resolver registered for {codeActionId}.");
                 return codeAction;
             }
 
@@ -94,8 +97,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorCodeActionResolutionParams resolutionParams,
             CancellationToken cancellationToken)
         {
-            if (!(resolutionParams.Data is JObject csharpParamsObj))
+            if (resolutionParams.Data is not JObject csharpParamsObj)
             {
+                _logger.LogError("Invalid CodeAction Received.");
                 Debug.Fail($"Invalid CSharp CodeAction Received.");
                 return codeAction;
             }
@@ -105,7 +109,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (!_csharpCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
-                Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
+                var codeActionId = GetCodeActionId(resolutionParams);
+                _logger.LogWarning("No resolver registered for {codeActionId}", codeActionId);
+                Debug.Fail($"No resolver registered for {codeActionId}.");
                 return codeAction;
             }
 

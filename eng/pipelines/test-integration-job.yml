@@ -42,6 +42,7 @@ steps:
       -msbuildEngine dotnet
       -prepareMachine
       -integrationTest
+      /p:BuildProjectReferences=false
     name: RunIntegrationTests
     displayName: Run Integration Tests
     condition: succeeded()
@@ -49,8 +50,9 @@ steps:
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
     inputs:
-      testRunner: XUnit
-      testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml
+      testResultsFormat: 'VSTest'
+      searchFolder: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}
+      testResultsFiles: '*.trx'
       mergeTestResults: true
       testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }}'
     condition: succeededOrFailed()

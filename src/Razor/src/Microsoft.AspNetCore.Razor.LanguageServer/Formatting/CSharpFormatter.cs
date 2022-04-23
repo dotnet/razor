@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -116,6 +117,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, List<int> projectedDocumentLocations, CancellationToken cancellationToken)
         {
+            // No point calling the C# formatting if we won't be interested in any of its work anyway
+            if (projectedDocumentLocations.Count == 0)
+            {
+                return new Dictionary<int, int>();
+            }
+
             var (indentationMap, syntaxTree) = InitializeIndentationData(context, projectedDocumentLocations, cancellationToken);
 
             var root = await syntaxTree.GetRootAsync(cancellationToken);

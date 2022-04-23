@@ -124,11 +124,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
-                    if (DocumentLookup.ContainsKey(args.DocumentFilePath) &&
-                        !ProjectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
+                    var documentFilePath = args.DocumentFilePath!;
+                    if (DocumentLookup.ContainsKey(documentFilePath) &&
+                        !ProjectSnapshotManager.IsDocumentOpen(documentFilePath))
                     {
                         // Document closed, evict entry.
-                        DocumentLookup.Remove(args.DocumentFilePath);
+                        DocumentLookup.Remove(documentFilePath);
                     }
 
                     break;

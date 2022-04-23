@@ -9,14 +9,17 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.DragDrop;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
+    // The intention of this class is to disable dropping random files into the Razor language service content type without throwing. Ultimately
+    // this class serves as a workaround to a limitation in the core editor APIs where without it you get an error dialog. This class allows us
+    // to silently "do nothing" when a drop occurs on one of our documents.
     [Export(typeof(IDropHandlerProvider))]
     [ContentType(RazorConstants.RazorLSPContentTypeName)]
-    [DropFormat(RazorLSPConstants.VSProjectItemsIdentifier)]
-    [Name(nameof(RazorDropHandlerProvider))]
+    [DropFormat(RazorVisualStudioWindowsConstants.VSProjectItemsIdentifier)]
+    [Name(nameof(RazorDisableDropHandlerProvider))]
     [Order(Before = "LanguageServiceTextDropHandler")]
-    internal sealed class RazorDropHandlerProvider : IDropHandlerProvider
+    internal sealed class RazorDisableDropHandlerProvider : IDropHandlerProvider
     {
         public IDropHandler GetAssociatedDropHandler(IWpfTextView wpfTextView) => new DisabledDropHandler();
 

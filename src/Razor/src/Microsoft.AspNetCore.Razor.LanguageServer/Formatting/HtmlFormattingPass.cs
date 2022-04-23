@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;

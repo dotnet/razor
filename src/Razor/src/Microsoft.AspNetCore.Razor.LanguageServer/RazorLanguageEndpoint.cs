@@ -3,13 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -49,12 +49,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-
-            Debug.Assert(info != null, "Failed to get the document snapshot, could not map to document ranges.");
+            var documentUri = request.Uri.GetAbsoluteOrUNCPath();
+            var info = await TryGetDocumentSnapshotAndVersionAsync(documentUri, cancellationToken).ConfigureAwait(false);
 
             if (info is null)
             {
+                _logger.LogError("Failed to get the document snapshot '{documentUri}', could not map to document ranges.", documentUri);
                 throw new InvalidOperationException($"Unable to resolve document {request.Uri.GetAbsoluteOrUNCPath()}.");
             }
 

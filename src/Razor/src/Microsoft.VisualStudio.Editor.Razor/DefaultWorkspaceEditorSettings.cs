@@ -5,7 +5,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -15,12 +14,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
         private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
         private EventHandler<EditorSettingsChangedEventArgs> _changed;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private int _listenerCount = 0;
 
-        public DefaultWorkspaceEditorSettings(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!, EditorSettingsManager editorSettingsManager!!)
+        public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager!!)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _editorSettingsManager = editorSettingsManager;
             _onChanged = OnChanged;
         }
@@ -29,8 +26,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             add
             {
-                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
                 _listenerCount++;
                 _changed += value;
 
@@ -44,8 +39,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
             remove
             {
-                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
                 _listenerCount--;
                 _changed -= value;
 
@@ -75,8 +68,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             Debug.Assert(_changed != null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
 
             var args = new EditorSettingsChangedEventArgs(Current);

@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var languageResponse = response?.Response;
             if (languageResponse is null)
             {
-                _logHubLogger.LogInformation("The proximity expressions could not be resolved.");
+                _logHubLogger?.LogInformation("The proximity expressions could not be resolved.");
                 return null;
             }
 

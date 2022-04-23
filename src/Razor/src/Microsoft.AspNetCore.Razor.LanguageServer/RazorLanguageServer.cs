@@ -119,6 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
                     .WithHandler<RazorCompletionEndpoint>()
+                    .WithHandler<RazorCompletionResolveEndpoint>()
                     .WithHandler<RazorHoverEndpoint>()
                     .WithHandler<RazorLanguageEndpoint>()
                     .WithHandler<RazorDiagnosticsEndpoint>()
@@ -204,6 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
                         // Completion
+                        services.AddSingleton<CompletionListCache>();
                         services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
@@ -219,9 +221,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Folding Range Providers
                         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
-
-                        // Disabling equals => `="|"` OnAutoInsert support until dynamic overtyping is a thing: https://github.com/dotnet/aspnetcore/issues/33677
-                        // services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
 
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();

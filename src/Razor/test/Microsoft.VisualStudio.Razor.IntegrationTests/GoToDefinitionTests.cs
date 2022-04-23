@@ -59,14 +59,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         [IdeFact]
         public async Task GoToDefinition_ComponentAttribute()
         {
-            var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
-            if (version < new System.Version(17, 1, 32113, 165))
-            {
-                // Functionality under test was added in v17 Preview 3 (17.1.32113.165) so this test will
-                // file until CI is updated, so we'll skip it.
-                return;
-            }
-
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
 

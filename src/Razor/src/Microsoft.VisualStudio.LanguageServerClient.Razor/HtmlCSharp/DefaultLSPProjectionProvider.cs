@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageResponse = response?.Response;
             if (languageResponse is null)
             {
-                _logHubLogger.LogInformation("The language server is still being spun up. Could not resolve the projection.");
+                _logHubLogger?.LogInformation("The language server is still being spun up. Could not resolve the projection.");
                 return null;
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else
             {
-                _logHubLogger.LogInformation($"Could not find projection for {languageResponse.Kind:G}.");
+                _logHubLogger?.LogInformation($"Could not find projection for {languageResponse.Kind:G}.");
                 return null;
             }
 
@@ -98,14 +98,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // Log it and move on as if it was synchronized.
                 var message = $"Could not find a document version associated with the document '{documentSnapshot.Uri}'";
                 _activityLogger.LogVerbose(message);
-                _logHubLogger.LogWarning(message);
+                _logHubLogger?.LogWarning(message);
             }
             else
             {
                 var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocument, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
                 if (!synchronized)
                 {
-                    _logHubLogger.LogInformation("Could not synchronize.");
+                    _logHubLogger?.LogInformation("Could not synchronize.");
                     return null;
                 }
             }

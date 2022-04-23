@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;

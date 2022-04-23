@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Extensions
 {
     internal static class IUIThreadOperationExecutorExtensions
     {

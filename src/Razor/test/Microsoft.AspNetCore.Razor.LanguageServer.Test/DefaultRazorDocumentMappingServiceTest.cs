@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -332,6 +333,132 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Assert
             Assert.False(result);
             Assert.Equal(default, originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_DirectlyMaps_ReturnsTrue()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "<p>@DateTime.Now</p>",
+                "__o = DateTime.Now;",
+                new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 6),
+                End = new Position(0, 18),
+            };
+            var expectedOriginalRange = new Range()
+            {
+                Start = new Position(0, 4),
+                End = new Position(0, 16)
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(expectedOriginalRange, originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_BeginningOfDocAndProjection_ReturnsFalse()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "@<unclosed></unclosed><p>@DateTime.Now</p>",
+                "(__builder) => { };__o = DateTime.Now;",
+                new[] { new SourceMapping(new SourceSpan(26, 12), new SourceSpan(25, 12)) });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 0),
+                End = new Position(0, 19),
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.False(result);
+            Assert.Null(originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjections_ReturnsTrue()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "@{ var abc = @<unclosed></unclosed> }",
+                " var abc =  (__builder) => { } ",
+                new[] {
+                    new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)),
+                    new SourceMapping(new SourceSpan(35, 1), new SourceSpan(30, 1)),
+                });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 12),
+                End = new Position(0, 29),
+            };
+            var expectedOriginalRange = new Range()
+            {
+                Start = new Position(0, 13),
+                End = new Position(0, 35)
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(expectedOriginalRange, originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjectionAndEndOfDoc_ReturnsTrue()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "@{ var abc = @<unclosed></unclosed>",
+                " var abc =  (__builder) => { }",
+                new[] { new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)), });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 12),
+                End = new Position(0, 29),
+            };
+            var expectedOriginalRange = new Range()
+            {
+                Start = new Position(0, 13),
+                End = new Position(0, 35)
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(expectedOriginalRange, originalRange);
         }
 
         [Fact]

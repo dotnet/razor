@@ -7,16 +7,6 @@
         <target state="translated">Nie można zainicjować serwera {0}.  Zgłoś problem za pośrednictwem pozycji Pomoc -&gt; Wyślij opinię -&gt; Zgłoś problem.  Stan = {1}.  Wyjątek = {2}</target>
         <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
       </trans-unit>
-      <trans-unit id="ProximityExpression_Dialog_Description">
-        <source>Razor Debugger</source>
-        <target state="translated">Debuger składni Razor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ProximityExpression_Dialog_Title">
-        <source>Determining proximity expressions...</source>
-        <target state="translated">Trwa określanie wyrażeń bliskości...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="View Code">
         <source>View Code</source>
         <target state="translated">Wyświetl kod</target>

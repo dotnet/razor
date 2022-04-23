@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -23,15 +22,12 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal class RazorCompletionEndpoint : ICompletionHandler, ICompletionResolveHandler
+    internal class RazorCompletionEndpoint : ICompletionHandler
     {
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
-        private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
-        private readonly ClientNotifierServiceBase _languageServer;
         private readonly CompletionListCache _completionListCache;
         private static readonly Command s_retriggerCompletionCommand = new()
         {
@@ -41,30 +37,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private PlatformAgnosticCompletionCapability? _capability;
         private IReadOnlyList<ExtendedCompletionItemKinds>? _supportedItemKinds;
 
-        // Guid is magically generated and doesn't mean anything. O# magic.
-        public Guid Id => new("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
-
         public RazorCompletionEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
             DocumentResolver documentResolver!!,
             RazorCompletionFactsService completionFactsService!!,
-            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory!!,
-            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory!!,
-            ClientNotifierServiceBase languageServer!!,
+            CompletionListCache completionListCache,
             ILoggerFactory loggerFactory!!)
         {
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _completionFactsService = completionFactsService;
-            _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
-            _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
-            _languageServer = languageServer;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
-            _completionListCache = new CompletionListCache();
-        }
-
-        public void SetCapability(CompletionCapability capability, ClientCapabilities clientCapabilities)
-        {
+            _completionListCache = completionListCache;
         }
 
         public CompletionRegistrationOptions GetRegistrationOptions(CompletionCapability capability, ClientCapabilities clientCapabilities)
@@ -139,108 +123,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionList = CreateLSPCompletionList(razorCompletionItems);
 
             return completionList;
-        }
-
-        public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
-        {
-            if (!completionItem.TryGetCompletionListResultId(out var resultId))
-            {
-                // Couldn't resolve.
-                return Task.FromResult(completionItem);
-            }
-
-            if (!_completionListCache.TryGet(resultId.Value, out var cachedCompletionItems))
-            {
-                return Task.FromResult(completionItem);
-            }
-
-            var labelQuery = completionItem.Label;
-            var associatedRazorCompletion = cachedCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
-            if (associatedRazorCompletion is null)
-            {
-                Debug.Fail("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
-                return Task.FromResult(completionItem);
-            }
-
-            // If the client is VS, also fill in the Description property.
-            var useDescriptionProperty = _languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
-                clientCapabilities.SupportsVisualStudioExtensions;
-
-            MarkupContent? tagHelperMarkupTooltip = null;
-            VSClassifiedTextElement? tagHelperClassifiedTextTooltip = null;
-
-            switch (associatedRazorCompletion.Kind)
-            {
-                case RazorCompletionItemKind.Directive:
-                    {
-                        var descriptionInfo = associatedRazorCompletion.GetDirectiveCompletionDescription();
-                        if (descriptionInfo is not null)
-                        {
-                            completionItem = completionItem with { Documentation = descriptionInfo.Description };
-                        }
-
-                        break;
-                    }
-                case RazorCompletionItemKind.MarkupTransition:
-                    {
-                        var descriptionInfo = associatedRazorCompletion.GetMarkupTransitionCompletionDescription();
-                        if (descriptionInfo is not null)
-                        {
-                            completionItem = completionItem with { Documentation = descriptionInfo.Description };
-                        }
-
-                        break;
-                    }
-                case RazorCompletionItemKind.DirectiveAttribute:
-                case RazorCompletionItemKind.DirectiveAttributeParameter:
-                case RazorCompletionItemKind.TagHelperAttribute:
-                    {
-                        var descriptionInfo = associatedRazorCompletion.GetAttributeCompletionDescription();
-                        if (useDescriptionProperty)
-                        {
-                            _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
-                        }
-                        else
-                        {
-                            _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
-                        }
-
-                        break;
-                    }
-                case RazorCompletionItemKind.TagHelperElement:
-                    {
-                        var descriptionInfo = associatedRazorCompletion.GetTagHelperElementDescriptionInfo();
-                        if (useDescriptionProperty)
-                        {
-                            _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
-                        }
-                        else
-                        {
-                            _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
-                        }
-
-                        break;
-                    }
-            }
-
-            if (tagHelperMarkupTooltip != null)
-            {
-                var documentation = new StringOrMarkupContent(tagHelperMarkupTooltip);
-                completionItem = completionItem with { Documentation = documentation };
-            }
-
-            // We might strip out the commitcharacters for speed, bring them back
-            var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters) : null;
-            completionItem = completionItem with { CommitCharacters = container };
-            var vsCompletionItem = completionItem.ToVSCompletionItem(_capability?.VSCompletionList);
-
-            if (tagHelperClassifiedTextTooltip != null)
-            {
-                vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
-                return Task.FromResult<CompletionItem>(vsCompletionItem);
-            }
-
-            return Task.FromResult<CompletionItem>(vsCompletionItem);
         }
 
         // Internal for testing

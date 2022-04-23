@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 else
                 {
                     var loader = textLoader is null
-                    ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
+                        ? DocumentState.EmptyLoader
+                        : (() => textLoader.LoadTextAndVersionAsync(Workspace, documentId: null, CancellationToken.None));
                     var state = entry.State.WithAddedHostDocument(document, loader);
 
                     // Document updates can no-op.
@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 else
                 {
                     var state = entry.State.WithChangedHostDocument(
-                    older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+                        older.HostDocument,
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: null, cancellationToken: default));
 
                     _openDocuments.Remove(documentFilePath);
 
@@ -339,8 +339,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 else
                 {
                     var state = entry.State.WithChangedHostDocument(
-                    older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+                        older.HostDocument,
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, cancellationToken: default));
 
                     // Document updates can no-op.
                     if (!ReferenceEquals(state, entry.State))
