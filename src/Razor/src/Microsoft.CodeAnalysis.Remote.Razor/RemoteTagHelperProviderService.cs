@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 throw new ArgumentException($"'{nameof(factoryTypeName)}' cannot be null or empty.", nameof(factoryTypeName));
             }
 
+            // We should replace the below call: https://github.com/dotnet/razor-tooling/issues/6316
+#pragma warning disable CS0618 // Type or member is obsolete
             var solution = await solutionInfo.GetSolutionAsync(ServiceBrokerClient, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0618 // Type or member is obsolete
             var projectSnapshot = await GetProjectSnapshotAsync(projectHandle, cancellationToken).ConfigureAwait(false);
             var workspaceProject = solution
                 .Projects

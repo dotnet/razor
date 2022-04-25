@@ -62,6 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
 
                 // Ask C# for formatting changes.
+                // We should replace the below call: https://github.com/dotnet/razor-tooling/issues/6313
 #pragma warning disable CS0618 // Type or member is obsolete
                 var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                     context.CSharpWorkspaceDocument, typedChar: context.TriggerCharacter, projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
