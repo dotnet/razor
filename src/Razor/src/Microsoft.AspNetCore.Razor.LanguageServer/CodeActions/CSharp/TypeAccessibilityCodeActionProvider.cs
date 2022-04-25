@@ -18,6 +18,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -202,7 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return typeAccessibilityCodeActions;
 
-            static bool TryGetOwner(RazorCodeActionContext context, out SyntaxNode owner)
+            static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode owner)
             {
                 var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
                 var syntaxTree = context.CodeDocument.GetSyntaxTree();
