@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (semanticTokens is not null)
             {
                 Debug.Assert(semanticTokens.Data.Length % 5 == 0, $"Number of semantic token-ints should be divisible by 5. Actual number: {semanticTokens.Data.Length}");
-                Debug.Assert(semanticTokens.Data.Length == 0 || semanticTokens.Data[0] >= 0);
+                Debug.Assert(semanticTokens.Data.Length == 0 || semanticTokens.Data[0] >= 0, $"Line offset should not be negative.");
             }
 
             return semanticTokens;

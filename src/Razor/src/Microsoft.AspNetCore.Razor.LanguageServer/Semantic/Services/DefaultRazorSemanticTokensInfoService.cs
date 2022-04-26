@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 return tokens;
             }
-            
+
             var cachedRange = cachedResult.Value.Range;
             var cachedTokens = cachedResult.Value.Tokens;
 
