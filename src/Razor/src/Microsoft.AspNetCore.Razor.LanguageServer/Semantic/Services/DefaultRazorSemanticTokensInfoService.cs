@@ -76,228 +76,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var (documentSnapshot, documentVersion) = documentInfo.Value;
 
-            return await GetSemanticTokensAsync(textDocumentIdentifier, range, documentSnapshot, documentVersion, cancellationToken);
-        }
-
-        // Internal for benchmarks
-        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
-            TextDocumentIdentifier textDocumentIdentifier,
-            Range range,
-            DocumentSnapshot documentSnapshot,
-            int documentVersion,
-            CancellationToken cancellationToken)
-        {
-            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
             var tokens = await GetSemanticTokensAsync(
-                textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, range, cancellationToken);
-
+                textDocumentIdentifier, range, documentSnapshot, documentVersion, cancellationToken);
             return tokens;
         }
 
-        /// <summary>
-        /// Given a desired range and a partial set of cached semantic tokens for that range, computes and fills
-        /// in the the tokens for the missing parts of the range.
-        /// </summary>
-        private async Task<SemanticTokens?> FillInRangeGapsAsync(
-            TextDocumentIdentifier textDocumentIdentifier,
-            DocumentSnapshot documentSnapshot,
-            int documentVersion,
-            VersionStamp semanticVersion,
-            Range requestedRange,
-            Range cachedRange,
-            ImmutableArray<int> cachedTokens,
-            CancellationToken cancellationToken)
-        {
-            var finalTokens = ImmutableArray.CreateBuilder<int>();
-
-            // There are 3 scenarios:
-            //    1) The cached result is at the start of the range
-            //    2) The cached result is in the middle of the range
-            //    3) The cached result is at the end of the range
-            // For 1) and 3), we need to send one request to the Razor/C# language servers for the missing range's tokens.
-            // For 2), we need to send two requests (one for the missing start range, and one for the missing end range).
-
-            // Try to concurrently process requests if there are multiple
-            var (startTokens, endTokens) = await ComputeTokensInParallelAsync(
-                textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                requestedRange, cachedRange, cancellationToken).ConfigureAwait(false);
-
-            var absoluteLine = 0;
-
-            // a) Before processing the cached portion of the range, we might have to process tokens for the
-            // start of the range -> start of the cached range (if applicable).
-            if (cachedRange.Start.Line != requestedRange.Start.Line)
-            {
-                Debug.Assert(startTokens is not null);
-
-                absoluteLine = AddStartingTokens(requestedRange, cachedRange, finalTokens, startTokens!);
-            }
-
-            // b) Add the cached range tokens to the results.
-            absoluteLine = AddCachedTokens(cachedTokens, finalTokens, absoluteLine);
-
-            // c) Process the ending range tokens (if applicable).
-            if (requestedRange.End.Line != cachedRange.End.Line)
-            {
-                Debug.Assert(endTokens is not null);
-
-                AddEndingTokens(requestedRange, cachedRange, finalTokens, absoluteLine, endTokens!);
-            }
-
-            // We should now have all the tokens for the requested range (a combination of computed results and cached results).
-            return new SemanticTokens { Data = finalTokens.ToImmutableArray() };
-
-            async Task<(SemanticTokens? StartTokens, SemanticTokens? EndTokens)> ComputeTokensInParallelAsync(
-                TextDocumentIdentifier textDocumentIdentifier,
-                DocumentSnapshot documentSnapshot,
-                int documentVersion,
-                VersionStamp semanticVersion,
-                Range requestedRange,
-                Range cachedRange,
-                CancellationToken cancellationToken)
-            {
-                var startTokensTask = Task.FromResult<SemanticTokens?>(null);
-                if (cachedRange.Start.Line != requestedRange.Start.Line)
-                {
-                    var partialRange = new Range { Start = requestedRange.Start, End = cachedRange.Start };
-                    startTokensTask = Task.Run(() => GetSemanticTokensAsync(
-                        textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, partialRange, cancellationToken));
-                }
-
-                var endTokensTask = Task.FromResult<SemanticTokens?>(null);
-                if (requestedRange.End.Line != cachedRange.End.Line)
-                {
-                    var partialRange = new Range { Start = cachedRange.End, End = requestedRange.End };
-                    endTokensTask = Task.Run(() => GetSemanticTokensAsync(
-                        textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, partialRange, cancellationToken));
-                }
-
-                var startTokens = await startTokensTask.ConfigureAwait(false);
-                var endTokens = await endTokensTask.ConfigureAwait(false);
-
-                return (startTokens, endTokens);
-            }
-
-            static int AddStartingTokens(
-                Range requestedRange,
-                Range cachedRange,
-                ImmutableArray<int>.Builder finalTokens,
-                SemanticTokens startingTokens)
-            {
-                // Add the partially computed range to the results. We need to also keep track of the current
-                // absolute line index to use later when combining results.
-                var absoluteLine = 0;
-                var isFirstTokenInRange = true;
-                for (var tokenIndex = 0; tokenIndex < startingTokens.Data.Length; tokenIndex += TokenSize)
-                {
-                    // The first int of each token represents the line offset. We use this info to keep track of the
-                    // absolute line for use later on when computing relative token positions.
-                    absoluteLine += startingTokens.Data[tokenIndex];
-
-                    // Skip tokens that are out of the range
-                    if (absoluteLine < requestedRange.Start.Line || absoluteLine >= cachedRange.Start.Line)
-                    {
-                        continue;
-                    }
-
-                    // First token of the starting set should be relative to the start of the document
-                    if (isFirstTokenInRange)
-                    {
-                        finalTokens.Add(absoluteLine);
-                        isFirstTokenInRange = false;
-                    }
-                    else
-                    {
-                        finalTokens.Add(startingTokens.Data[tokenIndex]);
-                    }
-
-                    // Add the rest of the ints in the token
-                    for (var i = 1; i < TokenSize; i++)
-                    {
-                        finalTokens.Add(startingTokens.Data[tokenIndex + i]);
-                    }
-                }
-
-                return absoluteLine;
-            }
-
-            static int AddCachedTokens(ImmutableArray<int> cachedTokens, ImmutableArray<int>.Builder finalTokens, int absoluteLine)
-            {
-                // First token of the cached token set should be relative to either the start of the document
-                // (if the current line is the first tokens line) or the previous line containing tokens
-                finalTokens.Add(cachedTokens[0] - absoluteLine);
-                absoluteLine = cachedTokens[0];
-
-                for (var cachedTokenIndex = 1; cachedTokenIndex < cachedTokens.Length; cachedTokenIndex++)
-                {
-                    finalTokens.Add(cachedTokens[cachedTokenIndex]);
-
-                    // Keep track of the absolute line # to use later when computing line offsets
-                    if (cachedTokenIndex % TokenSize == 0)
-                    {
-                        absoluteLine += cachedTokens[cachedTokenIndex];
-                    }
-                }
-
-                return absoluteLine;
-            }
-
-            static void AddEndingTokens(
-                Range requestedRange,
-                Range cachedRange,
-                ImmutableArray<int>.Builder finalTokens,
-                int cachedTokensAbsoluteEndLine,
-                SemanticTokens endingTokens)
-            {
-                var isFirstTokenInRange = true;
-                var absoluteLine = 0;
-                for (var tokenIndex = 0; tokenIndex < endingTokens.Data.Length; tokenIndex += TokenSize)
-                {
-                    // The first int of each token represents the line offset. We use this info to keep track of the
-                    // absolute line for use later on when computing relative token positions.
-                    absoluteLine = tokenIndex == 0 ? endingTokens.Data[0] : absoluteLine + endingTokens.Data[tokenIndex];
-
-                    // Skip tokens that are out of the range
-                    if (absoluteLine < cachedRange.End.Line || absoluteLine >= requestedRange.End.Line)
-                    {
-                        continue;
-                    }
-
-                    // First token of the ending set should be relative to the end line of the cached tokens set
-                    if (isFirstTokenInRange)
-                    {
-                        finalTokens.Add(absoluteLine - cachedTokensAbsoluteEndLine);
-                        isFirstTokenInRange = false;
-                    }
-                    else
-                    {
-                        finalTokens.Add(endingTokens.Data[tokenIndex]);
-                    }
-
-                    // Add the rest of the ints in the token
-                    for (var i = 1; i < TokenSize; i++)
-                    {
-                        finalTokens.Add(endingTokens.Data[tokenIndex + i]);
-                    }
-                }
-            }
-        }
-
-        private static async Task<VersionStamp> GetDocumentSemanticVersionAsync(DocumentSnapshot documentSnapshot)
-        {
-            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
-            var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
-
-            return semanticVersion;
-        }
-
         // Internal for benchmarks
         internal async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
-            DocumentSnapshot documentSnapshot,
-            VersionStamp semanticVersion,
-            int documentVersion,
             Range range,
+            DocumentSnapshot documentSnapshot,
+            int documentVersion,
             CancellationToken cancellationToken)
         {
             var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
@@ -309,11 +98,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
             IReadOnlyList<SemanticRange>? csharpSemanticRanges = null;
-            var isCSharpFinalized = false;
 
             try
             {
-                (csharpSemanticRanges, isCSharpFinalized) = await GetCSharpSemanticRangesAsync(
+                csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
                     codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -375,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal and virtual for testing only
-        internal virtual async Task<SemanticRangeResponse> GetCSharpSemanticRangesAsync(
+        internal virtual async Task<SemanticRange[]?> GetCSharpSemanticRangesAsync(
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range razorRange,
@@ -389,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {
                 // There's no C# in the range.
-                return new SemanticRangeResponse(SemanticRanges: Array.Empty<SemanticRange>(), IsCSharpFinalized: true);
+                return Array.Empty<SemanticRange>();
             }
 
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
@@ -400,19 +188,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpResponse is null)
             {
                 _logger.LogWarning($"Issue with retrieving C# response for Razor range: {razorRange}");
-                return SemanticRangeResponse.Default;
+                return null;
             }
 
             var razorRanges = new List<SemanticRange>();
 
             SemanticRange? previousSemanticRange = null;
-            for (var i = 0; i < csharpResponse.Data.Length; i += TokenSize)
+            for (var i = 0; i < csharpResponse.Length; i += TokenSize)
             {
-                var lineDelta = csharpResponse.Data[i];
-                var charDelta = csharpResponse.Data[i + 1];
-                var length = csharpResponse.Data[i + 2];
-                var tokenType = csharpResponse.Data[i + 3];
-                var tokenModifiers = csharpResponse.Data[i + 4];
+                var lineDelta = csharpResponse[i];
+                var charDelta = csharpResponse[i + 1];
+                var length = csharpResponse[i + 2];
+                var tokenType = csharpResponse[i + 3];
+                var tokenModifiers = csharpResponse[i + 4];
 
                 var semanticRange = DataToSemanticRange(
                     lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
@@ -429,8 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var result = razorRanges.ToArray();
-            var semanticRanges = new SemanticRangeResponse(result, IsCSharpFinalized: csharpResponse.IsCSharpFinalized);
-            return semanticRanges;
+            return result;
         }
 
         // Internal for testing only
@@ -480,7 +267,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return false;
         }
 
-        private async Task<SemanticTokensResponse?> GetMatchingCSharpResponseAsync(
+        private async Task<int[]?> GetMatchingCSharpResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             long documentVersion,
             Range csharpRange,
@@ -493,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpResponse is null)
             {
                 // C# isn't ready yet, don't make Razor wait for it. Once C# is ready they'll send a refresh notification.
-                return SemanticTokensResponse.Default;
+                return Array.Empty<int>();
             }
             else if (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion)
             {
@@ -502,7 +289,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var response = new SemanticTokensResponse(csharpResponse.Tokens ?? Array.Empty<int>(), csharpResponse.IsFinalized);
+            var response = csharpResponse.Tokens ?? Array.Empty<int>();
             return response;
         }
 
@@ -610,17 +397,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 return null;
             }, cancellationToken);
-        }
-
-        private record SemanticTokensResponse(int[] Data, bool IsCSharpFinalized)
-        {
-            public static SemanticTokensResponse Default => new(Array.Empty<int>(), false);
-        }
-
-        // Internal for testing
-        internal record SemanticRangeResponse(SemanticRange[]? SemanticRanges, bool IsCSharpFinalized)
-        {
-            public static SemanticRangeResponse Default => new(null, false);
         }
 
         private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens);
