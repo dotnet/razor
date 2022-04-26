@@ -29,12 +29,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 
         private const int MaxDocumentLimit = 50;
 
+        private const int ConcurrencyLevel = 1;
+
         // Multiple cache requests or updates may be received concurrently. We need this lock to
         // ensure we aren't making concurrent modifications to the cache's underlying dictionary.
         private readonly object _dictLock = new();
 
         // Nested cache mapping (URI -> (semanticVersion -> (line #s -> tokens on line)))
-        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>> _cache = new(MaxDocumentLimit, concurrencyLevel: 1);
+        private readonly MemoryCache<DocumentUri, MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>> _cache = new(MaxDocumentLimit, ConcurrencyLevel);
 
         /// <summary>
         /// Caches tokens on a per-line basis. If the given line has already been cached for the document
@@ -62,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 
             if (!_cache.TryGetValue(uri, out var documentCache))
             {
-                documentCache = new MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>(sizeLimit: MaxSemanticVersionPerDoc, concurrencyLevel: 1);
+                documentCache = new MemoryCache<VersionStamp, Dictionary<int, ImmutableArray<int>>>(sizeLimit: MaxSemanticVersionPerDoc, ConcurrencyLevel);
                 _cache.Set(uri, documentCache);
             }
 

@@ -535,8 +535,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             else if (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion)
             {
                 // No C# response or C# is out of sync with us. Unrecoverable, return null to indicate no change.
-                // Queue up a refresh notification to ask the client to request us again in a bit.
-                _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
+                // Once C# syncs up they'll send a refresh notification.
                 return null;
             }
 

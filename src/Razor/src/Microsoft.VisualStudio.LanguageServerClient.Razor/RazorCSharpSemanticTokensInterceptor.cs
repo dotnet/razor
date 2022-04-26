@@ -11,12 +11,13 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(MessageInterceptor))]
-    [InterceptMethod("workspace/semanticTokens/refresh")]
+    [InterceptMethod(WorkspaceNames.SemanticTokensRefresh)]
     [ContentType(RazorLSPConstants.CSharpContentTypeName)]
     internal class RazorCSharpSemanticTokensInterceptor : MessageInterceptor
     {
@@ -41,9 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 LanguageServerConstants.RazorSemanticTokensRefreshEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 refreshParams,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
-            return new InterceptionResult(newToken: null, changedDocumentUri: false);
+            return InterceptionResult.NoChange;
         }
     }
 }

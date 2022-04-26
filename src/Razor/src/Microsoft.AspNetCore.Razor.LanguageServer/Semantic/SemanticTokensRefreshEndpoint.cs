@@ -35,10 +35,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public Task<Unit> Handle(SemanticTokensRefreshParams request, CancellationToken cancellationToken)
         {
-            _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
-
             // We have to invalidate the tokens cache since it may no longer be up to date.
             _semanticTokensCacheService.ClearCache();
+            _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
 
             return Unit.Task;
         }

@@ -12,7 +12,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic;
 
-public class SemanticTokensCacheTest
+public class DefaultSemanticTokensCacheTest
 {
     [Fact]
     public void TryGetCachedTokens_ReturnsStoredResults()
