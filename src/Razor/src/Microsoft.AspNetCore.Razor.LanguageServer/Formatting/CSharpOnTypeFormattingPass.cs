@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -64,8 +63,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
                     return result;
                 }
-
-                var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
 
                 // Ask C# for formatting changes.
                 var indentationOptions = new RazorIndentationOptions(
@@ -517,12 +514,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
             var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
-        }
-
-        private static async Task<DocumentOptionSet> GetDocumentOptionsAsync(FormattingContext context)
-        {
-            var documentOptions = await context.CSharpWorkspaceDocument.GetOptionsAsync().ConfigureAwait(false);
-            return (DocumentOptionSet)context.GetChangedOptionSet(documentOptions);
         }
     }
 }
