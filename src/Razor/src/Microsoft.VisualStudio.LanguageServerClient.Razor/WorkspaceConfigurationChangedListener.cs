@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
 
         [ImportingConstructor]
-        public WorkspaceConfigurationChangedListener(LSPRequestInvoker requestInvoker!!)
+        public WorkspaceConfigurationChangedListener(LSPRequestInvoker requestInvoker)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
             _requestInvoker = requestInvoker;
         }
 

@@ -23,8 +23,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private readonly OmniSharpWorkspace _workspace;
 
         [ImportingConstructor]
-        public PrecompiledRazorPageSuppressor(OmniSharpWorkspace workspace!!)
+        public PrecompiledRazorPageSuppressor(OmniSharpWorkspace workspace)
         {
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             _workspace = workspace;
 
             _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;

@@ -28,12 +28,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPDocumentSynchronizer documentSynchronizer!!,
-            LSPDiagnosticsTranslator diagnosticsProvider!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPDocumentSynchronizer documentSynchronizer,
+            LSPDiagnosticsTranslator diagnosticsProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (documentSynchronizer is null)
+            {
+                throw new ArgumentNullException(nameof(documentSynchronizer));
+            }
+
+            if (diagnosticsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsProvider));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _documentSynchronizer = documentSynchronizer;
@@ -43,11 +68,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        public async Task<IReadOnlyList<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request.TextDocument is null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
             _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");

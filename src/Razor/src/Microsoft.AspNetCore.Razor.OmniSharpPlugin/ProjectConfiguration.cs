@@ -11,8 +11,18 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public sealed class ProjectConfiguration
     {
-        public ProjectConfiguration(RazorConfiguration configuration!!, IReadOnlyList<OmniSharpHostDocument> documents!!, string rootNamespace)
+        public ProjectConfiguration(RazorConfiguration configuration, IReadOnlyList<OmniSharpHostDocument> documents, string rootNamespace)
         {
+            if (configuration is null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            if (documents is null)
+            {
+                throw new ArgumentNullException(nameof(documents));
+            }
+
             Configuration = configuration;
             Documents = documents;
             RootNamespace = rootNamespace;

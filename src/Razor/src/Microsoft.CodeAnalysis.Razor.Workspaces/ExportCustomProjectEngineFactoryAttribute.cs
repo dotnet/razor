@@ -12,9 +12,14 @@ namespace Microsoft.CodeAnalysis.Razor
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class ExportCustomProjectEngineFactoryAttribute : ExportAttribute, ICustomProjectEngineFactoryMetadata
     {
-        public ExportCustomProjectEngineFactoryAttribute(string configurationName!!)
+        public ExportCustomProjectEngineFactoryAttribute(string configurationName)
             : base(typeof(IProjectEngineFactory))
         {
+            if (configurationName is null)
+            {
+                throw new ArgumentNullException(nameof(configurationName));
+            }
+
             ConfigurationName = configurationName;
         }
 

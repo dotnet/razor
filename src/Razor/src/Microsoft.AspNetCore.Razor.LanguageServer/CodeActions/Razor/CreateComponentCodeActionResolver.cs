@@ -28,11 +28,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentResolver _documentResolver;
 
         public CreateComponentCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;

@@ -20,11 +20,31 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         private readonly ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public ProjectSnapshotSynchronizationService(
-            JoinableTaskFactory joinableTaskFactory!!,
-            CollaborationSession sessionContext!!,
-            IProjectSnapshotManagerProxy hostProjectManagerProxy!!,
-            ProjectSnapshotManagerBase projectSnapshotManager!!)
+            JoinableTaskFactory joinableTaskFactory,
+            CollaborationSession sessionContext,
+            IProjectSnapshotManagerProxy hostProjectManagerProxy,
+            ProjectSnapshotManagerBase projectSnapshotManager)
         {
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
+            if (sessionContext is null)
+            {
+                throw new ArgumentNullException(nameof(sessionContext));
+            }
+
+            if (hostProjectManagerProxy is null)
+            {
+                throw new ArgumentNullException(nameof(hostProjectManagerProxy));
+            }
+
+            if (projectSnapshotManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManager));
+            }
+
             _joinableTaskFactory = joinableTaskFactory;
             _sessionContext = sessionContext;
             _hostProjectManagerProxy = hostProjectManagerProxy;
@@ -118,8 +138,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             }
         }
 
-        private void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args!!)
+        private void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
+
             _joinableTaskFactory.Run(async () =>
             {
                 try

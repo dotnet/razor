@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -12,8 +13,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         [ImportingConstructor]
-        public VSLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector!!)
+        public VSLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
+            if (lspEditorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+            }
+
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
         }
 

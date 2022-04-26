@@ -25,13 +25,43 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private MacRazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
-            DotNetProject project!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
+            DotNetProject project,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor,
+            TextBufferProjectService projectService,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspaceAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceAccessor));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _project = project;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
@@ -42,12 +72,37 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         // Internal for testing
         internal DefaultDotNetProjectHost(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor,
+            TextBufferProjectService projectService,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspaceAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceAccessor));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;

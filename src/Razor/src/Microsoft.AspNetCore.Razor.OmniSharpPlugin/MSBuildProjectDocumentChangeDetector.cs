@@ -28,16 +28,31 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         [ImportingConstructor]
         public MSBuildProjectDocumentChangeDetector(
-            [ImportMany] IEnumerable<IRazorDocumentChangeListener> documentChangeListeners!!,
-            [ImportMany] IEnumerable<IRazorDocumentOutputChangeListener> documentOutputChangeListeners!!)
+            [ImportMany] IEnumerable<IRazorDocumentChangeListener> documentChangeListeners,
+            [ImportMany] IEnumerable<IRazorDocumentOutputChangeListener> documentOutputChangeListeners)
         {
+            if (documentChangeListeners is null)
+            {
+                throw new ArgumentNullException(nameof(documentChangeListeners));
+            }
+
+            if (documentOutputChangeListeners is null)
+            {
+                throw new ArgumentNullException(nameof(documentOutputChangeListeners));
+            }
+
             _watcherMap = new Dictionary<string, IReadOnlyList<FileSystemWatcher>>(FilePathComparer.Instance);
             _documentChangeListeners = documentChangeListeners.ToList();
             _documentOutputChangeListeners = documentOutputChangeListeners.ToList();
         }
 
-        public void ProjectLoaded(ProjectLoadedEventArgs loadedArgs!!)
+        public void ProjectLoaded(ProjectLoadedEventArgs loadedArgs)
         {
+            if (loadedArgs is null)
+            {
+                throw new ArgumentNullException(nameof(loadedArgs));
+            }
+
             var projectInstance = loadedArgs.ProjectInstance;
             var projectFilePath = projectInstance.GetPropertyValue(MSBuildProjectFullPathPropertyName);
             if (string.IsNullOrEmpty(projectFilePath))

@@ -18,8 +18,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly string _filePath;
         private readonly VersionStamp _version;
 
-        public GeneratedDocumentTextLoader(DocumentSnapshot document!!, string filePath)
+        public GeneratedDocumentTextLoader(DocumentSnapshot document, string filePath)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             _document = document;
             _filePath = filePath;
             _version = VersionStamp.Create();

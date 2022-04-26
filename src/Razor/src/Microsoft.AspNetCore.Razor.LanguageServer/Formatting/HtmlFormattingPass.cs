@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,9 +28,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             DocumentVersionCache documentVersionCache,
-            ILoggerFactory loggerFactory!!)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
             HtmlFormatter = new HtmlFormatter(server, documentVersionCache);

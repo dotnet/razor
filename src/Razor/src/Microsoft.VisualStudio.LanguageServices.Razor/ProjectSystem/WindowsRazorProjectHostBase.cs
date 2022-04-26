@@ -43,12 +43,32 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         internal int EnqueueDelay { get; set; } = 250;
 
         public WindowsRazorProjectHostBase(
-            IUnconfiguredProjectCommonServices commonServices!!,
-            [Import(typeof(VisualStudioWorkspace))] Workspace workspace!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!)
+            IUnconfiguredProjectCommonServices commonServices,
+            [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
             : base(commonServices.ThreadingService.JoinableTaskContext)
         {
+            if (commonServices is null)
+            {
+                throw new ArgumentNullException(nameof(commonServices));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
             CommonServices = commonServices;
             _workspace = workspace;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
@@ -64,9 +84,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            ProjectSnapshotManagerBase projectManager!!)
+            ProjectSnapshotManagerBase projectManager)
             : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
         }
 

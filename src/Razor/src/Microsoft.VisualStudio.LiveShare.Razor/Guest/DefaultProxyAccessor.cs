@@ -20,9 +20,19 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         [ImportingConstructor]
         public DefaultProxyAccessor(
-            LiveShareSessionAccessor liveShareSessionAccessor!!,
-            JoinableTaskContext joinableTaskContext!!)
+            LiveShareSessionAccessor liveShareSessionAccessor,
+            JoinableTaskContext joinableTaskContext)
         {
+            if (liveShareSessionAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(liveShareSessionAccessor));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _liveShareSessionAccessor = liveShareSessionAccessor;
             _joinableTaskFactory = joinableTaskContext.Factory;
         }

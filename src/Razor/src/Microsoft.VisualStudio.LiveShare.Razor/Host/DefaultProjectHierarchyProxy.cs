@@ -20,15 +20,30 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         private IVsUIShellOpenDocument _openDocumentShell;
 
         public DefaultProjectHierarchyProxy(
-            CollaborationSession session!!,
-            JoinableTaskFactory joinableTaskFactory!!)
+            CollaborationSession session,
+            JoinableTaskFactory joinableTaskFactory)
         {
+            if (session is null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
             _session = session;
             _joinableTaskFactory = joinableTaskFactory;
         }
 
-        public async Task<Uri> GetProjectPathAsync(Uri documentFilePath!!, CancellationToken cancellationToken)
+        public async Task<Uri> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken)
         {
+            if (documentFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(documentFilePath));
+            }
+
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (_openDocumentShell is null)

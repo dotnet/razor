@@ -38,19 +38,59 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override event EventHandler<ContextChangeEventArgs> ContextChanged;
 
         public DefaultVisualStudioDocumentTracker(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            JoinableTaskContext joinableTaskContext!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
             string filePath,
-            string projectPath!!,
-            ProjectSnapshotManager projectManager!!,
-            WorkspaceEditorSettings workspaceEditorSettings!!,
-            Workspace workspace!!,
-            ITextBuffer textBuffer!!,
-            ImportDocumentManager importDocumentManager!!)
+            string projectPath,
+            ProjectSnapshotManager projectManager,
+            WorkspaceEditorSettings workspaceEditorSettings,
+            Workspace workspace,
+            ITextBuffer textBuffer,
+            ImportDocumentManager importDocumentManager)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             if (string.IsNullOrEmpty(filePath))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            }
+
+            if (projectPath is null)
+            {
+                throw new ArgumentNullException(nameof(projectPath));
+            }
+
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
+            if (workspaceEditorSettings is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceEditorSettings));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
+
+            if (importDocumentManager is null)
+            {
+                throw new ArgumentNullException(nameof(importDocumentManager));
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
@@ -86,8 +126,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override string ProjectPath => _projectPath;
 
-        internal void AddTextView(ITextView textView!!)
+        internal void AddTextView(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             _joinableTaskContext.AssertUIThread();
 
             if (!_textViews.Contains(textView))
@@ -96,8 +141,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        internal void RemoveTextView(ITextView textView!!)
+        internal void RemoveTextView(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             _joinableTaskContext.AssertUIThread();
 
             if (_textViews.Contains(textView))

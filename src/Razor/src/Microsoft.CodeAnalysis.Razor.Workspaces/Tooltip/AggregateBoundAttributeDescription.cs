@@ -12,8 +12,13 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
     {
         public static readonly AggregateBoundAttributeDescription Default = new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>());
 
-        public AggregateBoundAttributeDescription(IReadOnlyList<BoundAttributeDescriptionInfo> descriptionInfos!!)
+        public AggregateBoundAttributeDescription(IReadOnlyList<BoundAttributeDescriptionInfo> descriptionInfos)
         {
+            if (descriptionInfos is null)
+            {
+                throw new ArgumentNullException(nameof(descriptionInfos));
+            }
+
             DescriptionInfos = descriptionInfos;
         }
 

@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Linq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;

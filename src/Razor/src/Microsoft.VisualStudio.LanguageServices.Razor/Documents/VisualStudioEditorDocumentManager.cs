@@ -32,11 +32,26 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public VisualStudioEditorDocumentManager(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
-            FileChangeTrackerFactory fileChangeTrackerFactory!!,
-            IVsRunningDocumentTable runningDocumentTable!!,
-            IVsEditorAdaptersFactoryService editorAdaptersFactory!!)
+            FileChangeTrackerFactory fileChangeTrackerFactory,
+            IVsRunningDocumentTable runningDocumentTable,
+            IVsEditorAdaptersFactoryService editorAdaptersFactory)
             : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
+            if (runningDocumentTable is null)
+            {
+                throw new ArgumentNullException(nameof(runningDocumentTable));
+            }
+
+            if (editorAdaptersFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorAdaptersFactory));
+            }
+
+            if (fileChangeTrackerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
+            }
+
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
 
@@ -44,8 +59,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _cookiesByDocument = new Dictionary<DocumentKey, uint>();
         }
 
-        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath!!)
+        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             JoinableTaskContext.AssertUIThread();
 
             EnsureDocumentTableAdvised();

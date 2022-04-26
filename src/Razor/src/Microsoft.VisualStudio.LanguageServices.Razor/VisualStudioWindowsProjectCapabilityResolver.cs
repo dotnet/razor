@@ -16,8 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly RazorLogger _razorLogger;
 
         [ImportingConstructor]
-        public VisualStudioWindowsProjectCapabilityResolver(RazorLogger razorLogger!!)
+        public VisualStudioWindowsProjectCapabilityResolver(RazorLogger razorLogger)
         {
+            if (razorLogger is null)
+            {
+                throw new ArgumentNullException(nameof(razorLogger));
+            }
+
             _razorLogger = razorLogger;
         }
 

@@ -45,10 +45,25 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         [ImportingConstructor]
         public BackgroundDocumentProcessedPublisher(
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            OmniSharpWorkspace workspace!!,
-            ILoggerFactory loggerFactory!!)
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            OmniSharpWorkspace workspace,
+            ILoggerFactory loggerFactory)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspace = workspace;
             _logger = loggerFactory.CreateLogger<BackgroundDocumentProcessedPublisher>();
@@ -59,8 +74,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         // A Razor file has been processed, this portion is responsible for the decision of whether we need to create or update
         // the Razor documents background C# representation.
-        public override void DocumentProcessed(OmniSharpDocumentSnapshot document!!)
+        public override void DocumentProcessed(OmniSharpDocumentSnapshot document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_workspaceChangedLock)
@@ -111,8 +131,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             }
         }
 
-        public override void Initialize(OmniSharpProjectSnapshotManager projectManager!!)
+        public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
             _projectManager.Changed += ProjectManager_Changed;
         }
@@ -251,8 +276,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             private readonly Document _document;
 
-            public DelegatedTextLoader(Document document!!)
+            public DelegatedTextLoader(Document document)
             {
+                if (document is null)
+                {
+                    throw new ArgumentNullException(nameof(document));
+                }
+
                 _document = document;
             }
 

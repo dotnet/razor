@@ -96,8 +96,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <returns><c>true</c> if a <see cref="TagHelperAttribute"/> with the same
         /// <see cref="TagHelperAttribute.Name"/> exists in the collection; otherwise, <c>false</c>.</returns>
         /// <remarks><paramref name="name"/> is compared case-insensitively.</remarks>
-        public bool TryGetAttribute(string name!!, out TagHelperAttribute attribute)
+        public bool TryGetAttribute(string name, out TagHelperAttribute attribute)
         {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             attribute = this[name];
 
             return attribute != null;
@@ -114,8 +119,12 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <returns><c>true</c> if at least one <see cref="TagHelperAttribute"/> with the same
         /// <see cref="TagHelperAttribute.Name"/> exists in the collection; otherwise, <c>false</c>.</returns>
         /// <remarks><paramref name="name"/> is compared case-insensitively.</remarks>
-        public bool TryGetAttributes(string name!!, out IReadOnlyList<TagHelperAttribute> attributes)
+        public bool TryGetAttributes(string name, out IReadOnlyList<TagHelperAttribute> attributes)
         {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
 
             // Perf: Avoid allocating enumerator
             List<TagHelperAttribute> matchedAttributes = null;
@@ -145,8 +154,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <param name="name">The <see cref="TagHelperAttribute.Name"/> to locate in the collection.</param>
         /// <returns>The zero-based index of the first matching <see cref="TagHelperAttribute"/> within the collection,
         /// if found; otherwise, -1.</returns>
-        public int IndexOfName(string name!!)
+        public int IndexOfName(string name)
         {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             for (var i = 0; i < Items.Count; i++)
             {
                 if (NameEquals(name, Items[i]))
@@ -166,8 +180,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <param name="attribute">The attribute to compare against.</param>
         /// <returns><c>true</c> if <paramref name="name"/> case-insensitively matches <paramref name="attribute"/>s
         /// <see cref="TagHelperAttribute.Name"/>.</returns>
-        protected static bool NameEquals(string name, TagHelperAttribute attribute!!)
+        protected static bool NameEquals(string name, TagHelperAttribute attribute)
         {
+            if (attribute is null)
+            {
+                throw new ArgumentNullException(nameof(attribute));
+            }
+
             return string.Equals(name, attribute.Name, StringComparison.OrdinalIgnoreCase);
         }
     }

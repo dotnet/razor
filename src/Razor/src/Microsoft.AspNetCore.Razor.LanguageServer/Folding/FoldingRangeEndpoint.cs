@@ -33,20 +33,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         private readonly ILogger _logger;
 
         public FoldingRangeEndpoint(
-            RazorDocumentMappingService documentMappingService!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            ClientNotifierServiceBase languageServer!!,
-            DocumentVersionCache documentVersionCache!!,
-            IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders!!,
+            RazorDocumentMappingService documentMappingService,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            ClientNotifierServiceBase languageServer,
+            DocumentVersionCache documentVersionCache,
+            IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders,
             ILoggerFactory loggerFactory)
         {
-            _documentMappingService = documentMappingService;
-            _languageServer = languageServer;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
-            _foldingRangeProviders = foldingRangeProviders;
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _foldingRangeProviders = foldingRangeProviders ?? throw new ArgumentNullException(nameof(foldingRangeProviders));
             _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
         }
 

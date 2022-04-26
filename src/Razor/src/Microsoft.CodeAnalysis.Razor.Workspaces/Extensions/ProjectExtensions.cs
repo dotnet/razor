@@ -7,8 +7,18 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 {
     internal static class ProjectExtensions
     {
-        internal static Document GetRequiredDocument(this Project project!!, DocumentId documentId!!)
+        internal static Document GetRequiredDocument(this Project project, DocumentId documentId)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            if (documentId is null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
             var document = project.GetDocument(documentId);
 
             if (document is null)

@@ -11,8 +11,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
 {
     internal static class LiveShareJsonConverterCollectionExtensions
     {
-        public static void RegisterRazorLiveShareConverters(this JsonConverterCollection collection!!)
+        public static void RegisterRazorLiveShareConverters(this JsonConverterCollection collection)
         {
+            if (collection is null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+
             if (collection.Contains(ProjectSnapshotHandleProxyJsonConverter.Instance))
             {
                 // Already registered.

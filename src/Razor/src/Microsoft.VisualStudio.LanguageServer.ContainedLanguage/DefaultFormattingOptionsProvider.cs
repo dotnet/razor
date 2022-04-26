@@ -17,9 +17,19 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         [ImportingConstructor]
         public DefaultFormattingOptionsProvider(
-            LSPDocumentManager documentManager!!,
-            IIndentationManagerService indentationManagerService!!)
+            LSPDocumentManager documentManager,
+            IIndentationManagerService indentationManagerService)
         {
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (indentationManagerService is null)
+            {
+                throw new ArgumentNullException(nameof(indentationManagerService));
+            }
+
             _documentManager = documentManager;
             _indentationManagerService = indentationManagerService;
         }

@@ -16,8 +16,18 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private T _currentSnapshot;
         private int _hostDocumentSyncVersion;
 
-        protected VirtualDocumentBase(Uri uri!!, ITextBuffer textBuffer!!)
+        protected VirtualDocumentBase(Uri uri, ITextBuffer textBuffer)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
+
             Uri = uri;
             TextBuffer = textBuffer;
             _currentSnapshot = GetUpdatedSnapshot(state: null);
@@ -31,8 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override VirtualDocumentSnapshot CurrentSnapshot => _currentSnapshot;
 
-        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes!!, int hostDocumentVersion, object state)
+        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
         {
+            if (changes is null)
+            {
+                throw new ArgumentNullException(nameof(changes));
+            }
+
             _hostDocumentSyncVersion = hostDocumentVersion;
             TextBuffer.SetHostDocumentSyncVersion(_hostDocumentSyncVersion);
 

@@ -11,8 +11,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class TextChangeExtensions
     {
-        public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText!!)
+        public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText)
         {
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             var range = textChange.Span.AsRange(sourceText);
 
             return new TextEdit()

@@ -58,11 +58,31 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public InitializeHandler(
-            JoinableTaskContext joinableTaskContext!!,
-            ILanguageClientBroker languageClientBroker!!,
-            ILanguageServiceBroker2 languageServiceBroker!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            JoinableTaskContext joinableTaskContext,
+            ILanguageClientBroker languageClientBroker,
+            ILanguageServiceBroker2 languageServiceBroker,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (languageClientBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageClientBroker));
+            }
+
+            if (languageServiceBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageServiceBroker));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _languageClientBroker = languageClientBroker;
             _languageServiceBroker = languageServiceBroker;

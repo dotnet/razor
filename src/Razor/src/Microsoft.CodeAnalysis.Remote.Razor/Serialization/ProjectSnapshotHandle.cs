@@ -11,10 +11,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal sealed class ProjectSnapshotHandle
     {
         public ProjectSnapshotHandle(
-            string filePath!!,
+            string filePath,
             RazorConfiguration configuration,
             string rootNamespace)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             FilePath = filePath;
             Configuration = configuration;
             RootNamespace = rootNamespace;

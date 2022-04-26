@@ -16,8 +16,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     [ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
     internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices!!)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
+            if (workspaceServices is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceServices));
+            }
+
             return new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), ProjectEngineFactories.Factories);
         }
     }

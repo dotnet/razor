@@ -41,13 +41,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
         }
 
-        public MarkupTransitionCompletionItemProvider(HtmlFactsService htmlFactsService!!)
+        public MarkupTransitionCompletionItemProvider(HtmlFactsService htmlFactsService)
         {
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
             _htmlFactsService = htmlFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 

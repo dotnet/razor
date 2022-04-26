@@ -34,8 +34,18 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} called before {nameof(Initialize)}");
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!, JoinableTaskContext joinableTaskContext!!)
+        public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _onChangedOnDisk = Document_ChangedOnDisk;
@@ -69,8 +79,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public override int InitializePriority => 100;
 
         [MemberNotNull(nameof(_documentManager), nameof(_projectManager))]
-        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
             _documentManager = projectManager.Workspace.Services.GetRequiredService<EditorDocumentManager>();
 

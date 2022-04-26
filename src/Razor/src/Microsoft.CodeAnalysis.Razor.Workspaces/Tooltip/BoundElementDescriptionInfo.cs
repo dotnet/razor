@@ -8,8 +8,13 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
 {
     internal class BoundElementDescriptionInfo
     {
-        public BoundElementDescriptionInfo(string tagHelperTypeName!!, string documentation)
+        public BoundElementDescriptionInfo(string tagHelperTypeName, string documentation)
         {
+            if (tagHelperTypeName is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperTypeName));
+            }
+
             TagHelperTypeName = tagHelperTypeName;
             Documentation = documentation;
         }

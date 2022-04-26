@@ -22,15 +22,25 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         [ImportingConstructor]
         public VisualStudioMacEditorDocumentManagerFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices!!)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
+            if (workspaceServices is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceServices));
+            }
+
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
             var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_projectSnapshotManagerDispatcher, _joinableTaskContext, fileChangeTrackerFactory);
             return editorDocumentManager;

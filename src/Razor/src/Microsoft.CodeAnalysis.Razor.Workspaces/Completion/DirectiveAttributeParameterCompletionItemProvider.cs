@@ -21,13 +21,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         private readonly TagHelperFactsService _tagHelperFactsService;
 
         [ImportingConstructor]
-        public DirectiveAttributeParameterCompletionItemProvider(TagHelperFactsService tagHelperFactsService!!)
+        public DirectiveAttributeParameterCompletionItemProvider(TagHelperFactsService tagHelperFactsService)
         {
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (context.TagHelperDocumentContext is null)
             {
                 throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));

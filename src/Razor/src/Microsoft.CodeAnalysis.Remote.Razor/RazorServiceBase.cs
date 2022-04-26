@@ -32,8 +32,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             ServiceBrokerClient.Dispose();
         }
 
-        protected virtual Task<ProjectSnapshot> GetProjectSnapshotAsync(ProjectSnapshotHandle projectHandle!!, CancellationToken cancellationToken)
+        protected virtual Task<ProjectSnapshot> GetProjectSnapshotAsync(ProjectSnapshotHandle projectHandle, CancellationToken cancellationToken)
         {
+            if (projectHandle is null)
+            {
+                throw new ArgumentNullException(nameof(projectHandle));
+            }
+
             var snapshot = new SerializedProjectSnapshot(projectHandle.FilePath, projectHandle.Configuration, projectHandle.RootNamespace);
             return Task.FromResult<ProjectSnapshot>(snapshot);
         }
@@ -59,8 +64,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
             public override VersionStamp Version { get; }
 
-            public override DocumentSnapshot? GetDocument(string filePath!!)
+            public override DocumentSnapshot? GetDocument(string filePath)
             {
+                if (filePath is null)
+                {
+                    throw new ArgumentNullException(nameof(filePath));
+                }
+
                 return null;
             }
 

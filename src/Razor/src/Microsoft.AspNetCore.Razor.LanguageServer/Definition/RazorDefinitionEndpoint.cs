@@ -35,16 +35,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly ILogger<RazorDefinitionEndpoint> _logger;
 
         public RazorDefinitionEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorComponentSearchEngine componentSearchEngine!!,
-            RazorDocumentMappingService documentMappingService!!,
-            ILoggerFactory loggerFactory!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            RazorComponentSearchEngine componentSearchEngine,
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _componentSearchEngine = componentSearchEngine;
-            _documentMappingService = documentMappingService;
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
         }
 

@@ -13,8 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ILogger _logger;
 
-        public LanguageServerErrorReporter(ILoggerFactory loggerFactory!!)
+        public LanguageServerErrorReporter(ILoggerFactory loggerFactory)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<LanguageServerErrorReporter>();
         }
 

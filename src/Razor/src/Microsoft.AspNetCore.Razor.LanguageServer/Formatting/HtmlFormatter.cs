@@ -24,9 +24,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public async Task<TextEdit[]> FormatAsync(
-            FormattingContext context!!,
+            FormattingContext context,
             CancellationToken cancellationToken)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var @params = new DocumentFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },

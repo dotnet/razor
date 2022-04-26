@@ -15,8 +15,18 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly IEnumerable<ILanguageService> _languageServices;
 
-        public TestLanguageServices(HostWorkspaceServices workspaceServices!!, IEnumerable<ILanguageService> languageServices!!)
+        public TestLanguageServices(HostWorkspaceServices workspaceServices, IEnumerable<ILanguageService> languageServices)
         {
+            if (workspaceServices is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceServices));
+            }
+
+            if (languageServices is null)
+            {
+                throw new ArgumentNullException(nameof(languageServices));
+            }
+
             _workspaceServices = workspaceServices;
             _languageServices = languageServices;
         }

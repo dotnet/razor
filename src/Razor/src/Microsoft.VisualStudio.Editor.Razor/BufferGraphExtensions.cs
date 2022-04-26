@@ -11,8 +11,13 @@ namespace Microsoft.VisualStudio.Text
 {
     internal static class BufferGraphExtensions
     {
-        public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph!!)
+        public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph)
         {
+            if (bufferGraph is null)
+            {
+                throw new ArgumentNullException(nameof(bufferGraph));
+            }
+
             return bufferGraph.GetTextBuffers(TextBufferExtensions.IsLegacyCoreRazorBuffer);
         }
     }
