@@ -116,6 +116,11 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                     return (TService)(IRazorSpanMappingService)new TestRazorSpanMappingService();
                 }
 
+                if (serviceType == typeof(IRazorDocumentPropertiesService))
+                {
+                    return (TService)(IRazorDocumentPropertiesService)new TestRazorDocumentPropertiesService();
+                }
+
                 return this as TService;
             }
 
@@ -128,6 +133,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 {
                     throw new NotImplementedException();
                 }
+            }
+
+            private class TestRazorDocumentPropertiesService : IRazorDocumentPropertiesService
+            {
+                public bool DesignTimeOnly => false;
+
+                public string DiagnosticsLspClientName => "RazorCSharp";
             }
         }
 

@@ -467,7 +467,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
 
             // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
-            // Unrecoverable, return default to indicate no change.
+            // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
+            // `GetMatchingCSharpResponseAsync` that will cause us to retry in a bit.
             if (csharpResponse is null)
             {
                 _logger.LogWarning($"Issue with retrieving C# response for Razor range: {razorRange}");

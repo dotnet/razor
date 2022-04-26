@@ -114,7 +114,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
             string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
-            Thread.Sleep(10000);
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
             var csharpTokens = Array.Empty<int>();
