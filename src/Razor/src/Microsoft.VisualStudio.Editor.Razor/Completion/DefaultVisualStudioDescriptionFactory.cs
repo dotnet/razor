@@ -50,8 +50,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private static readonly ClassifiedTextRun s_spaceLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, " ");
         private static readonly ClassifiedTextRun s_dotLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, ".");
 
-        public override ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription!!)
+        public override ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription)
         {
+            if (completionDescription is null)
+            {
+                throw new ArgumentNullException(nameof(completionDescription));
+            }
+
             var descriptionElements = new List<object>();
             foreach (var descriptionInfo in completionDescription.DescriptionInfos)
             {

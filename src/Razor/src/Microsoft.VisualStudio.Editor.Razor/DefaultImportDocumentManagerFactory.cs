@@ -19,13 +19,23 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         [ImportingConstructor]
-        public DefaultImportDocumentManagerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
+        public DefaultImportDocumentManagerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
+            if (languageServices is null)
+            {
+                throw new ArgumentNullException(nameof(languageServices));
+            }
+
             var errorReporter = languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>();
             var fileChangeTrackerFactory = languageServices.WorkspaceServices.GetRequiredService<FileChangeTrackerFactory>();
 

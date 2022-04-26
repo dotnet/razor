@@ -15,8 +15,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly DocumentSnapshot _documentSnapshot;
 
-        public DocumentSnapshotTextLoader(DocumentSnapshot documentSnapshot!!)
+        public DocumentSnapshotTextLoader(DocumentSnapshot documentSnapshot)
         {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
             _documentSnapshot = documentSnapshot;
         }
 

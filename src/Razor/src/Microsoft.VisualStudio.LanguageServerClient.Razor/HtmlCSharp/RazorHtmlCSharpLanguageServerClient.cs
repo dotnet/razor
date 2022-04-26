@@ -42,9 +42,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public RazorHtmlCSharpLanguageServerClient(
-            [ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            [ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestHandlers is null)
+            {
+                throw new ArgumentNullException(nameof(requestHandlers));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestHandlers = requestHandlers;
             _loggerProvider = loggerProvider;
         }

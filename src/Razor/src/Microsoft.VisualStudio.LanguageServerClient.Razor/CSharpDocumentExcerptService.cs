@@ -23,9 +23,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPDocumentSnapshot _documentSnapshot;
 
         public CSharpDocumentExcerptService(
-            IRazorSpanMappingService mappingService!!,
-            LSPDocumentSnapshot documentSnapshot!!)
+            IRazorSpanMappingService mappingService,
+            LSPDocumentSnapshot documentSnapshot)
         {
+            if (mappingService is null)
+            {
+                throw new ArgumentNullException(nameof(mappingService));
+            }
+
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
             _mappingService = mappingService;
             _documentSnapshot = documentSnapshot;
         }

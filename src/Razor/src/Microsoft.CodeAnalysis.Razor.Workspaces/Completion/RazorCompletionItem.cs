@@ -25,12 +25,22 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         /// <param name="commitCharacters">Characters that can be used to commit the completion item.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="displayText"/> or <paramref name="insertText"/> are <c>null</c>.</exception>
         public RazorCompletionItem(
-            string displayText!!,
-            string insertText!!,
+            string displayText,
+            string insertText,
             RazorCompletionItemKind kind,
             string sortText = null,
             IReadOnlyCollection<string> commitCharacters = null)
         {
+            if (displayText is null)
+            {
+                throw new ArgumentNullException(nameof(displayText));
+            }
+
+            if (insertText is null)
+            {
+                throw new ArgumentNullException(nameof(insertText));
+            }
+
             DisplayText = displayText;
             InsertText = insertText;
             Kind = kind;

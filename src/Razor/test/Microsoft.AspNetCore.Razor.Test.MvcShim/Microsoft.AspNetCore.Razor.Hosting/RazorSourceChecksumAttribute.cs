@@ -29,8 +29,23 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="checksumAlgorithm">The algorithm used to create this checksum.</param>
         /// <param name="checksum">The checksum as a string of hex-encoded bytes.</param>
         /// <param name="identifier">The identifier associated with this thumbprint.</param>
-        public RazorSourceChecksumAttribute(string checksumAlgorithm!!, string checksum!!, string identifier!!)
+        public RazorSourceChecksumAttribute(string checksumAlgorithm, string checksum, string identifier)
         {
+            if (checksumAlgorithm is null)
+            {
+                throw new ArgumentNullException(nameof(checksumAlgorithm));
+            }
+
+            if (checksum is null)
+            {
+                throw new ArgumentNullException(nameof(checksum));
+            }
+
+            if (identifier is null)
+            {
+                throw new ArgumentNullException(nameof(identifier));
+            }
+
             ChecksumAlgorithm = checksumAlgorithm;
             Checksum = checksum;
             Identifier = identifier;

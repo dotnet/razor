@@ -57,12 +57,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         [ImportingConstructor]
         public RazorLSPTextViewConnectionListener(
-            IVsEditorAdaptersFactoryService editorAdaptersFactory!!,
-            LSPEditorFeatureDetector editorFeatureDetector!!,
-            IEditorOptionsFactoryService editorOptionsFactory!!,
-            EditorSettingsManager editorSettingsManager!!,
-            SVsServiceProvider serviceProvider!!)
+            IVsEditorAdaptersFactoryService editorAdaptersFactory,
+            LSPEditorFeatureDetector editorFeatureDetector,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            EditorSettingsManager editorSettingsManager,
+            SVsServiceProvider serviceProvider)
         {
+            if (editorAdaptersFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorAdaptersFactory));
+            }
+
+            if (editorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(editorFeatureDetector));
+            }
+
+            if (editorOptionsFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorOptionsFactory));
+            }
+
+            if (editorSettingsManager is null)
+            {
+                throw new ArgumentNullException(nameof(editorSettingsManager));
+            }
+
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             _editorAdaptersFactory = editorAdaptersFactory;
             _editorFeatureDetector = editorFeatureDetector;
             _editorOptionsFactory = editorOptionsFactory;
@@ -72,8 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             Assumes.Present(_textManager);
         }
 
-        public void SubjectBuffersConnected(ITextView textView!!, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+        public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
 
             // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -20,13 +21,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
 
         [ImportingConstructor]
-        public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager!!)
+        public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager)
         {
+            if (editorSettingsManager is null)
+            {
+                throw new ArgumentNullException(nameof(editorSettingsManager));
+            }
+
             _editorSettingsManager = editorSettingsManager;
         }
 
-        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document!!, CancellationToken cancellationToken)
+        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
             var editorSettings = _editorSettingsManager.Current;
             return Task.FromResult<IRazorDocumentOptions>(new RazorDocumentOptions(document, editorSettings));

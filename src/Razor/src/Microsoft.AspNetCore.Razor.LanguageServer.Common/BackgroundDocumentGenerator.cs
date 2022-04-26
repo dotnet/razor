@@ -22,9 +22,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private bool _solutionIsClosing;
 
         public BackgroundDocumentGenerator(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            IEnumerable<DocumentProcessedListener> documentProcessedListeners!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentProcessedListeners is null)
+            {
+                throw new ArgumentNullException(nameof(documentProcessedListeners));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentProcessedListeners = documentProcessedListeners;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
@@ -70,8 +80,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
 
         [MemberNotNull(nameof(_projectManager))]
-        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
 
             _projectManager.Changed += ProjectSnapshotManager_Changed;

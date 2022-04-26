@@ -10,11 +10,26 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
     internal sealed class BoundAttributeDescriptionInfo : IEquatable<BoundAttributeDescriptionInfo>
     {
         public BoundAttributeDescriptionInfo(
-            string returnTypeName!!,
-            string typeName!!,
-            string propertyName!!,
+            string returnTypeName,
+            string typeName,
+            string propertyName,
             string documentation)
         {
+            if (returnTypeName is null)
+            {
+                throw new ArgumentNullException(nameof(returnTypeName));
+            }
+
+            if (typeName is null)
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
+            if (propertyName is null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
             ReturnTypeName = returnTypeName;
             TypeName = typeName;
             PropertyName = propertyName;
@@ -65,8 +80,18 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
             return combiner.CombinedHash;
         }
 
-        public static BoundAttributeDescriptionInfo From(BoundAttributeParameterDescriptor parameterAttribute!!, string parentTagHelperTypeName!!)
+        public static BoundAttributeDescriptionInfo From(BoundAttributeParameterDescriptor parameterAttribute, string parentTagHelperTypeName)
         {
+            if (parameterAttribute is null)
+            {
+                throw new ArgumentNullException(nameof(parameterAttribute));
+            }
+
+            if (parentTagHelperTypeName is null)
+            {
+                throw new ArgumentNullException(nameof(parentTagHelperTypeName));
+            }
+
             var propertyName = parameterAttribute.GetPropertyName();
             var descriptionInfo = new BoundAttributeDescriptionInfo(
                 parameterAttribute.TypeName,
@@ -78,8 +103,13 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
 
         public static BoundAttributeDescriptionInfo From(BoundAttributeDescriptor boundAttribute, bool indexer) => From(boundAttribute, indexer, parentTagHelperTypeName: null);
 
-        public static BoundAttributeDescriptionInfo From(BoundAttributeDescriptor boundAttribute!!, bool indexer, string? parentTagHelperTypeName)
+        public static BoundAttributeDescriptionInfo From(BoundAttributeDescriptor boundAttribute, bool indexer, string? parentTagHelperTypeName)
         {
+            if (boundAttribute is null)
+            {
+                throw new ArgumentNullException(nameof(boundAttribute));
+            }
+
             var returnTypeName = indexer ? boundAttribute.IndexerTypeName : boundAttribute.TypeName;
             var propertyName = boundAttribute.GetPropertyName();
             if (parentTagHelperTypeName is null)

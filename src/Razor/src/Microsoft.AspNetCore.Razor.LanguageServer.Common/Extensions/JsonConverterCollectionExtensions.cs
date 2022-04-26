@@ -22,8 +22,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
             ProjectRazorJsonJsonConverter.Instance,
         };
 
-        public static void RegisterRazorConverters(this IList<JsonConverter> collection!!)
+        public static void RegisterRazorConverters(this IList<JsonConverter> collection)
         {
+            if (collection is null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+
             for (var i = 0; i < RazorConverters.Count; i++)
             {
                 collection.Add(RazorConverters[i]);

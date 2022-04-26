@@ -24,8 +24,18 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// The identifier associated with the item. The identifier is used programmatically to locate
         /// a specific item of a specific kind, and should be unique within the assembly.
         /// </param>
-        public RazorCompiledItemAttribute(Type type!!, string kind!!, string identifier)
+        public RazorCompiledItemAttribute(Type type, string kind, string identifier)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (kind is null)
+            {
+                throw new ArgumentNullException(nameof(kind));
+            }
+
             Type = type;
             Kind = kind;
             Identifier = identifier;

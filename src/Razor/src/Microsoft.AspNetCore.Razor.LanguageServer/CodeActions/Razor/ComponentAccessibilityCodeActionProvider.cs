@@ -30,11 +30,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly FilePathNormalizer _filePathNormalizer;
 
         public ComponentAccessibilityCodeActionProvider(
-            TagHelperFactsService tagHelperFactsService!!,
-            FilePathNormalizer filePathNormalizer!!)
+            TagHelperFactsService tagHelperFactsService,
+            FilePathNormalizer filePathNormalizer)
         {
-            _tagHelperFactsService = tagHelperFactsService;
-            _filePathNormalizer = filePathNormalizer;
+            _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentNullException(nameof(tagHelperFactsService));
+            _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)

@@ -22,12 +22,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
         public RazorLanguageService(
-            RazorBreakpointResolver breakpointResolver!!,
-            RazorProximityExpressionResolver proximityExpressionResolver!!,
-            IUIThreadOperationExecutor uiThreadOperationExecutor!!,
-            IVsEditorAdaptersFactoryService editorAdaptersFactory!!,
-            JoinableTaskFactory joinableTaskFactory!!)
+            RazorBreakpointResolver breakpointResolver,
+            RazorProximityExpressionResolver proximityExpressionResolver,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
+            IVsEditorAdaptersFactoryService editorAdaptersFactory,
+            JoinableTaskFactory joinableTaskFactory)
         {
+            if (breakpointResolver is null)
+            {
+                throw new ArgumentNullException(nameof(breakpointResolver));
+            }
+
+            if (proximityExpressionResolver is null)
+            {
+                throw new ArgumentNullException(nameof(proximityExpressionResolver));
+            }
+
+            if (uiThreadOperationExecutor is null)
+            {
+                throw new ArgumentNullException(nameof(uiThreadOperationExecutor));
+            }
+
+            if (editorAdaptersFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorAdaptersFactory));
+            }
+
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
             _breakpointResolver = breakpointResolver;
             _proximityExpressionResolver = proximityExpressionResolver;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;

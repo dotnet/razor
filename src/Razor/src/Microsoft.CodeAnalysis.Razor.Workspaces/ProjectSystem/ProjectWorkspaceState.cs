@@ -26,9 +26,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         [JsonConstructor]
         public ProjectWorkspaceState(
-            IReadOnlyList<TagHelperDescriptor> tagHelpers!!,
+            IReadOnlyList<TagHelperDescriptor> tagHelpers,
             LanguageVersion csharpLanguageVersion)
         {
+            if (tagHelpers is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelpers));
+            }
+
             TagHelpers = tagHelpers;
             CSharpLanguageVersion = csharpLanguageVersion;
         }

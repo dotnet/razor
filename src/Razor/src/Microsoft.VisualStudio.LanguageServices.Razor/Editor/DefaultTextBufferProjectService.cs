@@ -28,17 +28,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         [ImportingConstructor]
         public DefaultTextBufferProjectService(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider services!!,
-            ITextDocumentFactoryService documentFactory!!,
-            AggregateProjectCapabilityResolver projectCapabilityResolver!!)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider services,
+            ITextDocumentFactoryService documentFactory,
+            AggregateProjectCapabilityResolver projectCapabilityResolver)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (documentFactory is null)
+            {
+                throw new ArgumentNullException(nameof(documentFactory));
+            }
+
+            if (projectCapabilityResolver is null)
+            {
+                throw new ArgumentNullException(nameof(projectCapabilityResolver));
+            }
+
+
             _documentFactory = documentFactory;
             _projectCapabilityResolver = projectCapabilityResolver;
             _documentTable = new RunningDocumentTable(services);
         }
 
-        public override object GetHostProject(ITextBuffer textBuffer!!)
+        public override object GetHostProject(ITextBuffer textBuffer)
         {
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
 
             // If there's no document we can't find the FileName, or look for a matching hierarchy.
             if (!_documentFactory.TryGetTextDocument(textBuffer, out var textDocument))
@@ -61,8 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return hierarchy;
         }
 
-        public override string GetProjectPath(object project!!)
+        public override string GetProjectPath(object project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 
@@ -70,14 +95,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return path;
         }
 
-        public override bool IsSupportedProject(object project!!)
+        public override bool IsSupportedProject(object project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             var capabilitySupported = _projectCapabilityResolver.HasCapability(project, DotNetCoreCapability);
             return capabilitySupported;
         }
 
-        public override string GetProjectName(object project!!)
+        public override string GetProjectName(object project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             var hierarchy = project as IVsHierarchy;
             Debug.Assert(hierarchy != null);
 

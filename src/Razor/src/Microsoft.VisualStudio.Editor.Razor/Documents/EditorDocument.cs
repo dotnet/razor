@@ -31,19 +31,54 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private bool _disposed;
 
         public EditorDocument(
-            EditorDocumentManager documentManager!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            JoinableTaskContext joinableTaskContext!!,
-            string projectFilePath!!,
-            string documentFilePath!!,
-            TextLoader textLoader!!,
-            FileChangeTracker fileTracker!!,
+            EditorDocumentManager documentManager,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
+            string projectFilePath,
+            string documentFilePath,
+            TextLoader textLoader,
+            FileChangeTracker fileTracker,
             ITextBuffer textBuffer,
             EventHandler changedOnDisk,
             EventHandler changedInEditor,
             EventHandler opened,
             EventHandler closed)
         {
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (projectFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            if (documentFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(documentFilePath));
+            }
+
+            if (textLoader is null)
+            {
+                throw new ArgumentNullException(nameof(textLoader));
+            }
+
+            if (fileTracker is null)
+            {
+                throw new ArgumentNullException(nameof(fileTracker));
+            }
+
             _documentManager = documentManager;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
@@ -87,8 +122,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public TextLoader TextLoader { get; }
 
-        public void ProcessOpen(ITextBuffer textBuffer!!)
+        public void ProcessOpen(ITextBuffer textBuffer)
         {
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
+
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _fileTracker.StopListening(), CancellationToken.None).ConfigureAwait(false);
 

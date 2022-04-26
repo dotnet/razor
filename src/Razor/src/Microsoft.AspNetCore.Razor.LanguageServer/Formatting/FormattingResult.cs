@@ -9,8 +9,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal struct FormattingResult
     {
-        public FormattingResult(TextEdit[] edits!!, RazorLanguageKind kind = RazorLanguageKind.Razor)
+        public FormattingResult(TextEdit[] edits, RazorLanguageKind kind = RazorLanguageKind.Razor)
         {
+            if (edits is null)
+            {
+                throw new ArgumentNullException(nameof(edits));
+            }
+
             Edits = edits;
             Kind = kind;
         }

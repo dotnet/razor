@@ -9,8 +9,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class ProjectConfigurationFilePathChangedEventArgs : EventArgs
     {
-        public ProjectConfigurationFilePathChangedEventArgs(string projectFilePath!!, string configurationFilePath)
+        public ProjectConfigurationFilePathChangedEventArgs(string projectFilePath, string configurationFilePath)
         {
+            if (projectFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
             ProjectFilePath = projectFilePath;
             ConfigurationFilePath = configurationFilePath;
         }

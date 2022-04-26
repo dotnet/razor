@@ -25,8 +25,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
         }
 
-        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath!!)
+        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             var document = IdeApp.Workbench.GetDocument(filePath);
             return document?.GetContent<ITextBuffer>();
         }

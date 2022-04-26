@@ -41,10 +41,25 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         // Internal for testing
         internal TagHelperRefreshTrigger(
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            Workspace omniSharpWorkspace!!,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator!!)
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            Workspace omniSharpWorkspace,
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (omniSharpWorkspace is null)
+            {
+                throw new ArgumentNullException(nameof(omniSharpWorkspace));
+            }
+
+            if (workspaceStateGenerator is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceStateGenerator));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _omniSharpWorkspace = omniSharpWorkspace;
             _workspaceStateGenerator = workspaceStateGenerator;
@@ -53,13 +68,22 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public int EnqueueDelay { get; set; } = 3 * 1000;
 
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager!!)
+        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
         }
 
-        public void ProjectLoaded(ProjectLoadedEventArgs args!!)
+        public void ProjectLoaded(ProjectLoadedEventArgs args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
 
             // Project file was modified or impacted in a significant way.
 
@@ -68,8 +92,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 CancellationToken.None).ConfigureAwait(false);
         }
 
-        public void RazorDocumentChanged(RazorFileChangeEventArgs args!!)
+        public void RazorDocumentChanged(RazorFileChangeEventArgs args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
 
             // Razor document changed
 
@@ -88,8 +116,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 _projectSnapshotManagerDispatcher.DispatcherScheduler).ConfigureAwait(false);
         }
 
-        public void RazorDocumentOutputChanged(RazorFileChangeEventArgs args!!)
+        public void RazorDocumentOutputChanged(RazorFileChangeEventArgs args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
 
             // Razor build occurred
 

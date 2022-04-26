@@ -10,14 +10,29 @@ namespace Microsoft.VisualStudio.Editor.Razor
     public sealed class ElementCompletionContext
     {
         public ElementCompletionContext(
-            TagHelperDocumentContext documentContext!!,
-            IEnumerable<string> existingCompletions!!,
+            TagHelperDocumentContext documentContext,
+            IEnumerable<string> existingCompletions,
             string containingTagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
             string? containingParentTagName,
             bool containingParentIsTagHelper,
-            Func<string, bool> inHTMLSchema!!)
+            Func<string, bool> inHTMLSchema)
         {
+            if (documentContext is null)
+            {
+                throw new ArgumentNullException(nameof(documentContext));
+            }
+
+            if (existingCompletions is null)
+            {
+                throw new ArgumentNullException(nameof(existingCompletions));
+            }
+
+            if (inHTMLSchema is null)
+            {
+                throw new ArgumentNullException(nameof(inHTMLSchema));
+            }
+
             DocumentContext = documentContext;
             ExistingCompletions = existingCompletions;
             ContainingTagName = containingTagName;

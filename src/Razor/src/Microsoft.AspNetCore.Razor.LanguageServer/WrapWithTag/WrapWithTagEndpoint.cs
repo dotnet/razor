@@ -23,12 +23,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
         private readonly ILogger _logger;
 
         public WrapWithTagEndpoint(
-            ClientNotifierServiceBase languageServer!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorDocumentMappingService razorDocumentMappingService!!,
-            ILoggerFactory loggerFactory!!)
+            ClientNotifierServiceBase languageServer,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            RazorDocumentMappingService razorDocumentMappingService,
+            ILoggerFactory loggerFactory)
         {
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (razorDocumentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(razorDocumentMappingService));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _languageServer = languageServer;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;

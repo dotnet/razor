@@ -12,15 +12,40 @@ namespace Microsoft.VisualStudio.Editor.Razor
     public class AttributeCompletionContext
     {
         public AttributeCompletionContext(
-            TagHelperDocumentContext documentContext!!,
-            IEnumerable<string> existingCompletions!!,
-            string currentTagName!!,
+            TagHelperDocumentContext documentContext,
+            IEnumerable<string> existingCompletions,
+            string currentTagName,
             string currentAttributeName,
-            IEnumerable<KeyValuePair<string, string>> attributes!!,
+            IEnumerable<KeyValuePair<string, string>> attributes,
             string currentParentTagName,
             bool currentParentIsTagHelper,
-            Func<string, bool> inHTMLSchema!!)
+            Func<string, bool> inHTMLSchema)
         {
+            if (documentContext is null)
+            {
+                throw new ArgumentNullException(nameof(documentContext));
+            }
+
+            if (existingCompletions is null)
+            {
+                throw new ArgumentNullException(nameof(existingCompletions));
+            }
+
+            if (currentTagName is null)
+            {
+                throw new ArgumentNullException(nameof(currentTagName));
+            }
+
+            if (attributes is null)
+            {
+                throw new ArgumentNullException(nameof(attributes));
+            }
+
+            if (inHTMLSchema is null)
+            {
+                throw new ArgumentNullException(nameof(inHTMLSchema));
+            }
+
             DocumentContext = documentContext;
             ExistingCompletions = existingCompletions;
             CurrentTagName = currentTagName;

@@ -41,8 +41,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override void Update(EditorSettings updatedSettings!!)
+        public override void Update(EditorSettings updatedSettings)
         {
+            if (updatedSettings is null)
+            {
+                throw new ArgumentNullException(nameof(updatedSettings));
+            }
+
             lock (_settingsAccessorLock)
             {
                 if (!_settings.Equals(updatedSettings))

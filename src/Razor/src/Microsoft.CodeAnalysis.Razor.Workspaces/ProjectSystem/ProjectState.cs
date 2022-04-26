@@ -38,10 +38,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private RazorProjectEngine _projectEngine;
 
         public static ProjectState Create(
-            HostWorkspaceServices services!!,
-            HostProject hostProject!!,
+            HostWorkspaceServices services,
+            HostProject hostProject,
             ProjectWorkspaceState projectWorkspaceState = null)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (hostProject is null)
+            {
+                throw new ArgumentNullException(nameof(hostProject));
+            }
+
             return new ProjectState(services, hostProject, projectWorkspaceState);
         }
 
@@ -62,13 +72,33 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         private ProjectState(
-            ProjectState older!!,
+            ProjectState older,
             ProjectDifference difference,
-            HostProject hostProject!!,
+            HostProject hostProject,
             ProjectWorkspaceState projectWorkspaceState,
-            ImmutableDictionary<string, DocumentState> documents!!,
-            ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments!!)
+            ImmutableDictionary<string, DocumentState> documents,
+            ImmutableDictionary<string, ImmutableArray<string>> importsToRelatedDocuments)
         {
+            if (older is null)
+            {
+                throw new ArgumentNullException(nameof(older));
+            }
+
+            if (hostProject is null)
+            {
+                throw new ArgumentNullException(nameof(hostProject));
+            }
+
+            if (documents is null)
+            {
+                throw new ArgumentNullException(nameof(documents));
+            }
+
+            if (importsToRelatedDocuments is null)
+            {
+                throw new ArgumentNullException(nameof(importsToRelatedDocuments));
+            }
+
             Services = older.Services;
             Version = older.Version.GetNewerVersion();
 
@@ -174,8 +204,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public VersionStamp ConfigurationVersion { get; }
 
-        public ProjectState WithAddedHostDocument(HostDocument hostDocument!!, Func<Task<TextAndVersion>> loader!!)
+        public ProjectState WithAddedHostDocument(HostDocument hostDocument, Func<Task<TextAndVersion>> loader)
         {
+            if (hostDocument is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocument));
+            }
+
+            if (loader is null)
+            {
+                throw new ArgumentNullException(nameof(loader));
+            }
 
             // Ignore attempts to 'add' a document with different data, we only
             // care about one, so it might as well be the one we have.
@@ -204,8 +243,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return state;
         }
 
-        public ProjectState WithRemovedHostDocument(HostDocument hostDocument!!)
+        public ProjectState WithRemovedHostDocument(HostDocument hostDocument)
         {
+            if (hostDocument is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocument));
+            }
+
             if (!Documents.ContainsKey(hostDocument.FilePath))
             {
                 return this;
@@ -231,8 +275,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return state;
         }
 
-        public ProjectState WithChangedHostDocument(HostDocument hostDocument!!, SourceText sourceText, VersionStamp version)
+        public ProjectState WithChangedHostDocument(HostDocument hostDocument, SourceText sourceText, VersionStamp version)
         {
+            if (hostDocument is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocument));
+            }
+
             if (!Documents.TryGetValue(hostDocument.FilePath, out var document))
             {
                 return this;
@@ -252,8 +301,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return state;
         }
 
-        public ProjectState WithChangedHostDocument(HostDocument hostDocument!!, Func<Task<TextAndVersion>> loader)
+        public ProjectState WithChangedHostDocument(HostDocument hostDocument, Func<Task<TextAndVersion>> loader)
         {
+            if (hostDocument is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocument));
+            }
+
             if (!Documents.TryGetValue(hostDocument.FilePath, out var document))
             {
                 return this;
@@ -273,8 +327,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return state;
         }
 
-        public ProjectState WithHostProject(HostProject hostProject!!)
+        public ProjectState WithHostProject(HostProject hostProject)
         {
+            if (hostProject is null)
+            {
+                throw new ArgumentNullException(nameof(hostProject));
+            }
+
             if (HostProject.Configuration.Equals(hostProject.Configuration) &&
                 HostProject.RootNamespace == hostProject.RootNamespace)
             {

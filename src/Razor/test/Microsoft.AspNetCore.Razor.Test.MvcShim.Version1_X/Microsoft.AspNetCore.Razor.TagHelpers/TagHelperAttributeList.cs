@@ -26,9 +26,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <paramref name="attributes"/>.
         /// </summary>
         /// <param name="attributes">The collection to wrap.</param>
-        public TagHelperAttributeList(IEnumerable<TagHelperAttribute> attributes!!)
+        public TagHelperAttributeList(IEnumerable<TagHelperAttribute> attributes)
             : base (new List<TagHelperAttribute>(attributes))
         {
+            if (attributes is null)
+            {
+                throw new ArgumentNullException(nameof(attributes));
+            }
         }
 
         /// <summary>
@@ -36,9 +40,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <paramref name="attributes"/>.
         /// </summary>
         /// <param name="attributes">The collection to wrap.</param>
-        public TagHelperAttributeList(List<TagHelperAttribute> attributes!!)
+        public TagHelperAttributeList(List<TagHelperAttribute> attributes)
             : base(attributes)
         {
+            if (attributes is null)
+            {
+                throw new ArgumentNullException(nameof(attributes));
+            }
         }
 
         /// <inheritdoc />
@@ -91,8 +99,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// </param>
         /// <remarks><paramref name="attribute"/>'s <see cref="TagHelperAttribute.Name"/> is compared
         /// case-insensitively.</remarks>
-        public void SetAttribute(TagHelperAttribute attribute!!)
+        public void SetAttribute(TagHelperAttribute attribute)
         {
+            if (attribute is null)
+            {
+                throw new ArgumentNullException(nameof(attribute));
+            }
+
             var attributeReplaced = false;
 
             // Perf: Avoid allocating enumerator
@@ -137,14 +150,24 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         }
 
         /// <inheritdoc />
-        public void Add(TagHelperAttribute attribute!!)
+        public void Add(TagHelperAttribute attribute)
         {
+            if (attribute is null)
+            {
+                throw new ArgumentNullException(nameof(attribute));
+            }
+
             Items.Add(attribute);
         }
 
         /// <inheritdoc />
-        public void Insert(int index, TagHelperAttribute attribute!!)
+        public void Insert(int index, TagHelperAttribute attribute)
         {
+            if (attribute is null)
+            {
+                throw new ArgumentNullException(nameof(attribute));
+            }
+
             Items.Insert(index, attribute);
         }
 
@@ -152,8 +175,13 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <remarks>
         /// <paramref name="attribute"/>s <see cref="TagHelperAttribute.Name"/> is compared case-insensitively.
         /// </remarks>
-        public bool Remove(TagHelperAttribute attribute!!)
+        public bool Remove(TagHelperAttribute attribute)
         {
+            if (attribute is null)
+            {
+                throw new ArgumentNullException(nameof(attribute));
+            }
+
             return Items.Remove(attribute);
         }
 
@@ -174,8 +202,12 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
         /// <c>true</c> if at least 1 <see cref="TagHelperAttribute"/> was removed; otherwise, <c>false</c>.
         /// </returns>
         /// <remarks><paramref name="name"/> is compared case-insensitively.</remarks>
-        public bool RemoveAll(string name!!)
+        public bool RemoveAll(string name)
         {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
 
             // Perf: Avoid allocating enumerator
             var removedAtLeastOne = false;

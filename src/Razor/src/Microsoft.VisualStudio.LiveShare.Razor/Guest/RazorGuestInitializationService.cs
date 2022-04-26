@@ -23,13 +23,22 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         internal Task _viewImportsCopyTask;
 
         [ImportingConstructor]
-        public RazorGuestInitializationService([Import(typeof(LiveShareSessionAccessor))] DefaultLiveShareSessionAccessor sessionAccessor!!)
+        public RazorGuestInitializationService([Import(typeof(LiveShareSessionAccessor))] DefaultLiveShareSessionAccessor sessionAccessor)
         {
+            if (sessionAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(sessionAccessor));
+            }
+
             _sessionAccessor = sessionAccessor;
         }
 
-        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext!!, CancellationToken cancellationToken)
+        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
         {
+            if (sessionContext is null)
+            {
+                throw new ArgumentNullException(nameof(sessionContext));
+            }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -98,8 +107,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
     {
         private readonly Action _onDispose;
 
-        public SessionActiveDetector(Action onDispose!!)
+        public SessionActiveDetector(Action onDispose)
         {
+            if (onDispose is null)
+            {
+                throw new ArgumentNullException(nameof(onDispose));
+            }
+
             _onDispose = onDispose;
         }
 

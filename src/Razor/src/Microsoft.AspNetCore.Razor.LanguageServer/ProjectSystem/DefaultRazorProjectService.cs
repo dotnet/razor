@@ -32,16 +32,61 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         private readonly ILogger _logger;
 
         public DefaultRazorProjectService(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            HostDocumentFactory hostDocumentFactory!!,
-            RemoteTextLoaderFactory remoteTextLoaderFactory!!,
-            DocumentResolver documentResolver!!,
-            ProjectResolver projectResolver!!,
-            DocumentVersionCache documentVersionCache!!,
-            FilePathNormalizer filePathNormalizer!!,
-            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor!!,
-            ILoggerFactory loggerFactory!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            HostDocumentFactory hostDocumentFactory,
+            RemoteTextLoaderFactory remoteTextLoaderFactory,
+            DocumentResolver documentResolver,
+            ProjectResolver projectResolver,
+            DocumentVersionCache documentVersionCache,
+            FilePathNormalizer filePathNormalizer,
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+            ILoggerFactory loggerFactory)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (hostDocumentFactory is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocumentFactory));
+            }
+
+            if (remoteTextLoaderFactory is null)
+            {
+                throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (projectResolver is null)
+            {
+                throw new ArgumentNullException(nameof(projectResolver));
+            }
+
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
+            if (projectSnapshotManagerAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _hostDocumentFactory = hostDocumentFactory;
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
@@ -448,9 +493,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         private class DelegatingTextLoader : TextLoader
         {
             private readonly DocumentSnapshot _fromDocument;
-            public DelegatingTextLoader(DocumentSnapshot fromDocument!!)
+            public DelegatingTextLoader(DocumentSnapshot fromDocument)
             {
-                _fromDocument = fromDocument;
+                _fromDocument = fromDocument ?? throw new ArgumentNullException(nameof(fromDocument));
             }
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(
                Workspace workspace,

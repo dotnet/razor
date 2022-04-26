@@ -25,10 +25,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             ImageId = imageId;
         }
 
-        public VSImageElement(VSImageId imageId, string automationName!!)
+        public VSImageElement(VSImageId imageId, string automationName)
             : this(imageId)
         {
-            AutomationName = automationName;
+            AutomationName = automationName ?? throw new ArgumentNullException(nameof(automationName));
         }
 
         [JsonProperty("ImageId")]

@@ -28,9 +28,19 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public BatchingWorkQueue(
             TimeSpan batchingTimeSpan,
-            StringComparer keyComparer!!,
-            ErrorReporter errorReporter!!)
+            StringComparer keyComparer,
+            ErrorReporter errorReporter)
         {
+            if (keyComparer is null)
+            {
+                throw new ArgumentNullException(nameof(keyComparer));
+            }
+
+            if (errorReporter is null)
+            {
+                throw new ArgumentNullException(nameof(errorReporter));
+            }
+
             _batchingTimeSpan = batchingTimeSpan;
             _errorReporter = errorReporter;
             _disposalCts = new CancellationTokenSource();

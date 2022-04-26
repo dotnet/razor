@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,8 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider!!)
+        public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)
         {
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             _serviceProvider = serviceProvider;
         }
 

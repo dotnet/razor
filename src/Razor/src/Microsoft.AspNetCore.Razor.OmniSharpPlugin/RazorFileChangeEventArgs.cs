@@ -12,10 +12,20 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     internal class RazorFileChangeEventArgs : EventArgs
     {
         public RazorFileChangeEventArgs(
-            string filePath!!,
-            ProjectInstance projectInstance!!,
+            string filePath,
+            ProjectInstance projectInstance,
             RazorFileChangeKind kind)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (projectInstance is null)
+            {
+                throw new ArgumentNullException(nameof(projectInstance));
+            }
+
             FilePath = filePath;
             UnevaluatedProjectInstance = projectInstance;
             Kind = kind;

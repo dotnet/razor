@@ -31,19 +31,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         [ImportingConstructor]
         public DefaultRazorHoverInfoService(
-            TagHelperFactsService tagHelperFactsService!!,
-            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory!!,
-            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory!!,
-            HtmlFactsService htmlFactsService!!)
+            TagHelperFactsService tagHelperFactsService,
+            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
+            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
+            HtmlFactsService htmlFactsService)
         {
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
+            if (lspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
+            }
+
+            if (vsLspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
+            }
+
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
             _tagHelperFactsService = tagHelperFactsService;
             _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
             _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
             _htmlFactsService = htmlFactsService;
         }
 
-        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument!!, SourceLocation location, ClientCapabilities clientCapabilities)
+        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, ClientCapabilities clientCapabilities)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var syntaxTree = codeDocument.GetSyntaxTree();
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");

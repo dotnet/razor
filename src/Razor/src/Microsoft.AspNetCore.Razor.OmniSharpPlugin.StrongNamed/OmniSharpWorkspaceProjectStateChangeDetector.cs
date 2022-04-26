@@ -14,9 +14,19 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
     {
         public OmniSharpWorkspaceProjectStateChangeDetector(
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator!!)
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspaceStateGenerator is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceStateGenerator));
+            }
+
             InternalWorkspaceProjectStateChangeDetector = new ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
                 projectSnapshotManagerDispatcher.InternalDispatcher,
                 workspaceStateGenerator.InternalWorkspaceStateGenerator);
@@ -34,9 +44,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
             public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, projectSnapshotManagerDispatcher)
             {
+                if (projectSnapshotManagerDispatcher is null)
+                {
+                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+                }
+
                 _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             }
 

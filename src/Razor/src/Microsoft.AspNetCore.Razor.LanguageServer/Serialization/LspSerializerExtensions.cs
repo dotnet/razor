@@ -16,8 +16,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
 {
     internal static class LspSerializerExtensions
     {
-        public static void RegisterRazorConverters(this LspSerializer serializer!!)
+        public static void RegisterRazorConverters(this LspSerializer serializer)
         {
+            if (serializer is null)
+            {
+                throw new ArgumentNullException(nameof(serializer));
+            }
 
             // In all of the below we add our converters to both the serializer settings and the actual
             // JsonSerializer. The reasoning behind this choice is that OmniSharp framework is not consistent

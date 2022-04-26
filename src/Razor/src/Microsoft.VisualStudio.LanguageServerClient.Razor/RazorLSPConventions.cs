@@ -18,8 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public static bool IsCSHTMLFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.CSHTMLFileExtension);
 
-        public static Uri GetRazorDocumentUri(Uri virtualDocumentUri!!)
+        public static Uri GetRazorDocumentUri(Uri virtualDocumentUri)
         {
+            if (virtualDocumentUri is null)
+            {
+                throw new ArgumentNullException(nameof(virtualDocumentUri));
+            }
+
             var path = virtualDocumentUri.AbsoluteUri;
             path = path.Replace(RazorLSPConstants.VirtualCSharpFileNameSuffix, string.Empty);
             path = path.Replace(RazorLSPConstants.VirtualHtmlFileNameSuffix, string.Empty);
@@ -28,8 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return uri;
         }
 
-        private static bool CheckIfFileUriAndExtensionMatch(Uri uri!!, string extension)
+        private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
             if (string.IsNullOrEmpty(extension))
             {
                 throw new ArgumentNullException(nameof(extension));

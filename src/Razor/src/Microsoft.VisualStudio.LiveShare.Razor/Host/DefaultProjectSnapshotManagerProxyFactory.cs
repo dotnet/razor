@@ -30,18 +30,38 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         [ImportingConstructor]
         public DefaultProjectSnapshotManagerProxyFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            JoinableTaskContext joinableTaskContext!!,
-            [Import(typeof(VisualStudioWorkspace))] Workspace workspace!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
+            [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
 
             _workspace = workspace;
         }
 
-        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session!!, CancellationToken cancellationToken)
+        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
         {
+            if (session is null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
             var serializer = (JsonSerializer)session.GetService(typeof(JsonSerializer));
             serializer.Converters.RegisterRazorLiveShareConverters();
 

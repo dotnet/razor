@@ -45,10 +45,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
         }
 
         public static RazorCodeAction WrapResolvableCSharpCodeAction(
-            this RazorCodeAction razorCodeAction!!,
-            RazorCodeActionContext context!!,
+            this RazorCodeAction razorCodeAction,
+            RazorCodeActionContext context,
             string action = LanguageServerConstants.CodeActions.Default)
         {
+            if (razorCodeAction is null)
+            {
+                throw new ArgumentNullException(nameof(razorCodeAction));
+            }
+
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var csharpParams = new CSharpCodeActionParams()
             {
                 Data = razorCodeAction.Data,

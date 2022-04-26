@@ -48,53 +48,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher,
             ILoggerFactory loggerFactory)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
-            if (semanticTokensCacheService is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensCacheService));
-            }
-
-            if (semanticTokensRefreshPublisher is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensRefreshPublisher));
-            }
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _semanticTokensCacheService = semanticTokensCacheService ?? throw new ArgumentNullException(nameof(semanticTokensCacheService));
+            _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher ?? throw new ArgumentNullException(nameof(semanticTokensRefreshPublisher));
 
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
-
-            _languageServer = languageServer;
-            _documentMappingService = documentMappingService;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
-            _semanticTokensCacheService = semanticTokensCacheService;
-            _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher;
 
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }

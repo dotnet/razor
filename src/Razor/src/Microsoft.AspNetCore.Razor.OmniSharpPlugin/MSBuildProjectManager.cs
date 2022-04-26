@@ -39,12 +39,37 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         [ImportingConstructor]
         public MSBuildProjectManager(
-            [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders!!,
-            ProjectInstanceEvaluator projectInstanceEvaluator!!,
-            ProjectChangePublisher projectConfigurationPublisher!!,
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ILoggerFactory loggerFactory!!)
+            [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders,
+            ProjectInstanceEvaluator projectInstanceEvaluator,
+            ProjectChangePublisher projectConfigurationPublisher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ILoggerFactory loggerFactory)
         {
+            if (projectConfigurationProviders is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationProviders));
+            }
+
+            if (projectInstanceEvaluator is null)
+            {
+                throw new ArgumentNullException(nameof(projectInstanceEvaluator));
+            }
+
+            if (projectConfigurationPublisher is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationPublisher));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<MSBuildProjectManager>();
             _projectConfigurationProviders = projectConfigurationProviders;
             _projectInstanceEvaluator = projectInstanceEvaluator;
@@ -54,8 +79,13 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         public OmniSharpProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager!!)
+        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
         }
 
@@ -199,9 +229,19 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         // Internal for testing
         internal static ProjectConfiguration? GetProjectConfiguration(
-            ProjectInstance projectInstance!!,
-            IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders!!)
+            ProjectInstance projectInstance,
+            IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders)
         {
+            if (projectInstance is null)
+            {
+                throw new ArgumentNullException(nameof(projectInstance));
+            }
+
+            if (projectConfigurationProviders is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationProviders));
+            }
+
             var projectCapabilities = projectInstance
                 .GetItems(ProjectCapabilityItemType)
                 .Select(capability => capability.EvaluatedInclude)

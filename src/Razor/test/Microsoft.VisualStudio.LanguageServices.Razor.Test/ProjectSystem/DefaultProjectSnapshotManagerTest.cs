@@ -65,8 +65,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private SourceText SourceText { get; }
 
-        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services!!)
+        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             services.Add(TagHelperResolver);
         }
 

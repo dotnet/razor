@@ -10,20 +10,32 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class DefaultErrorReporter : ErrorReporter
     {
-        public override void ReportError(Exception exception!!)
+        public override void ReportError(Exception exception)
         {
+            if (exception is null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
 
             // Do nothing.
         }
 
-        public override void ReportError(Exception exception!!, ProjectSnapshot project)
+        public override void ReportError(Exception exception, ProjectSnapshot project)
         {
+            if (exception is null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
 
             // Do nothing.
         }
 
-        public override void ReportError(Exception exception!!, Project workspaceProject)
+        public override void ReportError(Exception exception, Project workspaceProject)
         {
+            if (exception is null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
 
             // Do nothing.
         }

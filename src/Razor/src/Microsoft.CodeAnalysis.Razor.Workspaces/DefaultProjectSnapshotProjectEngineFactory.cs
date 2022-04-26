@@ -17,15 +17,29 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _factories;
 
         public DefaultProjectSnapshotProjectEngineFactory(
-            IFallbackProjectEngineFactory fallback!!,
-            Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories!!)
+            IFallbackProjectEngineFactory fallback,
+            Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
         {
+            if (fallback is null)
+            {
+                throw new ArgumentNullException(nameof(fallback));
+            }
+
+            if (factories is null)
+            {
+                throw new ArgumentNullException(nameof(factories));
+            }
+
             _fallback = fallback;
             _factories = factories;
         }
 
-        public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem!!, Action<RazorProjectEngineBuilder> configure)
+        public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
         {
+            if (fileSystem is null)
+            {
+                throw new ArgumentNullException(nameof(fileSystem));
+            }
 
             // When we're running in the editor, the editor provides a configure delegate that will include
             // the editor settings and tag helpers.
@@ -48,13 +62,23 @@ namespace Microsoft.CodeAnalysis.Razor
             return factory.Create(configuration, fileSystem, configure);
         }
 
-        public override IProjectEngineFactory FindFactory(ProjectSnapshot project!!)
+        public override IProjectEngineFactory FindFactory(ProjectSnapshot project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             return SelectFactory(project.Configuration ?? s_defaultConfiguration, requireSerializable: false);
         }
 
-        public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project!!)
+        public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             return SelectFactory(project.Configuration ?? s_defaultConfiguration, requireSerializable: true);
         }
 
