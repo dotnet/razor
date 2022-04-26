@@ -32,10 +32,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         };
 
         public ProjectConfigurationFileChangeDetector(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            FilePathNormalizer filePathNormalizer!!,
-            IEnumerable<IProjectConfigurationFileChangeListener> listeners!!,
-            LanguageServerFeatureOptions languageServerFeatureOptions!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            FilePathNormalizer filePathNormalizer,
+            IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory = null)
         {
             if (projectSnapshotManagerDispatcher is null)
@@ -51,6 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (listeners is null)
             {
                 throw new ArgumentNullException(nameof(listeners));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;

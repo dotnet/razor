@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 

@@ -38,11 +38,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private IReadOnlyList<ExtendedCompletionItemKinds>? _supportedItemKinds;
 
         public RazorCompletionEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorCompletionFactsService completionFactsService!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            RazorCompletionFactsService completionFactsService,
             CompletionListCache completionListCache,
-            ILoggerFactory loggerFactory!!)
+            ILoggerFactory loggerFactory)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -59,19 +59,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (lspTagHelperTooltipFactory is null)
+            if (completionListCache is null)
             {
-                throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
-            }
-
-            if (vsLspTagHelperTooltipFactory is null)
-            {
-                throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
-            }
-
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
+                throw new ArgumentNullException(nameof(completionListCache));
             }
 
             if (loggerFactory is null)

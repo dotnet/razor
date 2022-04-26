@@ -32,9 +32,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             FilePathNormalizer filePathNormalizer,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            LanguageServerFeatureOptions languageServerFeatureOptions!!,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
         {
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;

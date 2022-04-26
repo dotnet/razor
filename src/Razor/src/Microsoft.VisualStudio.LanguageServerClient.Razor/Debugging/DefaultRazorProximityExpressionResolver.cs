@@ -25,10 +25,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
         [ImportingConstructor]
         public DefaultRazorProximityExpressionResolver(
-            FileUriProvider fileUriProvider!!,
-            LSPDocumentManager documentManager!!,
-            LSPProximityExpressionsProvider proximityExpressionsProvider!!)
+            FileUriProvider fileUriProvider,
+            LSPDocumentManager documentManager,
+            LSPProximityExpressionsProvider proximityExpressionsProvider)
         {
+            if (fileUriProvider is null)
+            {
+                throw new ArgumentNullException(nameof(fileUriProvider));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (proximityExpressionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(proximityExpressionsProvider));
+            }
+
             _fileUriProvider = fileUriProvider;
             _documentManager = documentManager;
             _proximityExpressionsProvider = proximityExpressionsProvider;

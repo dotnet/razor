@@ -29,11 +29,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public Guid Id => new("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
 
         public RazorCompletionResolveEndpoint(
-            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory!!,
-            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory!!,
+            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
+            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
             CompletionListCache completionListCache,
-            ILoggerFactory loggerFactory!!)
+            ILoggerFactory loggerFactory)
         {
+            if (lspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
+            }
+
+            if (vsLspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
+            }
+
+            if (completionListCache is null)
+            {
+                throw new ArgumentNullException(nameof(completionListCache));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
             _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
