@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Razor
     internal class MemoryCache<TKey, TValue>
     {
         private const int DefaultSizeLimit = 50;
-        private const int ConcurrencyLevel = 2;
+        private const int DefaultConcurrencyLevel = 2;
 
         protected IDictionary<TKey, CacheEntry> _dict;
 
         private readonly object _compactLock;
         private readonly int _sizeLimit;
 
-        public MemoryCache(int sizeLimit = DefaultSizeLimit, int concurrencyLevel = ConcurrencyLevel)
+        public MemoryCache(int sizeLimit = DefaultSizeLimit, int concurrencyLevel = DefaultConcurrencyLevel)
         {
             _sizeLimit = sizeLimit;
             _dict = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel, capacity: _sizeLimit);
