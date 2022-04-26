@@ -68,7 +68,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
 
                 // Ask C# for formatting changes.
-                // We should replace the below call: https://github.com/dotnet/razor-tooling/issues/6313
                 var indentationOptions = new RazorIndentationOptions(
                     UseTabs: !context.Options.InsertSpaces,
                     TabSize: context.Options.TabSize,
