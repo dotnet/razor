@@ -341,6 +341,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             {
                 return;
             }
+
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None).ConfigureAwait(false);
