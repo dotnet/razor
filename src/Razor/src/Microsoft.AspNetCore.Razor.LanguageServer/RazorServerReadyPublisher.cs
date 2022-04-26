@@ -18,15 +18,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool _hasNotified = false;
 
         public RazorServerReadyPublisher(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ClientNotifierServiceBase clientNotifierService!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ClientNotifierServiceBase clientNotifierService)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (clientNotifierService is null)
+            {
+                throw new ArgumentNullException(nameof(clientNotifierService));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _clientNotifierService = clientNotifierService;
         }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
 
             _projectManager.Changed += ProjectSnapshotManager_Changed;

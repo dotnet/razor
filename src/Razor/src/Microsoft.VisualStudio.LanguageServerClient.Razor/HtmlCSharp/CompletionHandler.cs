@@ -59,15 +59,55 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public CompletionHandler(
-            JoinableTaskContext joinableTaskContext!!,
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPProjectionProvider projectionProvider!!,
-            ITextStructureNavigatorSelectorService textStructureNavigator!!,
-            CompletionRequestContextCache completionRequestContextCache!!,
-            FormattingOptionsProvider formattingOptionsProvider!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            JoinableTaskContext joinableTaskContext,
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPProjectionProvider projectionProvider,
+            ITextStructureNavigatorSelectorService textStructureNavigator,
+            CompletionRequestContextCache completionRequestContextCache,
+            FormattingOptionsProvider formattingOptionsProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (projectionProvider is null)
+            {
+                throw new ArgumentNullException(nameof(projectionProvider));
+            }
+
+            if (textStructureNavigator is null)
+            {
+                throw new ArgumentNullException(nameof(textStructureNavigator));
+            }
+
+            if (completionRequestContextCache is null)
+            {
+                throw new ArgumentNullException(nameof(completionRequestContextCache));
+            }
+
+            if (formattingOptionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(formattingOptionsProvider));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
@@ -78,8 +118,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(CompletionHandler));
         }
 
-        public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request!!, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
+        public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
             _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))

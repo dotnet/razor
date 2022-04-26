@@ -15,8 +15,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
         private static readonly object s_cSharpSourceTextKey = new();
         private static readonly object s_htmlSourceTextKey = new();
 
-        public static SourceText GetSourceText(this RazorCodeDocument document!!)
+        public static SourceText GetSourceText(this RazorCodeDocument document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var sourceTextObj = document.Items[s_sourceTextKey];
             if (sourceTextObj is null)
             {
@@ -32,8 +37,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
             return (SourceText)sourceTextObj;
         }
 
-        public static SourceText GetCSharpSourceText(this RazorCodeDocument document!!)
+        public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var sourceTextObj = document.Items[s_cSharpSourceTextKey];
             if (sourceTextObj is null)
             {
@@ -47,8 +57,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
             return (SourceText)sourceTextObj;
         }
 
-        public static SourceText GetHtmlSourceText(this RazorCodeDocument document!!)
+        public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var sourceTextObj = document.Items[s_htmlSourceTextKey];
             if (sourceTextObj is null)
             {

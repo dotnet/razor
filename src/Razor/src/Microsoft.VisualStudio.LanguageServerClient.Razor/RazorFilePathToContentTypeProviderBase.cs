@@ -15,9 +15,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         public RazorFilePathToContentTypeProviderBase(
-            IContentTypeRegistryService contentTypeRegistryService!!,
-            LSPEditorFeatureDetector lspEditorFeatureDetector!!)
+            IContentTypeRegistryService contentTypeRegistryService,
+            LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
+            if (contentTypeRegistryService is null)
+            {
+                throw new ArgumentNullException(nameof(contentTypeRegistryService));
+            }
+
+            if (lspEditorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+            }
+
             _contentTypeRegistryService = contentTypeRegistryService;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
         }

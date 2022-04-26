@@ -37,9 +37,19 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly RazorCompletionFactsService _completionFactsService;
 
         public RazorDirectiveCompletionSource(
-            VisualStudioRazorParser parser!!,
-            RazorCompletionFactsService completionFactsService!!)
+            VisualStudioRazorParser parser,
+            RazorCompletionFactsService completionFactsService)
         {
+            if (parser is null)
+            {
+                throw new ArgumentNullException(nameof(parser));
+            }
+
+            if (completionFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(completionFactsService));
+            }
+
             Parser = parser;
             _completionFactsService = completionFactsService;
         }

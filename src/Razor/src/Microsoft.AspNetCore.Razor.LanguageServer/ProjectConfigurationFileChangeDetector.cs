@@ -38,6 +38,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             LanguageServerFeatureOptions languageServerFeatureOptions!!,
             ILoggerFactory loggerFactory = null)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
+            if (listeners is null)
+            {
+                throw new ArgumentNullException(nameof(listeners));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
@@ -45,8 +60,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory?.CreateLogger<ProjectConfigurationFileChangeDetector>();
         }
 
-        public async Task StartAsync(string workspaceDirectory!!, CancellationToken cancellationToken)
+        public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
         {
+            if (workspaceDirectory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceDirectory));
+            }
 
             // Dive through existing project configuration files and fabricate "added" events so listeners can accurately listen to state changes for them.
 

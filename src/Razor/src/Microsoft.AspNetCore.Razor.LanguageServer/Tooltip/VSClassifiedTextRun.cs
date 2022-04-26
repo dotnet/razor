@@ -23,33 +23,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
         }
 
-        public VSClassifiedTextRun(string classificationTypeName!!, string text!!, VSClassifiedTextRunStyle style)
+        public VSClassifiedTextRun(string classificationTypeName, string text, VSClassifiedTextRunStyle style)
         {
-            ClassificationTypeName = classificationTypeName;
-            Text = text;
+            ClassificationTypeName = classificationTypeName
+                ?? throw new ArgumentNullException(nameof(classificationTypeName));
+            Text = text ?? throw new ArgumentNullException(nameof(text));
             Style = style;
         }
 
-        public VSClassifiedTextRun(string classificationTypeName!!, string text!!, VSClassifiedTextRunStyle style, string markerTagType)
+        public VSClassifiedTextRun(string classificationTypeName, string text, VSClassifiedTextRunStyle style, string markerTagType)
         {
-            ClassificationTypeName = classificationTypeName;
-            Text = text;
+            ClassificationTypeName = classificationTypeName
+                ?? throw new ArgumentNullException(nameof(classificationTypeName));
+            Text = text ?? throw new ArgumentNullException(nameof(text));
             MarkerTagType = markerTagType;
             Style = style;
         }
 
         public VSClassifiedTextRun(
-            string classificationTypeName!!,
-            string text!!,
-            Action navigationAction!!,
+            string classificationTypeName,
+            string text,
+            Action navigationAction,
             string tooltip = null,
             VSClassifiedTextRunStyle style = VSClassifiedTextRunStyle.Plain)
         {
-            ClassificationTypeName = classificationTypeName;
-            Text = text;
+            ClassificationTypeName = classificationTypeName
+                ?? throw new ArgumentNullException(nameof(classificationTypeName));
+            Text = text ?? throw new ArgumentNullException(nameof(text));
             Style = style;
 
-            NavigationAction = navigationAction;
+            NavigationAction = navigationAction ?? throw new ArgumentNullException(nameof(navigationAction));
             Tooltip = tooltip;
         }
 

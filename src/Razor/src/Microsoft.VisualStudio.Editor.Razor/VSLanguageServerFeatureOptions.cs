@@ -12,8 +12,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         [ImportingConstructor]
-        public VSLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector!!)
+        public VSLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
+            if (lspEditorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+            }
+
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
         }
 

@@ -12,11 +12,21 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
     public sealed class ProjectSnapshotHandleProxy
     {
         public ProjectSnapshotHandleProxy(
-            Uri filePath!!,
-            RazorConfiguration configuration!!,
+            Uri filePath,
+            RazorConfiguration configuration,
             string rootNamespace,
             ProjectWorkspaceState projectWorkspaceState)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (configuration is null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
             FilePath = filePath;
             Configuration = configuration;
             RootNamespace = rootNamespace;

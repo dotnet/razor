@@ -17,9 +17,19 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
 
         [ImportingConstructor]
         public LiveShareProjectCapabilityResolver(
-            LiveShareSessionAccessor sessionAccessor!!,
-            JoinableTaskContext joinableTaskContext!!)
+            LiveShareSessionAccessor sessionAccessor,
+            JoinableTaskContext joinableTaskContext)
         {
+            if (sessionAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(sessionAccessor));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _sessionAccessor = sessionAccessor;
             _joinableTaskFactory = joinableTaskContext.Factory;
         }

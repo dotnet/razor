@@ -23,17 +23,37 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         [ImportingConstructor]
         public DefaultBraceSmartIndenterFactoryFactory(
-            JoinableTaskContext joinableTaskContext!!,
-            TextBufferCodeDocumentProvider codeDocumentProvider!!,
-            IEditorOperationsFactoryService editorOperationsFactory!!)
+            JoinableTaskContext joinableTaskContext,
+            TextBufferCodeDocumentProvider codeDocumentProvider,
+            IEditorOperationsFactoryService editorOperationsFactory)
         {
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (codeDocumentProvider is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocumentProvider));
+            }
+
+            if (editorOperationsFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorOperationsFactory));
+            }
+
             _joinableTaskContext = joinableTaskContext;
             _codeDocumentProvider = codeDocumentProvider;
             _editorOperationsFactory = editorOperationsFactory;
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
+            if (languageServices is null)
+            {
+                throw new ArgumentNullException(nameof(languageServices));
+            }
+
             return new DefaultBraceSmartIndenterFactory(_joinableTaskContext, _codeDocumentProvider, _editorOperationsFactory);
         }
     }

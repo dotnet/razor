@@ -24,9 +24,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool _solutionIsClosing;
 
         public OpenDocumentGenerator(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            IEnumerable<DocumentProcessedListener> documentProcessedListeners!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentProcessedListeners is null)
+            {
+                throw new ArgumentNullException(nameof(documentProcessedListeners));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentProcessedListeners = documentProcessedListeners.ToArray();
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
@@ -72,8 +82,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Used in tests to ensure we can know when background work finishes.
         public ManualResetEventSlim NotifyBackgroundWorkCompleted { get; set; }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager!!)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
 
             ProjectManager.Changed += ProjectSnapshotManager_Changed;

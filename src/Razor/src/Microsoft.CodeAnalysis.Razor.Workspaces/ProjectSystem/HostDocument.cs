@@ -10,8 +10,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class HostDocument
     {
-        public HostDocument(HostDocument other!!)
+        public HostDocument(HostDocument other)
         {
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             FileKind = other.FileKind;
             FilePath = other.FilePath;
             TargetPath = other.TargetPath;
@@ -24,8 +29,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
         }
 
-        public HostDocument(string filePath!!, string targetPath!!, string fileKind)
+        public HostDocument(string filePath, string targetPath, string fileKind)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (targetPath is null)
+            {
+                throw new ArgumentNullException(nameof(targetPath));
+            }
+
             FilePath = filePath;
             TargetPath = targetPath;
             FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(filePath);

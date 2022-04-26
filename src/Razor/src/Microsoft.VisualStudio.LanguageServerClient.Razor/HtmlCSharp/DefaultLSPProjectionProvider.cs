@@ -29,11 +29,31 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public DefaultLSPProjectionProvider(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentSynchronizer documentSynchronizer!!,
-            RazorLogger razorLogger!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentSynchronizer documentSynchronizer,
+            RazorLogger razorLogger,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentSynchronizer is null)
+            {
+                throw new ArgumentNullException(nameof(documentSynchronizer));
+            }
+
+            if (razorLogger is null)
+            {
+                throw new ArgumentNullException(nameof(razorLogger));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentSynchronizer = documentSynchronizer;
             _activityLogger = razorLogger;
@@ -46,8 +66,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public override Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
             => GetProjectionCoreAsync(documentSnapshot, position, rejectOnNewerParallelRequest: false, cancellationToken);
 
-        private async Task<ProjectionResult?> GetProjectionCoreAsync(LSPDocumentSnapshot documentSnapshot!!, Position position!!, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
+        private async Task<ProjectionResult?> GetProjectionCoreAsync(LSPDocumentSnapshot documentSnapshot, Position position, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
         {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
 
             // We initialize the logger here instead of the constructor as the projection provider is constructed
             // *before* the language server. Thus, the log hub has yet to be initialized, thus we would be unable to

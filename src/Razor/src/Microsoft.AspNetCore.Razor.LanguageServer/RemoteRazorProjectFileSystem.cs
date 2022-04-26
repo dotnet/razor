@@ -19,9 +19,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
 
         public RemoteRazorProjectFileSystem(
-            string root!!,
-            FilePathNormalizer filePathNormalizer!!)
+            string root,
+            FilePathNormalizer filePathNormalizer)
         {
+            if (root is null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
             _root = filePathNormalizer.NormalizeDirectory(root);
 
             _filePathNormalizer = filePathNormalizer;
@@ -37,8 +47,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return GetItem(path, fileKind: null);
         }
 
-        public override RazorProjectItem GetItem(string path!!, string fileKind)
+        public override RazorProjectItem GetItem(string path, string fileKind)
         {
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
             var physicalPath = NormalizeAndEnsureValidPath(path);
             if (FilePathRootedBy(physicalPath, _root))
             {

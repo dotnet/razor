@@ -27,17 +27,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly TagHelperFactsService _tagHelperFactsService;
 
         public TagHelperCompletionProvider(
-            TagHelperCompletionService tagHelperCompletionService!!,
-            HtmlFactsService htmlFactsService!!,
-            TagHelperFactsService tagHelperFactsService!!)
+            TagHelperCompletionService tagHelperCompletionService,
+            HtmlFactsService htmlFactsService,
+            TagHelperFactsService tagHelperFactsService)
         {
+            if (tagHelperCompletionService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperCompletionService));
+            }
+
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
             _tagHelperCompletionService = tagHelperCompletionService;
             _htmlFactsService = htmlFactsService;
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 

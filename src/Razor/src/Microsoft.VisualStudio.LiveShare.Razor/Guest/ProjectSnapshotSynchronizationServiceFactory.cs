@@ -26,10 +26,25 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 
         [ImportingConstructor]
         public ProjectSnapshotSynchronizationServiceFactory(
-            ProxyAccessor proxyAccessor!!,
-            JoinableTaskContext joinableTaskContext!!,
-            [Import(typeof(VisualStudioWorkspace))] Workspace workspace!!)
+            ProxyAccessor proxyAccessor,
+            JoinableTaskContext joinableTaskContext,
+            [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
         {
+            if (proxyAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(proxyAccessor));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             _proxyAccessor = proxyAccessor;
             _joinableTaskContext = joinableTaskContext;
             _workspace = workspace;

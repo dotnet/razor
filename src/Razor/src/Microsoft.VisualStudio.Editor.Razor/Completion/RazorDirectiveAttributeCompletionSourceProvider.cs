@@ -32,13 +32,38 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         [ImportingConstructor]
         public RazorDirectiveAttributeCompletionSourceProvider(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            RazorCompletionFactsService completionFactsService!!,
-            IAsyncCompletionBroker asyncCoompletionBroker!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            RazorCompletionFactsService completionFactsService,
+            IAsyncCompletionBroker asyncCoompletionBroker,
             ICompletionBroker completionBroker,
-            VisualStudioDescriptionFactory descriptionFactory!!,
-            JoinableTaskContext joinableTaskContext!!)
+            VisualStudioDescriptionFactory descriptionFactory,
+            JoinableTaskContext joinableTaskContext)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (completionFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(completionFactsService));
+            }
+
+            if (asyncCoompletionBroker is null)
+            {
+                throw new ArgumentNullException(nameof(asyncCoompletionBroker));
+            }
+
+            if (descriptionFactory is null)
+            {
+                throw new ArgumentNullException(nameof(descriptionFactory));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
@@ -46,8 +71,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             _joinableTaskContext = joinableTaskContext;
         }
 
-        public IAsyncCompletionSource GetOrCreate(ITextView textView!!)
+        public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
             if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveAttributeCompletionSource), out IAsyncCompletionSource completionSource) ||
                 completionSource is null)

@@ -27,8 +27,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
         };
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var completions = new List<RazorCompletionItem>();
             if (ShouldProvideCompletions(context, location))
             {

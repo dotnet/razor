@@ -20,13 +20,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
 
         [ImportingConstructor]
-        public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager!!)
+        public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager)
         {
+            if (editorSettingsManager is null)
+            {
+                throw new ArgumentNullException(nameof(editorSettingsManager));
+            }
+
             _editorSettingsManager = editorSettingsManager;
         }
 
-        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document!!, CancellationToken cancellationToken)
+        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
 
             // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
             var editorSettings = _editorSettingsManager.Current;

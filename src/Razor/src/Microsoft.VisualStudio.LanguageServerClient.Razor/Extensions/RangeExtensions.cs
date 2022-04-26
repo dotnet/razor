@@ -11,8 +11,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
 {
     internal static class RangeExtensions
     {
-        public static TextSpan AsTextSpan(this Range range!!, SourceText sourceText!!)
+        public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
             var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
             return new TextSpan(start, end - start);
@@ -25,8 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
             End = new Position(-1, -1)
         };
 
-        public static bool IsUndefined(this Range range!!)
+        public static bool IsUndefined(this Range range)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
             return range == UndefinedRange;
         }
     }

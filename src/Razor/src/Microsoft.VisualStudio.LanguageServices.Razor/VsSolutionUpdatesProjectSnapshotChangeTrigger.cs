@@ -34,12 +34,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         [ImportingConstructor]
         public VsSolutionUpdatesProjectSnapshotChangeTrigger(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider services!!,
-            TextBufferProjectService projectService!!,
-            ProjectWorkspaceStateGenerator workspaceStateGenerator!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            JoinableTaskContext joinableTaskContext!!)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider services,
+            TextBufferProjectService projectService,
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (workspaceStateGenerator is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceStateGenerator));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _services = services;
             _projectService = projectService;
             _workspaceStateGenerator = workspaceStateGenerator;

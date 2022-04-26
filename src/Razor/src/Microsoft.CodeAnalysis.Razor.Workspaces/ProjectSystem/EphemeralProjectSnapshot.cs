@@ -15,8 +15,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly HostWorkspaceServices _services;
         private readonly Lazy<RazorProjectEngine> _projectEngine;
 
-        public EphemeralProjectSnapshot(HostWorkspaceServices services!!, string filePath!!)
+        public EphemeralProjectSnapshot(HostWorkspaceServices services, string filePath)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             _services = services;
             FilePath = filePath;
 
@@ -35,18 +45,33 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override IReadOnlyList<TagHelperDescriptor> TagHelpers { get; } = Array.Empty<TagHelperDescriptor>();
 
-        public override DocumentSnapshot GetDocument(string filePath!!)
+        public override DocumentSnapshot GetDocument(string filePath)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             return null;
         }
 
-        public override bool IsImportDocument(DocumentSnapshot document!!)
+        public override bool IsImportDocument(DocumentSnapshot document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             return false;
         }
 
-        public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document!!)
+        public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             return Array.Empty<DocumentSnapshot>();
         }
 

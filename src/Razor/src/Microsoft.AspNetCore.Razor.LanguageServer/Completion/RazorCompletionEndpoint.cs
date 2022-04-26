@@ -44,6 +44,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             CompletionListCache completionListCache,
             ILoggerFactory loggerFactory!!)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (completionFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(completionFactsService));
+            }
+
+            if (lspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
+            }
+
+            if (vsLspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
+            }
+
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _completionFactsService = completionFactsService;
@@ -189,10 +224,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         // Internal for testing
         internal static bool TryConvert(
-            RazorCompletionItem razorCompletionItem!!,
+            RazorCompletionItem razorCompletionItem,
             IReadOnlyList<ExtendedCompletionItemKinds>? supportedItemKinds,
             [NotNullWhen(true)] out CompletionItem? completionItem)
         {
+            if (razorCompletionItem is null)
+            {
+                throw new ArgumentNullException(nameof(razorCompletionItem));
+            }
+
             var tagHelperCompletionItemKind = CompletionItemKind.TypeParameter;
             if (supportedItemKinds?.Contains(ExtendedCompletionItemKinds.TagHelper) == true)
             {

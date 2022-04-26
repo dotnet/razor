@@ -27,13 +27,43 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public CompletionResolveHandler(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPDocumentMappingProvider documentMappingProvider!!,
-            FormattingOptionsProvider formattingOptionsProvider!!,
-            CompletionRequestContextCache completionRequestContextCache!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPDocumentMappingProvider documentMappingProvider,
+            FormattingOptionsProvider formattingOptionsProvider,
+            CompletionRequestContextCache completionRequestContextCache,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (documentMappingProvider is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingProvider));
+            }
+
+            if (formattingOptionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(formattingOptionsProvider));
+            }
+
+            if (completionRequestContextCache is null)
+            {
+                throw new ArgumentNullException(nameof(completionRequestContextCache));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _documentMappingProvider = documentMappingProvider;

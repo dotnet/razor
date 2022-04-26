@@ -25,15 +25,29 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
 
         [ImportingConstructor]
         public DefaultTextBufferProjectService(
-            ITextDocumentFactoryService documentFactory!!,
-            AggregateProjectCapabilityResolver projectCapabilityResolver!!)
+            ITextDocumentFactoryService documentFactory,
+            AggregateProjectCapabilityResolver projectCapabilityResolver)
         {
+            if (documentFactory is null)
+            {
+                throw new ArgumentNullException(nameof(documentFactory));
+            }
+
+            if (projectCapabilityResolver is null)
+            {
+                throw new ArgumentNullException(nameof(projectCapabilityResolver));
+            }
+
             _documentFactory = documentFactory;
             _projectCapabilityResolver = projectCapabilityResolver;
         }
 
-        public override object GetHostProject(ITextBuffer textBuffer!!)
+        public override object GetHostProject(ITextBuffer textBuffer)
         {
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
 
             // If there's no document we can't find the FileName, or look for an associated project.
             if (!_documentFactory.TryGetTextDocument(textBuffer, out var textDocument))
@@ -65,8 +79,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
             return null;
         }
 
-        public override string GetProjectPath(object project!!)
+        public override string GetProjectPath(object project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             var dotnetProject = (DotNetProject)project;
             return dotnetProject.FileName.FullPath;
         }
@@ -78,8 +97,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
             return capabilitySupported;
         }
 
-        public override string GetProjectName(object project!!)
+        public override string GetProjectName(object project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             var dotnetProject = (DotNetProject)project;
 
             return dotnetProject.Name;

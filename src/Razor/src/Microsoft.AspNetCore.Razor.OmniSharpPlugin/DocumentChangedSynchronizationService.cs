@@ -19,18 +19,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
+        public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager!!)
+        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectManager = projectManager;
         }
 
-        public void RazorDocumentChanged(RazorFileChangeEventArgs args!!)
+        public void RazorDocumentChanged(RazorFileChangeEventArgs args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
+
             if (args.Kind != RazorFileChangeKind.Changed)
             {
                 return;

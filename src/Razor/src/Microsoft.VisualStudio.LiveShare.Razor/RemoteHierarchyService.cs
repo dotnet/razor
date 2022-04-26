@@ -17,14 +17,34 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
         private readonly CollaborationSession _session;
         private readonly JoinableTaskFactory _joinableTaskFactory;
 
-        internal RemoteHierarchyService(CollaborationSession session!!, JoinableTaskFactory joinableTaskFactory!!)
+        internal RemoteHierarchyService(CollaborationSession session, JoinableTaskFactory joinableTaskFactory)
         {
+            if (session is null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
             _session = session;
             _joinableTaskFactory = joinableTaskFactory;
         }
 
-        public async Task<bool> HasCapabilityAsync(Uri pathOfFileInProject!!, string capability!!, CancellationToken cancellationToken)
+        public async Task<bool> HasCapabilityAsync(Uri pathOfFileInProject, string capability, CancellationToken cancellationToken)
         {
+            if (capability is null)
+            {
+                throw new ArgumentNullException(nameof(capability));
+            }
+
+            if (pathOfFileInProject is null)
+            {
+                throw new ArgumentNullException(nameof(pathOfFileInProject));
+            }
+
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var hostPathOfFileInProject = _session.ConvertSharedUriToLocalPath(pathOfFileInProject);

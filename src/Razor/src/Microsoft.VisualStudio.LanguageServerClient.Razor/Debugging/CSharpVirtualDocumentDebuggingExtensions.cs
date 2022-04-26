@@ -19,8 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         //      2. The C# virtual document has been synchronized to the "latest" version that's known by Razor based on the Razor content.
         // With both of these assumptions in place we can try and lookup a corresponding C# document in the workspace prior to attempting to
         // re-parse C# content to get a syntax tree.
-        public static async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(this CSharpVirtualDocumentSnapshot virtualDocument!!, CodeAnalysis.Workspace? workspace, CancellationToken cancellationToken)
+        public static async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(this CSharpVirtualDocumentSnapshot virtualDocument, CodeAnalysis.Workspace? workspace, CancellationToken cancellationToken)
         {
+            if (virtualDocument is null)
+            {
+                throw new ArgumentNullException(nameof(virtualDocument));
+            }
+
             SyntaxTree? syntaxTree = null;
 
             if (workspace is null)

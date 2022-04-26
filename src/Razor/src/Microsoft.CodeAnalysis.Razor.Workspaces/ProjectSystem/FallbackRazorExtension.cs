@@ -10,8 +10,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class FallbackRazorExtension : RazorExtension
     {
-        public FallbackRazorExtension(string extensionName!!)
+        public FallbackRazorExtension(string extensionName)
         {
+            if (extensionName is null)
+            {
+                throw new ArgumentNullException(nameof(extensionName));
+            }
+
             ExtensionName = extensionName;
         }
 

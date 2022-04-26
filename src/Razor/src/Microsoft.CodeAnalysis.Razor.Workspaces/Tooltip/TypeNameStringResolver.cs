@@ -29,8 +29,13 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
             [typeof(decimal).FullName] = "decimal",
         };
 
-        public static bool TryGetSimpleName(string typeName!!, out string resolvedName)
+        public static bool TryGetSimpleName(string typeName, out string resolvedName)
         {
+            if (typeName is null)
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
             if (s_primitiveDisplayTypeNameLookups.TryGetValue(typeName, out var simpleName))
             {
                 resolvedName = simpleName;

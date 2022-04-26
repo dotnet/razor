@@ -12,8 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
 {
     internal static class ITextSnapshotExtensions
     {
-        public static void GetLineAndCharacter(this ITextSnapshot snapshot!!, int index, out int lineNumber, out int characterIndex)
+        public static void GetLineAndCharacter(this ITextSnapshot snapshot, int index, out int lineNumber, out int characterIndex)
         {
+            if (snapshot is null)
+            {
+                throw new ArgumentNullException(nameof(snapshot));
+            }
+
             var line = snapshot.GetLineFromPosition(index);
 
             lineNumber = line.LineNumber;

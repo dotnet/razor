@@ -21,11 +21,31 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private OmniSharpProjectSnapshotManager _instance;
 
         public DefaultOmniSharpProjectSnapshotManagerAccessor(
-            RemoteTextLoaderFactory remoteTextLoaderFactory!!,
-            IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers!!,
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            Workspace workspace!!)
+            RemoteTextLoaderFactory remoteTextLoaderFactory,
+            IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            Workspace workspace)
         {
+            if (remoteTextLoaderFactory is null)
+            {
+                throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
+            }
+
+            if (projectChangeTriggers is null)
+            {
+                throw new ArgumentNullException(nameof(projectChangeTriggers));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
             _projectChangeTriggers = projectChangeTriggers;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;

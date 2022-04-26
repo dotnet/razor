@@ -20,18 +20,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentContainerStore(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentVersionCache documentVersionCache!!,
-            GeneratedDocumentPublisher generatedDocumentPublisher!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentVersionCache documentVersionCache,
+            GeneratedDocumentPublisher generatedDocumentPublisher)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
+            }
+
+            if (generatedDocumentPublisher is null)
+            {
+                throw new ArgumentNullException(nameof(generatedDocumentPublisher));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;
             _store = new ConcurrentDictionary<string, ReferenceOutputCapturingContainer>(FilePathComparer.Instance);
         }
 
-        public override ReferenceOutputCapturingContainer Get(string physicalFilePath!!)
+        public override ReferenceOutputCapturingContainer Get(string physicalFilePath)
         {
+            if (physicalFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(physicalFilePath));
+            }
+
             lock (_store)
             {
                 var codeContainer = _store.GetOrAdd(physicalFilePath, Create);

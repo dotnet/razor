@@ -13,8 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     [Export(typeof(FallbackCapabilitiesFilterResolver))]
     internal class DefaultFallbackCapabilitiesFilterResolver : FallbackCapabilitiesFilterResolver
     {
-        public override Func<JToken, bool> Resolve(string lspRequestMethodName!!)
+        public override Func<JToken, bool> Resolve(string lspRequestMethodName)
         {
+            if (lspRequestMethodName is null)
+            {
+                throw new ArgumentNullException(nameof(lspRequestMethodName));
+            }
+
             switch (lspRequestMethodName)
             {
                 // Standard LSP capabilities

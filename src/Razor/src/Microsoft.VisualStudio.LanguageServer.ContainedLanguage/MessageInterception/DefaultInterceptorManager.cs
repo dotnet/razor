@@ -17,9 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
         private readonly IReadOnlyList<Lazy<MessageInterceptor, IInterceptMethodMetadata>> _lazyInterceptors;
 
         [ImportingConstructor]
-        public DefaultInterceptorManager([ImportMany] IEnumerable<Lazy<MessageInterceptor, IInterceptMethodMetadata>> lazyInterceptors!!)
+        public DefaultInterceptorManager([ImportMany] IEnumerable<Lazy<MessageInterceptor, IInterceptMethodMetadata>> lazyInterceptors)
         {
-            _ = lazyInterceptors;
+            _ = lazyInterceptors ?? throw new ArgumentNullException(nameof(lazyInterceptors));
             _lazyInterceptors = lazyInterceptors.ToList().AsReadOnly();
         }
 
@@ -47,9 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             return false;
         }
 
-        public override async Task<JToken?> ProcessInterceptorsAsync(string methodName, JToken message!!, string contentType, CancellationToken cancellationToken)
+        public override async Task<JToken?> ProcessInterceptorsAsync(string methodName, JToken message, string contentType, CancellationToken cancellationToken)
         {
-            _ = message;
+            _ = message ?? throw new ArgumentNullException(nameof(message));
             if (string.IsNullOrEmpty(methodName))
             {
                 throw new ArgumentException("Cannot be empty", nameof(methodName));

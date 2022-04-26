@@ -22,8 +22,18 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly DocumentSnapshot _document;
         private readonly IRazorSpanMappingService _mappingService;
 
-        public RazorDocumentExcerptService(DocumentSnapshot document!!, IRazorSpanMappingService mappingService!!)
+        public RazorDocumentExcerptService(DocumentSnapshot document, IRazorSpanMappingService mappingService)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (mappingService is null)
+            {
+                throw new ArgumentNullException(nameof(mappingService));
+            }
+
             _document = document;
             _mappingService = mappingService;
         }

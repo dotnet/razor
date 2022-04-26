@@ -42,8 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly SemaphoreSlim _initializationSemaphore;
 
         [ImportingConstructor]
-        public HTMLCSharpLanguageServerLogHubLoggerProvider(HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory!!)
+        public HTMLCSharpLanguageServerLogHubLoggerProvider(HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _loggerFactory = loggerFactory;
 
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);

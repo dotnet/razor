@@ -18,8 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly Uri _documentUri;
         private readonly IReadOnlyDictionary<Position, ProjectionResult> _mappings;
 
-        public TestLSPProjectionProvider(Uri documentUri!!, IReadOnlyDictionary<Position, ProjectionResult> mappings!!)
+        public TestLSPProjectionProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> mappings)
         {
+            if (documentUri is null)
+            {
+                throw new ArgumentNullException(nameof(documentUri));
+            }
+
+            if (mappings is null)
+            {
+                throw new ArgumentNullException(nameof(mappings));
+            }
+
             _documentUri = documentUri;
             _mappings = mappings;
         }

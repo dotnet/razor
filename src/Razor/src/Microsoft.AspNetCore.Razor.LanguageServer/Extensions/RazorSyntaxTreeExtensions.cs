@@ -15,16 +15,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RazorSyntaxTreeExtensions
     {
-        public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree!!)
+        public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
             var visitor = new FormattingVisitor();
             visitor.Visit(syntaxTree.Root);
 
             return visitor.FormattingSpans;
         }
 
-        public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree!!)
+        public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
             // We want all nodes of type RazorDirectiveSyntax which will contain code.
             // Since code block directives occur at the top-level, we don't need to dive deeper into unrelated nodes.
             var codeBlockDirectives = syntaxTree.Root
@@ -36,8 +46,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return codeBlockDirectives;
         }
 
-        public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree!!)
+        public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
 
             // We want all nodes that represent Razor C# statements, @{ ... }.
             var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToList();
@@ -45,11 +59,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         }
 
         public static SyntaxNode? GetOwner(
-            this RazorSyntaxTree syntaxTree!!,
-            SourceText sourceText!!,
-            Position position!!,
-            ILogger logger!!)
+            this RazorSyntaxTree syntaxTree,
+            SourceText sourceText,
+            Position position,
+            ILogger logger)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
             {
                 return default;
@@ -61,11 +95,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         }
 
         public static SyntaxNode? GetOwner(
-            this RazorSyntaxTree syntaxTree!!,
-            SourceText sourceText!!,
-            Range range!!,
+            this RazorSyntaxTree syntaxTree,
+            SourceText sourceText,
+            Range range,
             ILogger logger)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
             var startInSync = range.Start.TryGetAbsoluteIndex(sourceText, logger, out var absoluteStartIndex);
             var endInSync = range.End.TryGetAbsoluteIndex(sourceText, logger, out var absoluteEndIndex);
             if (startInSync is false || endInSync is false)

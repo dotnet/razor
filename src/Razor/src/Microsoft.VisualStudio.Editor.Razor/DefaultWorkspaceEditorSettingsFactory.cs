@@ -18,13 +18,23 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
 
         [ImportingConstructor]
-        public DefaultWorkspaceEditorSettingsFactory(EditorSettingsManager editorSettingsManager!!)
+        public DefaultWorkspaceEditorSettingsFactory(EditorSettingsManager editorSettingsManager)
         {
+            if (editorSettingsManager is null)
+            {
+                throw new ArgumentNullException(nameof(editorSettingsManager));
+            }
+
             _editorSettingsManager = editorSettingsManager;
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices!!)
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
+            if (languageServices is null)
+            {
+                throw new ArgumentNullException(nameof(languageServices));
+            }
+
             return new DefaultWorkspaceEditorSettings(_editorSettingsManager);
         }
     }

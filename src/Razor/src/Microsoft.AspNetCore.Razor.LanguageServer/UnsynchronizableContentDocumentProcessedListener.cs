@@ -17,10 +17,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private ProjectSnapshotManager _projectManager;
 
         public UnsynchronizableContentDocumentProcessedListener(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentVersionCache documentVersionCache!!,
-            GeneratedDocumentPublisher generatedDocumentPublisher!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentVersionCache documentVersionCache,
+            GeneratedDocumentPublisher generatedDocumentPublisher)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
+            }
+
+            if (generatedDocumentPublisher is null)
+            {
+                throw new ArgumentNullException(nameof(generatedDocumentPublisher));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;

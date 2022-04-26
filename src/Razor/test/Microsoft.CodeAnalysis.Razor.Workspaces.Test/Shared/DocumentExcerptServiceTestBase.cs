@@ -26,8 +26,12 @@ namespace Microsoft.CodeAnalysis.Razor
             HostDocument = TestProjectData.SomeProjectFile1;
         }
 
-        public static (SourceText sourceText, TextSpan span) CreateText(string text!!)
+        public static (SourceText sourceText, TextSpan span) CreateText(string text)
         {
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
 
             // Since we're using positions, normalize to Windows style
 #pragma warning disable CA1307 // Specify StringComparison
