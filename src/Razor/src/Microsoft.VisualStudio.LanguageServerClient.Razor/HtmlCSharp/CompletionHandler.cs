@@ -180,7 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     _logger.LogError("Could not acquire C# virtual document snapshot after provisional completion.");
                 }
-
             }
             else if (!TriggerAppliesToProjection(request.Context, projectionResult.LanguageKind))
             {
