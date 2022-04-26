@@ -97,8 +97,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 
         internal class RenamedTagHelperDescriptor : DefaultTagHelperDescriptor
         {
-            public RenamedTagHelperDescriptor(string newName, TagHelperDescriptor origin) :
-                base(origin.Kind,
+            public RenamedTagHelperDescriptor(string newName, TagHelperDescriptor origin)
+                : base(origin.Kind,
                      newName,
                      origin.AssemblyName,
                      origin.DisplayName,

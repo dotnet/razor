@@ -19,8 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public RemoteProjectSnapshotProjectEngineFactory(FilePathNormalizer filePathNormalizer, IOptionsMonitor<RazorLSPOptions> optionsMonitor) :
-            base(FallbackProjectEngineFactory, ProjectEngineFactories.Factories)
+        public RemoteProjectSnapshotProjectEngineFactory(FilePathNormalizer filePathNormalizer, IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+            : base(FallbackProjectEngineFactory, ProjectEngineFactories.Factories)
         {
             if (filePathNormalizer is null)
             {

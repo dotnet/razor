@@ -1146,8 +1146,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 RazorDocumentMappingService documentMappingService,
-                ILoggerFactory loggerFactory) :
-                base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                ILoggerFactory loggerFactory)
+                : base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
             {
             }
 
@@ -1164,8 +1164,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 RazorDocumentMappingService documentMappingService,
-                ILoggerFactory loggerFactory) :
-                base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                ILoggerFactory loggerFactory)
+                : base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
             {
             }
 
