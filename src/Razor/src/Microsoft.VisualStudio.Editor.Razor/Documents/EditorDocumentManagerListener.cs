@@ -95,55 +95,57 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         // Internal for testing.
         internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
+            _ = ProjectManager_ChangedAsync(e, CancellationToken.None);
+        }
+
+        private async Task ProjectManager_ChangedAsync(ProjectChangeEventArgs e, CancellationToken cancellationToken)
+        {
             try
             {
-                _joinableTaskContext.Factory.Run(async () =>
+                switch (e.Kind)
                 {
-                    switch (e.Kind)
-                    {
-                        case ProjectChangeKind.DocumentAdded:
+                    case ProjectChangeKind.DocumentAdded:
+                        {
+                            // Don't do any work if the solution is closing
+                            if (e.SolutionIsClosing)
                             {
-                                // Don't do any work if the solution is closing
-                                if (e.SolutionIsClosing)
-                                {
-                                    return;
-                                }
-
-                                var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
-
-                                // GetOrCreateDocument needs to be run on the UI thread
-                                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-
-                                var document = DocumentManager.GetOrCreateDocument(
-                                    key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-                                if (document.IsOpenInEditor)
-                                {
-                                    _onOpened(document, EventArgs.Empty);
-                                }
-
-                                break;
+                                return;
                             }
 
-                        case ProjectChangeKind.DocumentRemoved:
+                            var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+
+                            // GetOrCreateDocument needs to be run on the UI thread
+                            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                            var document = DocumentManager.GetOrCreateDocument(
+                                key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+                            if (document.IsOpenInEditor)
                             {
-                                // Need to run this even if the solution is closing because document dispose cleans up file watchers etc.
-
-                                // TryGetDocument and Dispose need to be run on the UI thread
-                                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-
-                                var documentFound = DocumentManager.TryGetDocument(
-                                    new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document);
-
-                                // This class 'owns' the document entry so it's safe for us to dispose it.
-                                if (documentFound)
-                                {
-                                    document.Dispose();
-                                }
-
-                                break;
+                                _onOpened(document, EventArgs.Empty);
                             }
-                    }
-                });
+
+                            break;
+                        }
+
+                    case ProjectChangeKind.DocumentRemoved:
+                        {
+                            // Need to run this even if the solution is closing because document dispose cleans up file watchers etc.
+
+                            // TryGetDocument and Dispose need to be run on the UI thread
+                            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                            var documentFound = DocumentManager.TryGetDocument(
+                                new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document);
+
+                            // This class 'owns' the document entry so it's safe for us to dispose it.
+                            if (documentFound)
+                            {
+                                document.Dispose();
+                            }
+
+                            break;
+                        }
+                }
             }
             catch (Exception ex)
             {
@@ -154,19 +156,20 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private void Document_ChangedOnDisk(object sender, EventArgs e)
         {
+            _ = Document_ChangedOnDiskAsync((EditorDocument)sender, CancellationToken.None);
+        }
+
+        private async Task Document_ChangedOnDiskAsync(EditorDocument document, CancellationToken cancellationToken)
+        {
             try
             {
-                _joinableTaskContext.Factory.Run(async () =>
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
-                    // This event is called by the EditorDocumentManager, which runs on the UI thread.
-                    // However, due to accessing the project snapshot manager, we need to switch to
-                    // running on the project snapshot manager's specialized thread.
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-                    {
-                        var document = (EditorDocument)sender;
-                        ProjectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
-                    }, CancellationToken.None).ConfigureAwait(false);
-                });
+                    ProjectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                }, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
