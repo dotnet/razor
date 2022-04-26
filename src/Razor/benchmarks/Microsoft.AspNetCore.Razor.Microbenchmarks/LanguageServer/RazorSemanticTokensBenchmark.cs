@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -128,10 +127,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
-                SemanticTokensCacheService semanticTokensCacheService,
-                WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher,
                 LoggerFactory loggerFactory) :
-                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, semanticTokensCacheService, semanticTokensRefreshPublisher, loggerFactory)
+                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
             {
             }
 

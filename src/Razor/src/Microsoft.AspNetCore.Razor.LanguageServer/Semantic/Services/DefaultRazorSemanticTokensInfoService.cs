@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -34,8 +33,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
-        private readonly SemanticTokensCacheService _semanticTokensCacheService;
-        private readonly WorkspaceSemanticTokensRefreshPublisher _semanticTokensRefreshPublisher;
         private readonly ILogger _logger;
 
         public DefaultRazorSemanticTokensInfoService(
@@ -44,8 +41,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
-            SemanticTokensCacheService semanticTokensCacheService,
-            WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher,
             ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
@@ -53,8 +48,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
-            _semanticTokensCacheService = semanticTokensCacheService ?? throw new ArgumentNullException(nameof(semanticTokensCacheService));
-            _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher ?? throw new ArgumentNullException(nameof(semanticTokensRefreshPublisher));
 
             if (loggerFactory is null)
             {
@@ -95,35 +88,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken)
         {
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot).ConfigureAwait(false);
+            var tokens = await GetSemanticTokensAsync(
+                textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, range, cancellationToken);
 
-            // See if we can use our cache to at least partially avoid recomputation.
-            if (!_semanticTokensCacheService.TryGetCachedTokens(textDocumentIdentifier.Uri, semanticVersion, range, _logger, out var cachedResult))
-            {
-                // No cache results found, so we'll recompute tokens for the entire range and then hopefully cache the
-                // results to use next time around.
-                var tokens = await GetSemanticTokensAsync(
-                    textDocumentIdentifier, documentSnapshot, semanticVersion, documentVersion, range, cancellationToken);
-
-                return tokens;
-            }
-
-            var cachedRange = cachedResult.Value.Range;
-            var cachedTokens = cachedResult.Value.Tokens;
-
-            // The cache returned to us an exact match for the range we're looking for, so we can return early.
-            if (cachedRange.Equals(range))
-            {
-                return new SemanticTokens { Data = cachedTokens };
-            }
-
-            // The cache returned to us only a partial match for the range. We'll need to compute the rest by
-            // sending range requests to the Razor/C#/HTML servers.
-            var filledInRange = await FillInRangeGapsAsync(
-                textDocumentIdentifier, documentSnapshot, documentVersion, semanticVersion,
-                range, cachedRange, cachedTokens, cancellationToken).ConfigureAwait(false);
-
-            return filledInRange;
-
+            return tokens;
         }
 
         /// <summary>
@@ -366,11 +334,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var data = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
             var tokens = new SemanticTokens { Data = data };
-
-            if (isCSharpFinalized && tokens is not null)
-            {
-                _semanticTokensCacheService.CacheTokens(textDocumentIdentifier.Uri, semanticVersion, range, tokens.Data.ToArray());
-            }
 
             return tokens;
         }

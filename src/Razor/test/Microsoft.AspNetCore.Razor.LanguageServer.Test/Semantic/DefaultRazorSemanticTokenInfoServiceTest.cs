@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
@@ -826,8 +825,6 @@ things *@
             documentVersionCache.Setup(c => c.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out documentVersion))
                 .Returns(true);
 
-            var semanticTokensCacheService = new DefaultSemanticTokensCacheService();
-
             var testClient = new TestClient();
             var errorReporter = new LanguageServerErrorReporter(loggingFactory);
             var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(testClient, errorReporter);
@@ -838,8 +835,6 @@ things *@
                 projectSnapshotManagerDispatcher,
                 documentResolver,
                 documentVersionCache.Object,
-                semanticTokensCacheService,
-                semanticTokensRefreshPublisher,
                 loggingFactory);
         }
 

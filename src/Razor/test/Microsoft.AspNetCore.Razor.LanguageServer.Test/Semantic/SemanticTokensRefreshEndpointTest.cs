@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -27,8 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var serverClient = new TestClient(clientSettings);
             var errorReporter = new TestErrorReporter();
             using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
-            var semanticTokensCacheService = new DefaultSemanticTokensCacheService();
-            var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher, semanticTokensCacheService);
+            var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
             var refreshParams = new SemanticTokensRefreshParams();
 
             // Act
