@@ -564,9 +564,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (csharpResponse is null)
             {
-                // C# isn't ready yet, don't make Razor wait for it. Queue up a refresh notification to ask the client
-                // to request us again in a bit.
-                _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
+                // C# isn't ready yet, don't make Razor wait for it. Once C# is ready they'll send a refresh notification.
                 return SemanticTokensResponse.Default;
             }
             else if (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion)
