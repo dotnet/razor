@@ -63,10 +63,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 // Ask C# for formatting changes.
                 // We should replace the below call: https://github.com/dotnet/razor-tooling/issues/6313
-#pragma warning disable CS0618 // Type or member is obsolete
+                var indentationOptions = new RazorIndentationOptions(
+                    UseTabs: !context.Options.InsertSpaces,
+                    TabSize: context.Options.TabSize,
+                    IndentationSize: context.Options.TabSize);
+                var autoFormattingOptions = new RazorAutoFormattingOptions(
+                    formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
+
                 var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                    context.CSharpWorkspaceDocument, typedChar: context.TriggerCharacter, projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0618 // Type or member is obsolete
+                    context.CSharpWorkspaceDocument,
+                    typedChar: context.TriggerCharacter,
+                    projectedIndex,
+                    indentationOptions,
+                    autoFormattingOptions,
+                    indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (formattingChanges.IsEmpty)
                 {
