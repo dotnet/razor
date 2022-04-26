@@ -9,6 +9,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using System.Diagnostics;
+using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
