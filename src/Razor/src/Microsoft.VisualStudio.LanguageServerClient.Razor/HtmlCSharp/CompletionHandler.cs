@@ -547,7 +547,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             ProjectionResult projection,
             CancellationToken cancellationToken)
         {
-            SumType<CompletionItem[], CompletionList>? result = null;
             if (projection.LanguageKind != RazorLanguageKind.Html ||
                 request.Context is null ||
                 request.Context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
@@ -620,7 +619,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     provisionalCompletionParams,
                     cancellationToken).ConfigureAwait(true);
 
-                if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
+                if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out var result))
                 {
                     return default;
                 }
