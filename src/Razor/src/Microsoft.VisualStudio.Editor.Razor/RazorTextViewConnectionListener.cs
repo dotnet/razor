@@ -73,6 +73,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
+            _ = SubjectBuffersDisconnectedAsync(textView, subjectBuffers);
+        }
+
+        public async Task SubjectBuffersDisconnectedAsync(ITextView textView, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+        {
             try
             {
                 if (textView is null)
@@ -85,10 +90,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
-                _joinableTaskContext.Factory.Run(async () => {
-                    _joinableTaskContext.AssertUIThread();
-                    await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
-                });
+                _joinableTaskContext.AssertUIThread();
+
+                await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
             }
             catch (Exception ex)
             {

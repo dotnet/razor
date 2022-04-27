@@ -40,6 +40,5 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
         public string RootNamespace { get; }
 
         public ProjectWorkspaceState ProjectWorkspaceState { get; }
-
     }
 }

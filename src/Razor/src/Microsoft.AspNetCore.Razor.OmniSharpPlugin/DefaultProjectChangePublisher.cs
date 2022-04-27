@@ -207,7 +207,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 Publish(projectSnapshot);
             }
-
         }
     }
 }

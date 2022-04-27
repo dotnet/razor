@@ -117,7 +117,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     End = textView.TextSnapshot.GetLineNumberFromPosition(span.End)
                 };
             }
-            
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]

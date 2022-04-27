@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.Text
             return textBuffer.ContentType.IsOfType(RazorLanguage.CoreContentType) || textBuffer.ContentType.IsOfType(RazorConstants.LegacyCoreContentType);
         }
 
-
         /// <summary>
         /// Indicates if a <paramref name="textBuffer"/> has the LSP Razor content type. This is represented by the LSP based ASP.NET Core Razor editor.
         /// </summary>

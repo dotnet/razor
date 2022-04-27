@@ -165,6 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     _logger.LogInformation("No edits remain after remapping.");
                     return null;
                 }
+
                 onAutoInsertEdit = remappedEdits.Single();
             }
             else

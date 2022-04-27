@@ -30,5 +30,4 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
             return descriptionInfo;
         }
     }
-
 }

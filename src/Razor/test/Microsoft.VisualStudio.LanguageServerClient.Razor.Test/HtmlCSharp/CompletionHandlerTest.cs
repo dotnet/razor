@@ -1665,23 +1665,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return navigatorSelector.Object;
         }
 
-        private static TextExtent GetWordExtent(string input)
-        {
-            var wordStart = input.IndexOf("|");
-            var wordEnd = input.LastIndexOf("|");
-            var wordLength = wordEnd - wordStart - 1;
-
-            var actualInput = input.Remove(wordEnd, count: 1);
-            actualInput = actualInput.Remove(wordStart, count: 1);
-
-            var snapshot = new StringTextSnapshot(actualInput);
-            var wordSpan = new Span(wordStart, wordLength);
-            var snapshotSpan = new SnapshotSpan(snapshot, wordSpan);
-            var isSignificant = !string.IsNullOrWhiteSpace(actualInput.Substring(wordSpan.Start, wordSpan.Length));
-            var wordExtent = new TextExtent(snapshotSpan, isSignificant);
-            return wordExtent;
-        }
-
         private class TestFormattingOptionsProvider : FormattingOptionsProvider
         {
             public static readonly TestFormattingOptionsProvider Default = new(

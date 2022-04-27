@@ -126,8 +126,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
-                LoggerFactory loggerFactory) :
-                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
+                LoggerFactory loggerFactory)
+                : base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
             {
             }
 

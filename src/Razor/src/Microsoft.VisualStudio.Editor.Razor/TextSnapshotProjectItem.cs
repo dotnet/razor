@@ -70,5 +70,4 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return memoryStream;
         }
     }
-
 }

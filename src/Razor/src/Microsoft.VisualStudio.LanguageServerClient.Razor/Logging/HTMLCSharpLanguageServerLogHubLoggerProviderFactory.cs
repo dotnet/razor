@@ -11,8 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     internal class HTMLCSharpLanguageServerLogHubLoggerProviderFactory : LogHubLoggerProviderFactoryBase
     {
         [ImportingConstructor]
-        public HTMLCSharpLanguageServerLogHubLoggerProviderFactory(RazorLogHubTraceProvider traceProvider) :
-            base(traceProvider)
+        public HTMLCSharpLanguageServerLogHubLoggerProviderFactory(RazorLogHubTraceProvider traceProvider)
+            : base(traceProvider)
         {
         }
     }
