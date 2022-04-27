@@ -216,20 +216,20 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            -integrationTest
-            /p:BuildProjectReferences=false
+            # -integrationTest
+            # /p:BuildProjectReferences=false
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Update Integration Tests Data
-          condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/log/$(_BuildConfig)/Screenshots/
-            artifactName: $(Agent.Os)_$(Agent.JobName) IntegrationTestsData $(_BuildConfig)
-            artifactType: Container
-            parallel: true
+        # - task: PublishBuildArtifacts@1
+        #   displayName: Update Integration Tests Data
+        #   condition: always()
+        #   continueOnError: true
+        #   inputs:
+        #     pathtoPublish: artifacts/log/$(_BuildConfig)/Screenshots/
+        #     artifactName: $(Agent.Os)_$(Agent.JobName) IntegrationTestsData $(_BuildConfig)
+        #     artifactType: Container
+        #     parallel: true
         # Run VSCode functional tests
         # - powershell: |
         #     . ../../../../activate.ps1
@@ -251,14 +251,14 @@ stages:
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
           failOnStderr: true
           condition: and(succeeded(), eq(variables['_BuildConfig'], 'Release'))
-        - task: PublishTestResults@2
-          displayName: Publish Integration Test Results
-          condition: always()
-          continueOnError: true
-          inputs:
-            testResultsFormat: 'VSTest'
-            testResultsFiles: '*.trx'
-            searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
+        # - task: PublishTestResults@2
+        #   displayName: Publish Integration Test Results
+        #   condition: always()
+        #   continueOnError: true
+        #   inputs:
+        #     testResultsFormat: 'VSTest'
+        #     testResultsFiles: '*.trx'
+        #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
