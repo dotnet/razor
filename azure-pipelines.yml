@@ -216,7 +216,6 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            -integrationTest
             /p:BuildProjectReferences=false
           name: Run_Tests
           displayName: Run Unit and Integration tests
