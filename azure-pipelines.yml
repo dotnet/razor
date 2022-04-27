@@ -217,7 +217,7 @@ stages:
             -prepareMachine
             -test
             # -integrationTest
-            /p:BuildProjectReferences=false
+            # /p:BuildProjectReferences=false
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
