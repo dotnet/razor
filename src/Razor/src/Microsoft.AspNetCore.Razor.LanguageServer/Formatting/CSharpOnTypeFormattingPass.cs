@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -65,11 +64,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return result;
                 }
 
-                var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
-
                 // Ask C# for formatting changes.
+                var indentationOptions = new RazorIndentationOptions(
+                    UseTabs: !context.Options.InsertSpaces,
+                    TabSize: context.Options.TabSize,
+                    IndentationSize: context.Options.TabSize);
+                var autoFormattingOptions = new RazorAutoFormattingOptions(
+                    formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
+
                 var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                    context.CSharpWorkspaceDocument, typedChar: context.TriggerCharacter, projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
+                    context.CSharpWorkspaceDocument,
+                    typedChar: context.TriggerCharacter,
+                    projectedIndex,
+                    indentationOptions,
+                    autoFormattingOptions,
+                    indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (formattingChanges.IsEmpty)
                 {
@@ -504,12 +514,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
             var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
-        }
-
-        private static async Task<DocumentOptionSet> GetDocumentOptionsAsync(FormattingContext context)
-        {
-            var documentOptions = await context.CSharpWorkspaceDocument.GetOptionsAsync().ConfigureAwait(false);
-            return (DocumentOptionSet)context.GetChangedOptionSet(documentOptions);
         }
     }
 }

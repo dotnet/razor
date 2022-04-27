@@ -825,6 +825,10 @@ things *@
             documentVersionCache.Setup(c => c.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out documentVersion))
                 .Returns(true);
 
+            var testClient = new TestClient();
+            var errorReporter = new LanguageServerErrorReporter(loggingFactory);
+            var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(testClient, errorReporter);
+
             return new DefaultRazorSemanticTokensInfoService(
                 languageServer.Object,
                 documentMappingService,
