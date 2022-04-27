@@ -127,7 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             public override IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
 
             public override int Version { get; }
-
         }
     }
 }

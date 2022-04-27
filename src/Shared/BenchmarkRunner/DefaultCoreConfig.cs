@@ -29,6 +29,9 @@ namespace BenchmarkDotNet.Attributes
 
             AddValidator(JitOptimizationsValidator.FailOnError);
 
+            // So that the using statement, above, doesn't appear as a warning for being unused
+            _ = NetCoreAppSettings.NetCoreApp20;
+
             AddJob(Job.Default
 #if NETCOREAPP2_1
                 .WithToolchain(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp21))

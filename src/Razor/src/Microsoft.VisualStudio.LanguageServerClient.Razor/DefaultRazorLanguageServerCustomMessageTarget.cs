@@ -757,7 +757,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                             {
                                 htmlRanges.AddRange(result);
                             }
-
                         }
                     });
             }

@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.Razor
                         new TextSpan(remainingSpan.Start, primarySpan.End - remainingSpan.Start)));
                     remainingSpan = new TextSpan(primarySpan.End, remainingSpan.Length - (primarySpan.End - remainingSpan.Start));
                 }
-
             }
 
             // Deal with residue

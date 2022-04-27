@@ -34,8 +34,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public TagHelperRefreshTrigger(
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             OmniSharpWorkspace omniSharpWorkspace,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) :
-                this(projectSnapshotManagerDispatcher, (Workspace)omniSharpWorkspace, workspaceStateGenerator)
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
+                : this(projectSnapshotManagerDispatcher, (Workspace)omniSharpWorkspace, workspaceStateGenerator)
         {
         }
 

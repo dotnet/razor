@@ -47,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
                 throw new ArgumentNullException(nameof(projectCapabilityResolver));
             }
 
-
             _documentFactory = documentFactory;
             _projectCapabilityResolver = projectCapabilityResolver;
             _documentTable = new RunningDocumentTable(services);

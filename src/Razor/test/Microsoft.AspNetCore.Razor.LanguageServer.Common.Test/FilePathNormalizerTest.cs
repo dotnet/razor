@@ -149,7 +149,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             Assert.Equal("/", normalized);
         }
 
-
         [OSSkipConditionFact(new[] { "Windows" })]
         public void Normalize_NonWindows_AddsLeadingForwardSlash()
         {

@@ -11,8 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     internal class RazorLanguageServerLogHubLoggerProviderFactory : LogHubLoggerProviderFactoryBase
     {
         [ImportingConstructor]
-        public RazorLanguageServerLogHubLoggerProviderFactory(RazorLogHubTraceProvider traceProvider) :
-            base(traceProvider)
+        public RazorLanguageServerLogHubLoggerProviderFactory(RazorLogHubTraceProvider traceProvider)
+            : base(traceProvider)
         {
         }
     }
