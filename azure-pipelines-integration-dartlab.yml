@@ -1,13 +1,16 @@
 # Razor integration test pipeline for validating against branch builds of VS.
 
-trigger: none # Manual trigger for now
-pr: none
+trigger:
+  batch: true
+pr:
+  autoCancel: true
 
 resources:
   pipelines:
   - pipeline: VisualStudioBuildUnderTest
     source: DD-CB-ReleaseVS
     branch: main
+    trigger: true
   - pipeline: DartLab
     source: DartLab
     branch: main
