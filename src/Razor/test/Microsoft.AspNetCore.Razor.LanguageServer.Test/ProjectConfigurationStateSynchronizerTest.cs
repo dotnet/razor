@@ -397,8 +397,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private ProjectConfigurationStateSynchronizer GetSynchronizer(RazorProjectService razorProjectService)
         {
-            var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, FilePathNormalizer, LoggerFactory);
-            synchronizer.EnqueueDelay = 5;
+            var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, FilePathNormalizer, LoggerFactory)
+            {
+                EnqueueDelay = 5
+            };
 
             return synchronizer;
         }

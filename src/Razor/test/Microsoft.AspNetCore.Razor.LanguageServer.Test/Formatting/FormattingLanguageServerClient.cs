@@ -73,9 +73,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private RazorDocumentFormattingResponse Format(DocumentOnTypeFormattingParams @params)
         {
-            var response = new RazorDocumentFormattingResponse();
-
-            response.Edits = Array.Empty<TextEdit>();
+            var response = new RazorDocumentFormattingResponse
+            {
+                Edits = Array.Empty<TextEdit>()
+            };
 
             // TODO: Update WebTools dependency and call via reflection
 
@@ -85,9 +86,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private RazorDocumentFormattingResponse Format(DocumentFormattingParams @params)
         {
             var options = @params.Options;
-            var response = new RazorDocumentFormattingResponse();
-
-            response.Edits = Array.Empty<TextEdit>();
+            var response = new RazorDocumentFormattingResponse
+            {
+                Edits = Array.Empty<TextEdit>()
+            };
 
             var codeDocument = _documents[@params.TextDocument.Uri.GetAbsoluteOrUNCPath()];
             var generatedHtml = codeDocument.GetHtmlDocument().GeneratedHtml;
