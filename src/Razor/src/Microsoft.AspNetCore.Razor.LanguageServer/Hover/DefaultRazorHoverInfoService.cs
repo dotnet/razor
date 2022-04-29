@@ -15,10 +15,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Text.Adornments;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
@@ -198,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
             var isVSClient = clientCapabilities is PlatformAgnosticClientCapabilities platformAgnosticClientCapabilities &&
                 platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
-            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out VSContainerElement classifiedTextElement))
+            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement classifiedTextElement))
             {
                 var vsHover = new OmniSharpVSHover
                 {
@@ -211,10 +213,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
             else
             {
-                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out var markupContent))
+                var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
+
+                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
                 {
                     return null;
                 }
+
+                var markupContent = new MarkupContent()
+                {
+                    Value = vsMarkupContent.Value,
+                    Kind = (MarkupKind)vsMarkupContent.Kind,
+                };
 
                 var hover = new HoverModel
                 {
@@ -235,7 +245,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
             var isVSClient = clientCapabilities is PlatformAgnosticClientCapabilities platformAgnosticClientCapabilities &&
                 platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
-            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out VSContainerElement classifiedTextElement))
+            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out ContainerElement classifiedTextElement))
             {
                 var vsHover = new OmniSharpVSHover
                 {
@@ -248,10 +258,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
             else
             {
-                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out var markupContent))
+                var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
+
+                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
                 {
                     return null;
                 }
+
+                var markupContent = new MarkupContent()
+                {
+                    Value = vsMarkupContent.Value,
+                    Kind = (MarkupKind)vsMarkupContent.Kind,
+                };
 
                 var hover = new HoverModel
                 {
@@ -261,6 +279,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
                 return hover;
             }
+        }
+
+        private static VisualStudioMarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
+        {
+            var hoverContentFormat = clientCapabilities.TextDocument?.Hover.Value?.ContentFormat;
+            var hoverKind = hoverContentFormat?.Contains(MarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
+            return hoverKind;
         }
     }
 }

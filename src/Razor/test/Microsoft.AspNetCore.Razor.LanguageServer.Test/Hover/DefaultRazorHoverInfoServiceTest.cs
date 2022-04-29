@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
@@ -291,7 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
@@ -314,7 +315,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.LastIndexOf("test1", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
@@ -337,7 +338,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
@@ -361,7 +362,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("strong", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
@@ -381,7 +382,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServer = LanguageServer;
             languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("weak", StringComparison.Ordinal), -1, -1);
             var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
@@ -412,14 +413,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var expectedRange = new RangeModel(new Position(1, 1), new Position(1, 6));
             Assert.Equal(expectedRange, vsHover.Range);
 
-            var container = (VSContainerElement)vsHover.RawContent;
+            var container = (ContainerElement)vsHover.RawContent;
             var containerElements = container.Elements.ToList();
-            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style);
             Assert.Single(containerElements);
 
             // [TagHelper Glyph] Test1TagHelper
-            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
-            var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            var innerContainer = ((ContainerElement)containerElements[0]).Elements.ToList();
+            var classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -446,14 +447,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
             Assert.Equal(expectedRange, vsHover.Range);
 
-            var container = (VSContainerElement)vsHover.RawContent;
+            var container = (ContainerElement)vsHover.RawContent;
             var containerElements = container.Elements.ToList();
-            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style);
             Assert.Single(containerElements);
 
             // [TagHelper Glyph] bool Test1TagHelper.BoolVal
-            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
-            var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            var innerContainer = ((ContainerElement)containerElements[0]).Elements.ToList();
+            var classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(PropertyGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -464,14 +465,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", VSPredefinedClassificationTypeNames.Identifier));
         }
 
-        private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService(ClientNotifierServiceBase languageServer = null)
+        private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService()
         {
-            if (languageServer is null)
-            {
-                languageServer = LanguageServer;
-            }
-
-            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
+            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
             var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
             return new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
         }

@@ -10,9 +10,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Text.Adornments;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
@@ -24,6 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly CompletionListCache _completionListCache;
         private PlatformAgnosticCompletionCapability? _completionCapability;
         private PlatformAgnosticClientCapabilities? _clientCapabilities;
+        private VisualStudioMarkupKind _documentationKind;
 
         // Guid is magically generated and doesn't mean anything. O# magic.
         public Guid Id => new("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
@@ -64,6 +67,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             _completionCapability = (PlatformAgnosticCompletionCapability)capability;
             _clientCapabilities = (PlatformAgnosticClientCapabilities)clientCapabilities;
+
+            var completionSupportedKinds = clientCapabilities.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
+            _documentationKind = completionSupportedKinds?.Contains(MarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
         }
 
         public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
@@ -92,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var useDescriptionProperty = _clientCapabilities?.SupportsVisualStudioExtensions ?? false;
 
             MarkupContent? tagHelperMarkupTooltip = null;
-            VSClassifiedTextElement? tagHelperClassifiedTextTooltip = null;
+            ClassifiedTextElement? tagHelperClassifiedTextTooltip = null;
 
             switch (associatedRazorCompletion.Kind)
             {
@@ -121,13 +127,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.TagHelperAttribute:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetAttributeCompletionDescription();
+                        if (descriptionInfo == null)
+                        {
+                            break;
+                        }
+
                         if (useDescriptionProperty)
                         {
                             _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                         }
-                        else
+                        else if (_lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out var vsMarkupContent))
                         {
-                            _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
+                            tagHelperMarkupTooltip = new MarkupContent()
+                            {
+                                Value = vsMarkupContent.Value,
+                                Kind = (MarkupKind)vsMarkupContent.Kind,
+                            };
                         }
 
                         break;
@@ -135,13 +150,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.TagHelperElement:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetTagHelperElementDescriptionInfo();
+                        if (descriptionInfo == null)
+                        {
+                            break;
+                        }
+
                         if (useDescriptionProperty)
                         {
                             _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                         }
-                        else
+                        else if (_lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out var vsMarkupContent))
                         {
-                            _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
+                            tagHelperMarkupTooltip = new MarkupContent()
+                            {
+                                Value = vsMarkupContent.Value,
+                                Kind = (MarkupKind)vsMarkupContent.Kind,
+                            };
                         }
 
                         break;
