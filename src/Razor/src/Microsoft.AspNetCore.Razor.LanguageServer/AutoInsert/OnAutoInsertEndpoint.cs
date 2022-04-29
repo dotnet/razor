@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToList();
         }
 
-        public RegistrationExtensionResult GetRegistration()
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
 
