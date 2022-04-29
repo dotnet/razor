@@ -94,6 +94,11 @@ Welcome to your new app.
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
             await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
 
+            // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
+
             EnsureExtensionInstalled();
             try
             {
