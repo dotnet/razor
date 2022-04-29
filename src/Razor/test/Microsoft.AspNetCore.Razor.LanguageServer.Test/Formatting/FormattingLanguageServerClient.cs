@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -36,7 +36,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Progress;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.WorkDone;
 using Xunit;
-using FormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -71,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _documents.TryAdd("/" + path, codeDocument);
         }
 
-        private RazorDocumentFormattingResponse Format(DocumentOnTypeFormattingParams @params)
+        private RazorDocumentFormattingResponse Format()
         {
             var response = new RazorDocumentFormattingResponse();
 
@@ -150,14 +149,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new InvalidOperationException("We shouldn't be asked to format Razor language kind.");
             }
 
-            var options = @params.Options;
             var response = new RazorDocumentFormattingResponse();
 
             if (@params.Kind == RazorLanguageKind.CSharp)
             {
                 var codeDocument = _documents[@params.HostDocumentFilePath];
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var csharpDocument = GetCSharpDocument(codeDocument, @params.Options);
+                var csharpDocument = GetCSharpDocument(codeDocument);
                 if (!csharpDocument.TryGetSyntaxRoot(out var root))
                 {
                     throw new InvalidOperationException("Couldn't get syntax root.");
@@ -165,7 +163,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 var spanToFormat = @params.ProjectedRange.AsTextSpan(csharpSourceText);
 
-                var changes = Formatter.GetFormattedTextChanges(root, spanToFormat, csharpDocument.Project.Solution.Workspace);
+                var services = csharpDocument.Project.Solution.Workspace.Services;
+                var options = @params.Options.GetIndentationOptions();
+                var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(
+                    services, root, spanToFormat, options, CancellationToken.None);
 
                 response.Edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
             }
@@ -204,15 +205,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        private static Document GetCSharpDocument(RazorCodeDocument codeDocument, FormattingOptions options)
+        private static Document GetCSharpDocument(RazorCodeDocument codeDocument)
         {
             var adhocWorkspace = new AdhocWorkspace();
-            var csharpOptions = adhocWorkspace.Options
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, (int)options.TabSize)
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, LanguageNames.CSharp, (int)options.TabSize)
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, !options.InsertSpaces);
-            adhocWorkspace.TryApplyChanges(adhocWorkspace.CurrentSolution.WithOptions(csharpOptions));
-
             var project = adhocWorkspace.AddProject("TestProject", LanguageNames.CSharp);
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var csharpDocument = adhocWorkspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
@@ -265,10 +260,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 return Task.FromResult(Convert(response));
             }
-            else if (@params is DocumentOnTypeFormattingParams onTypeFormattingParams &&
+            else if (@params is DocumentOnTypeFormattingParams &&
                 string.Equals(method, "textDocument/onTypeFormatting", StringComparison.Ordinal))
             {
-                var response = Format(onTypeFormattingParams);
+                var response = Format();
 
                 return Task.FromResult(Convert(response));
             }

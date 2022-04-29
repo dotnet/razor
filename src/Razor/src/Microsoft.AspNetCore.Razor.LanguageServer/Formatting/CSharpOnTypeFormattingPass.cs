@@ -27,11 +27,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     {
         private readonly ILogger _logger;
+        private readonly RazorGlobalOptions _globalOptions;
 
         public CSharpOnTypeFormattingPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
+            RazorGlobalOptions globalOptions,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
@@ -41,6 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             _logger = loggerFactory.CreateLogger<CSharpOnTypeFormattingPass>();
+            _globalOptions = globalOptions;
         }
 
         public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
@@ -65,19 +68,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 // Ask C# for formatting changes.
-                var indentationOptions = new RazorIndentationOptions(
-                    UseTabs: !context.Options.InsertSpaces,
-                    TabSize: context.Options.TabSize,
-                    IndentationSize: context.Options.TabSize);
-                var autoFormattingOptions = new RazorAutoFormattingOptions(
-                    formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
-
+                
                 var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                     context.CSharpWorkspaceDocument,
                     typedChar: context.TriggerCharacter,
                     projectedIndex,
-                    indentationOptions,
-                    autoFormattingOptions,
+                    context.Options.GetIndentationOptions(),
+                    _globalOptions.GetAutoFormattingOptions(),
                     indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
                     cancellationToken).ConfigureAwait(false);
 

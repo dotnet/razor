@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -221,19 +222,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
             var versionCache = new DefaultDocumentVersionCache(dispatcher);
 
+            var workspaceFactory = TestAdhocWorkspaceFactory.Instance;
+            var globalOptions = RazorGlobalOptions.GetGlobalOptions(workspaceFactory.Create());
+
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
             var passes = new List<IFormattingPass>()
             {
                 new HtmlFormattingPass(mappingService, FilePathNormalizer, client, versionCache, LoggerFactory),
                 new CSharpFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
+                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, client, globalOptions, LoggerFactory),
                 new RazorFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
                 new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
                 new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
             };
 
-            return new DefaultRazorFormattingService(passes, LoggerFactory, TestAdhocWorkspaceFactory.Instance);
+            return new DefaultRazorFormattingService(passes, LoggerFactory, workspaceFactory);
         }
 
         private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)

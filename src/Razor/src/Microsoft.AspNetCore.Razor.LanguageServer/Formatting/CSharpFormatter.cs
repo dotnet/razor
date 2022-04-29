@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -135,15 +136,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Range projectedRange,
             CancellationToken cancellationToken)
         {
+            var csharpDocument = context.CSharpWorkspaceDocument;
             var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
             var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
             var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken);
             Assumes.NotNull(root);
 
-            var workspace = context.CSharpWorkspace;
-
-            // Formatting options will already be set in the workspace.
-            var changes = CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(root, spanToFormat, workspace, cancellationToken: cancellationToken);
+            var services = csharpDocument.Project.Solution.Workspace.Services;
+            var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(services, root, spanToFormat, context.Options.GetIndentationOptions(), cancellationToken);
 
             var edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
             return edits;
@@ -165,7 +165,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // At this point, we have added all the necessary markers and attached annotations.
             // Let's invoke the C# formatter and hope for the best.
-            var formattedRoot = CodeAnalysis.Formatting.Formatter.Format(root, context.CSharpWorkspace, cancellationToken: cancellationToken);
+            var services = context.CSharpWorkspaceDocument.Project.Solution.Workspace.Services;
+            var formattedRoot = RazorCSharpFormattingInteractionService.Format(services, root, context.Options.GetIndentationOptions(), cancellationToken);
             var formattedText = formattedRoot.GetText();
 
             var desiredIndentationMap = new Dictionary<int, int>();
