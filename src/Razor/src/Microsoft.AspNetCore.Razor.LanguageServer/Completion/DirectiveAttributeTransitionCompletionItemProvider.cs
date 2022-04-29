@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         // In practice this happens in the `<button |` scenario where the "space" results in completions
                         // where this directive attribute transition character ("@...") gets provided and then typing
                         // `@` should re-trigger OR typing `/` should re-trigger.
-                        commitCharacters: new[] { "@", "/", ">" });
+                        commitCharacters: new[] { "@", "/", ">" }.Select(c => new RazorCommitCharacter(c)).ToArray());
                     s_transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(RazorLS.Resources.Blazor_directive_attributes));
                 }
 

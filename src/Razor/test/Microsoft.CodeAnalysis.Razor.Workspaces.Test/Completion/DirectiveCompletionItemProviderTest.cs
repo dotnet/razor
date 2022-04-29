@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             return new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason);
         }
 
-        private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyCollection<string> commitCharacters = null)
+        private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null)
         {
             Assert.Equal(item.DisplayText, completionDisplayText);
             Assert.Equal(item.InsertText, directive.Directive);

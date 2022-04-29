@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             string insertText,
             RazorCompletionItemKind kind,
             string sortText = null,
-            IReadOnlyCollection<string> commitCharacters = null)
+            IReadOnlyList<RazorCommitCharacter> commitCharacters = null)
         {
             if (displayText is null)
             {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         public RazorCompletionItemKind Kind { get; }
 
-        public IReadOnlyCollection<string> CommitCharacters { get; }
+        public IReadOnlyCollection<RazorCommitCharacter> CommitCharacters { get; }
 
         public ItemCollection Items
         {
