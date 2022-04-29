@@ -41,8 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OSharp.Position { Line = 3, Character = 0 }
             };
 
-            var csharpTokens = new ProvideSemanticTokensResponse(
-                tokens: Array.Empty<int>(), isFinalized: false, hostDocumentSyncVersion: 1);
+            var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: 1);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
         }
 
@@ -95,8 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 End = new OSharp.Position { Line = 2, Character = 0 }
             };
 
-            var csharpTokens = new ProvideSemanticTokensResponse(
-                tokens: Array.Empty<int>(), isFinalized: true, hostDocumentSyncVersion: null);
+            var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: null);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
         }
 
@@ -782,7 +780,7 @@ things *@
 
             if (csharpTokens is null)
             {
-                csharpTokens = new ProvideSemanticTokensResponse(tokens: null, isFinalized: true, documentVersion);
+                csharpTokens = new ProvideSemanticTokensResponse(tokens: null, documentVersion);
             }
 
             var (documentSnapshots, textDocumentIdentifiers) = CreateDocumentSnapshot(documentTexts, isRazorArray, DefaultTagHelpers);

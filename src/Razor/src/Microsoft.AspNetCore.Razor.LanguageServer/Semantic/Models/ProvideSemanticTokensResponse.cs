@@ -11,24 +11,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     /// </summary>
     internal class ProvideSemanticTokensResponse
     {
-        public ProvideSemanticTokensResponse(int[]? tokens, bool isFinalized, long? hostDocumentSyncVersion)
+        public ProvideSemanticTokensResponse(int[]? tokens, long? hostDocumentSyncVersion)
         {
             Tokens = tokens;
-            IsFinalized = isFinalized;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
         public int[]? Tokens { get; }
 
-        public bool IsFinalized { get; }
-
         public long? HostDocumentSyncVersion { get; }
 
         public override bool Equals(object obj)
         {
-            if (obj is not ProvideSemanticTokensResponse other ||
-                other.IsFinalized != IsFinalized ||
-                other.HostDocumentSyncVersion != HostDocumentSyncVersion)
+            if (obj is not ProvideSemanticTokensResponse other || other.HostDocumentSyncVersion != HostDocumentSyncVersion)
             {
                 return false;
             }

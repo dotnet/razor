@@ -470,8 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 },
                 requiredHostDocumentVersion: 0,
                 range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
-            var expectedResults = new ProvideSemanticTokensResponse(
-                expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
+            var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults.Data, documentVersion);
 
             // Act
             var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
