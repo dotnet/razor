@@ -208,7 +208,7 @@ Welcome to your new app.
 
             if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException("Integration test not running against Experimental Extension");
+                throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
             }
         }
 
