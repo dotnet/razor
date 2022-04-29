@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Description">
         <source>Razor Debugger</source>
-        <target state="new">Razor Debugger</target>
+        <target state="translated">Razor 디버거</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Title">
         <source>Determining proximity expressions...</source>
-        <target state="new">Determining proximity expressions...</target>
+        <target state="translated">근접 연결 식 확인 중</target>
         <note />
       </trans-unit>
     </body>
