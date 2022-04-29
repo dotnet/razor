@@ -93,6 +93,8 @@ Welcome to your new app.
             // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
             await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
+
+            EnsureExtensionInstalled();
             try
             {
                 await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
@@ -189,6 +191,19 @@ Welcome to your new app.
                     // Wait a bit
                     Thread.Sleep(100);
                 }
+            }
+        }
+
+        private static void EnsureExtensionInstalled()
+        {
+            var assembly = Assembly.Load(new AssemblyName("Microsoft.VisualStudio.RazorExtension"));
+            var version = assembly.GetName().Version;
+
+            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
+
+            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new NotImplementedException("Integration test not running against Experimental Extension");
             }
         }
 
