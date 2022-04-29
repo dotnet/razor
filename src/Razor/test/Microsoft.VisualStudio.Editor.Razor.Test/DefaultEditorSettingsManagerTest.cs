@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
