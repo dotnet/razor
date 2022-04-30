@@ -166,6 +166,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                 var attributeContext = ResolveAttributeContext(completion.Value, indexerCompletion, options.SnippetsSupported);
                 var attributeCommitCharacters = ResolveAttributeCommitCharacters(attributeContext);
+                var isSnippet = false;
+                var insertText = filterText;
+                if (TryResolveInsertText(insertText, attributeContext, out var snippetText))
+                {
+                    isSnippet = true;
+                    insertText = snippetText;
+                }
 
                 // We change the sort text depending on the tag name due to TagHelper/non-TagHelper concerns. For instance lets say you have a TagHelper that binds to `input`.
                 // Chances are you're expecting to get every other `input` completion item in addition to the TagHelper completion items and the sort order should be the default
@@ -178,10 +185,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 var sortText = HtmlFactsService.IsHtmlTagName(containingTagName) ? CompletionSortTextHelper.DefaultSortPriority : CompletionSortTextHelper.HighSortPriority;
                 var razorCompletionItem = new RazorCompletionItem(
                     displayText: completion.Key,
-                    insertText: filterText,
+                    insertText: insertText,
                     sortText: sortText,
                     kind: RazorCompletionItemKind.TagHelperAttribute,
-                    commitCharacters: attributeCommitCharacters);
+                    commitCharacters: attributeCommitCharacters,
+                    isSnippet: isSnippet);
 
                 var attributeDescriptions = completion.Value.Select(boundAttribute =>
                 {
@@ -196,6 +204,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             return completionItems;
+        }
+
+        private static bool TryResolveInsertText(string baseInsertText, AttributeContext context, [NotNullWhen(true)] out string? snippetText)
+        {
+            if (context == AttributeContext.FullSnippet)
+            {
+                snippetText = $"{baseInsertText}=\"$0\"";
+                return true;
+            }
+
+            snippetText = null;
+            return false;
         }
 
         private IReadOnlyList<RazorCompletionItem> GetElementCompletions(
