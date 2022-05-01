@@ -66,12 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> LanguageClients => throw new NotImplementedException();
 
-        IStreamingRequestBroker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]> ILanguageServiceBroker.DocumentDiagnosticsBroker => throw new NotImplementedException();
-
-        IStreamingRequestBroker<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]> ILanguageServiceBroker.WorkspaceDiagnosticsBroker => throw new NotImplementedException();
-
-        IRequestBroker<VSGetProjectContextsParams, VSProjectContextList> ILanguageServiceBroker.ProjectContextBroker => throw new NotImplementedException();
-
         IRequestBroker<VSInternalKindAndModifier, VSInternalIconMapping> ILanguageServiceBroker.KindDescriptionResolveBroker => throw new NotImplementedException();
 
         public TestLanguageServiceBroker(Action<string> callback)
