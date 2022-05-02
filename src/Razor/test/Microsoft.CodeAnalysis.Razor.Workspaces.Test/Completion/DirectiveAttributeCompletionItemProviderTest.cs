@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Contains(completions, completion =>
                 insertText == completion.InsertText &&
                 displayText == completion.DisplayText &&
-                commitCharacters.SequenceEqual(completion.CommitCharacters) &&
+                commitCharacters.SequenceEqual(completion.CommitCharacters.Select(c => c.Character)) &&
                 RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
         }
 

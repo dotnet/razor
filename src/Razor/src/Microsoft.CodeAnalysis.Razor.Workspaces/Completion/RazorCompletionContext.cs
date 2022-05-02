@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Razor.Language;
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal record RazorCompletionContext(
-            RazorSyntaxTree SyntaxTree,
-            TagHelperDocumentContext TagHelperDocumentContext,
-            CompletionReason Reason = CompletionReason.Invoked);
+        RazorSyntaxTree SyntaxTree,
+        TagHelperDocumentContext TagHelperDocumentContext,
+        CompletionReason Reason = CompletionReason.Invoked,
+        RazorCompletionOptions Options = default)
+    {
+    }
 }
