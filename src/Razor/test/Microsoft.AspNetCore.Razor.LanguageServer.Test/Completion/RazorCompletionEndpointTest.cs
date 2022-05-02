@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void TryConvert_DirectiveAttribute_ReturnsTrue()
         {
             // Arrange
-            var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: new[] { "=", ":" }.Select(c => new RazorCommitCharacter(c)).ToArray());
+            var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
 
             // Act
             var result = RazorCompletionEndpoint.TryConvert(completionItem, _supportedCompletionItemKinds, out var converted);

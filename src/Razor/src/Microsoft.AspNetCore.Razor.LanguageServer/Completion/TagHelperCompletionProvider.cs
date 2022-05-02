@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -18,11 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal class TagHelperCompletionProvider : RazorCompletionItemProvider
     {
         // Internal for testing
-        internal static readonly IReadOnlyList<RazorCommitCharacter> MinimizedAttributeCommitCharacters = new[] { "=", " " }.Select(c => new RazorCommitCharacter(c)).ToArray();
-        internal static readonly IReadOnlyList<RazorCommitCharacter> AttributeCommitCharacters = new[] { "=" }.Select(c => new RazorCommitCharacter(c)).ToArray();
-        internal static readonly IReadOnlyList<RazorCommitCharacter> AttributeSnippetCommitCharacters = new[] { "=" }.Select(c => new RazorCommitCharacter(c, Insert: false)).ToArray();
+        internal static readonly IReadOnlyList<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=", " " });
+        internal static readonly IReadOnlyList<RazorCommitCharacter> AttributeCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=" });
+        internal static readonly IReadOnlyList<RazorCommitCharacter> AttributeSnippetCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=" }, insert: false);
 
-        private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = new[] { " ", ">" }.Select(c => new RazorCommitCharacter(c)).ToArray();
+        private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { " ", ">" });
         private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
         private readonly HtmlFactsService _htmlFactsService;
         private readonly TagHelperCompletionService _tagHelperCompletionService;

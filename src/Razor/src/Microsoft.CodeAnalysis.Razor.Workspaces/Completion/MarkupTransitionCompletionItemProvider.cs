@@ -16,10 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
     {
-        private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = new[]
-        {
-            new RazorCommitCharacter(">"),
-        };
+        private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { ">" });
 
         private readonly HtmlFactsService _htmlFactsService;
 
