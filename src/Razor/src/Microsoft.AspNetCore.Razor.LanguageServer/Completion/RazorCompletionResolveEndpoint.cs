@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             // We might strip out the commitcharacters for speed, bring them back
-            var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters) : null;
+            var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters.Select(c => c.Character).ToArray()) : null;
             completionItem = completionItem with { CommitCharacters = container };
             var vsCompletionItem = completionItem.ToVSCompletionItem(_completionCapability?.VSCompletionList);
 
