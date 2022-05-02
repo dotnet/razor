@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
@@ -37,6 +35,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
         }
 
+        public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot documentSnapshot)
+        {
+            // No point doing anything if its not a component
+            if (documentSnapshot.FileKind != FileKinds.Component)
+            {
+                return null;
+            }
+
+            var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            if (razorCodeDocument is null)
+            {
+                return null;
+            }
+
+            var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                 () => _projectSnapshotManager.Projects.ToArray(),
+                 CancellationToken.None).ConfigureAwait(false);
+
+            foreach (var project in projects)
+            {
+                // If the document is an import document, then it can't be a component
+                if (project.IsImportDocument(documentSnapshot))
+                {
+                    return null;
+                }
+
+                // If the document isn't in this project, then no point searching for components
+                // This also avoids the issue of duplicate components
+                if (!project.DocumentFilePaths.Contains(documentSnapshot.FilePath))
+                {
+                    return null;
+                }
+
+                // If we got this far, we can check for tag helpers
+                foreach (var tagHelper in project.TagHelpers)
+                {
+                    // Check the typename and namespace match
+                    if (IsPathCandidateForComponent(documentSnapshot, tagHelper.GetTypeNameIdentifier()) &&
+                        ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.GetTypeNamespace()))
+                    {
+                        return tagHelper;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
         /// <remarks>
         /// This method makes several assumptions about the nature of components. First, it assumes that a component
@@ -47,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
         /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="tagHelper"/> is null.</exception>
-        public override async Task<DocumentSnapshot> TryLocateComponentAsync(TagHelperDescriptor tagHelper)
+        public override async Task<DocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper)
         {
             if (tagHelper is null)
             {

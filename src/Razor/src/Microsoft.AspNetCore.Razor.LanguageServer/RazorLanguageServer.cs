@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -144,6 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorProximityExpressionsEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
                     .WithHandler<FoldingRangeEndpoint>()
+                    .WithHandler<TextDocumentUriPresentationEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder
