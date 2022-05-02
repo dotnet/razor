@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         foreach (var registrationExtension in registrationExtensions)
                         {
                             var optionsResult = registrationExtension.GetRegistration();
-                            response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JObject.FromObject(optionsResult.Options);
+                            response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JToken.FromObject(optionsResult.Options);
                         }
 
                         RazorLanguageServerCapability.AddTo(response.Capabilities);
