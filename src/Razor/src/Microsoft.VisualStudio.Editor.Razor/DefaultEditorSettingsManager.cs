@@ -28,6 +28,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             _settings = EditorSettings.Default;
 
+            // update Roslyn's global options (null in tests):
+            if (globalOptions != null)
+            {
+                globalOptions.TabSize = _settings.IndentSize;
+                globalOptions.UseTabs = _settings.IndentWithTabs;
+            }
+
             foreach (var changeTrigger in editorSettingsChangeTriggers)
             {
                 changeTrigger.Initialize(this);
