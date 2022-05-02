@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -99,7 +100,6 @@ Welcome to your new app.
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 
-            EnsureExtensionInstalled();
             try
             {
                 await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
@@ -114,6 +114,8 @@ Welcome to your new app.
                 RazorOutputPaneLogger(outputPaneFilePath);
                 throw;
             }
+
+            EnsureExtensionInstalled();
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
@@ -199,12 +201,11 @@ Welcome to your new app.
             }
         }
 
-        private static void EnsureExtensionInstalled()
+        private void EnsureExtensionInstalled()
         {
+            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
             var assembly = Assembly.Load(new AssemblyName("Microsoft.VisualStudio.RazorExtension"));
             var version = assembly.GetName().Version;
-
-            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
 
             if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
             {
