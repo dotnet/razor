@@ -117,7 +117,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
             var csharpTokens = Array.Empty<int>();
-            var isFinalized = true;
 
             if (csharpRange is not null)
             {
@@ -135,11 +134,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
 
                 csharpTokens = result?.Data;
-                isFinalized = result?.IsFinalized ?? false;
             }
 
-            var csharpResponse = new ProvideSemanticTokensResponse(
-                tokens: csharpTokens, isFinalized, hostDocumentSyncVersion);
+            var csharpResponse = new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
             return csharpResponse;
         }
 
