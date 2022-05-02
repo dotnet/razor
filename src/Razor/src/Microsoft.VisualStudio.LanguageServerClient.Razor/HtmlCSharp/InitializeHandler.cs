@@ -47,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 ImplementationProvider = true,
                 SupportsDiagnosticRequests = true,
+                TextPresentationProvider = true,
+                UriPresentationProvider = true,
             }
         };
         private readonly JoinableTaskFactory _joinableTaskFactory;
@@ -159,6 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 ReferencesProvider = GetMergedReferencesProvider(),
                 RenameProvider = GetMergedRenameProvider(),
                 DocumentOnTypeFormattingProvider = GetMergedOnTypeFormattingProvider(),
+                TextPresentationProvider = GetMergedTextPresentationProvider(),
+                UriPresentationProvider = GetMergedUriPresentationProvider(),
             };
 
             return serverCapabilities;
@@ -296,6 +300,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             return signatureHelpOptions;
+        }
+
+        private bool GetMergedTextPresentationProvider()
+        {
+            return _serverCapabilities.Any(s => s.Capabilities.TextPresentationProvider);
+        }
+
+        private bool GetMergedUriPresentationProvider()
+        {
+            return _serverCapabilities.Any(s => s.Capabilities.UriPresentationProvider);
         }
 
         private bool GetMergedDefinitionProvider()

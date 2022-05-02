@@ -172,6 +172,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName, request, ClientCapabilities, cancellationToken);
         }
 
+        [JsonRpcMethod(VSInternalMethods.TextDocumentTextPresentationName, UseSingleObjectParameterDeserialization = true)]
+        public Task<WorkspaceEdit?> TextDocumentTextPresentationAsync(VSInternalTextPresentationParams request, CancellationToken cancellationToken)
+        {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            return ExecuteRequestAsync<VSInternalTextPresentationParams, WorkspaceEdit?>(VSInternalMethods.TextDocumentTextPresentationName, request, ClientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(VSInternalMethods.TextDocumentUriPresentationName, UseSingleObjectParameterDeserialization = true)]
+        public Task<WorkspaceEdit?> TextDocumentUriPresentationAsync(VSInternalUriPresentationParams request, CancellationToken cancellationToken)
+        {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            return ExecuteRequestAsync<VSInternalUriPresentationParams, WorkspaceEdit?>(VSInternalMethods.TextDocumentUriPresentationName, request, ClientCapabilities, cancellationToken);
+        }
+
         [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
         public Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request, CancellationToken cancellationToken)
         {
