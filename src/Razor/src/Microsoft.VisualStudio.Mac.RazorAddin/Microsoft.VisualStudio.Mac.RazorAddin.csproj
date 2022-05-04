@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mono.Addins" Version="$(MonoAddinsPackageVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
