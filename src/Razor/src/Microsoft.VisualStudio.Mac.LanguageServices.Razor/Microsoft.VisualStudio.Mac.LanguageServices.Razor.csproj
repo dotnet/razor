@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingPackageVersion)" />
     <PackageReference Include="MonoDevelop.Sdk" Version="$(MonoDevelopSdkPackageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(VSMAC_NewtonsoftJsonPackageVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
