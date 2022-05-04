@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.VisualStudio.Text.Adornments;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
 
@@ -18,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void CleanAndClassifySummaryContent_ClassifiedTextElement_ReplacesSeeCrefs()
         {
             // Arrange
-            var runs = new List<VSClassifiedTextRun>();
+            var runs = new List<ClassifiedTextRun>();
             var summary = "Accepts <see cref=\"T:System.Collections.List{System.String}\" />s";
 
             // Act
@@ -41,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void CleanSummaryContent_ClassifiedTextElement_ReplacesSeeAlsoCrefs()
         {
             // Arrange
-            var runs = new List<VSClassifiedTextRun>();
+            var runs = new List<ClassifiedTextRun>();
             var summary = "Accepts <seealso cref=\"T:System.Collections.List{System.String}\" />s";
 
             // Act
@@ -64,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void CleanSummaryContent_ClassifiedTextElement_TrimsSurroundingWhitespace()
         {
             // Arrange
-            var runs = new List<VSClassifiedTextRun>();
+            var runs = new List<ClassifiedTextRun>();
             var summary = @"
             Hello
 
@@ -89,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void CleanSummaryContent_ClassifiedTextElement_ClassifiesCodeBlocks()
         {
             // Arrange
-            var runs = new List<VSClassifiedTextRun>();
+            var runs = new List<ClassifiedTextRun>();
             var summary = @"code: <code>This is code</code> and <code>This is some other code</code>.";
 
             // Act
@@ -101,9 +102,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             //     code: This is code and This is some other code.
             Assert.Collection(runs,
                 run => AssertExpectedClassification(run, "code: ", VSPredefinedClassificationTypeNames.Text),
-                run => AssertExpectedClassification(run, "This is code", VSPredefinedClassificationTypeNames.Text, VSClassifiedTextRunStyle.UseClassificationFont),
+                run => AssertExpectedClassification(run, "This is code", VSPredefinedClassificationTypeNames.Text, ClassifiedTextRunStyle.UseClassificationFont),
                 run => AssertExpectedClassification(run, " and ", VSPredefinedClassificationTypeNames.Text),
-                run => AssertExpectedClassification(run, "This is some other code", VSPredefinedClassificationTypeNames.Text, VSClassifiedTextRunStyle.UseClassificationFont),
+                run => AssertExpectedClassification(run, "This is some other code", VSPredefinedClassificationTypeNames.Text, ClassifiedTextRunStyle.UseClassificationFont),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Text));
         }
 
@@ -111,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void CleanSummaryContent_ClassifiedTextElement_ParasCreateNewLines()
         {
             // Arrange
-            var runs = new List<VSClassifiedTextRun>();
+            var runs = new List<ClassifiedTextRun>();
             var summary = @"Summary description:
 <para>Paragraph text.</para>
 End summary description.";
@@ -143,7 +144,7 @@ End summary description.";
             var elementDescription = AggregateBoundElementDescription.Default;
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.False(result);
@@ -164,7 +165,7 @@ End summary description.";
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.True(result);
@@ -204,7 +205,7 @@ End summary description.";
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.True(result);
@@ -242,7 +243,7 @@ End summary description.";
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.True(result);
@@ -290,7 +291,7 @@ End summary description.";
             var elementDescription = AggregateBoundAttributeDescription.Default;
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.False(result);
@@ -313,7 +314,7 @@ End summary description.";
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.True(result);
@@ -366,7 +367,7 @@ End summary description.";
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out VSClassifiedTextElement classifiedTextElement);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement);
 
             // Assert
             Assert.True(result);
@@ -427,7 +428,7 @@ End summary description.";
             var elementDescription = AggregateBoundElementDescription.Default;
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSContainerElement containerElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ContainerElement containerElement);
 
             // Assert
             Assert.False(result);
@@ -447,7 +448,7 @@ End summary description.";
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSContainerElement container);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ContainerElement container);
 
             // Assert
             Assert.True(result);
@@ -459,12 +460,12 @@ End summary description.";
             //
             //     [Class Glyph] Microsoft.AspNetCore.OtherTagHelper
             //     Also uses List<string>s
-            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style);
             Assert.Equal(4, containerElements.Count);
 
             // [Class Glyph] Microsoft.AspNetCore.SomeTagHelper
-            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
-            var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            var innerContainer = ((ContainerElement)containerElements[0]).Elements.ToList();
+            var classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -475,8 +476,8 @@ End summary description.";
                 run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type));
 
             // Uses List<string>s
-            innerContainer = ((VSContainerElement)containerElements[1]).Elements.ToList();
-            classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
+            innerContainer = ((ContainerElement)containerElements[1]).Elements.ToList();
+            classifiedTextElement = (ClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "Uses ", VSPredefinedClassificationTypeNames.Text),
@@ -487,8 +488,8 @@ End summary description.";
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
 
             // [Class Glyph] Microsoft.AspNetCore.OtherTagHelper
-            innerContainer = ((VSContainerElement)containerElements[2]).Elements.ToList();
-            classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            innerContainer = ((ContainerElement)containerElements[2]).Elements.ToList();
+            classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -499,8 +500,8 @@ End summary description.";
                 run => AssertExpectedClassification(run, "OtherTagHelper", VSPredefinedClassificationTypeNames.Type));
 
             // Also uses List<string>s
-            innerContainer = ((VSContainerElement)containerElements[3]).Elements.ToList();
-            classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
+            innerContainer = ((ContainerElement)containerElements[3]).Elements.ToList();
+            classifiedTextElement = (ClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "Also uses ", VSPredefinedClassificationTypeNames.Text),
@@ -519,7 +520,7 @@ End summary description.";
             var elementDescription = AggregateBoundAttributeDescription.Default;
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSContainerElement containerElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ContainerElement containerElement);
 
             // Assert
             Assert.False(result);
@@ -547,7 +548,7 @@ End summary description.";
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out VSContainerElement container);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out ContainerElement container);
 
             // Assert
             Assert.True(result);
@@ -559,12 +560,12 @@ End summary description.";
             //
             //     [Property Glyph] bool? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty
             //     Uses List<string>s
-            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style);
             Assert.Equal(4, containerElements.Count);
 
             // [TagHelper Glyph] string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
-            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
-            var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            var innerContainer = ((ContainerElement)containerElements[0]).Elements.ToList();
+            var classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(PropertyGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -581,8 +582,8 @@ End summary description.";
                 run => AssertExpectedClassification(run, "SomeProperty", VSPredefinedClassificationTypeNames.Identifier));
 
             // Uses List<string>s
-            innerContainer = ((VSContainerElement)containerElements[1]).Elements.ToList();
-            classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
+            innerContainer = ((ContainerElement)containerElements[1]).Elements.ToList();
+            classifiedTextElement = (ClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "Uses ", VSPredefinedClassificationTypeNames.Text),
@@ -593,8 +594,8 @@ End summary description.";
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
 
             // [TagHelper Glyph] bool? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty
-            innerContainer = ((VSContainerElement)containerElements[2]).Elements.ToList();
-            classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            innerContainer = ((ContainerElement)containerElements[2]).Elements.ToList();
+            classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(PropertyGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -612,8 +613,8 @@ End summary description.";
                 run => AssertExpectedClassification(run, "AnotherProperty", VSPredefinedClassificationTypeNames.Identifier));
 
             // Uses List<string>s
-            innerContainer = ((VSContainerElement)containerElements[3]).Elements.ToList();
-            classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
+            innerContainer = ((ContainerElement)containerElements[3]).Elements.ToList();
+            classifiedTextElement = (ClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "Uses ", VSPredefinedClassificationTypeNames.Text),
@@ -625,10 +626,10 @@ End summary description.";
         }
 
         internal static void AssertExpectedClassification(
-            VSClassifiedTextRun run,
+            ClassifiedTextRun run,
             string expectedText,
             string expectedClassificationType,
-            VSClassifiedTextRunStyle expectedClassificationStyle = VSClassifiedTextRunStyle.Plain)
+            ClassifiedTextRunStyle expectedClassificationStyle = ClassifiedTextRunStyle.Plain)
         {
             Assert.Equal(expectedText, run.Text);
             Assert.Equal(expectedClassificationType, run.ClassificationTypeName);

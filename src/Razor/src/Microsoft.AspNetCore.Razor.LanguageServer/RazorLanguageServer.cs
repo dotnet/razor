@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -73,6 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             var serializer = new LspSerializer();
             serializer.RegisterRazorConverters();
+            serializer.RegisterVSInternalExtensionConverters();
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
@@ -99,10 +101,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         var handlersManager = s.GetRequiredService<IHandlersManager>();
                         var jsonRpcHandlers = handlersManager.Descriptors.Select(d => d.Handler);
                         var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>().Distinct();
+                        var vsCapabilities = s.ClientSettings.Capabilities.ToVSClientCapabilities(serializer);
                         foreach (var registrationExtension in registrationExtensions)
                         {
-                            var optionsResult = registrationExtension.GetRegistration();
-                            response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JToken.FromObject(optionsResult.Options);
+                            var optionsResult = registrationExtension.GetRegistration(vsCapabilities);
+                            if (optionsResult != null)
+                            {
+                                response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JToken.FromObject(optionsResult.Options);
+                            }
                         }
 
                         RazorLanguageServerCapability.AddTo(response.Capabilities);

@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using ObjectContentConverter = Microsoft.VisualStudio.LanguageServer.Protocol.ObjectContentConverter;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
@@ -13,7 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal record VSCompletionItem : CompletionItem
     {
         [JsonProperty("_vs_description")]
-        public VSClassifiedTextElement? Description { get; set; }
+        [JsonConverter(typeof(ObjectContentConverter))]
+        public ClassifiedTextElement? Description { get; set; }
 
         [JsonProperty("_vs_commitCharacters")]
         public Container<VSCommitCharacter>? VsCommitCharacters { get; set; }

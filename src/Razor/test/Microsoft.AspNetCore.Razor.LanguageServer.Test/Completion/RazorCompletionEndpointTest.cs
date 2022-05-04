@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Equal(completionItem.DisplayText, converted.SortText);
             Assert.Null(converted.Detail);
             Assert.Null(converted.Documentation);
-            Assert.Equal(converted.CommitCharacters, completionItem.CommitCharacters);
+            Assert.Equal(converted.CommitCharacters, completionItem.CommitCharacters.Select(c => c.Character));
         }
 
         [Fact]
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void TryConvert_DirectiveAttribute_ReturnsTrue()
         {
             // Arrange
-            var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: new[] { "=", ":" });
+            var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
 
             // Act
             var result = RazorCompletionEndpoint.TryConvert(completionItem, _supportedCompletionItemKinds, out var converted);
@@ -216,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Equal(completionItem.InsertText, converted.InsertText);
             Assert.Equal(completionItem.InsertText, converted.FilterText);
             Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Equal(completionItem.CommitCharacters, converted.CommitCharacters);
+            Assert.Equal(completionItem.CommitCharacters.Select(c => c.Character), converted.CommitCharacters);
             Assert.Null(converted.Detail);
             Assert.Null(converted.Documentation);
             Assert.Null(converted.Command);
@@ -291,7 +291,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void TryConvert_TagHelperAttribute_ForHtml_ReturnsTrue()
         {
             // Arrange
-            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
+            var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
             var attributeCompletionDescription = new AggregateBoundAttributeDescription(new BoundAttributeDescriptionInfo[] { });
             completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
 
@@ -303,8 +303,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Equal(completionItem.DisplayText, converted.Label);
             Assert.Equal("format=\"$0\"", converted.InsertText);
             Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
-            Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.InsertText, converted.SortText);
+            Assert.Equal(completionItem.DisplayText, converted.FilterText);
+            Assert.Equal(completionItem.DisplayText, converted.SortText);
             Assert.Null(converted.Detail);
             Assert.Null(converted.Documentation);
             Assert.Null(converted.Command);
@@ -314,7 +314,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void TryConvert_TagHelperAttribute_ReturnsTrue()
         {
             // Arrange
-            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
+            var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
 
             // Act
             var result = RazorCompletionEndpoint.TryConvert(completionItem, _supportedCompletionItemKinds, out var converted);
@@ -324,8 +324,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Equal(completionItem.DisplayText, converted.Label);
             Assert.Equal("format=\"$0\"", converted.InsertText);
             Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
-            Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.InsertText, converted.SortText);
+            Assert.Equal(completionItem.DisplayText, converted.FilterText);
+            Assert.Equal(completionItem.DisplayText, converted.SortText);
             Assert.Null(converted.Detail);
             Assert.Null(converted.Documentation);
             Assert.Null(converted.Command);

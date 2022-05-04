@@ -15,6 +15,9 @@ using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using VSMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
+using VSMarkupContent = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupContent;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
@@ -25,8 +28,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             LSPTagHelperTooltipFactory = Mock.Of<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             VSLSPTagHelperTooltipFactory = Mock.Of<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict);
             CompletionListCache = new CompletionListCache();
-            CompletionCapability = new PlatformAgnosticCompletionCapability();
-            DefaultClientCapability = new PlatformAgnosticClientCapabilities();
+            CompletionCapability = new PlatformAgnosticCompletionCapability()
+            {
+                CompletionItem = new CompletionItemCapabilityOptions()
+                {
+                    DocumentationFormat = new Container<MarkupKind>(MarkupKind.PlainText, MarkupKind.Markdown),
+                }
+            };
+            DefaultClientCapability = new PlatformAgnosticClientCapabilities()
+            {
+                TextDocument = new TextDocumentClientCapabilities()
+                {
+                    Completion = CompletionCapability,
+                },
+            };
             VSClientCapability = new PlatformAgnosticClientCapabilities()
             {
                 SupportsVisualStudioExtensions = true,
@@ -90,12 +105,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
+            var markdown = new VSMarkupContent
             {
-                Kind = MarkupKind.Markdown,
+                Kind = VSMarkupKind.Markdown,
                 Value = "Some Markdown"
             };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), out markdown))
+            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), VSMarkupKind.Markdown, out markdown))
                 .Returns(true);
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
@@ -118,12 +133,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
+            var markdown = new VSMarkupContent
             {
-                Kind = MarkupKind.Markdown,
+                Kind = VSMarkupKind.Markdown,
                 Value = "Some Markdown"
             };
-            descriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), out markdown))
+            descriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), VSMarkupKind.Markdown, out markdown))
                 .Returns(true);
             var endpoint = new RazorCompletionResolveEndpoint(descriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
             endpoint.SetCapability(CompletionCapability, DefaultClientCapability);
@@ -144,12 +159,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
+            var markdown = new VSMarkupContent
             {
-                Kind = MarkupKind.Markdown,
+                Kind = VSMarkupKind.Markdown,
                 Value = "Some Markdown"
             };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), out markdown))
+            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), VSMarkupKind.Markdown, out markdown))
                 .Returns(true);
             var endpoint = new RazorCompletionResolveEndpoint(lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
             endpoint.SetCapability(CompletionCapability, DefaultClientCapability);
@@ -170,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var vsLSPDescriptionFactory = new Mock<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new VSClassifiedTextElement(new VSClassifiedTextRun("type", "text"));
+            var markdown = new ClassifiedTextElement(new ClassifiedTextRun("type", "text"));
             vsLSPDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), out markdown))
                 .Returns(true);
             var endpoint = new RazorCompletionResolveEndpoint(LSPTagHelperTooltipFactory, vsLSPDescriptionFactory.Object, CompletionListCache, LoggerFactory);
@@ -195,12 +210,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
+            var markdown = new VSMarkupContent
             {
-                Kind = MarkupKind.Markdown,
+                Kind = VSMarkupKind.Markdown,
                 Value = "Some Markdown"
             };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), out markdown))
+            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), VSMarkupKind.Markdown, out markdown))
                 .Returns(true);
             var endpoint = new RazorCompletionResolveEndpoint(lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
             endpoint.SetCapability(CompletionCapability, DefaultClientCapability);
@@ -221,12 +236,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
+            var markdown = new VSMarkupContent
             {
-                Kind = MarkupKind.Markdown,
+                Kind = VSMarkupKind.Markdown,
                 Value = "Some Markdown"
             };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), out markdown))
+            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), VSMarkupKind.Markdown, out markdown))
                 .Returns(true);
             var endpoint = new RazorCompletionResolveEndpoint(LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
             endpoint.SetCapability(CompletionCapability, DefaultClientCapability);

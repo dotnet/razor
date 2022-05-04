@@ -139,7 +139,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
                 _ => CompletionReason.Typing,
             };
-            var completionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason);
+            var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
+            var completionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason, completionOptions);
 
             var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext, location);
 
@@ -229,6 +230,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 tagHelperCompletionItemKind = (CompletionItemKind)ExtendedCompletionItemKinds.TagHelper;
             }
 
+            var razorCommitCharacters = razorCompletionItem.CommitCharacters?.Select(c => c.Character)?.ToArray() ?? Array.Empty<string>();
+            var insertTextFormat = razorCompletionItem.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.PlainText;
+
             switch (razorCompletionItem.Kind)
             {
                 case RazorCompletionItemKind.Directive:
@@ -239,12 +243,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.DisplayText,
                             SortText = razorCompletionItem.SortText,
+                            InsertTextFormat = insertTextFormat,
                             Kind = CompletionItemKind.Struct,
                         };
 
-                        if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
+                        if (razorCommitCharacters.Length > 0)
                         {
-                            directiveCompletionItem = directiveCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
+                            directiveCompletionItem = directiveCompletionItem with { CommitCharacters = razorCommitCharacters };
                         }
 
                         if (razorCompletionItem == DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem)
@@ -267,12 +272,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.SortText,
+                            InsertTextFormat = insertTextFormat,
                             Kind = tagHelperCompletionItemKind,
                         };
 
-                        if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
+                        if (razorCommitCharacters.Length > 0)
                         {
-                            directiveAttributeCompletionItem = directiveAttributeCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
+                            directiveAttributeCompletionItem = directiveAttributeCompletionItem with { CommitCharacters = razorCommitCharacters };
                         }
 
                         completionItem = directiveAttributeCompletionItem;
@@ -286,6 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.SortText,
+                            InsertTextFormat = insertTextFormat,
                             Kind = tagHelperCompletionItemKind,
                         };
 
@@ -300,12 +307,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.DisplayText,
                             SortText = razorCompletionItem.SortText,
+                            InsertTextFormat = insertTextFormat,
                             Kind = tagHelperCompletionItemKind,
                         };
 
-                        if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
+                        if (razorCommitCharacters.Length > 0)
                         {
-                            markupTransitionCompletionItem = markupTransitionCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
+                            markupTransitionCompletionItem = markupTransitionCompletionItem with { CommitCharacters = razorCommitCharacters };
                         }
 
                         completionItem = markupTransitionCompletionItem;
@@ -317,14 +325,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         {
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.InsertText,
+                            FilterText = razorCompletionItem.DisplayText,
                             SortText = razorCompletionItem.SortText,
+                            InsertTextFormat = insertTextFormat,
                             Kind = tagHelperCompletionItemKind,
                         };
 
-                        if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
+                        if (razorCommitCharacters.Length > 0)
                         {
-                            tagHelperElementCompletionItem = tagHelperElementCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
+                            tagHelperElementCompletionItem = tagHelperElementCompletionItem with { CommitCharacters = razorCommitCharacters };
                         }
 
                         completionItem = tagHelperElementCompletionItem;
@@ -332,20 +341,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     }
                 case RazorCompletionItemKind.TagHelperAttribute:
                     {
-                        var isSnippet = IsInsertTextSnippet(razorCompletionItem, out var snippetInsertText);
                         var tagHelperAttributeCompletionItem = new CompletionItem()
                         {
                             Label = razorCompletionItem.DisplayText,
-                            InsertText = snippetInsertText,
-                            FilterText = razorCompletionItem.InsertText,
+                            InsertText = razorCompletionItem.InsertText,
+                            FilterText = razorCompletionItem.DisplayText,
                             SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = isSnippet ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
+                            InsertTextFormat = insertTextFormat,
                             Kind = tagHelperCompletionItemKind,
                         };
 
-                        if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
+                        if (razorCommitCharacters.Length > 0)
                         {
-                            tagHelperAttributeCompletionItem = tagHelperAttributeCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
+                            tagHelperAttributeCompletionItem = tagHelperAttributeCompletionItem with { CommitCharacters = razorCommitCharacters };
                         }
 
                         completionItem = tagHelperAttributeCompletionItem;
@@ -355,22 +363,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             completionItem = null;
             return false;
-
-            static bool IsInsertTextSnippet(RazorCompletionItem razorCompletionItem, out string insertText)
-            {
-                var attributeCompletionTypes = razorCompletionItem.GetAttributeCompletionTypes();
-                // If the attribute is a boolean than just its name is a legal response. Therefor don't do the snippet
-                if (attributeCompletionTypes.Any(type => string.Equals(type, typeof(bool).ToString(), StringComparison.Ordinal)))
-                {
-                    insertText = razorCompletionItem.InsertText;
-                    return false;
-                }
-                else
-                {
-                    insertText = $"{razorCompletionItem.InsertText}=\"$0\"";
-                    return true;
-                }
-            }
         }
     }
 }

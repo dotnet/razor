@@ -19,7 +19,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using InsertTextFormat = OmniSharp.Extensions.LanguageServer.Protocol.Models.InsertTextFormat;
+using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -84,7 +86,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
     }
 
-    public RegistrationExtensionResult GetRegistration()
+    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
 

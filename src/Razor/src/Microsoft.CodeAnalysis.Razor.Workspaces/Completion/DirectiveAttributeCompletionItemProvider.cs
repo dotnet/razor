@@ -163,12 +163,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 }
 
                 var (attributeDescriptionInfos, commitCharacters) = completion.Value;
+                var razorCommitCharacters = commitCharacters.Select(static c => new RazorCommitCharacter(c)).ToList();
 
                 var razorCompletionItem = new RazorCompletionItem(
                     completion.Key,
                     insertText,
                     RazorCompletionItemKind.DirectiveAttribute,
-                    commitCharacters: commitCharacters);
+                    commitCharacters: razorCommitCharacters);
                 var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToArray());
                 razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 

@@ -213,6 +213,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public void GetCompletionAt_AtAttributeEdge_IntAttribute_Snippets_ReturnsCompletions()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />", isRazorFile: false, DefaultTagHelpers);
+            var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
+            var options = new RazorCompletionOptions(SnippetsSupported: true);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), Options: options);
+
+            // Act
+            var completions = service.GetCompletionItems(context, sourceSpan);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("bool-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                    Assert.False(completion.IsSnippet);
+                },
+                completion =>
+                {
+                    Assert.Equal("int-val=\"$0\"", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.AttributeSnippetCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                    Assert.True(completion.IsSnippet);
+                });
+        }
+
+        [Fact]
         public void GetCompletionAt_KnownHtmlElement_ReturnsCompletions_DefaultPriority()
         {
             // Arrange
