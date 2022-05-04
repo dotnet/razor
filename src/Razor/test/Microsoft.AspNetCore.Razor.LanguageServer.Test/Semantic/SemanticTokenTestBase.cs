@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;

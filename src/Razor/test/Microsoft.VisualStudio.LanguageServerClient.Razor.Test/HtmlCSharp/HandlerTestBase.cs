@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Moq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         public HandlerTestBase()
         {
-            var logger = new TestLogger();
+            var logger = TestLogger.Instance;
             LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l =>
                 l.CreateLogger(It.IsAny<string>()) == logger &&
                 l.InitializeLoggerAsync(It.IsAny<CancellationToken>()) == Task.CompletedTask &&
@@ -25,23 +26,5 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         internal HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
-
-        private class TestLogger : ILogger
-        {
-            public IDisposable BeginScope<TState>(TState state)
-            {
-                return default;
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                return true;
-            }
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-            {
-                // noop
-            }
-        }
     }
 }

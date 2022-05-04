@@ -7,43 +7,89 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     internal class TestLSPProjectionProvider : LSPProjectionProvider
     {
         private readonly Uri _documentUri;
-        private readonly IReadOnlyDictionary<Position, ProjectionResult> _mappings;
+        private readonly IReadOnlyDictionary<Position, ProjectionResult> _customMappings;
+        private readonly DefaultRazorDocumentMappingService _mappingService;
 
-        public TestLSPProjectionProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> mappings)
+        public TestLSPProjectionProvider()
+        {
+            _mappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+        }
+
+        public TestLSPProjectionProvider(Uri documentUri, IReadOnlyDictionary<Position, ProjectionResult> customMappings) 
         {
             if (documentUri is null)
             {
                 throw new ArgumentNullException(nameof(documentUri));
             }
-
-            if (mappings is null)
+            
+            if (customMappings is null)
             {
-                throw new ArgumentNullException(nameof(mappings));
+                throw new ArgumentNullException(nameof(customMappings));
             }
 
             _documentUri = documentUri;
-            _mappings = mappings;
+            _customMappings = customMappings;
+            _mappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
         }
 
         public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
-            if (documentSnapshot.Uri != _documentUri)
+            // Use custom mappings if provided, else fall back to the mapping service.
+            if (_customMappings is null || _documentUri is null)
             {
-                return Task.FromResult((ProjectionResult)null);
+                var text = documentSnapshot.Snapshot.GetText();
+                var sourceText = SourceText.From(text);
+                if (!position.TryGetAbsoluteIndex(sourceText, TestLogger.Instance, out var absoluteIndex))
+                {
+                    return Task.FromResult<ProjectionResult>(null);
+                }
+
+                var sourceDocument = TestRazorSourceDocument.Create(text, filePath: null, relativePath: null);
+                var codeDocument = RazorCodeDocument.Create(sourceDocument);
+
+                if (!_mappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var projectedPosition, out var projectedIndex))
+                {
+                    return Task.FromResult<ProjectionResult>(null);
+                }
+
+                var vsProjectedPosition = new Position { Line = projectedPosition.Line, Character = projectedPosition.Character };
+                if (documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
+                {
+                    var projectionResult = new ProjectionResult { Uri = csharpVirtualDocument.Uri, Position = vsProjectedPosition, PositionIndex = projectedIndex };
+                    return Task.FromResult(projectionResult);
+                }
+                else if (!documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
+                {
+                    var projectionResult = new ProjectionResult { Uri = htmlVirtualDocument.Uri, Position = vsProjectedPosition, PositionIndex = projectedIndex };
+                    return Task.FromResult(projectionResult);
+                }
+
+                return Task.FromResult<ProjectionResult>(null);
             }
 
-            _mappings.TryGetValue(position, out var projectionResult);
+            if (documentSnapshot.Uri != _documentUri)
+            {
+                return Task.FromResult<ProjectionResult>(null);
+            }
 
-            return Task.FromResult(projectionResult);
+            _customMappings.TryGetValue(position, out var customProjectionResult);
+
+            return Task.FromResult(customProjectionResult);
         }
 
         public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
