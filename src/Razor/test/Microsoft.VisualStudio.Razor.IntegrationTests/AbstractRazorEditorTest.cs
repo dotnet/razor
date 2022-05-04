@@ -203,7 +203,7 @@ Welcome to your new app.
 
         private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)
         {
-            var assemblyName = new AssemblyName("Microsoft.AspNetCore.Razor.LanguageServer");
+            var assemblyName = "Microsoft.AspNetCore.Razor.LanguageServer, Version=42.42.42.42, Culture=neutral, PublicKeyToken=adb9793829ddae60";
             using var semaphore = new SemaphoreSlim(1);
             await semaphore.WaitAsync(cancellationToken);
 
@@ -239,7 +239,7 @@ Welcome to your new app.
 
             void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
             {
-                if (args.LoadedAssembly.GetName().Name == assemblyName.Name)
+                if (args.LoadedAssembly.GetName().Name == assemblyName)
                 {
                     assembly = args.LoadedAssembly;
                     semaphore.Release();
