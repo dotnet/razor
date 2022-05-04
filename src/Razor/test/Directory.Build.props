@@ -8,4 +8,10 @@
     <StandardTestTfms Condition=" '$(DeveloperBuild)' != 'true' ">$(StandardTestTfms)</StandardTestTfms>
     <StandardTestTfms Condition=" '$(DeveloperBuild)' != 'true' AND '$(OS)' == 'Windows_NT' ">net461;$(StandardTestTfms)</StandardTestTfms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpPackageVersion)" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="$(SystemSecurityCryptographyX509CertificatesPackageVersion)" />
+  </ItemGroup>
+
 </Project>
