@@ -5,6 +5,7 @@ using System;
 using MediatR;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -13,21 +14,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
     /// </summary>
     internal class UriPresentationParams : ITextDocumentIdentifierParams, IRequest<WorkspaceEdit?>, IBaseRequest
     {
-        /// <summary>
-        /// Gets or sets the identifier for the text document to be operate on.
-        /// </summary>
+        /// <inheritdoc cref="VS.VSInternalUriPresentationParams.TextDocument"/>
         [JsonProperty("_vs_textDocument")]
         public TextDocumentIdentifier TextDocument { get; set; }
 
-        /// <summary>
-        /// Gets or sets the range.
-        /// </summary>
+        /// <inheritdoc cref="VS.VSInternalUriPresentationParams.Range"/>
         [JsonProperty("_vs_range")]
         public Range Range { get; set; }
 
-        /// <summary>
-        /// Gets or sets the URI values. Valid for DropKind.Uris.
-        /// </summary>
+        /// <inheritdoc cref="VS.VSInternalUriPresentationParams.Uris"/>
         [JsonProperty("_vs_uris")]
         public Uri[]? Uris { get; set; }
 

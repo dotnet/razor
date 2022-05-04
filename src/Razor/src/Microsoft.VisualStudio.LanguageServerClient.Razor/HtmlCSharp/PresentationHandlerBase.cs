@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Received a result from the language server, remapping.");
 
-            return await _documentMappingProvider.RemapWorkspaceEditAsync(result!.Response, cancellationToken);
+            return await _documentMappingProvider.RemapWorkspaceEditAsync(result.Response, cancellationToken);
         }
     }
 }

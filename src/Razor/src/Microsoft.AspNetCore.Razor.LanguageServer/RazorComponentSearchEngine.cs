@@ -11,6 +11,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public abstract Task<DocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper);
 
-        public abstract Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot codeDocument);
+        public abstract Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot codeDocument, System.Threading.CancellationToken cancellationToken);
     }
 }

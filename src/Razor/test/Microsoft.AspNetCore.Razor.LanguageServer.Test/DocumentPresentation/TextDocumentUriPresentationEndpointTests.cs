@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument, droppedUri.GetAbsoluteOrUNCPath(), componentCodeDocument);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(
-                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>()) == Task.FromResult(tagHelperDescriptor),
+                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument, droppedUri.GetAbsoluteOrUNCPath(), componentCodeDocument);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(
-                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>()) == Task.FromResult(tagHelperDescriptor),
+                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument, droppedUri.GetAbsoluteOrUNCPath(), componentCodeDocument);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(
-                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>()) == Task.FromResult(tagHelperDescriptor),
+                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument, droppedUri.GetAbsoluteOrUNCPath(), componentCodeDocument);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(
-                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>()) == Task.FromResult(tagHelperDescriptor),
+                s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(

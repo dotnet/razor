@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
         }
 
-        public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot documentSnapshot)
+        public async override Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
         {
             // No point doing anything if its not a component
             if (documentSnapshot.FileKind != FileKinds.Component)
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                  () => _projectSnapshotManager.Projects.ToArray(),
-                 CancellationToken.None).ConfigureAwait(false);
+                 cancellationToken).ConfigureAwait(false);
 
             foreach (var project in projects)
             {

@@ -38,8 +38,6 @@
     <PackageReference Include="Microsoft.WebTools.Languages.Css" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.WebTools.Languages.Css.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
-
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion)" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

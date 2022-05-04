@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
         }
 
-        public RegistrationExtensionResult GetRegistration()
+        public RegistrationExtensionResult? GetRegistration(VisualStudio.LanguageServer.Protocol.VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_uriPresentationProvider";
 
@@ -120,13 +120,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             // thinks they're just dragging the parent one, so we have to be a little bit clever with the filter here
             var razorFileUri = request.Uris.Last();
             var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
-            if (!Path.GetExtension(fileName).Equals(".razor", StringComparison.OrdinalIgnoreCase))
+            if (!fileName.EndsWith(".razor", FilePathComparison.Instance))
             {
                 _logger.LogInformation("Last file in the drop was not a single razor file URI.");
                 return null;
             }
 
-            if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName)))
+            if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
             {
                 _logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
                 return null;
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentSnapshot).ConfigureAwait(false);
+            var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
             if (descriptor is null)
             {
                 _logger.LogWarning($"Failed to find tag helper descriptor.");
