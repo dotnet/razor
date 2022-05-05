@@ -4,11 +4,18 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -132,8 +139,48 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_InvokesCSharpLanguageServer_ReturnsItem()
         {
             // Arrange
+            var text = """
+                @code
+                {
+                    void M(int a, int b, int c)
+                    {
+                        M(
+                    }
+                }
+                """;
+            var cursorPosition = new Position { Line = 4, Character = 10 };
+            var sourceDocument = TestRazorSourceDocument.Create(text, filePath: null, relativePath: null);
+            var projectEngine = RazorProjectEngine.Create(builder => { });
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
+            var virtualDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
+            var snapshot = new StringTextSnapshot(codeDocument.GetCSharpDocument().GeneratedCode);
+            var virtualDocumentSnapshot = new TestVirtualDocumentSnapshot(virtualDocumentUri, hostDocumentVersion: 1, snapshot, state: null);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 1, snapshotContent: text, virtualDocumentSnapshot);
+
+            var testProjectionProvider = new TestLSPProjectionProvider();
+            var projection = await testProjectionProvider.GetProjectionAsync(
+                documentSnapshot, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var files = new List<(Uri, SourceText)>();
+            files.Add((virtualDocumentUri, csharpSourceText));
+
+            var serverCapabilities = new ServerCapabilities { SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new string[] { "(" } } };
+            var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+            using var workspace = CSharpTestLspServerHelpers.CreateTestWorkspace(files, exportProvider);
+            await using var csharpLspServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(workspace, exportProvider, serverCapabilities);
+
+            var textDocumentIdentifier = new TextDocumentIdentifier { Uri = virtualDocumentUri };
+            var signatureHelpContext = new SignatureHelpContext { IsRetrigger = false, TriggerCharacter = "(", TriggerKind = SignatureHelpTriggerKind.TriggerCharacter };
+            var signatureHelpParams = new SignatureHelpParams { TextDocument = textDocumentIdentifier, Position = projection.Position, Context = signatureHelpContext };
+
+            var result = await csharpLspServer.ExecuteRequestAsync<SignatureHelpParams, SignatureHelp>(
+                Methods.TextDocumentSignatureHelpName,
+                signatureHelpParams, CancellationToken.None);
+
             var called = false;
-            var expectedResult = new ReinvocationResponse<SignatureHelp>("LanguageClientName", new SignatureHelp());
+            var expectedResult = new ReinvocationResponse<SignatureHelp>("LanguageClientName", result);
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
@@ -167,11 +214,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             // Act
-            var result = await signatureHelpHandler.HandleRequestAsync(signatureHelpRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var requestResult = await signatureHelpHandler.HandleRequestAsync(signatureHelpRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.True(called);
-            Assert.Equal(expectedResult.Response, result);
+            Assert.Equal(expectedResult.Response, requestResult);
+            Assert.Equal("void M(int a, int b, int c)", result.Signatures.First().Label);
         }
 
         [Fact]

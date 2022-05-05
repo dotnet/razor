@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
             var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
 
-            var exportProvider = TestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
             var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
             if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))

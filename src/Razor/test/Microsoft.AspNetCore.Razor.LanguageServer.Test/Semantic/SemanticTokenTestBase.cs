@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -126,9 +125,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
                 files.Add((documentUri, csharpSourceText));
 
-                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-                using var workspace = CreateTestWorkspace(files, exportProvider);
-                await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
+                var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+                using var workspace = CSharpTestLspServerHelpers.CreateTestWorkspace(files, exportProvider);
+                await using var csharpLspServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
 
                 var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                     Methods.TextDocumentSemanticTokensRangeName,

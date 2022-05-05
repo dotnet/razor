@@ -60,7 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 }
 
                 var sourceDocument = TestRazorSourceDocument.Create(text, filePath: null, relativePath: null);
-                var codeDocument = RazorCodeDocument.Create(sourceDocument);
+                var projectEngine = RazorProjectEngine.Create(builder => { });
+                var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
 
                 if (!_mappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var projectedPosition, out var projectedIndex))
                 {
@@ -68,14 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 }
 
                 var vsProjectedPosition = new Position { Line = projectedPosition.Line, Character = projectedPosition.Character };
-                if (documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
+                if (documentSnapshot.TryGetVirtualDocument <TestVirtualDocumentSnapshot>(out var testirtualDocument))
                 {
-                    var projectionResult = new ProjectionResult { Uri = csharpVirtualDocument.Uri, Position = vsProjectedPosition, PositionIndex = projectedIndex };
-                    return Task.FromResult(projectionResult);
-                }
-                else if (!documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
-                {
-                    var projectionResult = new ProjectionResult { Uri = htmlVirtualDocument.Uri, Position = vsProjectedPosition, PositionIndex = projectedIndex };
+                    var projectionResult = new ProjectionResult { Uri = testirtualDocument.Uri, Position = vsProjectedPosition, PositionIndex = projectedIndex };
                     return Task.FromResult(projectionResult);
                 }
 
