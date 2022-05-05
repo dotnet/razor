@@ -7,7 +7,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language
 {
@@ -38,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var stream = Assembly.GetManifestResourceStream(ResourceName);
             if (stream is null)
             {
-                Assert.True(string.Format(CultureInfo.InvariantCulture, "Manifest resource: {0} not found", ResourceName));
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Manifest resource: {0} not found", ResourceName));
             }
 
             return stream;
@@ -84,26 +83,6 @@ namespace Microsoft.AspNetCore.Razor.Language
             // The .Replace() calls normalize line endings, in case you get \n instead of \r\n
             // since all the unit tests rely on the assumption that the files will have \r\n endings.
             return contents.Replace("\r", "").Replace("\n", "\r\n");
-        }
-
-        /// <summary>
-        /// Saves the file to the specified path.
-        /// </summary>
-        public void Save(string filePath)
-        {
-            var directory = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            using (var outStream = File.Create(filePath))
-            {
-                using (var inStream = OpenRead())
-                {
-                    inStream.CopyTo(outStream);
-                }
-            }
         }
     }
 }
