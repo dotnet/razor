@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     internal class CSharpTestLspServerHelpers
     {
-        public static AdhocWorkspace CreateTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
+        public static AdhocWorkspace CreateCSharpTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
         {
             var workspace = TestWorkspace.Create() as AdhocWorkspace;
 

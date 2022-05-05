@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 files.Add((documentUri, csharpSourceText));
 
                 var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-                using var workspace = CSharpTestLspServerHelpers.CreateTestWorkspace(files, exportProvider);
+                using var workspace = CSharpTestLspServerHelpers.CreateCSharpTestWorkspace(files, exportProvider);
                 await using var csharpLspServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
 
                 var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
