@@ -235,7 +235,7 @@ Welcome to your new app.
 
             var version = assembly.GetName().Version;
 
-            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.Ordinal))
+            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
             {
                 throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
             }
