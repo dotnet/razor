@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -203,7 +204,7 @@ Welcome to your new app.
 
         private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)
         {
-            var assemblyName = "Microsoft.AspNetCore.Razor.LanguageServer, Version=42.42.42.42, Culture=neutral, PublicKeyToken=adb9793829ddae60";
+            const string AssemblyName = "Microsoft.AspNetCore.Razor.LanguageServer";
             using var semaphore = new SemaphoreSlim(1);
             await semaphore.WaitAsync(cancellationToken);
 
@@ -213,12 +214,14 @@ Welcome to your new app.
             Assembly? assembly = null;
             try
             {
-                assembly = Assembly.Load(assemblyName);
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                assembly = assemblies.FirstOrDefault((assembly) => assembly.GetName().Name.Equals(AssemblyName));
+                if (assembly is null)
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+                }
+
                 semaphore.Release();
-            }
-            catch (FileNotFoundException)
-            {
-                await semaphore.WaitAsync(cancellationToken);
             }
             finally
             {
@@ -232,14 +235,14 @@ Welcome to your new app.
 
             var version = assembly.GetName().Version;
 
-            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
+            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.Ordinal))
             {
                 throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
             }
 
             void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
             {
-                if (args.LoadedAssembly.GetName().Name == assemblyName)
+                if (args.LoadedAssembly.GetName().Name.Equals(AssemblyName, StringComparison.Ordinal))
                 {
                     assembly = args.LoadedAssembly;
                     semaphore.Release();
