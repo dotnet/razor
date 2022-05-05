@@ -4,15 +4,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
@@ -38,13 +34,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 new TestTextBuffer(new StringTextSnapshot(string.Empty)).CurrentSnapshot,
                 hostDocumentSyncVersion: 0);
             LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(Uri, version: 0, htmlVirtualDocument, csharpVirtualDocument);
-            DocumentManager = new TestDocumentManager();
-            DocumentManager.AddDocument(Uri, documentSnapshot);
+            DefaultDocumentManager = new TestDocumentManager();
+            DefaultDocumentManager.AddDocument(Uri, documentSnapshot);
         }
 
         private Uri Uri { get; }
 
-        private TestDocumentManager DocumentManager { get; }
+        private TestDocumentManager DefaultDocumentManager { get; }
+
+        private ServerCapabilities ServerCapabilities { get; } = new()
+        {
+            SignatureHelpProvider = new SignatureHelpOptions
+            {
+                TriggerCharacters = new string[] { "(", "," }
+            }
+        };
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -75,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
             Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
                 .Returns(Task.FromResult<ProjectionResult>(null));
-            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker, DocumentManager, projectionProvider, LoggerProvider);
+            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker, DefaultDocumentManager, projectionProvider, LoggerProvider);
             var signatureHelpRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -120,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker.Object, DocumentManager, projectionProvider.Object, LoggerProvider);
+            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker.Object, DefaultDocumentManager, projectionProvider.Object, LoggerProvider);
             var signatureHelpRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -150,41 +154,35 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 """;
             var cursorPosition = new Position { Line = 4, Character = 10 };
 
-            var sourceDocument = TestRazorSourceDocument.Create(text, filePath: null, relativePath: null);
-            var projectEngine = RazorProjectEngine.Create(builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
-            var virtualDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var snapshot = new StringTextSnapshot(codeDocument.GetCSharpDocument().GeneratedCode);
-            var virtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(virtualDocumentUri, snapshot, hostDocumentSyncVersion: 1);
             var documentUri = new Uri("C:/path/to/file.razor");
-            var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 1, snapshotContent: text, virtualDocumentSnapshot);
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsoluteUri);
 
-            var testProjectionProvider = new TestLSPProjectionProvider();
-            var sourceText = SourceText.From(text);
-            var projection = await testProjectionProvider.GetProjectionAsync(
+            var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
+            var documentSnapshot = new TestLSPDocumentSnapshot(
+                documentUri,
+                version: 1,
+                snapshotContent: codeDocument.GetSourceText().ToString(),
+                csharpDocumentSnapshot);
+
+            var projectionResult = await TestLSPProjectionProvider.Instance.GetProjectionAsync(
                 documentSnapshot, cursorPosition, CancellationToken.None).ConfigureAwait(false);
 
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var files = new List<(Uri, SourceText)>();
-            files.Add((virtualDocumentUri, csharpSourceText));
-
-            var serverCapabilities = new ServerCapabilities { SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new string[] { "(" } } };
-            var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            using var workspace = CSharpTestLspServerHelpers.CreateCSharpTestWorkspace(files, exportProvider);
-            await using var csharpLspServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(workspace, exportProvider, serverCapabilities);
-
-            var textDocumentIdentifier = new TextDocumentIdentifier { Uri = virtualDocumentUri };
+            var textDocumentIdentifier = new TextDocumentIdentifier { Uri = csharpDocumentUri };
             var signatureHelpContext = new SignatureHelpContext { IsRetrigger = false, TriggerCharacter = "(", TriggerKind = SignatureHelpTriggerKind.TriggerCharacter };
-            var signatureHelpParams = new SignatureHelpParams { TextDocument = textDocumentIdentifier, Position = projection.Position, Context = signatureHelpContext };
+            var signatureHelpParams = new SignatureHelpParams { TextDocument = textDocumentIdentifier, Position = projectionResult.Position, Context = signatureHelpContext };
 
-            var result = await csharpLspServer.ExecuteRequestAsync<SignatureHelpParams, SignatureHelp>(
+            var result = await ExecuteCSharpRequestAsync<SignatureHelpParams, SignatureHelp>(
+                codeDocument,
+                csharpDocumentUri,
+                ServerCapabilities,
+                signatureHelpParams,
                 Methods.TextDocumentSignatureHelpName,
-                signatureHelpParams, CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
 
             var called = false;
             var expectedResult = new ReinvocationResponse<SignatureHelp>("LanguageClientName", result);
 
-            var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
@@ -204,15 +202,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, documentSnapshot);
 
-            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker.Object, documentManager, testProjectionProvider, LoggerProvider);
+            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker.Object, documentManager, TestLSPProjectionProvider.Instance, LoggerProvider);
             var signatureHelpRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
-                Position = new Position(4, 10)
+                Position = cursorPosition
             };
 
             // Act
-            var requestResult = await signatureHelpHandler.HandleRequestAsync(signatureHelpRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var requestResult = await signatureHelpHandler.HandleRequestAsync(
+                signatureHelpRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.True(called);
@@ -240,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker, DocumentManager, projectionProvider.Object, LoggerProvider);
+            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker, DefaultDocumentManager, projectionProvider.Object, LoggerProvider);
             var signatureHelpRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },

@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     internal class TestLSPProjectionProvider : LSPProjectionProvider
     {
+        public static readonly TestLSPProjectionProvider Instance = new();
+
         private readonly DefaultRazorDocumentMappingService _mappingService = new(TestLoggerFactory.Instance);
 
         public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
@@ -32,10 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 return Task.FromResult<ProjectionResult>(null);
             }
 
-            var sourceDocument = TestRazorSourceDocument.Create(text, filePath: null, relativePath: null);
-            var projectEngine = RazorProjectEngine.Create(builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
-
+            var codeDocument = HandlerTestBase.CreateCodeDocument(text, "C:/path/to/file.razor");
             if (!_mappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var projectedPosition, out var projectedIndex))
             {
                 return Task.FromResult<ProjectionResult>(null);
