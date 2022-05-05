@@ -36,32 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         internal HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
 
-        internal static async Task<TResponse> ExecuteCSharpRequestAsync<TRequest, TResponse>(
-            RazorCodeDocument codeDocument,
-            Uri csharpDocumentUri,
-            ServerCapabilities serverCapabilities,
-            TRequest requestParams,
-            string methodName,
-            CancellationToken cancellationToken) where TRequest : class
-        {
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var files = new List<(Uri, SourceText)>
-            {
-                (csharpDocumentUri, csharpSourceText)
-            };
-
-            var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            using var workspace = CSharpTestLspServerHelpers.CreateCSharpTestWorkspace(files, exportProvider);
-            await using var csharpLspServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(workspace, exportProvider, serverCapabilities);
-
-            var result = await csharpLspServer.ExecuteRequestAsync<TRequest, TResponse>(
-                methodName,
-                requestParams,
-                cancellationToken).ConfigureAwait(false);
-
-            return result;
-        }
-
         internal static RazorCodeDocument CreateCodeDocument(
             string text,
             string filePath,

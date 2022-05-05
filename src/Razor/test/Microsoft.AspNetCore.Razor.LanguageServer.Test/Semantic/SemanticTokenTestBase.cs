@@ -120,18 +120,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (csharpRange is not null)
             {
-                var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var files = new List<(Uri, SourceText)>();
-                var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
-                files.Add((documentUri, csharpSourceText));
+                var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
 
-                var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-                using var workspace = CSharpTestLspServerHelpers.CreateCSharpTestWorkspace(files, exportProvider);
-                await using var csharpLspServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
-
-                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                var result = await CSharpTestLspServerHelpers.ExecuteCSharpRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
+                    codeDocument,
+                    csharpDocumentUri,
+                    SemanticTokensServerCapabilities,
+                    requestParams: CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), csharpDocumentUri),
                     Methods.TextDocumentSemanticTokensRangeName,
-                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
+                    CancellationToken.None).ConfigureAwait(false);
 
                 csharpTokens = result?.Data;
             }
@@ -207,12 +204,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return results.ToArray();
-        }
-
-        private class VSSemanticTokensResponse : SemanticTokens
-        {
-            [DataMember(Name = "isFinalized")]
-            public bool IsFinalized { get; set; }
         }
     }
 }

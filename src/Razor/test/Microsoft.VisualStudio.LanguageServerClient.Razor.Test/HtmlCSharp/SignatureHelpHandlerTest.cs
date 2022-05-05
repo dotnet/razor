@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private TestDocumentManager DefaultDocumentManager { get; }
 
-        private ServerCapabilities ServerCapabilities { get; } = new()
+        private ServerCapabilities SignatureHelpServerCapabilities { get; } = new()
         {
             SignatureHelpProvider = new SignatureHelpOptions
             {
@@ -172,10 +173,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var signatureHelpContext = new SignatureHelpContext { IsRetrigger = false, TriggerCharacter = "(", TriggerKind = SignatureHelpTriggerKind.TriggerCharacter };
             var signatureHelpParams = new SignatureHelpParams { TextDocument = textDocumentIdentifier, Position = projectionResult.Position, Context = signatureHelpContext };
 
-            var result = await ExecuteCSharpRequestAsync<SignatureHelpParams, SignatureHelp>(
+            var result = await CSharpTestLspServerHelpers.ExecuteCSharpRequestAsync<SignatureHelpParams, SignatureHelp>(
                 codeDocument,
                 csharpDocumentUri,
-                ServerCapabilities,
+                SignatureHelpServerCapabilities,
                 signatureHelpParams,
                 Methods.TextDocumentSignatureHelpName,
                 CancellationToken.None).ConfigureAwait(false);

@@ -5,9 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,7 +19,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     internal class CSharpTestLspServerHelpers
     {
-        public static AdhocWorkspace CreateCSharpTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
+        public static async Task<TResponse> ExecuteCSharpRequestAsync<TRequest, TResponse>(
+            RazorCodeDocument codeDocument,
+            Uri csharpDocumentUri,
+            ServerCapabilities serverCapabilities,
+            TRequest requestParams,
+            string methodName,
+            CancellationToken cancellationToken) where TRequest : class
+        {
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var files = new List<(Uri, SourceText)>
+            {
+                (csharpDocumentUri, csharpSourceText)
+            };
+
+            var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
+            using var workspace = CreateCSharpTestWorkspace(files, exportProvider);
+            await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, serverCapabilities);
+
+            var result = await csharpLspServer.ExecuteRequestAsync<TRequest, TResponse>(
+                methodName,
+                requestParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return result;
+        }
+
+        private static AdhocWorkspace CreateCSharpTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
         {
             var workspace = TestWorkspace.Create() as AdhocWorkspace;
 
@@ -59,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             return workspace;
         }
 
-        public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+        private static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
             AdhocWorkspace workspace,
             ExportProvider exportProvider,
             ServerCapabilities serverCapabilities)
