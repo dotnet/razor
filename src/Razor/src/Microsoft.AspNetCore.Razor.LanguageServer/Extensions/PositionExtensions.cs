@@ -5,8 +5,8 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using OmniSharpPosition = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
@@ -22,11 +22,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Position(position.Line, position.Character);
         }
 
-        public static bool TryGetAbsoluteIndex(this VS.Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
-        {
-            return position.AsOSharpPosition().TryGetAbsoluteIndex(sourceText, logger, out absoluteIndex);
-        }
-
         public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
         {
             if (position is null)
@@ -39,24 +34,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            var linePosition = new LinePosition(position.Line, position.Character);
-            if (linePosition.Line >= sourceText.Lines.Count)
-            {
-                var errorMessage = Resources.FormatPositionIndex_Outside_Range(
-                    position.Line,
-                    nameof(sourceText),
-                    sourceText.Lines.Count);
-                logger?.LogError(errorMessage);
-                absoluteIndex = -1;
-                return false;
-            }
-
-            var index = sourceText.Lines.GetPosition(linePosition);
-            absoluteIndex = index;
-            return true;
+            return TryGetAbsoluteIndex(position.Character, position.Line, sourceText, logger, out absoluteIndex);
         }
 
-        public static int CompareTo(this Position position, Position other)
+        public static bool TryGetAbsoluteIndex(this OmniSharpPosition position, SourceText sourceText, ILogger logger, out int absoluteIndex)
+        {
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            return TryGetAbsoluteIndex(position.Character, position.Line, sourceText, logger, out absoluteIndex);
+        }
+
+        public static int CompareTo(this OmniSharpPosition position, OmniSharpPosition other)
         {
             if (position is null)
             {
@@ -72,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return result != 0 ? result : position.Character.CompareTo(other.Character);
         }
 
-        public static bool IsValid(this Position position, SourceText sourceText)
+        public static bool IsValid(this OmniSharpPosition position, SourceText sourceText)
         {
             if (position is null)
             {
@@ -88,6 +84,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 position.Character >= 0 &&
                 position.Line < sourceText.Lines.Count &&
                 sourceText.Lines[position.Line].Start + position.Character <= sourceText.Length;
+        }
+
+        private static bool TryGetAbsoluteIndex(int character, int line, SourceText sourceText, ILogger logger, out int absoluteIndex)
+        {
+            var linePosition = new LinePosition(line, character);
+            if (linePosition.Line >= sourceText.Lines.Count)
+            {
+                var errorMessage = Resources.FormatPositionIndex_Outside_Range(
+                    line,
+                    nameof(sourceText),
+                    sourceText.Lines.Count);
+                logger?.LogError(errorMessage);
+                absoluteIndex = -1;
+                return false;
+            }
+
+            var index = sourceText.Lines.GetPosition(linePosition);
+            absoluteIndex = index;
+            return true;
         }
     }
 }
