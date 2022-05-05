@@ -1,29 +1,28 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
     internal static class JsonReaderExtensions
     {
-        public static bool ReadTokenAndAdvance(this JsonReader reader, JsonToken expectedTokenType, out object value)
+        public static bool ReadTokenAndAdvance(this JsonReader reader, JsonToken expectedTokenType, [NotNullWhen(true)] out object? value)
         {
             value = reader.Value;
             return reader.TokenType == expectedTokenType && reader.Read();
         }
 
-        public static void ReadProperties<TArg>(this JsonReader reader, Action<string, TArg> onProperty, TArg arg)
+        public static void ReadProperties<TArg>(this JsonReader reader, Action<string?, TArg> onProperty, TArg arg)
         {
             do
             {
                 switch (reader.TokenType)
                 {
                     case JsonToken.PropertyName:
-                        var propertyName = reader.Value.ToString();
+                        var propertyName = reader.Value?.ToString();
                         onProperty(propertyName, arg);
                         break;
                     case JsonToken.EndObject:
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             } while (reader.Read());
         }
 
-        public static TArg ReadProperties<TArg>(this JsonReader reader, Func<string, TArg, TArg> onProperty, TArg arg)
+        public static TArg ReadProperties<TArg>(this JsonReader reader, Func<string?, TArg, TArg> onProperty, TArg arg)
         {
             do
             {
                 switch (reader.TokenType)
                 {
                     case JsonToken.PropertyName:
-                        var propertyName = reader.Value.ToString();
+                        var propertyName = reader.Value?.ToString();
                         arg = onProperty(propertyName, arg);
                         break;
                     case JsonToken.EndObject:
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             return arg;
         }
 
-        public static bool TryReadNextProperty<TReturn>(this JsonReader reader, string propertyName, out TReturn value)
+        public static bool TryReadNextProperty<TReturn>(this JsonReader reader, string propertyName, [NotNullWhen(true)] out TReturn? value)
         {
             do
             {
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                     case JsonToken.PropertyName:
                         // Ensures we're at the expected property & the reader
                         // can read the property value.
-                        if (reader.Value.ToString() == propertyName &&
+                        if (reader.Value?.ToString() == propertyName &&
                             reader.Read())
                         {
                             value = (TReturn)reader.Value;

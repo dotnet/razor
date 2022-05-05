@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Text;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
         internal class SourceTextSourceDocument : RazorSourceDocument
         {
             private readonly SourceText _sourceText;
-            private byte[] _checksum;
+            private byte[]? _checksum;
 
             public SourceTextSourceDocument(
                 SourceText sourceText,
