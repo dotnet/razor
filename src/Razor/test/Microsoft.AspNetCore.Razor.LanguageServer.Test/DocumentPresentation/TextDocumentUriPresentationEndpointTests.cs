@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,11 +14,12 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -61,9 +61,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new UriPresentationParams()
             {
-                Uris = new[] { droppedUri }
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Uris = new[]
+                {
+                    droppedUri
+                }
             };
 
             // Act
@@ -71,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("<MyTagHelper />", result?.DocumentChanges?.First().TextDocumentEdit?.Edits.First().NewText);
+            Assert.Equal("<MyTagHelper />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
         }
 
         [Fact]
@@ -110,9 +122,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new UriPresentationParams()
             {
-                Uris = new[] {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Uris = new[]
+                {
                     new Uri("file:///c:/path/MyTagHelper.razor.cs"),
                     new Uri("file:///c:/path/MyTagHelper.razor.css"),
                     droppedUri,
@@ -124,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("<MyTagHelper />", result?.DocumentChanges?.First().TextDocumentEdit?.Edits.First().NewText);
+            Assert.Equal("<MyTagHelper />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
         }
 
         [Fact]
@@ -172,9 +194,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new UriPresentationParams()
             {
-                Uris = new[] { droppedUri }
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Uris = new[]
+                {
+                    droppedUri
+                }
             };
 
             // Act
@@ -182,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("<MyTagHelper MyAttribute=\"\" />", result?.DocumentChanges?.First().TextDocumentEdit?.Edits.First().NewText);
+            Assert.Equal("<MyTagHelper MyAttribute=\"\" />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
         }
 
         [Fact]
@@ -228,9 +262,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new UriPresentationParams()
             {
-                Uris = new[] { droppedUri }
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Uris = new[]
+                {
+                    droppedUri
+                }
             };
 
             // Act
@@ -276,9 +322,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new UriPresentationParams()
             {
-                Uris = new[] {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Uris = new[]
+                {
                     new Uri("file:///c:/path/SomeOtherFile.cs"),
                     new Uri("file:///c:/path/Bar.Foo"),
                     new Uri("file:///c:/path/MyTagHelper.razor"),
@@ -329,9 +385,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new UriPresentationParams()
             {
-                Uris = new[] { droppedUri }
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Uris = new[]
+                {
+                    droppedUri
+                }
             };
 
             // Act
@@ -352,10 +420,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var projectedRange = It.IsAny<Range>();
+            var projectedRange = It.IsAny<OmniSharpRange>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.CSharp &&
-                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
+                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<OmniSharpRange>(), out projectedRange) == true, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
@@ -378,7 +446,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
+            var parameters = new UriPresentationParams()
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                }
+            };
 
             // Act
             var result = await endpoint.Handle(parameters, CancellationToken.None);
@@ -422,7 +501,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
+            var parameters = new UriPresentationParams()
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                }
+            };
 
             // Act
             var result = await endpoint.Handle(parameters, CancellationToken.None);
@@ -467,7 +557,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
+            var parameters = new UriPresentationParams()
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                }
+            };
 
             // Act
             var result = await endpoint.Handle(parameters, CancellationToken.None);
@@ -511,7 +612,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
+            var parameters = new UriPresentationParams()
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                }
+            };
 
             // Act
             var result = await endpoint.Handle(parameters, CancellationToken.None);

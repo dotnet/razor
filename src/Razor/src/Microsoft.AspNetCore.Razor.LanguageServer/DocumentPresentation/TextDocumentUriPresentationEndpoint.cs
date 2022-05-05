@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         public override string EndpointName => LanguageServerConstants.RazorUriPresentationEndpoint;
 
-        public override RegistrationExtensionResult? GetRegistration(VisualStudio.LanguageServer.Protocol.VSInternalClientCapabilities clientCapabilities)
+        public override RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_uriPresentationProvider";
 
@@ -58,8 +58,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         }
 
         protected override IRazorPresentationParams CreateRazorRequestParameters(UriPresentationParams request)
-            => new RazorUriPresentationParams(request.TextDocument, request.Range)
+            => new RazorUriPresentationParams()
             {
+                TextDocument = request.TextDocument,
+                Range = request.Range,
                 Uris = request.Uris
             };
 
@@ -102,25 +104,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             return new WorkspaceEdit
             {
-                DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                    new WorkspaceEditDocumentChange(
-                        new TextDocumentEdit
+                DocumentChanges = new TextDocumentEdit[]
+                {
+                    new TextDocumentEdit
+                    {
+                        TextDocument = new()
                         {
-                            TextDocument = new()
+                            Uri = request.TextDocument.Uri
+                        },
+                        Edits = new[]
+                        {
+                            new TextEdit
                             {
-                                Uri = request.TextDocument.Uri
-                            },
-                            Edits = new[]
-                            {
-                                new TextEdit
-                                {
-                                    NewText = componentTagText,
-                                    Range = request.Range
-                                }
+                                NewText = componentTagText,
+                                Range = request.Range
                             }
                         }
-                    )
-                )
+                    }
+                }
             };
         }
 
@@ -128,16 +129,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         {
             _logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 
-            var documentAndVersion = await TryGetDocumentSnapshotAndVersionAsync(uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-            if (documentAndVersion is null)
-            {
-                return null;
-            }
-
-            var (documentSnapshot, _) = documentAndVersion;
+            var documentSnapshot = await TryGetDocumentSnapshotAsync(uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             if (documentSnapshot is null)
             {
-                _logger.LogWarning($"Failed to find document for component {uri}.");
+                _logger.LogInformation($"Failed to find document for component {uri}.");
                 return null;
             }
 
@@ -146,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
             if (descriptor is null)
             {
-                _logger.LogWarning($"Failed to find tag helper descriptor.");
+                _logger.LogInformation($"Failed to find tag helper descriptor.");
                 return null;
             }
 

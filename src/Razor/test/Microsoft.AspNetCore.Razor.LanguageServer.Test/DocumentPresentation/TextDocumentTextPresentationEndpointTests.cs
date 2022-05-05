@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,11 +13,12 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
-                       
+
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
 
@@ -58,8 +58,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new TextPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new TextPresentationParams()
             {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
                 Text = "Hi there"
             };
 
@@ -81,10 +90,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var projectedRange = It.IsAny<Range>();
+            var projectedRange = It.IsAny<OmniSharpRange>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.CSharp &&
-                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
+                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<OmniSharpRange>(), out projectedRange) == true, MockBehavior.Strict);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
@@ -105,8 +114,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new TextPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
+            var parameters = new TextPresentationParams()
             {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
                 Text = "Hi there"
             };
 
@@ -150,7 +168,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new TextPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
+            var parameters = new TextPresentationParams()
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Text = "Hi there"
+            };
 
             // Act
             var result = await endpoint.Handle(parameters, CancellationToken.None);
@@ -193,7 +223,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
-            var parameters = new TextPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
+            var parameters = new TextPresentationParams()
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = uri
+                },
+                Range = new Range
+                {
+                    Start = new Position(0, 1),
+                    End = new Position(0, 2)
+                },
+                Text = "Hi there"
+            };
 
             // Act
             var result = await endpoint.Handle(parameters, CancellationToken.None);

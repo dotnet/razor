@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -18,8 +17,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -89,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         public abstract string EndpointName { get; }
 
-        public abstract RegistrationExtensionResult? GetRegistration(VisualStudio.LanguageServer.Protocol.VSInternalClientCapabilities clientCapabilities);
+        public abstract RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities);
 
         protected abstract IRazorPresentationParams CreateRazorRequestParameters(TParams request);
 
@@ -122,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
+            if (request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
             {
                 return null;
             }
@@ -171,10 +169,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, [NotNullWhen(true)] out TextDocumentEdit[]? documentChanges)
         {
-            if (workspaceEdit.DocumentChanges.All(e => e.IsTextDocumentEdit))
+            if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
             {
-                documentChanges = workspaceEdit.DocumentChanges.Select(e => e.TextDocumentEdit!).ToArray();
+                documentChanges = documentEdits;
                 return true;
+            }
+
+            if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+            {
+                var documentEditList = new List<TextDocumentEdit>();
+                foreach (var sumType in sumTypeArray)
+                {
+                    if (sumType.Value is TextDocumentEdit textDocumentEdit)
+                    {
+                        documentEditList.Add(textDocumentEdit);
+                    }
+                }
+
+                if (documentEditList.Count > 0)
+                {
+                    documentChanges = documentEditList.ToArray();
+                    return true;
+                }
             }
 
             documentChanges = null;
@@ -197,12 +213,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                    uri.GetAbsoluteOrUNCPath().EndsWith(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix, StringComparison.Ordinal);
         }
 
-        private Dictionary<DocumentUri, IEnumerable<TextEdit>> MapChanges(IDictionary<DocumentUri, IEnumerable<TextEdit>> changes, bool mapRanges, RazorCodeDocument codeDocument)
+        private Dictionary<string, TextEdit[]> MapChanges(Dictionary<string, TextEdit[]> changes, bool mapRanges, RazorCodeDocument codeDocument)
         {
-            var remappedChanges = new Dictionary<DocumentUri, IEnumerable<TextEdit>>();
+            var remappedChanges = new Dictionary<string, TextEdit[]>();
             foreach (var entry in changes)
             {
-                var uri = entry.Key.ToUri();
+                var uri = new Uri(entry.Key);
                 var edits = entry.Value;
 
                 if (!IsVirtualDocumentUri(uri))
@@ -226,12 +242,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             return remappedChanges;
         }
 
-        private WorkspaceEditDocumentChange[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
+        private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
         {
-            var remappedDocumentEdits = new List<WorkspaceEditDocumentChange>();
+            var remappedDocumentEdits = new List<TextDocumentEdit>();
             foreach (var entry in documentEdits)
             {
-                var uri = entry.TextDocument.Uri.ToUri();
+                var uri = entry.TextDocument.Uri;
                 if (!IsVirtualDocumentUri(uri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
@@ -249,16 +265,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 }
 
                 var razorDocumentUri = GetRazorDocumentUri(uri);
-                remappedDocumentEdits.Add(new WorkspaceEditDocumentChange(
-                    new TextDocumentEdit()
+                remappedDocumentEdits.Add(new TextDocumentEdit()
+                {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier()
                     {
-                        TextDocument = new OptionalVersionedTextDocumentIdentifier()
-                        {
-                            Uri = razorDocumentUri,
-                            Version = entry.TextDocument.Version
-                        },
-                        Edits = remappedEdits
-                    }));
+                        Uri = razorDocumentUri,
+                        Version = entry.TextDocument.Version
+                    },
+                    Edits = remappedEdits
+                });
             }
 
             return remappedDocumentEdits.ToArray();
@@ -323,6 +338,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                     {
                         return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
                     }
+                }
+
+                return null;
+            }, cancellationToken);
+        }
+
+        protected Task<DocumentSnapshot?> TryGetDocumentSnapshotAsync(string uri, CancellationToken cancellationToken)
+        {
+            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
+                {
+                    return documentSnapshot;
                 }
 
                 return null;

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -12,13 +12,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
     /// </summary>
     internal class RazorUriPresentationParams : UriPresentationParams, IRazorPresentationParams
     {
+        [DataMember]
         public RazorLanguageKind Kind { get; set; }
 
+        [DataMember]
         public int HostDocumentVersion { get; set; }
-
-        public RazorUriPresentationParams(TextDocumentIdentifier textDocument, Range range)
-            : base(textDocument, range)
-        {
-        }
     }
 }

@@ -788,12 +788,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken)
         {
-            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri.ToUri(), presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
+            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
         }
 
         public override Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken)
         {
-            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri.ToUri(), presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
+            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
         }
 
         public async Task<WorkspaceEdit?> ProvidePresentationAsync<TParams>(TParams presentationParams, Uri hostDocumentUri, int hostDocumentVersion, RazorLanguageKind kind, string methodName, CancellationToken cancellationToken)
@@ -810,14 +810,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDocument))
             {
                 languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-                presentationParams.TextDocument = DocumentUri.From(csharpDocument.Uri);
+                presentationParams.TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = csharpDocument.Uri
+                };
                 document = csharpDocument;
             }
             else if (kind == RazorLanguageKind.Html &&
                 documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
             {
                 languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-                presentationParams.TextDocument = DocumentUri.From(htmlDocument.Uri);
+                presentationParams.TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = htmlDocument.Uri
+                };
                 document = htmlDocument;
             }
             else

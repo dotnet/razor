@@ -3,8 +3,7 @@
 
 using MediatR;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VSInternalMethods = Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalMethods;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {

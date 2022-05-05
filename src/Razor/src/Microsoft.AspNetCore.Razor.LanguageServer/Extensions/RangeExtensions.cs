@@ -199,23 +199,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
         public static VS.Range AsVSRange(this OSharp.Range range)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
             return new VS.Range
             {
-                Start = new VS.Position
-                {
-                    Line = range.Start.Line,
-                    Character = range.Start.Character
-                },
-                End = new VS.Position
-                {
-                    Line = range.End.Line,
-                    Character = range.End.Character
-                }
+                Start = range.Start.AsVSPosition(),
+                End = range.End.AsVSPosition()
+            };
+        }
+
+        public static OSharp.Range AsOmniSharpRange(this VS.Range range)
+        {
+            return new OSharp.Range
+            {
+                Start = range.Start.AsOSharpPosition(),
+                End = range.End.AsOSharpPosition()
             };
         }
     }

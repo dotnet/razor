@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         public override string EndpointName => LanguageServerConstants.RazorTextPresentationEndpoint;
 
-        public override RegistrationExtensionResult? GetRegistration(VisualStudio.LanguageServer.Protocol.VSInternalClientCapabilities clientCapabilities)
+        public override RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_textPresentationProvider";
 
@@ -43,8 +43,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         }
 
         protected override IRazorPresentationParams CreateRazorRequestParameters(TextPresentationParams request)
-            => new RazorTextPresentationParams(request.TextDocument, request.Range)
+            => new RazorTextPresentationParams()
             {
+                TextDocument = request.TextDocument,
+                Range = request.Range,
                 Text = request.Text
             };
 
