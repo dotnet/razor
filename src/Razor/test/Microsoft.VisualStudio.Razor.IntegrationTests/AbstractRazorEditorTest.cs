@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
@@ -94,7 +94,13 @@ Welcome to your new app.
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
             await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
 
-            EnsureExtensionInstalled();
+            // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
+
+            await EnsureExtensionInstalledAsync(HangMitigatingCancellationToken);
+
             try
             {
                 await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
@@ -164,7 +170,9 @@ Welcome to your new app.
             {
                 // JoinableTaskFactory.Run isn't an option because we might be disposing already.
                 // Don't use ThreadHelper.JoinableTaskFactory in test methods, but it's correct here.
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
                 {
                     try
                     {
@@ -194,16 +202,51 @@ Welcome to your new app.
             }
         }
 
-        private static void EnsureExtensionInstalled()
+        private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)
         {
-            var assembly = Assembly.Load(new AssemblyName("Microsoft.VisualStudio.RazorExtension"));
-            var version = assembly.GetName().Version;
+            const string AssemblyName = "Microsoft.AspNetCore.Razor.LanguageServer";
+            using var semaphore = new SemaphoreSlim(1);
+            await semaphore.WaitAsync(cancellationToken);
+
+            AppDomain.CurrentDomain.AssemblyLoad += CurrentDomain_AssemblyLoad;
 
             var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
+            Assembly? assembly = null;
+            try
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                assembly = assemblies.FirstOrDefault((assembly) => assembly.GetName().Name.Equals(AssemblyName));
+                if (assembly is null)
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+                }
+
+                semaphore.Release();
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.AssemblyLoad -= CurrentDomain_AssemblyLoad;
+            }
+
+            if (assembly is null)
+            {
+                throw new NotImplementedException($"Integration test did not load extension");
+            }
+
+            var version = assembly.GetName().Version;
 
             if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException("Integration test not running against Experimental Extension");
+                throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
+            }
+
+            void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
+            {
+                if (args.LoadedAssembly.GetName().Name.Equals(AssemblyName, StringComparison.Ordinal))
+                {
+                    assembly = args.LoadedAssembly;
+                    semaphore.Release();
+                }
             }
         }
 

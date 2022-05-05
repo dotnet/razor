@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
