@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -15,8 +16,10 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
+using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
@@ -26,6 +29,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_SimpleComponent_ReturnsResult()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -42,11 +49,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
@@ -66,6 +78,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_SimpleComponentWithChildFile_ReturnsResult()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -82,11 +98,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
@@ -110,6 +131,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_ComponentWithRequiredAttribute_ReturnsResult()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -135,11 +160,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
@@ -156,9 +186,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         }
 
         [Fact]
-        public async Task Handle_NoTypeNameIdentifier_ReturnsResult()
+        public async Task Handle_NoTypeNameIdentifier_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -174,11 +208,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.TryGetTagHelperDescriptorAsync(It.IsAny<DocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
                 MockBehavior.Strict);
 
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkspaceEdit?)null);
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
@@ -194,9 +241,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         }
 
         [Fact]
-        public async Task Handle_MultipleUris_ReturnsResult()
+        public async Task Handle_MultipleUris_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -205,11 +256,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkspaceEdit?)null);
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
@@ -229,9 +293,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         }
 
         [Fact]
-        public async Task Handle_NotComponent_ReturnsResult()
+        public async Task Handle_NotComponent_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
@@ -241,11 +309,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkspaceEdit?)null);
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2))
@@ -264,18 +345,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_CSharp_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var projectedRange = It.IsAny<Range>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.CSharp &&
+                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
+
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkspaceEdit?)null);
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
@@ -291,6 +391,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
@@ -298,11 +402,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkspaceEdit?)null);
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
@@ -318,6 +435,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_UnsupportedCodeDocument_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
@@ -326,11 +447,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new WorkspaceEdit());
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));
@@ -346,6 +480,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_NoUris_ReturnsNull()
         {
             // Arrange
+            int? version = 1;
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(
+                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
+                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
@@ -353,11 +491,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
+            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturns
+                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkspaceEdit?)null);
+
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .ReturnsAsync(responseRouterReturns.Object);
+
             var endpoint = new TextDocumentUriPresentationEndpoint(
                 Dispatcher,
                 documentResolver,
                 documentMappingService,
                 searchEngine,
+                languageServer.Object,
+                documentVersionCache,
+                TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
             var parameters = new UriPresentationParams(new TextDocumentIdentifier(uri), new(0, 1, 0, 2));

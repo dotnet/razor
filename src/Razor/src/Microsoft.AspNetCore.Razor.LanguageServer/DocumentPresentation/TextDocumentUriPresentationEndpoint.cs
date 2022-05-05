@@ -8,110 +8,72 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
-    internal class TextDocumentUriPresentationEndpoint : ITextDocumentUriPresentationHandler
+    internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly RazorDocumentMappingService _razorDocumentMappingService;
         private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
-        private readonly ILogger _logger;
 
         public TextDocumentUriPresentationEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorDocumentMappingService razorDocumentMappingService,
             RazorComponentSearchEngine razorComponentSearchEngine,
+            ClientNotifierServiceBase languageServer,
+            DocumentVersionCache documentVersionCache,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
+            : base(projectSnapshotManagerDispatcher,
+                 documentResolver,
+                 razorDocumentMappingService,
+                 languageServer,
+                 documentVersionCache,
+                 languageServerFeatureOptions,
+                 loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>())
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (razorDocumentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(razorDocumentMappingService));
-            }
-
             if (razorComponentSearchEngine is null)
             {
                 throw new ArgumentNullException(nameof(razorComponentSearchEngine));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _razorDocumentMappingService = razorDocumentMappingService;
             _razorComponentSearchEngine = razorComponentSearchEngine;
-            _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
         }
 
-        public RegistrationExtensionResult? GetRegistration(VisualStudio.LanguageServer.Protocol.VSInternalClientCapabilities clientCapabilities)
+        public override string EndpointName => LanguageServerConstants.RazorUriPresentationEndpoint;
+
+        public override RegistrationExtensionResult? GetRegistration(VisualStudio.LanguageServer.Protocol.VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_uriPresentationProvider";
 
-            return new RegistrationExtensionResult(AssociatedServerCapability, true);
+            return new RegistrationExtensionResult(AssociatedServerCapability, options: true);
         }
 
-        public async Task<WorkspaceEdit?> Handle(UriPresentationParams request, CancellationToken cancellationToken)
+        protected override IRazorPresentationParams CreateRazorRequestParameters(UriPresentationParams request)
+            => new RazorUriPresentationParams(request.TextDocument, request.Range)
+            {
+                Uris = request.Uris
+            };
+
+        protected override async Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, UriPresentationParams request, CancellationToken cancellationToken)
         {
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
-            {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
-                return null;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
-            {
-                _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
-                return null;
-            }
-
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
-            {
-                return null;
-            }
-
-            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
             if (languageKind is not RazorLanguageKind.Html)
             {
-                _logger.LogInformation($"Unsupported language {languageKind:G}.");
+                // We don't do anything for HTML
                 return null;
             }
 
             if (request.Uris is null || request.Uris.Length == 0)
             {
-                _logger.LogInformation($"Didn't get any Uris?");
+                _logger.LogInformation($"No URIs were included in the request?");
                 return null;
             }
 
@@ -150,11 +112,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                             },
                             Edits = new[]
                             {
-                                    new TextEdit
-                                    {
-                                        NewText = componentTagText,
-                                        Range = request.Range
-                                    }
+                                new TextEdit
+                                {
+                                    NewText = componentTagText,
+                                    Range = request.Range
+                                }
                             }
                         }
                     )
@@ -166,16 +128,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         {
             _logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentAndVersion = await TryGetDocumentSnapshotAndVersionAsync(uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+            if (documentAndVersion is null)
             {
-                _documentResolver.TryResolveDocument(uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                return null;
+            }
 
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
+            var (documentSnapshot, _) = documentAndVersion;
             if (documentSnapshot is null)
             {
-                _logger.LogWarning($"Failed to find document {uri}.");
+                _logger.LogWarning($"Failed to find document for component {uri}.");
                 return null;
             }
 
