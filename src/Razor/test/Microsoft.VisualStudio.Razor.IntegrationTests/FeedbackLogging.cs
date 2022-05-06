@@ -13,7 +13,7 @@ using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
-    public static class VisualStudioLogging
+    internal static class VisualStudioLogging
     {
         private static bool s_customLoggersAdded = false;
 
@@ -22,17 +22,22 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public const string ServiceHubLogId = "ServiceHubLog";
         public const string ComponentModelCacheId = "ComponentModelCache";
 
+        private static readonly object s_lockObj = new();
+
         public static void AddCustomLoggers()
         {
-            // Add custom logs on failure if they haven't already been.
-            if (!s_customLoggersAdded)
+            lock (s_lockObj)
             {
-                DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
-                DataCollectionService.RegisterCustomLogger(RazorLogHubLogger, LogHubLogId, "zip");
-                DataCollectionService.RegisterCustomLogger(RazorServiceHubLogger, ServiceHubLogId, "zip");
-                DataCollectionService.RegisterCustomLogger(RazorComponentModelCacheLogger, ComponentModelCacheId, "zip");
+                // Add custom logs on failure if they haven't already been.
+                if (!s_customLoggersAdded)
+                {
+                    DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
+                    DataCollectionService.RegisterCustomLogger(RazorLogHubLogger, LogHubLogId, "zip");
+                    DataCollectionService.RegisterCustomLogger(RazorServiceHubLogger, ServiceHubLogId, "zip");
+                    DataCollectionService.RegisterCustomLogger(RazorComponentModelCacheLogger, ComponentModelCacheId, "zip");
 
-                s_customLoggersAdded = true;
+                    s_customLoggersAdded = true;
+                }
             }
         }
 
@@ -49,27 +54,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         private static void RazorComponentModelCacheLogger(string filePath)
         {
             FeedbackLoggerInternal(filePath, "ComponentModelCache");
-        }
-
-        private static void RazorOutputPaneLogger(string filePath)
-        {
-            // JoinableTaskFactory.Run isn't an option because we might be disposing already.
-            // Don't use ThreadHelper.JoinableTaskFactory in test methods, but it's correct here.
-#pragma warning disable VSTHRD103 // Call async methods when in an async method
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
-            {
-                try
-                {
-                    var testServices = await Extensibility.Testing.TestServices.CreateAsync(ThreadHelper.JoinableTaskFactory);
-                    var paneContent = await testServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
-                    File.WriteAllText(filePath, paneContent);
-                }
-                catch (Exception)
-                {
-                    // Eat any errors so we don't block further collection
-                }
-            });
         }
 
         private static void FeedbackLoggerInternal(string filePath, string expectedFilePart)
@@ -91,6 +75,27 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             _ = CollectFeedbackItemsAsync(files, filePath, expectedFilePart);
+        }
+
+        private static void RazorOutputPaneLogger(string filePath)
+        {
+            // JoinableTaskFactory.Run isn't an option because we might be disposing already.
+            // Don't use ThreadHelper.JoinableTaskFactory in test methods, but it's correct here.
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
+            {
+                try
+                {
+                    var testServices = await Extensibility.Testing.TestServices.CreateAsync(ThreadHelper.JoinableTaskFactory);
+                    var paneContent = await testServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
+                    File.WriteAllText(filePath, paneContent);
+                }
+                catch (Exception)
+                {
+                    // Eat any errors so we don't block further collection
+                }
+            });
         }
 
         private static async Task CollectFeedbackItemsAsync(IEnumerable<string> files, string destination, string expectedFilePart)
