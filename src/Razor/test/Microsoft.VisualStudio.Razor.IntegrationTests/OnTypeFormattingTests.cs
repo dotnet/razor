@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ErrorCshtmlFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, HangMitigatingCancellationToken);
 
             // Change text to refer back to Program class
             await TestServices.Editor.SetTextAsync(@"

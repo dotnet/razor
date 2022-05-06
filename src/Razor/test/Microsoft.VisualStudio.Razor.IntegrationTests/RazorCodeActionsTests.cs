@@ -12,11 +12,11 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task RazorCodeActions_Show()
         {
             // Create Warnings by removing usings
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ImportsRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ImportsRazorFile, HangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync("", HangMitigatingCancellationToken);
 
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
 
             await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", HangMitigatingCancellationToken);
             await TestServices.Editor.MoveCaretAsync(3, HangMitigatingCancellationToken);
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             // Assert
             var codeActionSet = Assert.Single(codeActions);
-            var usingString = $"@using {BlazorProjectName}.Shared";
+            var usingString = $"@using {RazorProjectConstants.BlazorProjectName}.Shared";
             var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals(usingString));
 
             await TestServices.Editor.InvokeCodeActionAsync(codeAction, HangMitigatingCancellationToken);

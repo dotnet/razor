@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_CodeBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_IfBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_ForEach()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_CodeBlock_Region()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""

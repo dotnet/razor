@@ -147,7 +147,7 @@ A
     private async Task PrepareDocumentAsync(string content)
     {
         // Arrange
-        await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(content, HangMitigatingCancellationToken);
     }
 }

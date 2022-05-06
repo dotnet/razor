@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task GoToImplementation_SameFile()
         {
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("IncrementCount", charsOffset: -1, HangMitigatingCancellationToken);
 
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task GoToImplementation_CSharpClass()
         {
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, IndexRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, HangMitigatingCancellationToken);
 
             // Change text to refer back to Program class
             await TestServices.Editor.SetTextAsync(@"<SurveyPrompt Title=""@nameof(Program)", HangMitigatingCancellationToken);

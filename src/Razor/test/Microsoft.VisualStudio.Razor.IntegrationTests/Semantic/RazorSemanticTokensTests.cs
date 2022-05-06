@@ -43,8 +43,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task Components_AreColored()
         {
             // Arrange
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync(MainLayoutContent, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, HangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement", 3);
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task Directives_AreColored()
         {
             // Arrange
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
             await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
 
             // Act and Assert

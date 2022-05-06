@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         [IdeFact]
         public async Task CreateFromTemplateAsync()
         {
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
         }
     }
