@@ -32,7 +32,7 @@ steps:
     condition: always()
     continueOnError: true
     inputs:
-        pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+        pathtoPublish: artifacts/log/${{ parameters.configuration }}/Build.binlog
         artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
         artifactType: Container
         parallel: true
@@ -52,7 +52,7 @@ steps:
     condition: always()
     continueOnError: true
     inputs:
-        pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+        pathtoPublish: artifacts/log/${{ parameters.configuration }}/Build.binlog
         artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
         artifactType: Container
         parallel: true
@@ -72,7 +72,7 @@ steps:
     condition: always()
     continueOnError: true
     inputs:
-        pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+        pathtoPublish: artifacts/log/${{ parameters.configuration }}/Build.binlog
         artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
         artifactType: Container
         parallel: true
