@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
@@ -783,6 +784,69 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 options => options is not null) ?? false;
 
             return supportsFoldingRange;
+        }
+
+        public override Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken)
+        {
+            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
+        }
+
+        public override Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken)
+        {
+            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
+        }
+
+        public async Task<WorkspaceEdit?> ProvidePresentationAsync<TParams>(TParams presentationParams, Uri hostDocumentUri, int hostDocumentVersion, RazorLanguageKind kind, string methodName, CancellationToken cancellationToken)
+            where TParams : notnull, IPresentationParams
+        {
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            string languageServerName;
+            VirtualDocumentSnapshot document;
+            if (kind == RazorLanguageKind.CSharp &&
+                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDocument))
+            {
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                presentationParams.TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = csharpDocument.Uri
+                };
+                document = csharpDocument;
+            }
+            else if (kind == RazorLanguageKind.Html &&
+                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                presentationParams.TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = htmlDocument.Uri
+                };
+                document = htmlDocument;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(hostDocumentVersion, document, cancellationToken);
+            if (!synchronized)
+            {
+                return null;
+            }
+
+            var textBuffer = document.Snapshot.TextBuffer;
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TParams, WorkspaceEdit?>(
+                textBuffer,
+                methodName,
+                languageServerName,
+                presentationParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return result?.Response;
         }
     }
 }

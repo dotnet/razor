@@ -6,11 +6,27 @@ using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {
+        public static VS.Position AsVSPosition(this Position position)
+        {
+            return new VS.Position(position.Line, position.Character);
+        }
+
+        public static Position AsOSharpPosition(this VS.Position position)
+        {
+            return new Position(position.Line, position.Character);
+        }
+
+        public static bool TryGetAbsoluteIndex(this VS.Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
+        {
+            return position.AsOSharpPosition().TryGetAbsoluteIndex(sourceText, logger, out absoluteIndex);
+        }
+
         public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
         {
             if (position is null)

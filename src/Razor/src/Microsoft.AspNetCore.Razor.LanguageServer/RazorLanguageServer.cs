@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -106,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             var optionsResult = registrationExtension.GetRegistration(vsCapabilities);
                             if (optionsResult != null)
                             {
-                                response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JObject.FromObject(optionsResult.Options);
+                                response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JToken.FromObject(optionsResult.Options);
                             }
                         }
 
@@ -150,6 +151,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorProximityExpressionsEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
                     .WithHandler<FoldingRangeEndpoint>()
+                    .WithHandler<TextDocumentTextPresentationEndpoint>()
+                    .WithHandler<TextDocumentUriPresentationEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder
