@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
     {
-        private ItemCollection _items;
+        private ItemCollection? _items;
 
         /// <summary>
         /// Creates a new Razor completion item
@@ -29,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             string displayText,
             string insertText,
             RazorCompletionItemKind kind,
-            string sortText = null,
-            IReadOnlyList<RazorCommitCharacter> commitCharacters = null,
+            string? sortText = null,
+            IReadOnlyList<RazorCommitCharacter>? commitCharacters = null,
             bool isSnippet = false)
         {
             if (displayText is null)
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         public RazorCompletionItemKind Kind { get; }
 
-        public IReadOnlyCollection<RazorCommitCharacter> CommitCharacters { get; }
+        public IReadOnlyCollection<RazorCommitCharacter>? CommitCharacters { get; }
 
         public ItemCollection Items
         {
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             return Equals(obj as RazorCompletionItem);
         }
 
-        public bool Equals(RazorCompletionItem other)
+        public bool Equals(RazorCompletionItem? other)
         {
             if (other is null)
             {

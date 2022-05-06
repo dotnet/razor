@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
 
-        public async override Task<RazorLSPOptions> GetLatestOptionsAsync(CancellationToken cancellationToken)
+        public async override Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
         {
             try
             {

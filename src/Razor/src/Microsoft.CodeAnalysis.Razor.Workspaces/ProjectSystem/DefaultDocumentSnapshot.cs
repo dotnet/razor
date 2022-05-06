@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return State.TryGetTextVersion(out result);
         }
 
-        public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
+        public override bool TryGetGeneratedOutput(out RazorCodeDocument? result)
         {
             if (State.IsGeneratedOutputResultAvailable)
             {

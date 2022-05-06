@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         private readonly ProjectSnapshot _project;
         private readonly RazorProjectItem _importItem;
-        private SourceText _sourceText;
+        private SourceText? _sourceText;
         private readonly VersionStamp _version;
 
         public DefaultImportDocumentSnapshot(ProjectSnapshot project, RazorProjectItem item)
@@ -26,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _version = VersionStamp.Default;
         }
 
-        public override string FileKind => null;
+        public override string? FileKind => null;
 
-        public override string FilePath => null;
+        public override string? FilePath => null;
 
-        public override string TargetPath => null;
+        public override string? TargetPath => null;
 
         public override bool SupportsOutput => false;
 
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return Task.FromResult(_version);
         }
 
-        public override bool TryGetText(out SourceText result)
+        public override bool TryGetText([NotNullWhen(true)] out SourceText? result)
         {
             if (_sourceText != null)
             {
