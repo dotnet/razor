@@ -39,7 +39,7 @@ stages:
       matrix:
         debug_32:
           _configuration: Debug
-    testMachineTotalCount: 4
+    testMachineTotalCount: 1
     testAgentElevated: true
     preTestMachineConfigurationStepList:
     - checkout: none
