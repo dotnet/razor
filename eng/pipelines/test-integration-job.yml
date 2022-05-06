@@ -27,6 +27,16 @@ steps:
     displayName: Build
     condition: succeeded()
 
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Build BinLog
+    condition: always()
+    continueOnError: true
+    inputs:
+        pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+        artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
+        artifactType: Container
+        parallel: true
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
@@ -37,6 +47,16 @@ steps:
     displayName: Build and Deploy VSIX
     condition: succeeded()
 
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Build VSIX BinLog
+    condition: always()
+    continueOnError: true
+    inputs:
+        pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+        artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
+        artifactType: Container
+        parallel: true
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
@@ -46,6 +66,16 @@ steps:
     name: RunIntegrationTests
     displayName: Run Integration Tests
     condition: succeeded()
+
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Run tests BinLog
+    condition: always()
+    continueOnError: true
+    inputs:
+        pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+        artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
+        artifactType: Container
+        parallel: true
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
