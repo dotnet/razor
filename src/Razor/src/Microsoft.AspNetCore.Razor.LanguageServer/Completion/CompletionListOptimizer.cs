@@ -44,10 +44,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return completionList;
             }
 
-            completionList = PromotedDataOntoList(completionList);
+            completionList = PromoteDataOntoList(completionList);
 
             return completionList;
         }
+
         private static VSInternalCompletionList PromoteVSCommonCommitCharactersOntoList(VSInternalCompletionList completionList)
         {
             (AliasedVSCommitCharacters VsCommitCharacters, List<VSInternalCompletionItem> AssociatedCompletionItems)? mostUsedCommitCharacterToItems = null;
@@ -98,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionList;
         }
 
-        private static VSInternalCompletionList PromotedDataOntoList(VSInternalCompletionList completionList)
+        private static VSInternalCompletionList PromoteDataOntoList(VSInternalCompletionList completionList)
         {
             // This piece makes a massive assumption that all completion items will have a resultId associated with them and their
             // data properties will all be the same. Therefore, we can inspect the first item and empty out the rest.
@@ -121,6 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private class AliasedVSCommitCharactersComparer : IEqualityComparer<AliasedVSCommitCharacters>
         {
             public static readonly AliasedVSCommitCharactersComparer Instance = new();
+
             private AliasedVSCommitCharactersComparer()
             {
             }
