@@ -151,6 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorProximityExpressionsEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
                     .WithHandler<FoldingRangeEndpoint>()
+                    .WithHandler<TextDocumentTextPresentationEndpoint>()
                     .WithHandler<TextDocumentUriPresentationEndpoint>()
                     .WithServices(services =>
                     {

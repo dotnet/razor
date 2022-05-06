@@ -164,7 +164,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // The responses we get back will be for virtual documents, so we have to map them back to the real
             // document, and in the case of C#, map the returned ranges too
-            return MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument);
+            var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument);
+
+            return edit;
         }
 
         private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, [NotNullWhen(true)] out TextDocumentEdit[]? documentChanges)
