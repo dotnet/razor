@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>?>(result: null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -37,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<IReadOnlyList<RazorCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             var codeActions = new List<RazorCodeAction>();
 
@@ -73,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 AddCreateComponentFromTag(context, startTag, codeActions);
             }
 
-            return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorCodeAction>?>(codeActions);
         }
 
         private static bool IsApplicableTag(MarkupStartTagSyntax startTag)
@@ -136,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     continue;
                 }
 
-                var fullyQualifiedName = tagHelperPair._short.Name;
+                var fullyQualifiedName = tagHelperPair._short!.Name;
 
                 // Insert @using
                 if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
@@ -156,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Get all data necessary for matching
             var tagName = startTag.Name.Content;
-            string parentTagName = null;
+            string? parentTagName = null;
             if (startTag.Parent?.Parent is MarkupElementSyntax parentElement)
             {
                 parentTagName = parentElement.StartTag?.Name.Content ?? parentElement.EndTag?.Name.Content;
@@ -206,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             textEdits.Add(startTagTextEdit);
 
-            var endTag = (startTag.Parent as MarkupElementSyntax).EndTag;
+            var endTag = (startTag.Parent as MarkupElementSyntax)!.EndTag;
             if (endTag != null)
             {
                 var endTagTextEdit = new TextEdit
@@ -254,8 +252,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class TagHelperPair
         {
-            public TagHelperDescriptor _short = null;
-            public TagHelperDescriptor _fullyQualified = null;
+            public TagHelperDescriptor? _short = null;
+            public TagHelperDescriptor? _fullyQualified = null;
         }
     }
 }
