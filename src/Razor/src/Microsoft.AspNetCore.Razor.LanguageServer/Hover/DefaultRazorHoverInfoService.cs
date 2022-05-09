@@ -220,10 +220,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     return null;
                 }
 
+                Enum.TryParse(vsMarkupContent.Kind.Value, out MarkupKind markupKind);
+
                 var markupContent = new MarkupContent()
                 {
                     Value = vsMarkupContent.Value,
-                    Kind = (MarkupKind)vsMarkupContent.Kind,
+                    Kind = markupKind,
                 };
 
                 var hover = new HoverModel
@@ -265,10 +267,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     return null;
                 }
 
+                Enum.TryParse(vsMarkupContent.Kind.Value, out MarkupKind markupKind);
+
                 var markupContent = new MarkupContent()
                 {
                     Value = vsMarkupContent.Value,
-                    Kind = (MarkupKind)vsMarkupContent.Kind,
+                    Kind = markupKind,
                 };
 
                 var hover = new HoverModel
