@@ -9,7 +9,7 @@
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(IntegrationTest)'=='true'">
+  <PropertyGroup Condition="'$(IntegrationTestBuild)'=='true'">
     <DefineConstants>$(DefineConstants);INTEGRATION_TESTS</DefineConstants>
   </PropertyGroup>
 

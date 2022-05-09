@@ -23,6 +23,7 @@ steps:
       -build
       -pack
       -publish
+      /p:IntegrationTestBuild=true
     name: Build
     displayName: Build
     condition: succeeded()
@@ -43,6 +44,7 @@ steps:
       -prepareMachine
       /p:BuildVsix=true
       /p:BuildProjectReferences=false
+      /p:IntegrationTestBuild=true
     name: BuildVSIX
     displayName: Build and Deploy VSIX
     condition: succeeded()
@@ -63,6 +65,7 @@ steps:
       -prepareMachine
       -integrationTest
       /p:BuildProjectReferences=false
+      /p:IntegrationTestBuild=true
     name: RunIntegrationTests
     displayName: Run Integration Tests
     condition: succeeded()
