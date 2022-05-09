@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    internal record ProvideSemanticTokensRangeParams : SemanticTokensParams
+    internal class ProvideSemanticTokensRangeParams : SemanticTokensParams
     {
         public long RequiredHostDocumentVersion { get; }
 

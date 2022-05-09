@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,7 +19,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -254,11 +253,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
             {
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var startRange = minGeneratedSpan.Value.AsTextSpan().AsRange(csharpSourceText);
-                var endRange = maxGeneratedSpan.Value.AsTextSpan().AsRange(csharpSourceText);
+                var startRange = minGeneratedSpan.Value.AsTextSpan().AsVSRange(csharpSourceText);
+                var endRange = maxGeneratedSpan.Value.AsTextSpan().AsVSRange(csharpSourceText);
 
                 csharpRange = new Range { Start = startRange.Start, End = endRange.End };
-                Debug.Assert(csharpRange.Start <= csharpRange.End, "Range.Start should not be larger than Range.End");
+                Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
 
                 return true;
             }
@@ -303,7 +302,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (previousSemanticRange is null)
             {
-                previousSemanticRange = new SemanticRange(0, new Range(new Position(0, 0), new Position(0, 0)), modifier: 0);
+                var previousRange = new Range
+                {
+                    Start = new Position(0, 0),
+                    End = new Position(0, 0)
+                };
+                previousSemanticRange = new SemanticRange(0, previousRange, modifier: 0);
             }
 
             var startLine = previousSemanticRange.Range.End.Line + lineDelta;
@@ -315,28 +319,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var endCharacter = startCharacter + length;
             var end = new Position(endLine, endCharacter);
 
-            var range = new Range(start, end);
+            var range = new Range()
+            {
+                Start = start,
+                End = end
+            };
             var semanticRange = new SemanticRange(tokenType, range, tokenModifiers);
 
             return semanticRange;
         }
 
-        private static ImmutableArray<int> ConvertSemanticRangesToSemanticTokensData(
+        private static int[] ConvertSemanticRangesToSemanticTokensData(
             IReadOnlyList<SemanticRange> semanticRanges,
             RazorCodeDocument razorCodeDocument)
         {
             SemanticRange? previousResult = null;
 
-            var data = new List<int>();
+            var data = new int[semanticRanges.Count * 5];
+            var semanticRangeCount = 0;
             foreach (var result in semanticRanges)
             {
                 var newData = GetData(result, previousResult, razorCodeDocument);
-                data.AddRange(newData);
+                for (var i = 0; i < 5; i++)
+                {
+                    data[i + semanticRangeCount] = newData[i];
+                }
+
+                semanticRangeCount += 5;
 
                 previousResult = result;
             }
 
-            return data.ToImmutableArray();
+            return data;
         }
 
         /**
@@ -347,40 +361,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
          *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
          *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
         **/
-        private static IEnumerable<int> GetData(
+        private static int[] GetData(
             SemanticRange currentRange,
             SemanticRange? previousRange,
             RazorCodeDocument razorCodeDocument)
         {
-            // var previousRange = previousRange?.Range;
-            // var currentRange = currentRange.Range;
+            var result = new int[5];
 
             // deltaLine
             var previousLineIndex = previousRange?.Range is null ? 0 : previousRange.Range.Start.Line;
-            yield return currentRange.Range.Start.Line - previousLineIndex;
+            result[0] = currentRange.Range.Start.Line - previousLineIndex;
 
             // deltaStart
             if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
             {
-                yield return currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+                result[1] = currentRange.Range.Start.Character - previousRange.Range.Start.Character;
             }
             else
             {
-                yield return currentRange.Range.Start.Character;
+                result[1] = currentRange.Range.Start.Character;
             }
 
             // length
             var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
             var length = textSpan.Length;
             Debug.Assert(length > 0);
-            yield return length;
+            result[2] = length;
 
             // tokenType
-            yield return currentRange.Kind;
+            result[3] = currentRange.Kind;
 
             // tokenModifiers
             // We don't currently have any need for tokenModifiers
-            yield return currentRange.Modifier;
+            result[4] = currentRange.Modifier;
+
+            return result;
         }
 
         private Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)

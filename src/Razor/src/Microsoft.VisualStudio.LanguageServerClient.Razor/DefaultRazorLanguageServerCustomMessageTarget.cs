@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
-using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
+using SemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -413,6 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ProvideSemanticTokensRangeParams semanticTokensParams,
             CancellationToken cancellationToken)
         {
+            // We're not actually serializing the Range correctly here. Likely we need to define a jsonconverter for MS.VS.Range
             if (semanticTokensParams is null)
             {
                 throw new ArgumentNullException(nameof(semanticTokensParams));
@@ -423,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(semanticTokensParams.Range));
             }
 
-            var csharpDoc = GetCSharpDocumentSnapshsot(semanticTokensParams.TextDocument.Uri.ToUri());
+            var csharpDoc = GetCSharpDocumentSnapshsot(semanticTokensParams.TextDocument.Uri);
             if (csharpDoc is null)
             {
                 return null;
@@ -439,8 +440,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
-            var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
-            semanticTokensParams = semanticTokensParams with { TextDocument = csharpTextDocument };
+            semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
 
             var newParams = new SemanticTokensRangeParams
             {

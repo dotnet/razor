@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
-using OS = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -112,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
-            string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
+            string documentText, VS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
@@ -131,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                     Methods.TextDocumentSemanticTokensRangeName,
-                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
+                    CreateVSSemanticTokensRangeParams(csharpRange, documentUri), CancellationToken.None);
 
                 csharpTokens = result?.Data;
             }
@@ -140,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpResponse;
         }
 
-        protected static OS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, OS.Range razorRange)
+        protected static VS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, VS.Range razorRange)
         {
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
             if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
@@ -153,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpRange;
         }
 
-        protected static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+        internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
             => new()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },

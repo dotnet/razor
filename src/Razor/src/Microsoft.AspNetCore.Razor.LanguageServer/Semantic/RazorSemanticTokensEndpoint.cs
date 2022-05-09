@@ -5,14 +5,25 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using OmniSharp.Extensions.JsonRpc;
+using VSSemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
+    internal class SemanticTokensRangeParams : VSSemanticTokensRangeParams, IRequest<SemanticTokens?>
+    { }
+
+    [Parallel, Method(Methods.TextDocumentSemanticTokensRangeName)]
+    internal interface ISemanticTokensRangeHandler : IJsonRpcRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
+        IRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
+        IRegistrationExtension
+    {
+    }
+
     internal class RazorSemanticTokensEndpoint : ISemanticTokensRangeHandler
     {
         private readonly ILogger _logger;
@@ -57,15 +68,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticTokens;
         }
 
-        public SemanticTokensRegistrationOptions GetRegistrationOptions(SemanticTokensCapability capability, ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new SemanticTokensRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                Full = false,
-                Legend = RazorSemanticTokensLegend.Instance,
-                Range = true,
-            };
+            const string ServerCapability = "semanticTokensProvider";
+
+            return new RegistrationExtensionResult(ServerCapability,
+                new SemanticTokensRegistrationOptions(full: false, legend: RazorSemanticTokensLegend.Instance, range: true));
         }
+    }
+
+    public class SemanticTokensRegistrationOptions
+    {
+        public SemanticTokensRegistrationOptions(bool full, SemanticTokensLegend legend, bool range)
+        {
+            Full = full;
+            Legend = legend;
+            Range = range;
+        }
+
+        public bool Full { get; }
+        public SemanticTokensLegend Legend { get; }
+        public bool Range { get; }
     }
 }
