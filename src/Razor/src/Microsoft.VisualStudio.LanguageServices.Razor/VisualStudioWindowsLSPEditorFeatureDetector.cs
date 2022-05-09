@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -28,8 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
         private readonly Lazy<bool> _useLegacyEditor;
 
+        private readonly RazorLogger _logger;
+
         [ImportingConstructor]
-        public VisualStudioWindowsLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver)
+        public VisualStudioWindowsLSPEditorFeatureDetector(AggregateProjectCapabilityResolver projectCapabilityResolver, RazorLogger logger)
         {
             _projectCapabilityResolver = projectCapabilityResolver;
             _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
@@ -55,6 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
                 return useLegacyEditor;
             });
+
+            _logger = logger;
         }
 
         [Obsolete("Test constructor")]
@@ -69,19 +74,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             if (documentMoniker is null)
             {
 #if INTEGRATION_TESTS
-                throw new ArgumentNullException($"LSP Editor not available because {nameof(documentMoniker)} is null");
-#else
-                return false;
+                _logger.LogWarning($"LSP Editor not available because {nameof(documentMoniker)} is null");
 #endif
+                return false;
             }
 
             if (!IsLSPEditorAvailable())
             {
 #if INTEGRATION_TESTS
-                throw new InvalidOperationException($"Using Legacy editor because the option was set to true");
-#else
-                return false;
+                _logger.LogWarning($"Using Legacy editor because the option was set to true");
 #endif
+                return false;
             }
 
             var ivsHierarchy = hierarchy as IVsHierarchy;
@@ -89,10 +92,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
 #if INTEGRATION_TESTS
-                throw new InvalidOperationException($"Using Legacy editor because the current project does not support LSP Editor");
-#else
-                return false;
+                _logger.LogWarning($"Using Legacy editor because the current project does not support LSP Editor");
 #endif
+                return false;
             }
 
             return true;
@@ -120,15 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 #if INTEGRATION_TESTS
                     if (!ErrorHandler.Succeeded(hr))
                     {
-                        throw new InvalidOperationException($"Project does not support LSP Editor beccause {nameof(_vsUIShellOpenDocument.Value.IsDocumentInAProject)} failed with exit code {hr}");
+                        _logger.LogWarning($"Project does not support LSP Editor beccause {nameof(_vsUIShellOpenDocument.Value.IsDocumentInAProject)} failed with exit code {hr}");
                     }
                     else if (hierarchy is null)
                     {
-                        throw new InvalidOperationException($"Project does not support LSP Editro because {nameof(hierarchy)} is null");
+                        _logger.LogWarning($"Project does not support LSP Editro because {nameof(hierarchy)} is null");
                     }
-#else
-                    return false;
 #endif
+                    return false;
                 }
             }
 
@@ -138,11 +139,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
             {
 #if INTEGRATION_TESTS
-                throw new InvalidOperationException($"Project does not support LSP Editor because '{documentMoniker}' has Capability {LegacyRazorEditorCapability}");
-#else
+                _logger.LogWarning($"Project does not support LSP Editor because '{documentMoniker}' has Capability {LegacyRazorEditorCapability}");
+#endif
                 // CPS project that requires the legacy editor
                 return false;
-#endif
             }
 
             if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, DotNetCoreCSharpCapability))
@@ -152,11 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             }
 
 #if INTEGRATION_TESTS
-            throw new InvalidOperationException($"Project {documentMoniker} does not support LSP Editor because it does not have the {DotNetCoreCSharpCapability} capability.");
-#else
+            _logger.LogWarning($"Project {documentMoniker} does not support LSP Editor because it does not have the {DotNetCoreCSharpCapability} capability.");
+#endif
             // Not a C# .NET Core project. This typically happens for legacy Razor scenarios
             return false;
-#endif
         }
 
         // Private protected virtual for testing
