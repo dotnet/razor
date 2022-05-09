@@ -68,19 +68,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
             if (documentMoniker is null)
             {
+#if INTEGRATION_TESTS
+                throw new ArgumentNullException($"LSP Editor not available because {nameof(documentMoniker)} is null");
+#else
                 return false;
+#endif
             }
 
             if (!IsLSPEditorAvailable())
             {
+#if INTEGRATION_TESTS
+                throw new InvalidOperationException($"Using Legacy editor because the option was set to true");
+#else
                 return false;
+#endif
             }
 
             var ivsHierarchy = hierarchy as IVsHierarchy;
             if (!ProjectSupportsLSPEditor(documentMoniker, ivsHierarchy))
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
+#if INTEGRATION_TESTS
+                throw new InvalidOperationException($"Using Legacy editor because the current project does not support LSP Editor");
+#else
                 return false;
+#endif
             }
 
             return true;
@@ -105,7 +117,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 hierarchy = uiHierarchy;
                 if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
                 {
+#if INTEGRATION_TESTS
+                    if (!ErrorHandler.Succeeded(hr))
+                    {
+                        throw new InvalidOperationException($"Project does not support LSP Editor beccause {nameof(_vsUIShellOpenDocument.Value.IsDocumentInAProject)} failed with exit code {hr}");
+                    }
+                    else if (hierarchy is null)
+                    {
+                        throw new InvalidOperationException($"Project does not support LSP Editro because {nameof(hierarchy)} is null");
+                    }
+#else
                     return false;
+#endif
                 }
             }
 
@@ -114,8 +137,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             // those types of scenarios for the new .NET Core Razor editor.
             if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
             {
+#if INTEGRATION_TESTS
+                throw new InvalidOperationException($"Project does not support LSP Editor because '{documentMoniker}' has Capability {LegacyRazorEditorCapability}");
+#else
                 // CPS project that requires the legacy editor
                 return false;
+#endif
             }
 
             if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, DotNetCoreCSharpCapability))
@@ -124,8 +151,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return true;
             }
 
+#if INTEGRATION_TESTS
+            throw new InvalidOperationException($"Project {documentMoniker} does not support LSP Editor because it does not have the {DotNetCoreCSharpCapability} capability.");
+#else
             // Not a C# .NET Core project. This typically happens for legacy Razor scenarios
             return false;
+#endif
         }
 
         // Private protected virtual for testing
