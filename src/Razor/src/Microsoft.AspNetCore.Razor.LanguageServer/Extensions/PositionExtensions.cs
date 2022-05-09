@@ -12,14 +12,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {
-        public static VS.Position AsVSPosition(this Position position)
-        {
-            return new VS.Position(position.Line, position.Character);
-        }
-
-        public static Position AsOSharpPosition(this VS.Position position)
+        public static Position AsVSPosition(this OmniSharpPosition position)
         {
             return new Position(position.Line, position.Character);
+        }
+
+        public static OmniSharpPosition AsOSharpPosition(this Position position)
+        {
+            return new OmniSharpPosition(position.Line, position.Character);
         }
 
         public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
