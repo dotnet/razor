@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             int lastResultId,
             IReadOnlyCollection<TagHelperDescriptor> currentTagHelpers)
         {
-            var deltaApplied = true;
-            if (!_resultCache.TryGet(projectFilePath, lastResultId, out var cachedTagHelpers))
+            var cacheHit = _resultCache.TryGet(projectFilePath, lastResultId, out var cachedTagHelpers);
+            if (!cacheHit)
             {
-                deltaApplied = false;
                 cachedTagHelpers = Array.Empty<TagHelperDescriptor>();
             }
 
@@ -43,8 +42,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                     resultId = ++_currentResultId;
                     _resultCache.Set(projectFilePath, resultId, currentTagHelpers);
                 }
+                else if (cacheHit)
+                {
+                    // Re-use existing result ID if we've hit he cache so next time we get asked we hit again.
+                    resultId = lastResultId;
+                }
 
-                var result = new TagHelperDeltaResult(deltaApplied, resultId, added, removed);
+                var result = new TagHelperDeltaResult(cacheHit, resultId, added, removed);
                 return result;
             }
         }
