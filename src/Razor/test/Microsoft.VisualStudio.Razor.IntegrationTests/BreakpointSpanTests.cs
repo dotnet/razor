@@ -12,23 +12,23 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task SetBreakpoint_FirstCharacter_SpanAdjusts()
         {
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync("<p>@{ var abc = 123; }</p>", HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync("<p>@{ var abc = 123; }</p>", ControlledHangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Debugger.SetBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 1, character: 1, HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 1, character: 1, ControlledHangMitigatingCancellationToken);
 
             // Assert
-            await TestServices.Debugger.VerifyBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 1, character: 7, HangMitigatingCancellationToken);
+            await TestServices.Debugger.VerifyBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 1, character: 7, ControlledHangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task SetBreakpoint_FirstCharacter_InvalidLine()
         {
-            var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
+            var version = await TestServices.Shell.GetVersionAsync(ControlledHangMitigatingCancellationToken);
             if (version < new System.Version(17, 3, 32412, 127))
             {
                 // Functionality under test was added in v17.3-Preview1 (17.3.32412.127) so this test will
@@ -39,16 +39,16 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(@"<p>@{
     var abc = 123;
-}</p>", HangMitigatingCancellationToken);
+}</p>", ControlledHangMitigatingCancellationToken);
 
             // Act
-            var result = await TestServices.Debugger.SetBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 1, character: 1, HangMitigatingCancellationToken);
+            var result = await TestServices.Debugger.SetBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 1, character: 1, ControlledHangMitigatingCancellationToken);
 
             // Assert
             Assert.False(result);
@@ -58,19 +58,19 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task SetBreakpoint_FirstCharacter_ValidLine()
         {
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(@"<p>@{
     var abc = 123;
-}</p>", HangMitigatingCancellationToken);
+}</p>", ControlledHangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Debugger.SetBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 2, character: 1, HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 2, character: 1, ControlledHangMitigatingCancellationToken);
 
             // Assert
-            await TestServices.Debugger.VerifyBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 2, character: 4, HangMitigatingCancellationToken);
+            await TestServices.Debugger.VerifyBreakpointAsync(RazorProjectConstants.CounterRazorFile, line: 2, character: 4, ControlledHangMitigatingCancellationToken);
         }
     }
 }

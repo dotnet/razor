@@ -36,39 +36,39 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, ControlledHangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task Components_AreColored()
         {
             // Arrange
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement", 3);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", 3);
 
             // Assert
-            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
-            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task Directives_AreColored()
         {
             // Arrange
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
 
             // Act and Assert
-            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
-            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
         }
 
         private async Task<IEnumerable<ClassificationSpan>> GetExpectedClassificationSpansAsync(string testName, CancellationToken cancellationToken)
         {
-            var snapshot = await TestServices.Editor.GetActiveSnapshotAsync(HangMitigatingCancellationToken);
+            var snapshot = await TestServices.Editor.GetActiveSnapshotAsync(ControlledHangMitigatingCancellationToken);
 
             if (GenerateBaselines)
             {

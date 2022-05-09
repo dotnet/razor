@@ -24,28 +24,28 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             VisualStudioLogging.AddCustomLoggers();
 
-            await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", ControlledHangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
 
             // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
-            await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ModifiedIndexRazorFile, RazorProjectConstants.IndexPageContent, open: true, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ModifiedIndexRazorFile, RazorProjectConstants.IndexPageContent, open: true, ControlledHangMitigatingCancellationToken);
 
             // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-            await EnsureExtensionInstalledAsync(HangMitigatingCancellationToken);
+            await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
-            await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
         }
 
         private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)

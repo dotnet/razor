@@ -16,7 +16,7 @@ public class OnEnterRulesTests : AbstractRazorEditorTest
 <button class='classifier'></button>
 ");
         // Act
-        await TestServices.Editor.PlaceCaretAsync(">", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync(">", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
         TestServices.Input.Send("A");
 
@@ -25,7 +25,7 @@ public class OnEnterRulesTests : AbstractRazorEditorTest
 <button class='classifier'>
     A
 </button>
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -37,7 +37,7 @@ public class OnEnterRulesTests : AbstractRazorEditorTest
 ");
 
         // Act
-        await TestServices.Editor.PlaceCaretAsync("</button>", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("</button>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
         TestServices.Input.Send("A");
 
@@ -45,7 +45,7 @@ public class OnEnterRulesTests : AbstractRazorEditorTest
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button stuff></button>
 A
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -57,7 +57,7 @@ A
 ");
 
         // Act
-        await TestServices.Editor.PlaceCaretAsync("button", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("button", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
         TestServices.Input.Send("{ENTER}");
 
@@ -65,7 +65,7 @@ A
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button
     class='thing' stuff></button>
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -77,14 +77,14 @@ A
 ");
 
         // Act
-        await TestServices.Editor.PlaceCaretAsync("stuff", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("stuff", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
 
         // Assert
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button class='someclass' @onclick='thing' stuff
     ></button>
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -96,14 +96,14 @@ A
 ");
 
         // Act
-        await TestServices.Editor.PlaceCaretAsync("button", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("button", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
 
         // Assert
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button
     class=""someclass"" @onclick='thing' stuff ></button>
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -115,14 +115,14 @@ A
 ");
 
         // Act
-        await TestServices.Editor.PlaceCaretAsync("@onclick='thing'", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("@onclick='thing'", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
 
         // Assert
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button class='someclass' @onclick='thing'
     stuff ></button>
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -134,21 +134,21 @@ A
 ");
 
         // Act
-        await TestServices.Editor.PlaceCaretAsync("button", charsOffset: 1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("button", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{ENTER}");
 
         // Assert
         await TestServices.Editor.VerifyTextContainsAsync(@"
 <button
     class='thing' stuff
-", HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
     }
 
     private async Task PrepareDocumentAsync(string content)
     {
         // Arrange
-        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, HangMitigatingCancellationToken);
-        await TestServices.Editor.SetTextAsync(content, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync(content, ControlledHangMitigatingCancellationToken);
     }
 }
 
