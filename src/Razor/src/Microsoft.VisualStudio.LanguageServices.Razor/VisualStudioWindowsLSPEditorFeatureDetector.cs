@@ -71,11 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override bool IsLSPEditorAvailable(string documentMoniker, object hierarchy)
         {
+            _logger.LogVerbose("Checking if LSP Editor is available");
             if (documentMoniker is null)
             {
-#if INTEGRATION_TESTS
                 _logger.LogWarning($"LSP Editor not available because {nameof(documentMoniker)} is null");
-#endif
                 return false;
             }
 
@@ -119,7 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 hierarchy = uiHierarchy;
                 if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
                 {
-#if INTEGRATION_TESTS
                     if (!ErrorHandler.Succeeded(hr))
                     {
                         _logger.LogWarning($"Project does not support LSP Editor beccause {nameof(_vsUIShellOpenDocument.Value.IsDocumentInAProject)} failed with exit code {hr}");
@@ -128,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                     {
                         _logger.LogWarning($"Project does not support LSP Editro because {nameof(hierarchy)} is null");
                     }
-#endif
+
                     return false;
                 }
             }
