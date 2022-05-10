@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
@@ -40,12 +41,20 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
+            await EnsureTextViewRolesAsync(ControlledHangMitigatingCancellationToken);
             await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
 
             await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
+        }
+
+        private async Task EnsureTextViewRolesAsync(CancellationToken cancellationToken)
+        {
+            var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var contentType = textView.TextSnapshot.ContentType;
+            Assert.AreEqual("Razor", contentType.TypeName);
         }
 
         private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)

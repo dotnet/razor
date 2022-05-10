@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         private readonly static TimeSpan s_shortHangMitigatingTimeout = new(hours: 0, minutes: 1, seconds: 0);
         private readonly CancellationTokenSource _shortHangMitigatingCancellationTokenSource = new(s_shortHangMitigatingTimeout);
 
-        protected CancellationToken ControlledHangMitigatingCancellationToken => _shortHangMitigatingCancellationTokenSource.Token;
+        protected CancellationToken ControlledHangMitigatingCancellationToken => HangMitigatingCancellationToken; //_shortHangMitigatingCancellationTokenSource.Token;
 
         public override async Task InitializeAsync()
         {
