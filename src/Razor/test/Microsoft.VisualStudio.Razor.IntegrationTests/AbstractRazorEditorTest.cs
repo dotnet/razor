@@ -6,7 +6,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Xunit.Harness;
@@ -15,6 +17,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public abstract class AbstractRazorEditorTest : AbstractEditorTest
     {
+        private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
         private const string RazorComponentElementClassification = "RazorComponentElement";
 
         protected override string LanguageName => LanguageNames.Razor;
@@ -41,6 +44,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
+            EnsureLSPEditorEnabled();
             await EnsureTextViewRolesAsync(ControlledHangMitigatingCancellationToken);
             await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
 
@@ -48,6 +52,15 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             // Close the file we opened, just in case, so the test can start with a clean slate
             await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
+        }
+
+        private void EnsureLSPEditorEnabled()
+        {
+            var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            Assumes.Present(settingsManager);
+
+            var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+            Assert.AreEqual(false, useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
         }
 
         private async Task EnsureTextViewRolesAsync(CancellationToken cancellationToken)
