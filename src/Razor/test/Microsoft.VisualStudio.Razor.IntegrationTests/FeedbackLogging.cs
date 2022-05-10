@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
@@ -21,6 +23,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public const string LogHubLogId = "RazorLogHub";
         public const string ServiceHubLogId = "ServiceHubLog";
         public const string ComponentModelCacheId = "ComponentModelCache";
+        public const string ExtensionDirectoryId = "ExtensionDirectory";
 
         private static readonly object s_lockObj = new();
 
@@ -35,6 +38,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     DataCollectionService.RegisterCustomLogger(RazorLogHubLogger, LogHubLogId, "zip");
                     DataCollectionService.RegisterCustomLogger(RazorServiceHubLogger, ServiceHubLogId, "zip");
                     DataCollectionService.RegisterCustomLogger(RazorComponentModelCacheLogger, ComponentModelCacheId, "zip");
+                    DataCollectionService.RegisterCustomLogger(RazorExtensionExplorerLogger, ExtensionDirectoryId, "txt");
 
                     s_customLoggersAdded = true;
                 }
@@ -75,6 +79,53 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             _ = CollectFeedbackItemsAsync(files, filePath, expectedFilePart);
+        }
+
+        private static void RazorExtensionExplorerLogger(string filePath)
+        {
+            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
+            var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
+            var directories = Directory.GetDirectories(vsLocalDir, "17*RoslynDev", SearchOption.TopDirectoryOnly);
+            var fileBuilder = new StringBuilder("LocalVSDirectories:");
+            fileBuilder.AppendLine();
+            foreach (var dir in directories)
+            {
+                fileBuilder.Append("  ");
+                fileBuilder.AppendLine(dir);
+            }
+
+            var hiveDirectories = directories.Where(d => !d.Contains("$"));
+            if (hiveDirectories.Count() != 1)
+            {
+                fileBuilder.Append("Expected 1 hive but found ");
+                fileBuilder.AppendLine(hiveDirectories.Count().ToString());
+            }
+
+            foreach(var hiveDirectory in hiveDirectories)
+            {
+                var extensionsDir = Path.Combine(hiveDirectory, "Extensions");
+                var compatListFile = Path.Combine(extensionsDir, "CompatibilityList.xml");
+                if (File.Exists(compatListFile))
+                {
+                    var compatListContent = File.ReadAllText(compatListFile);
+                    fileBuilder.AppendLine("CompatListContents:");
+                    fileBuilder.AppendLine(compatListContent);
+                }
+                else
+                {
+                    fileBuilder.AppendLine("Missing CompatList file");
+                }
+
+                var microsoftDir = Path.Combine(extensionsDir, "Microsoft");
+                var msExtensionFiles = Directory.EnumerateFiles(microsoftDir, "*", SearchOption.AllDirectories);
+                foreach(var msExtensionFile in msExtensionFiles)
+                {
+                    fileBuilder.Append("  ");
+                    fileBuilder.AppendLine(msExtensionFile);
+                }
+            }
+
+            File.WriteAllText(filePath, fileBuilder.ToString());
         }
 
         private static void RazorOutputPaneLogger(string filePath)
