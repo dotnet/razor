@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(VSIX_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" />
     <PackageReference Include="OmniSharp.MSBuild" Version="$(OmniSharpMSBuildPackageVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildPackageVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpPackageVersion)" />
   </ItemGroup>
 
 </Project>

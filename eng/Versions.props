@@ -15,7 +15,7 @@
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
     <MinorVersion>1</MinorVersion>
-    <PatchVersion>24</PatchVersion>
+    <PatchVersion>26</PatchVersion>
     <PreReleaseVersionLabel>servicing</PreReleaseVersionLabel>
     <!--
         When StabilizePackageVersion is set to 'true', this branch will produce stable outputs for 'Shipping' packages
@@ -47,16 +47,16 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.1.23-servicing.22123.2</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
-    <MicrosoftAspNetCoreTestingPackageVersion>3.1.23-servicing.22123.2</MicrosoftAspNetCoreTestingPackageVersion>
-    <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.1.23-servicing.22123.2</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
+    <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.1.24-servicing.22180.2</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
+    <MicrosoftAspNetCoreTestingPackageVersion>3.1.24-servicing.22180.2</MicrosoftAspNetCoreTestingPackageVersion>
+    <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.1.24-servicing.22180.2</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>3.1.6</MicrosoftExtensionsDependencyModelPackageVersion>
-    <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.1.23-servicing.22123.2</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>3.1.23</MicrosoftExtensionsLoggingPackageVersion>
-    <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.1.23-servicing.22123.2</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
+    <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.1.24-servicing.22180.2</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>3.1.24</MicrosoftExtensionsLoggingPackageVersion>
+    <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.1.24-servicing.22180.2</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
     <MicrosoftNETCoreAppRefPackageVersion>3.1.0</MicrosoftNETCoreAppRefPackageVersion>
-    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.1.23</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
-    <MicrosoftNETCoreAppInternalPackageVersion>3.1.23-servicing.22122.4</MicrosoftNETCoreAppInternalPackageVersion>
+    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.1.24</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
+    <MicrosoftNETCoreAppInternalPackageVersion>3.1.24-servicing.22179.7</MicrosoftNETCoreAppInternalPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>3.1.9</MicrosoftNETCorePlatformsPackageVersion>
     <SystemTextJsonPackageVersion>4.7.2</SystemTextJsonPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>4.7.1</SystemDiagnosticsDiagnosticSourcePackageVersion>
@@ -125,6 +125,8 @@
     <VSMAC_NewtonsoftJsonPackageVersion>10.0.3</VSMAC_NewtonsoftJsonPackageVersion>
     <TEST_NewtonsoftJsonPackageVersion>12.0.1</TEST_NewtonsoftJsonPackageVersion>
     <StreamJsonRpcPackageVersion>2.0.167</StreamJsonRpcPackageVersion>
+    <SystemNetHttpPackageVersion>4.3.4</SystemNetHttpPackageVersion>
+    <SystemSecurityCryptographyX509CertificatesPackageVersion>4.3.2</SystemSecurityCryptographyX509CertificatesPackageVersion>
     <VSIX_MicrosoftVisualStudioTelemetryPackageVersion>16.0.4-master</VSIX_MicrosoftVisualStudioTelemetryPackageVersion>
     <VSIX_MicrosoftCodeAnalysisAnalyzersPackageVersion>2.9.4</VSIX_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <VSIX_MicrosoftCodeAnalysisPackageVersion>3.3.0</VSIX_MicrosoftCodeAnalysisPackageVersion>
