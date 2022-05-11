@@ -92,14 +92,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             new SemanticTokenType("extension method name"), // 30
             new SemanticTokenType("field name"),
             new SemanticTokenType("interface name"),
+            new SemanticTokenType("json - array"),
+            new SemanticTokenType("json - comment"),
+            new SemanticTokenType("json - constructor name"),
+            new SemanticTokenType("json - keyword"),
+            new SemanticTokenType("json - number"),
+            new SemanticTokenType("json - object"),
+            new SemanticTokenType("json - operator"),
+            new SemanticTokenType("json - property name"), // 40
+            new SemanticTokenType("json - punctuation"),
+            new SemanticTokenType("json - string"),
+            new SemanticTokenType("json - text"),
             new SemanticTokenType("label name"),
             new SemanticTokenType("local name"),
             new SemanticTokenType("method name"),
             new SemanticTokenType("module name"),
             new SemanticTokenType("namespace name"),
             new SemanticTokenType("operator - overloaded"),
-            new SemanticTokenType("parameter name"),
-            new SemanticTokenType("property name"), // 40
+            new SemanticTokenType("parameter name"), // 50
+            new SemanticTokenType("property name"),
             new SemanticTokenType("preprocessor keyword"),
             new SemanticTokenType("preprocessor text"),
             new SemanticTokenType("punctuation"),
@@ -108,8 +119,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             new SemanticTokenType("regex - alternation"),
             new SemanticTokenType("regex - anchor"),
             new SemanticTokenType("regex - character class"),
-            new SemanticTokenType("regex - comment"),
-            new SemanticTokenType("regex - grouping"), // 50
+            new SemanticTokenType("regex - comment"), // 60
+            new SemanticTokenType("regex - grouping"),
             new SemanticTokenType("regex - other escape"),
             new SemanticTokenType("regex - quantifier"),
             new SemanticTokenType("regex - self escaped character"),
@@ -118,8 +129,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             new SemanticTokenType("struct name"),
             new SemanticTokenType("text"),
             new SemanticTokenType("type parameter name"),
-            new SemanticTokenType("string - verbatim"),
-            new SemanticTokenType("whitespace"), // 60
+            new SemanticTokenType("string - verbatim"), // 70
+            new SemanticTokenType("whitespace"),
             new SemanticTokenType("xml doc comment - attribute name"),
             new SemanticTokenType("xml doc comment - attribute quotes"),
             new SemanticTokenType("xml doc comment - attribute value"),
@@ -128,8 +139,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             new SemanticTokenType("xml doc comment - delimiter"),
             new SemanticTokenType("xml doc comment - entity reference"),
             new SemanticTokenType("xml doc comment - name"),
-            new SemanticTokenType("xml doc comment - processing instruction"),
-            new SemanticTokenType("xml doc comment - text"), // 70
+            new SemanticTokenType("xml doc comment - processing instruction"), // 80
+            new SemanticTokenType("xml doc comment - text"),
             new SemanticTokenType("xml literal - attribute name"),
             new SemanticTokenType("xml literal - attribute quotes"),
             new SemanticTokenType("xml literal - attribute value"),
@@ -138,8 +149,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             new SemanticTokenType("xml literal - delimiter"),
             new SemanticTokenType("xml literal - embedded expression"),
             new SemanticTokenType("xml literal - entity reference"),
-            new SemanticTokenType("xml literal - name"),
-            new SemanticTokenType("xml literal - processing instruction"), // 80
+            new SemanticTokenType("xml literal - name"), // 90
+            new SemanticTokenType("xml literal - processing instruction"),
             new SemanticTokenType("xml literal - text"),
             RazorTagHelperElementType,
             RazorTagHelperAttributeType,
@@ -148,8 +159,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorDirectiveAttributeType,
             RazorDirectiveType,
             RazorCommentType,
-            RazorCommentTransitionType,
-            RazorCommentStarType, // 90
+            RazorCommentTransitionType, // 100
+            RazorCommentStarType,
             MarkupTagDelimiterType,
             MarkupElementType,
             MarkupOperatorType,
@@ -158,8 +169,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             MarkupTextLiteralType,
             MarkupCommentPunctuationType,
             MarkupCommentType,
-            MarkupAttributeValueType,
-            RazorComponentElementType, // 100
+            MarkupAttributeValueType, // 110
+            RazorComponentElementType,
             RazorComponentAttributeType,
         };
 
