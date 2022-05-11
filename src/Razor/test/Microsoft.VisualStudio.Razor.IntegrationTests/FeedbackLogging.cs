@@ -83,25 +83,15 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static void RazorExtensionExplorerLogger(string filePath)
         {
-            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
-            var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
-            var directories = Directory.GetDirectories(vsLocalDir, "17*RoslynDev", SearchOption.TopDirectoryOnly);
-            var fileBuilder = new StringBuilder("LocalVSDirectories:");
-            fileBuilder.AppendLine();
-            foreach (var dir in directories)
-            {
-                fileBuilder.Append("  ");
-                fileBuilder.AppendLine(dir);
-            }
-
-            var hiveDirectories = directories.Where(d => !d.Contains("$"));
+            var hiveDirectories = GetHiveDirectories();
+            var fileBuilder = new StringBuilder();
             if (hiveDirectories.Count() != 1)
             {
                 fileBuilder.Append("Expected 1 hive but found ");
                 fileBuilder.AppendLine(hiveDirectories.Count().ToString());
             }
 
-            foreach(var hiveDirectory in hiveDirectories)
+            foreach (var hiveDirectory in hiveDirectories)
             {
                 var extensionsDir = Path.Combine(hiveDirectory, "Extensions");
                 var compatListFile = Path.Combine(extensionsDir, "CompatibilityList.xml");
@@ -118,7 +108,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
                 var microsoftDir = Path.Combine(extensionsDir, "Microsoft");
                 var msExtensionFiles = Directory.EnumerateFiles(microsoftDir, "*", SearchOption.AllDirectories);
-                foreach(var msExtensionFile in msExtensionFiles)
+                foreach (var msExtensionFile in msExtensionFiles)
                 {
                     fileBuilder.Append("  ");
                     fileBuilder.AppendLine(msExtensionFile);
@@ -126,6 +116,16 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             File.WriteAllText(filePath, fileBuilder.ToString());
+        }
+
+        private static IEnumerable<string> GetHiveDirectories()
+        {
+            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
+            var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
+            var directories = Directory.GetDirectories(vsLocalDir, "17*RoslynDev", SearchOption.TopDirectoryOnly);
+            var hiveDirectories = directories.Where(d => !d.Contains("$"));
+
+            return hiveDirectories;
         }
 
         private static void RazorOutputPaneLogger(string filePath)

@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public abstract class AbstractRazorEditorTest : AbstractEditorTest
     {
+        private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
         private const string RazorComponentElementClassification = "RazorComponentElement";
 
@@ -54,10 +55,13 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
         }
 
-        private void EnsureLSPEditorEnabled()
+        private static void EnsureLSPEditorEnabled()
         {
             var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
             Assumes.Present(settingsManager);
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
+            Assert.AreEqual(false, legacyEditorFeatureFlagEnabled, "Expected Legacy Editor Feature Flag to be disabled, but it was enabled");
 
             var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
             Assert.AreEqual(false, useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
