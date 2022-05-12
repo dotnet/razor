@@ -17,6 +17,7 @@ steps:
 
   # We explicitly pass the VS install directory in azure-pipelines-integration-dartlab.yml
   - powershell: |
+      & "C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDevExp /updateConfiguration
       if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RoslynDevExp)
       {
         Write-Host "The hive 'RoslynDevExp' exists"
@@ -24,7 +25,7 @@ steps:
       else{
         throw "Failed to create hive"
       }
-    displayName: Verify that hive exists
+    displayName: Create and Verify hive
 
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
