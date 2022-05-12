@@ -21,289 +21,304 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task CodeBlock_SpansMultipleLines()
         {
             await RunFormattingTestAsync(
-input: @"
-@code
-        {
-    private int currentCount = 0;
+                input: """
+                    @code
+                            {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-expected: @"@code
-{
-    private int currentCount = 0;
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                expected: """
+                    @code
+                    {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-");
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task CodeBlock_IndentedBlock_MaintainsIndent()
         {
             await RunFormattingTestAsync(
-input: @"
-<boo>
-    @code
-            {
-        private int currentCount = 0;
+                input: """
+                    <boo>
+                        @code
+                                {
+                            private int currentCount = 0;
 
-        private void IncrementCount()
-        {
-            currentCount++;
-        }
-    }
-</boo>
-",
-expected: @"
-<boo>
-    @code
-    {
-        private int currentCount = 0;
+                            private void IncrementCount()
+                            {
+                                currentCount++;
+                            }
+                        }
+                    </boo>
+                    """,
+                expected: """
+                    <boo>
+                        @code
+                        {
+                            private int currentCount = 0;
 
-        private void IncrementCount()
-        {
-            currentCount++;
-        }
-    }
-</boo>
-");
+                            private void IncrementCount()
+                            {
+                                currentCount++;
+                            }
+                        }
+                    </boo>
+                    """);
         }
 
         [Fact]
         public async Task CodeBlock_TooMuchWhitespace()
         {
             await RunFormattingTestAsync(
-input: @"
-@code        {
-    private int currentCount = 0;
+                input: """
+                    @code        {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-expected: @"@code {
-    private int currentCount = 0;
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-");
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task CodeBlock_NonSpaceWhitespace()
         {
             await RunFormattingTestAsync(
-input: @"
-@code	{
-    private int currentCount = 0;
+                input: """
+                    @code	{
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-expected: @"@code {
-    private int currentCount = 0;
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-");
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task CodeBlock_NoWhitespace()
         {
             await RunFormattingTestAsync(
-input: @"
-@code{
-    private int currentCount = 0;
+                input: """
+                    @code{
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-expected: @"@code {
-    private int currentCount = 0;
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-");
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task FunctionsBlock_BraceOnNewLine()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions
-        {
-    private int currentCount = 0;
+                input: """
+                    @functions
+                            {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-expected: @"@functions
-{
-    private int currentCount = 0;
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                expected: """
+                    @functions
+                    {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-fileKind: FileKinds.Legacy);
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task FunctionsBlock_TooManySpaces()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions        {
-    private int currentCount = 0;
+                input: """
+                    @functions        {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-expected: @"@functions {
-    private int currentCount = 0;
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-",
-fileKind: FileKinds.Legacy);
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task Layout()
         {
             await RunFormattingTestAsync(
-input: @"
-@layout    MyLayout
-",
-expected: @"@layout MyLayout
-");
+                input: """
+                    @layout    MyLayout
+                    """,
+                expected: """
+                    @layout MyLayout
+                    """);
         }
 
         [Fact]
         public async Task Inherits()
         {
             await RunFormattingTestAsync(
-input: @"
-@inherits    MyBaseClass
-",
-expected: @"@inherits MyBaseClass
-");
+                input: """
+                    @inherits    MyBaseClass
+                    """,
+                expected: """
+                    @inherits MyBaseClass
+                    """);
         }
 
         [Fact]
         public async Task Implements()
         {
             await RunFormattingTestAsync(
-input: @"
-@implements    IDisposable
-",
-expected: @"@implements IDisposable
-");
+                input: """
+                    @implements    IDisposable
+                    """,
+                expected: """
+                    @implements IDisposable
+                    """);
         }
 
         [Fact]
         public async Task PreserveWhitespace()
         {
             await RunFormattingTestAsync(
-input: @"
-@preservewhitespace    true
-",
-expected: @"@preservewhitespace true
-");
+                input: """
+                    @preservewhitespace    true
+                    """,
+                expected: """
+                    @preservewhitespace true
+                    """);
         }
 
         [Fact]
         public async Task Inject()
         {
             await RunFormattingTestAsync(
-input: @"
-@inject    MyClass     myClass
-",
-expected: @"@inject MyClass myClass
-");
+                input: """
+                    @inject    MyClass     myClass
+                    """,
+                expected: """
+                    @inject MyClass myClass
+                    """);
         }
 
         [Fact]
         public async Task Inject_TrailingWhitespace()
         {
             await RunFormattingTestAsync(
-input: @"
-@inject    MyClass     myClass
-",
-expected: @"@inject MyClass myClass
-");
+                input: """
+                    @inject    MyClass     myClass
+                    """,
+                expected: """
+                    @inject MyClass myClass
+                    """);
         }
 
         [Fact]
         public async Task Attribute()
         {
             await RunFormattingTestAsync(
-input: @"
-@attribute     [Obsolete(   ""asdf""   , error:    false)]
-",
-expected: @"@attribute [Obsolete(""asdf"", error: false)]
-");
+                input: """
+                    @attribute     [Obsolete(   "asdf"   , error:    false)]
+                    """,
+                expected: """
+                    @attribute [Obsolete("asdf", error: false)]
+                    """);
         }
 
         [Fact]
         public async Task Model()
         {
             await RunFormattingTestAsync(
-input: @"
-@model    MyModel
-",
-expected: @"@model MyModel
-",
-            fileKind: FileKinds.Legacy);
+                input: """
+                    @model    MyModel
+                    """,
+                expected: """
+                    @model MyModel
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task Page()
         {
             await RunFormattingTestAsync(
-input: @"
-@page    ""MyPage""
-",
-expected: @"@page ""MyPage""
-",
-            fileKind: FileKinds.Legacy);
+                input: """
+                    @page    "MyPage"
+                    """,
+                expected: """
+                    @page "MyPage"
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         // Regression prevention tests:
@@ -311,53 +326,57 @@ expected: @"@page ""MyPage""
         public async Task Using()
         {
             await RunFormattingTestAsync(
-input: @"
-@using   System;
-",
-expected: @"@using System;
-");
+                input: """
+                    @using   System;
+                    """,
+                expected: """
+                    @using System;
+                    """);
         }
 
         [Fact]
         public async Task UsingStatic()
         {
             await RunFormattingTestAsync(
-input: @"
-@using  static   System.Math;
-",
-expected: @"@using static System.Math;
-");
+                input: """
+                    @using  static   System.Math;
+                    """,
+                expected: """
+                    @using static System.Math;
+                    """);
         }
 
         [Fact]
         public async Task UsingAlias()
         {
             await RunFormattingTestAsync(
-input: @"
-@using  M   =    System.Math;
-",
-expected: @"@using M = System.Math;
-");
+                input: """
+                    @using  M   =    System.Math;
+                    """,
+                expected: """
+                    @using M = System.Math;
+                    """);
         }
 
         [Fact]
         public async Task TagHelpers()
         {
             await RunFormattingTestAsync(
-input: @"
-@addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
-@removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
-@addTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
-@removeTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
-@tagHelperPrefix    th:
-",
-expected: @"@addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
-@removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
-@addTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
-@removeTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
-@tagHelperPrefix    th:
-",
-            fileKind: FileKinds.Legacy);
+                input: """
+                    @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
+                    @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
+                    @addTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
+                    @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
+                    @tagHelperPrefix    th:
+                    """,
+                expected: """
+                    @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
+                    @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
+                    @addTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
+                    @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
+                    @tagHelperPrefix    th:
+                    """,
+                fileKind: FileKinds.Legacy);
         }
     }
 }
