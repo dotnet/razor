@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     /// <item><description><see cref="IDisposable.Dispose"/></description></item>
     /// </list>
     /// </remarks>
-    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev")]
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDevExp")]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
         protected const string ProjectName = "TestProj";

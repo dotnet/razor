@@ -2,8 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
-    <!-- Use the RoslynDev Experimental instance so we can mingle with local builds of Roslyn -->
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDevExp</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Required to run the project localy -->
     <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
