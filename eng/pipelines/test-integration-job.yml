@@ -15,7 +15,8 @@ steps:
     inputs:
       versionSpec: 10.x
 
-  - script: '"$env:VSPATH\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDevExp /updateConfiguration"'
+  - powershell: |
+      '"$visualStudioInstallationPath\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDevExp /updateConfiguration"'
     displayName: Force creation and completion of the Experimental Hive
 
   - script: eng\cibuild.cmd
