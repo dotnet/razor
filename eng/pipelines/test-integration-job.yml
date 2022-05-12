@@ -15,8 +15,9 @@ steps:
     inputs:
       versionSpec: 10.x
 
+  # We explicitly pass the VS install directory in azure-pipelines-integration-dartlab.yml
   - powershell: |
-      '"${{ parameters.visualStudioInstallationPath }}\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDevExp /updateConfiguration"'
+      & "C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDevExp /updateConfiguration
     displayName: Force creation and completion of the Experimental Hive
 
   - script: eng\cibuild.cmd
