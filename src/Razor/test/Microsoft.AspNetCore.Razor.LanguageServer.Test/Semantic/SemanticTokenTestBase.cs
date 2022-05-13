@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
@@ -128,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 using var workspace = CreateTestWorkspace(files, exportProvider);
                 await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
 
-                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParamsBridge, VSSemanticTokensResponse>(
                     Methods.TextDocumentSemanticTokensRangeName,
                     CreateVSSemanticTokensRangeParams(csharpRange, documentUri), CancellationToken.None);
 
@@ -152,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpRange;
         }
 
-        internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+        internal static SemanticTokensRangeParamsBridge CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
             => new()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },

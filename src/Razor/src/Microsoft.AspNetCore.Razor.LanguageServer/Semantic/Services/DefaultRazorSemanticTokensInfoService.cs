@@ -413,7 +413,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }, cancellationToken);
         }
-
-        private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens);
     }
 }

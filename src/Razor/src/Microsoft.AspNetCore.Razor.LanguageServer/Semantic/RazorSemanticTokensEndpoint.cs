@@ -5,25 +5,13 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
-using VSSemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class SemanticTokensRangeParams : VSSemanticTokensRangeParams, IRequest<SemanticTokens?>
-    { }
-
-    [Parallel, Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal interface ISemanticTokensRangeHandler : IJsonRpcRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
-        IRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
-        IRegistrationExtension
-    {
-    }
-
     internal class RazorSemanticTokensEndpoint : ISemanticTokensRangeHandler
     {
         private readonly ILogger _logger;
@@ -47,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
-        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
+        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParamsBridge request, CancellationToken cancellationToken)
         {
             if (request is null)
             {

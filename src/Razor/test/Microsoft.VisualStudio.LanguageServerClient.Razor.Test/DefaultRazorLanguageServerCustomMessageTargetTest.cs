@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
@@ -21,10 +22,8 @@ using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using VSModels = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using SemanticTokensRangeParams = Microsoft.AspNetCore.Razor.LanguageServer.Semantic.SemanticTokensRangeParams;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
+using VSModels = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -499,11 +498,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedResults = new SemanticTokens { };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, SemanticTokens>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParamsBridge, SemanticTokens>(
                 TextBuffer,
                 Methods.TextDocumentSemanticTokensRangeName,
                 LanguageServerKind.CSharp.ToContentType(),
-                It.IsAny<SemanticTokensRangeParams>(),
+                It.IsAny<SemanticTokensRangeParamsBridge>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvocationResponse<SemanticTokens>("languageClient", expectedResults)));
 
