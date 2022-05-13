@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         {
             var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
             var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
-            var directories = Directory.GetDirectories(vsLocalDir, "17*RoslynDevExp", SearchOption.TopDirectoryOnly);
+            var directories = Directory.GetDirectories(vsLocalDir, "17*RoslynDev", SearchOption.TopDirectoryOnly);
             var hiveDirectories = directories.Where(d => !d.Contains("$"));
 
             return hiveDirectories;

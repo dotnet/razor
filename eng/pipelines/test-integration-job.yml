@@ -17,10 +17,10 @@ steps:
 
   # We explicitly pass the VS install directory in azure-pipelines-integration-dartlab.yml
   - powershell: |
-      & "C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDevExp /updateConfiguration
-      if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RoslynDevExp)
+      & "C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDev /updateConfiguration
+      if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RoslynDev)
       {
-        Write-Host "The hive 'RoslynDevExp' exists"
+        Write-Host "The hive 'RoslynDev' exists"
       }
       else{
         throw "Failed to create hive"
@@ -35,7 +35,6 @@ steps:
       -build
       -pack
       -publish
-      /p:IntegrationTestBuild=true
     name: Build
     displayName: Build
     condition: succeeded()
@@ -56,7 +55,6 @@ steps:
       -prepareMachine
       /p:BuildVsix=true
       /p:BuildProjectReferences=false
-      /p:IntegrationTestBuild=true
     name: BuildVSIX
     displayName: Build and Deploy VSIX
     condition: succeeded()
@@ -77,7 +75,6 @@ steps:
       -prepareMachine
       -integrationTest
       /p:BuildProjectReferences=false
-      /p:IntegrationTestBuild=true
     name: RunIntegrationTests
     displayName: Run Integration Tests
     condition: succeeded()

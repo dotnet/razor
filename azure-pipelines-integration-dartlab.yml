@@ -50,6 +50,7 @@ stages:
       inputs:
         filePath: $(DartLab.Path)\Scripts\VisualStudio\Build\Get-VisualStudioDropName.ps1
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
+
     deployAndRunTestsStepList:
     - checkout: RazorMirror
     - template: eng/pipelines/test-integration-job.yml

@@ -80,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             if (!IsLSPEditorAvailable())
             {
-#if INTEGRATION_TESTS
-                _logger.LogWarning($"Using Legacy editor because the option was set to true");
-#endif
+                _logger.LogVerbose($"Using Legacy editor because the option was set to true");
                 return false;
             }
 
@@ -90,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             if (!ProjectSupportsLSPEditor(documentMoniker, ivsHierarchy))
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
-#if INTEGRATION_TESTS
-                _logger.LogWarning($"Using Legacy editor because the current project does not support LSP Editor");
-#endif
+                _logger.LogVerbose($"Using Legacy editor because the current project does not support LSP Editor");
                 return false;
             }
 
@@ -124,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                     }
                     else if (hierarchy is null)
                     {
-                        _logger.LogWarning($"Project does not support LSP Editro because {nameof(hierarchy)} is null");
+                        _logger.LogWarning($"Project does not support LSP Editor because {nameof(hierarchy)} is null");
                     }
 
                     return false;
@@ -136,9 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             // those types of scenarios for the new .NET Core Razor editor.
             if (_projectCapabilityResolver.HasCapability(documentMoniker, hierarchy, LegacyRazorEditorCapability))
             {
-#if INTEGRATION_TESTS
-                _logger.LogWarning($"Project does not support LSP Editor because '{documentMoniker}' has Capability {LegacyRazorEditorCapability}");
-#endif
+                _logger.LogVerbose($"Project does not support LSP Editor because '{documentMoniker}' has Capability {LegacyRazorEditorCapability}");
                 // CPS project that requires the legacy editor
                 return false;
             }
@@ -149,9 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return true;
             }
 
-#if INTEGRATION_TESTS
-            _logger.LogWarning($"Project {documentMoniker} does not support LSP Editor because it does not have the {DotNetCoreCSharpCapability} capability.");
-#endif
+            _logger.LogVerbose($"Project {documentMoniker} does not support LSP Editor because it does not have the {DotNetCoreCSharpCapability} capability.");
             // Not a C# .NET Core project. This typically happens for legacy Razor scenarios
             return false;
         }

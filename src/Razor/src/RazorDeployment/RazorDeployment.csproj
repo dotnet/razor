@@ -8,7 +8,7 @@
 
     <TargetFramework>net472</TargetFramework>
 
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDevExp</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>
     <!-- References the main RazorExtension vsix to ensure all the actual code is deployed to the hive. -->

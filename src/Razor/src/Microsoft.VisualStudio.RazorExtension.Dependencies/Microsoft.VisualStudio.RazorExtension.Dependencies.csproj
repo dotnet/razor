@@ -10,7 +10,7 @@
 
     <TargetFramework>net472</TargetFramework>
 
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDevExp</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
