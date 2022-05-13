@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
         #region CSharp
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_RazorIfNotReady()
         {
             var documentText = @"<p></p>@{
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharpBlock_HTML()
         {
             var documentText = @"@{
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_Nested_HTML()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_VSCodeWorks()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_Explicit()
         {
             var documentText = @$"@addTagHelper *, TestAssembly
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_Implicit()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_VersionMismatch()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 21);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_FunctionAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_CSharp_StaticModifier()
         {
             var documentText = @"@code
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         #endregion
 
         #region HTML
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_MultipleBlankLines()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -207,7 +207,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_IncompleteTag()
         {
             var documentText = @"<str class='
@@ -223,7 +223,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_MinimizedHTMLAttribute()
         {
             var documentText = @"<p attr />
@@ -239,7 +239,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_MinimizedHTMLAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -256,7 +256,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_HTMLCommentAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -273,7 +273,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_PartialHTMLCommentAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -290,7 +290,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_HTMLIncludesBang()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -309,7 +309,7 @@ second</p>
         #endregion
 
         #region TagHelpers
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_HalfOfCommentAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -326,7 +326,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_NoAttributesAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -343,7 +343,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_WithAttributeAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -360,7 +360,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_MinimizedAttribute_BoundAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -377,7 +377,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_MinimizedAttribute_NotBoundAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -394,7 +394,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_IgnoresNonTagHelperAttributesAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -411,7 +411,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_TagHelpersNotAvailableInRazorAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -428,7 +428,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_DoesNotApplyOnNonTagHelpersAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -447,7 +447,7 @@ second</p>
         #endregion TagHelpers
 
         #region DirectiveAttributes
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_MinimizedDirectiveAttributeParameters()
         {
             // Capitalized, non-well-known-HTML elements should not be marked as TagHelpers
@@ -465,7 +465,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_ComponentAttributeAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -482,7 +482,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_DirectiveAttributesParametersAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -499,7 +499,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_NonComponentsDoNotShowInRazorAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -516,7 +516,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_DirectivesAsync()
         {
             var documentText = @"@addTagHelper *, TestAssembly
@@ -533,7 +533,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_HandleTransitionEscape()
         {
             var documentText = @"@@text
@@ -549,7 +549,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_DoNotColorNonTagHelpersAsync()
         {
             var documentText = @"
@@ -566,7 +566,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_DoesNotApplyOnNonTagHelpersAsync()
         {
             var documentText = @"@addTagHelpers *, TestAssembly
@@ -585,7 +585,7 @@ second</p>
         #endregion DirectiveAttributes
 
         #region Directive
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_CodeDirectiveAsync()
         {
             var documentText = @"@code {}
@@ -601,7 +601,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_CodeDirectiveBodyAsync()
         {
             var documentText = @"@code {
@@ -622,7 +622,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_UsingDirective()
         {
             var documentText = @"@using Microsoft.AspNetCore.Razor
@@ -638,7 +638,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_FunctionsDirectiveAsync()
         {
             var documentText = @"@functions {}
@@ -654,7 +654,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_NestedTextDirectives()
         {
             var documentText = @"@functions {
@@ -683,7 +683,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_NestedTransitions()
         {
             var documentText = @"@functions {
@@ -702,7 +702,7 @@ second</p>
         }
         #endregion
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_CommentAsync()
         {
             var documentText = @"@* A comment *@
@@ -718,7 +718,7 @@ second</p>
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_MultiLineCommentMidlineAsync()
         {
             var documentText = @"<a />@* kdl
@@ -736,7 +736,7 @@ slf*@
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/6395")]
         public async Task GetSemanticTokens_Razor_MultiLineCommentAsync()
         {
             var documentText = @$"@*stuff
