@@ -5,7 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -23,12 +24,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher;
         }
 
-        public Task<Unit> Handle(SemanticTokensRefreshParams request, CancellationToken cancellationToken)
+        public Task<Unit> Handle(SemanticTokensRefreshParamsBridge request, CancellationToken cancellationToken)
         {
             // We have to invalidate the tokens cache since it may no longer be up to date.
             _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
 
             return Unit.Task;
         }
+
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
+            const string ServerCapability = "workspace.semanticTokens";
+
+            return new RegistrationExtensionResult(ServerCapability, new SemanticTokenRefreshRegistrationOptions(RefreshSupport: true));
+        }
+
+        private record SemanticTokenRefreshRegistrationOptions(bool RefreshSupport);
     }
 }

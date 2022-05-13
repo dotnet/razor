@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using MediatR;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using VSSemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
@@ -11,6 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
     /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="VSInternalCompletionItem"/>
     /// type does not implement <see cref="IRequest{TResponse}"/>.
     /// </summary>
-    internal class SemanticTokensRangeParamsBridge : VSSemanticTokensRangeParams, IRequest<SemanticTokens?>
+    internal class SemanticTokensRefreshParamsBridge : IRequest
     { }
 }
