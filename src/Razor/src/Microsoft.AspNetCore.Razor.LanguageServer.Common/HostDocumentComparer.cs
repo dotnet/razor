@@ -8,7 +8,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    internal class HostDocumentComparer : IEqualityComparer<HostDocument>
+    internal class HostDocumentComparer : IEqualityComparer<HostDocument?>
     {
         public static readonly HostDocumentComparer Instance = new();
 
@@ -16,8 +16,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
         }
 
-        public bool Equals(HostDocument x, HostDocument y)
+        public bool Equals(HostDocument? x, HostDocument? y)
         {
+            if (x is null && y is null)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
             if (x.FileKind != y.FileKind)
             {
                 return false;
@@ -36,8 +46,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             return true;
         }
 
-        public int GetHashCode(HostDocument hostDocument)
+        public int GetHashCode(HostDocument? hostDocument)
         {
+            if (hostDocument is null)
+            {
+                return 0;
+            }
+
             var combiner = HashCodeCombiner.Start();
             combiner.Add(hostDocument.FilePath, FilePathComparer.Instance);
             combiner.Add(hostDocument.TargetPath, FilePathComparer.Instance);
