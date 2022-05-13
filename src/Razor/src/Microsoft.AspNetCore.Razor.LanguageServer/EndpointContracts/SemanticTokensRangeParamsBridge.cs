@@ -8,7 +8,7 @@ using VSSemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protoc
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     /// <summary>
-    /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="VSInternalCompletionItem"/>
+    /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="VSSemanticTokensRangeParams"/>
     /// type does not implement <see cref="IRequest{TResponse}"/>.
     /// </summary>
     internal class SemanticTokensRangeParamsBridge : VSSemanticTokensRangeParams, IRequest<SemanticTokens?>
