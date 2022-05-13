@@ -8,7 +8,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    internal class ClassifiedTextElementComparer : IEqualityComparer<ClassifiedTextElement>
+    internal class ClassifiedTextElementComparer : IEqualityComparer<ClassifiedTextElement?>
     {
         public static ClassifiedTextElementComparer Default = new();
 
@@ -30,8 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        public int GetHashCode(ClassifiedTextElement obj)
+        public int GetHashCode(ClassifiedTextElement? obj)
         {
+            if (obj is null)
+            {
+                return 0;
+            }
+
             var hashCodeCombiner = new HashCodeCombiner();
             hashCodeCombiner.Add(obj.Runs);
             return hashCodeCombiner.CombinedHash;
