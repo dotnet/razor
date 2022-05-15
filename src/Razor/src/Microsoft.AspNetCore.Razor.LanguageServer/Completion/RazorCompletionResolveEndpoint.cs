@@ -6,27 +6,25 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal class RazorCompletionResolveEndpoint : ICompletionResolveHandler
+    internal class RazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint
     {
         private readonly ILogger _logger;
         private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
         private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
         private readonly CompletionListCache _completionListCache;
-        private PlatformAgnosticCompletionCapability? _completionCapability;
-        private PlatformAgnosticClientCapabilities? _clientCapabilities;
-        private VisualStudioMarkupKind _documentationKind;
+        private VSInternalCompletionSetting? _completionCapability;
+        private VSInternalClientCapabilities? _clientCapabilities;
+        private MarkupKind _documentationKind;
 
         // Guid is magically generated and doesn't mean anything. O# magic.
         public Guid Id => new("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
@@ -63,17 +61,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _completionListCache = completionListCache;
         }
 
-        public void SetCapability(CompletionCapability capability, ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            _completionCapability = (PlatformAgnosticCompletionCapability)capability;
-            _clientCapabilities = (PlatformAgnosticClientCapabilities)clientCapabilities;
+            _completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+            _clientCapabilities = clientCapabilities;
 
-            var completionSupportedKinds = clientCapabilities.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
-            _documentationKind = completionSupportedKinds?.Contains(MarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
+            var completionSupportedKinds = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat;
+            _documentationKind = completionSupportedKinds?.Contains(MarkupKind.Markdown) == true ? MarkupKind.Markdown : MarkupKind.PlainText;
+
+            return null;
         }
 
-        public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
+        public Task<VSInternalCompletionItem> Handle(VSCompletionItemBridge completionItemBridge, CancellationToken cancellationToken)
         {
+            VSInternalCompletionItem completionItem = completionItemBridge;
+
             if (!completionItem.TryGetCompletionListResultId(out var resultId))
             {
                 // Couldn't resolve.
@@ -107,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         var descriptionInfo = associatedRazorCompletion.GetDirectiveCompletionDescription();
                         if (descriptionInfo is not null)
                         {
-                            completionItem = completionItem with { Documentation = descriptionInfo.Description };
+                            completionItem.Documentation = descriptionInfo.Description;
                         }
 
                         break;
@@ -117,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         var descriptionInfo = associatedRazorCompletion.GetMarkupTransitionCompletionDescription();
                         if (descriptionInfo is not null)
                         {
-                            completionItem = completionItem with { Documentation = descriptionInfo.Description };
+                            completionItem.Documentation = descriptionInfo.Description;
                         }
 
                         break;
@@ -136,13 +138,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         {
                             _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                         }
-                        else if (_lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out var vsMarkupContent))
+                        else 
                         {
-                            tagHelperMarkupTooltip = new MarkupContent()
-                            {
-                                Value = vsMarkupContent.Value,
-                                Kind = (MarkupKind)vsMarkupContent.Kind,
-                            };
+                            _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out tagHelperMarkupTooltip);
                         }
 
                         break;
@@ -159,13 +157,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         {
                             _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                         }
-                        else if (_lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out var vsMarkupContent))
+                        else
                         {
-                            tagHelperMarkupTooltip = new MarkupContent()
-                            {
-                                Value = vsMarkupContent.Value,
-                                Kind = (MarkupKind)vsMarkupContent.Kind,
-                            };
+                            _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, _documentationKind, out tagHelperMarkupTooltip);
                         }
 
                         break;
@@ -174,22 +168,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (tagHelperMarkupTooltip != null)
             {
-                var documentation = new StringOrMarkupContent(tagHelperMarkupTooltip);
-                completionItem = completionItem with { Documentation = documentation };
+                completionItem.Documentation = tagHelperMarkupTooltip;
             }
-
-            // We might strip out the commitcharacters for speed, bring them back
-            var container = associatedRazorCompletion.CommitCharacters != null ? new Container<string>(associatedRazorCompletion.CommitCharacters.Select(c => c.Character).ToArray()) : null;
-            completionItem = completionItem with { CommitCharacters = container };
-            var vsCompletionItem = completionItem.ToVSCompletionItem(_completionCapability?.VSCompletionList);
 
             if (tagHelperClassifiedTextTooltip != null)
             {
-                vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
-                return Task.FromResult<CompletionItem>(vsCompletionItem);
+                completionItem.Description = tagHelperClassifiedTextTooltip;
             }
 
-            return Task.FromResult<CompletionItem>(vsCompletionItem);
+            return Task.FromResult(completionItem);
         }
     }
 }

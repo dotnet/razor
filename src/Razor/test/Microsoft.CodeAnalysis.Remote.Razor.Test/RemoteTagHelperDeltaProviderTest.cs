@@ -123,6 +123,30 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         }
 
         [Fact]
+        public void GetTagHelpersDelta_NoChange_MultipleRequests()
+        {
+            // Arrange
+            var project1Delta0 = Provider.GetTagHelpersDelta(Project1FilePath, lastResultId: -1, Project1TagHelpers);
+            var project2Delta0 = Provider.GetTagHelpersDelta(Project2FilePath, lastResultId: -1, Project2TagHelpers);
+
+            // Act
+            var project2Delta = Provider.GetTagHelpersDelta(Project2FilePath, project2Delta0.ResultId, Project2TagHelpers);
+            var project1Delta1 = Provider.GetTagHelpersDelta(Project1FilePath, project1Delta0.ResultId, Project1TagHelpers);
+            var project1Delta2 = Provider.GetTagHelpersDelta(Project1FilePath, project1Delta1.ResultId, Project1TagHelpers);
+
+            // Assert
+            Assert.True(project1Delta1.Delta);
+            Assert.Empty(project1Delta1.Added);
+            Assert.Empty(project1Delta1.Removed);
+            Assert.True(project2Delta.Delta);
+            Assert.Empty(project2Delta.Added);
+            Assert.Empty(project2Delta.Removed);
+            Assert.True(project1Delta2.Delta);
+            Assert.Empty(project1Delta2.Added);
+            Assert.Empty(project1Delta2.Removed);
+        }
+
+        [Fact]
         public void GetTagHelpersDelta_EndToEnd()
         {
             // Arrange

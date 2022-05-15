@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Xunit;
 using Xunit.Sdk;
@@ -29,6 +30,11 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     {
         protected const string ProjectName = "TestProj";
         protected const string SolutionName = "TestSolution";
+
+        private readonly static TimeSpan s_shortHangMitigatingTimeout = new(hours: 0, minutes: 1, seconds: 0);
+        private readonly CancellationTokenSource _shortHangMitigatingCancellationTokenSource = new(s_shortHangMitigatingTimeout);
+
+        protected CancellationToken ControlledHangMitigatingCancellationToken => HangMitigatingCancellationToken;
 
         public override async Task InitializeAsync()
         {

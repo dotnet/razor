@@ -10,9 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
@@ -29,6 +31,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
             Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            Serializer = new LspSerializer();
+            Serializer.RegisterRazorConverters();
+            Serializer.RegisterVSInternalExtensionConverters();
         }
 
         // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
@@ -41,6 +46,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
 
         internal FilePathNormalizer FilePathNormalizer { get; }
+
+        protected LspSerializer Serializer { get; }
 
         protected ILoggerFactory LoggerFactory { get; }
 

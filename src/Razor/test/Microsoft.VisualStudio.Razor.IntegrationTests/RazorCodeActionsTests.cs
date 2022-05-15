@@ -12,26 +12,26 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task RazorCodeActions_Show()
         {
             // Create Warnings by removing usings
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ImportsRazorFile, HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync("", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ImportsRazorFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync("", ControlledHangMitigatingCancellationToken);
 
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", HangMitigatingCancellationToken);
-            await TestServices.Editor.MoveCaretAsync(3, HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync("<SurveyPrompt></SurveyPrompt>", ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.MoveCaretAsync(3, ControlledHangMitigatingCancellationToken);
 
             // Act
-            var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
 
             // Assert
             var codeActionSet = Assert.Single(codeActions);
-            var usingString = $"@using {BlazorProjectName}.Shared";
+            var usingString = $"@using {RazorProjectConstants.BlazorProjectName}.Shared";
             var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals(usingString));
 
-            await TestServices.Editor.InvokeCodeActionAsync(codeAction, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Editor.VerifyTextContainsAsync(usingString, HangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyTextContainsAsync(usingString, ControlledHangMitigatingCancellationToken);
         }
     }
 }

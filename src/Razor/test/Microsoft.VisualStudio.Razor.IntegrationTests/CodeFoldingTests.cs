@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private async Task AssertFoldableBlocksAsync(params string[] blockTexts)
         {
-            var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+            var textView = await TestServices.Editor.GetActiveTextViewAsync(ControlledHangMitigatingCancellationToken);
             var text = textView.TextBuffer.CurrentSnapshot.GetText();
 
             var foldableSpans = blockTexts.Select(blockText =>
@@ -44,8 +43,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             var outlines = new ICollapsible[0];
             while (tries++ < MaxTries)
             {
-                textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
-                outlines = await TestServices.Editor.GetOutlineRegionsAsync(textView, HangMitigatingCancellationToken);
+                textView = await TestServices.Editor.GetActiveTextViewAsync(ControlledHangMitigatingCancellationToken);
+                outlines = await TestServices.Editor.GetOutlineRegionsAsync(textView, ControlledHangMitigatingCancellationToken);
 
                 (missingLines, var extraLines) = GetOutlineDiff(outlines, foldableSpans, textView);
                 if (missingLines.Length == 0)
@@ -123,7 +122,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_CodeBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -141,7 +140,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     }
 }",
                 open: true,
-                HangMitigatingCancellationToken);
+                ControlledHangMitigatingCancellationToken);
 
             await AssertFoldableBlocksAsync(
 @"@code {
@@ -162,7 +161,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_IfBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -184,7 +183,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }
 ",
                 open: true,
-                HangMitigatingCancellationToken);
+                ControlledHangMitigatingCancellationToken);
 
             await AssertFoldableBlocksAsync(
 @"@if(true)
@@ -207,7 +206,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_ForEach()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -226,7 +225,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }
 ",
                 open: true,
-                HangMitigatingCancellationToken);
+                ControlledHangMitigatingCancellationToken);
 
             await AssertFoldableBlocksAsync(
 @"@foreach (var s in GetStuff())
@@ -242,7 +241,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public async Task CodeFolding_CodeBlock_Region()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
-                BlazorProjectName,
+                RazorProjectConstants.BlazorProjectName,
                 "Test.razor",
                 @"
 @page ""/Test""
@@ -259,7 +258,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }
 ",
                 open: true,
-                HangMitigatingCancellationToken);
+                ControlledHangMitigatingCancellationToken);
 
             await AssertFoldableBlocksAsync(
 @"#region Methods

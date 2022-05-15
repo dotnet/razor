@@ -32,8 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
             serializer.JsonSerializer.Converters.RegisterRazorConverters();
 
             AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
-            AddConverter(serializer, PlatformAgnosticCompletionCapability.JsonConverter);
-            AddConverter(serializer, OmniSharpVSCompletionContext.JsonConverter);
             AddConverter(serializer, OmniSharpVSDiagnostic.JsonConverter);
             AddConverter(serializer, OmniSharpVSCodeActionContext.JsonConverter);
         }
