@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
@@ -121,13 +119,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpRange is not null)
             {
                 var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+                var csharpSourceText = codeDocument.GetCSharpSourceText();
 
-                var result = await CSharpTestLspServerHelpers.ExecuteCSharpRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
-                    codeDocument,
-                    csharpDocumentUri,
-                    SemanticTokensServerCapabilities,
-                    requestParams: CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), csharpDocumentUri),
+                await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities).ConfigureAwait(false);
+                var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
+                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), csharpDocumentUri),
                     CancellationToken.None).ConfigureAwait(false);
 
                 csharpTokens = result?.Data;

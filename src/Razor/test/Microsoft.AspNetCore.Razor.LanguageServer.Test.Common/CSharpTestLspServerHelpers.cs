@@ -5,12 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,33 +16,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     internal class CSharpTestLspServerHelpers
     {
-        public static async Task<TResponse> ExecuteCSharpRequestAsync<TRequest, TResponse>(
-            RazorCodeDocument codeDocument,
+        public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+            SourceText csharpSourceText,
             Uri csharpDocumentUri,
-            ServerCapabilities serverCapabilities,
-            TRequest requestParams,
-            string methodName,
-            CancellationToken cancellationToken) where TRequest : class
+            ServerCapabilities serverCapabilities)
         {
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var files = new List<(Uri, SourceText)>
+            var files = new List<CSharpFile>
             {
-                (csharpDocumentUri, csharpSourceText)
+                new CSharpFile(csharpDocumentUri, csharpSourceText)
             };
 
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            using var workspace = CreateCSharpTestWorkspace(files, exportProvider);
-            await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, serverCapabilities);
+            var workspace = CreateCSharpTestWorkspace(files, exportProvider);
+            var clientCapabilities = new ClientCapabilities();
 
-            var result = await csharpLspServer.ExecuteRequestAsync<TRequest, TResponse>(
-                methodName,
-                requestParams,
-                cancellationToken).ConfigureAwait(false);
-
-            return result;
+            var testLspServer = await CSharpTestLspServer.CreateAsync(
+                workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
+            return testLspServer;
         }
 
-        private static AdhocWorkspace CreateCSharpTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
+        private static AdhocWorkspace CreateCSharpTestWorkspace(
+            IEnumerable<CSharpFile> files,
+            ExportProvider exportProvider)
         {
             var workspace = TestWorkspace.Create() as AdhocWorkspace;
 
@@ -65,8 +57,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 
             workspace.AddSolution(solutionInfo);
 
-            // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's a special constructor in Roslyn that will
-            // help identify the document as belonging to Razor.
+            // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's
+            // a special constructor in Roslyn that will help identify the document as belonging to Razor.
             var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
 
             var documentCount = 0;
@@ -88,14 +80,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             return workspace;
         }
 
-        private static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
-            AdhocWorkspace workspace,
-            ExportProvider exportProvider,
-            ServerCapabilities serverCapabilities)
-        {
-            var clientCapabilities = new ClientCapabilities();
-            var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
-            return testLspServer;
-        }
+        private record CSharpFile(Uri DocumentUri, SourceText CSharpSourceText);
     }
 }

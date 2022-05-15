@@ -158,6 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentUri = new Uri("C:/path/to/file.razor");
             var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
             var codeDocument = CreateCodeDocument(text, documentUri.AbsoluteUri);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
 
             var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
             var documentSnapshot = new TestLSPDocumentSnapshot(
@@ -173,12 +174,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var signatureHelpContext = new SignatureHelpContext { IsRetrigger = false, TriggerCharacter = "(", TriggerKind = SignatureHelpTriggerKind.TriggerCharacter };
             var signatureHelpParams = new SignatureHelpParams { TextDocument = textDocumentIdentifier, Position = projectionResult.Position, Context = signatureHelpContext };
 
-            var result = await CSharpTestLspServerHelpers.ExecuteCSharpRequestAsync<SignatureHelpParams, SignatureHelp>(
-                codeDocument,
-                csharpDocumentUri,
-                SignatureHelpServerCapabilities,
-                signatureHelpParams,
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, SignatureHelpServerCapabilities).ConfigureAwait(false);
+            var result = await csharpServer.ExecuteRequestAsync<SignatureHelpParams, SignatureHelp>(
                 Methods.TextDocumentSignatureHelpName,
+                signatureHelpParams,
                 CancellationToken.None).ConfigureAwait(false);
 
             var called = false;

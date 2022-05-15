@@ -17,11 +17,15 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
-    internal class TestLSPProjectionProvider : LSPProjectionProvider
+    internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
     {
-        public static readonly TestLSPProjectionProvider Instance = new();
+        public readonly TestLSPProjectionProvider Instance = new();
 
         private readonly DefaultRazorDocumentMappingService _mappingService = new(TestLoggerFactory.Instance);
+
+        private TestLSPProjectionProvider()
+        {
+        }
 
         public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
