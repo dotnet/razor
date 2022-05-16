@@ -6,5 +6,6 @@ using MediatR;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     internal class SemanticTokensRefreshParamsBridge : IRequest
-    { }
+    {
+    }
 }

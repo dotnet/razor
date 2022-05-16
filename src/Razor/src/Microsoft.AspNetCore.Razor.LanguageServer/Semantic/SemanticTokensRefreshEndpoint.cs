@@ -36,9 +36,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             const string ServerCapability = "workspace.semanticTokens";
 
-            return new RegistrationExtensionResult(ServerCapability, new SemanticTokenRefreshRegistrationOptions(RefreshSupport: true));
+            return new RegistrationExtensionResult(ServerCapability, new SemanticTokensWorkspaceSetting
+            {
+                RefreshSupport = true,
+            });
         }
-
-        private record SemanticTokenRefreshRegistrationOptions(bool RefreshSupport);
     }
 }

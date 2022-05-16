@@ -61,21 +61,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             const string ServerCapability = "semanticTokensProvider";
 
             return new RegistrationExtensionResult(ServerCapability,
-                new SemanticTokensRegistrationOptions(full: false, legend: RazorSemanticTokensLegend.Instance, range: true));
+                new SemanticTokensOptions
+                {
+                    Full = false,
+                    Legend = RazorSemanticTokensLegend.Instance,
+                    Range = true,
+                });
         }
-    }
-
-    public class SemanticTokensRegistrationOptions
-    {
-        public SemanticTokensRegistrationOptions(bool full, SemanticTokensLegend legend, bool range)
-        {
-            Full = full;
-            Legend = legend;
-            Range = range;
-        }
-
-        public bool Full { get; }
-        public SemanticTokensLegend Legend { get; }
-        public bool Range { get; }
     }
 }

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
-using OSharp = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic

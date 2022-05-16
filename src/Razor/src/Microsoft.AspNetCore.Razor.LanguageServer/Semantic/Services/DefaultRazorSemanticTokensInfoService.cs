@@ -253,8 +253,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
             {
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var startRange = minGeneratedSpan.Value.AsTextSpan().AsVSRange(csharpSourceText);
-                var endRange = maxGeneratedSpan.Value.AsTextSpan().AsVSRange(csharpSourceText);
+                var startRange = minGeneratedSpan.Value.AsVSRange(csharpSourceText);
+                var endRange = maxGeneratedSpan.Value.AsVSRange(csharpSourceText);
 
                 csharpRange = new Range { Start = startRange.Start, End = endRange.End };
                 Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
@@ -335,67 +335,62 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             SemanticRange? previousResult = null;
 
-            var data = new int[semanticRanges.Count * 5];
+            var data = new int[semanticRanges.Count * TokenSize];
             var semanticRangeCount = 0;
             foreach (var result in semanticRanges)
             {
-                var newData = GetData(result, previousResult, razorCodeDocument);
-                for (var i = 0; i < 5; i++)
-                {
-                    data[i + semanticRangeCount] = newData[i];
-                }
-
-                semanticRangeCount += 5;
+                AppendData(result, previousResult, razorCodeDocument, data, semanticRangeCount);
+                semanticRangeCount += TokenSize;
 
                 previousResult = result;
             }
 
             return data;
-        }
 
-        /**
-         * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:
-         *  - at index `5*i`   - `deltaLine`: token line number, relative to the previous token
-         *  - at index `5*i+1` - `deltaStart`: token start character, relative to the previous token (relative to 0 or the previous token's start if they are on the same line)
-         *  - at index `5*i+2` - `length`: the length of the token. A token cannot be multiline.
-         *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
-         *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
-        **/
-        private static int[] GetData(
-            SemanticRange currentRange,
-            SemanticRange? previousRange,
-            RazorCodeDocument razorCodeDocument)
-        {
-            var result = new int[5];
-
-            // deltaLine
-            var previousLineIndex = previousRange?.Range is null ? 0 : previousRange.Range.Start.Line;
-            result[0] = currentRange.Range.Start.Line - previousLineIndex;
-
-            // deltaStart
-            if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
+            // We purposely capture and manipulate the "data" array here to avoid allocation
+            static void AppendData(
+                SemanticRange currentRange,
+                SemanticRange? previousRange,
+                RazorCodeDocument razorCodeDocument,
+                int[] targetArray,
+                int currentCount)
             {
-                result[1] = currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+                /*
+                 * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:
+                 *  - at index `5*i`   - `deltaLine`: token line number, relative to the previous token
+                 *  - at index `5*i+1` - `deltaStart`: token start character, relative to the previous token (relative to 0 or the previous token's start if they are on the same line)
+                 *  - at index `5*i+2` - `length`: the length of the token. A token cannot be multiline.
+                 *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
+                 *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
+                */
+
+                // deltaLine
+                var previousLineIndex = previousRange?.Range is null ? 0 : previousRange.Range.Start.Line;
+                targetArray[currentCount] = currentRange.Range.Start.Line - previousLineIndex;
+
+                // deltaStart
+                if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
+                {
+                    targetArray[currentCount + 1] = currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+                }
+                else
+                {
+                    targetArray[currentCount + 1] = currentRange.Range.Start.Character;
+                }
+
+                // length
+                var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
+                var length = textSpan.Length;
+                Debug.Assert(length > 0);
+                targetArray[currentCount + 2] = length;
+
+                // tokenType
+                targetArray[currentCount + 3] = currentRange.Kind;
+
+                // tokenModifiers
+                // We don't currently have any need for tokenModifiers
+                targetArray[currentCount + 4] = currentRange.Modifier;
             }
-            else
-            {
-                result[1] = currentRange.Range.Start.Character;
-            }
-
-            // length
-            var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
-            var length = textSpan.Length;
-            Debug.Assert(length > 0);
-            result[2] = length;
-
-            // tokenType
-            result[3] = currentRange.Kind;
-
-            // tokenModifiers
-            // We don't currently have any need for tokenModifiers
-            result[4] = currentRange.Modifier;
-
-            return result;
         }
 
         private Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)

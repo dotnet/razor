@@ -118,6 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
+
         public static TextSpan AsTextSpan(this VS.Range range, SourceText sourceText)
         {
             if (range is null)

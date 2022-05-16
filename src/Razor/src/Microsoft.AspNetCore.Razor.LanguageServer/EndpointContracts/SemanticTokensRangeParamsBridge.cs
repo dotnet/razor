@@ -3,14 +3,14 @@
 
 using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using VSSemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     /// <summary>
-    /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="VSSemanticTokensRangeParams"/>
+    /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="SemanticTokensRangeParams"/>
     /// type does not implement <see cref="IRequest{TResponse}"/>.
     /// </summary>
-    internal class SemanticTokensRangeParamsBridge : VSSemanticTokensRangeParams, IRequest<SemanticTokens?>
-    { }
+    internal class SemanticTokensRangeParamsBridge : SemanticTokensRangeParams, IRequest<SemanticTokens?>
+    {
+    }
 }

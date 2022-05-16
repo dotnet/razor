@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer

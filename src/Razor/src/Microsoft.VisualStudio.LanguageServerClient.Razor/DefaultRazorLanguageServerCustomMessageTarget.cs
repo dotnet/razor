@@ -413,7 +413,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ProvideSemanticTokensRangeParams semanticTokensParams,
             CancellationToken cancellationToken)
         {
-            // We're not actually serializing the Range correctly here. Likely we need to define a jsonconverter for MS.VS.Range
             if (semanticTokensParams is null)
             {
                 throw new ArgumentNullException(nameof(semanticTokensParams));

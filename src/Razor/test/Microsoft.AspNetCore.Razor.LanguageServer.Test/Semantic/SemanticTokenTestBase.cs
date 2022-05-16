@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
-            string documentText, VS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
+            string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpResponse;
         }
 
-        protected static VS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, VS.Range razorRange)
+        protected static Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
         {
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
             if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpRange;
         }
 
-        internal static SemanticTokensRangeParamsBridge CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+        internal static SemanticTokensRangeParamsBridge CreateVSSemanticTokensRangeParams(Range range, Uri uri)
             => new()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
