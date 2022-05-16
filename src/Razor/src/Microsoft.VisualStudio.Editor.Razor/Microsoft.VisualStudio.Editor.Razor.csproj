@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="$(Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisensePackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguagePackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
