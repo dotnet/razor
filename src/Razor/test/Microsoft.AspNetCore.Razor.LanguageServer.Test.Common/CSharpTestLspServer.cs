@@ -97,23 +97,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             return server;
         }
 
-        internal async Task ExecuteRequestAsync<RequestType>(
+        internal Task ExecuteRequestAsync<RequestType>(
             string methodName,
             RequestType request,
             CancellationToken cancellationToken) where RequestType : class
-            => await _clientRpc.InvokeWithParameterObjectAsync(
+            => _clientRpc.InvokeWithParameterObjectAsync(
                 methodName,
                 request,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
-        internal async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
+        internal Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
             RequestType request,
             CancellationToken cancellationToken) where RequestType : class
-            => await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
+            => _clientRpc.InvokeWithParameterObjectAsync<ResponseType?>(
                 methodName,
                 request,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
         public async ValueTask DisposeAsync()
         {
