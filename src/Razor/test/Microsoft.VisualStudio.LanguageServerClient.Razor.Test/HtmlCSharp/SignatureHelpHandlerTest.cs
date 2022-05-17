@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -183,29 +184,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 signatureHelpParams,
                 CancellationToken.None).ConfigureAwait(false);
 
-            var called = false;
-            var expectedResult = new ReinvocationResponse<SignatureHelp>("LanguageClientName", result);
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
-                    It.IsAny<ITextBuffer>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<TextDocumentPositionParams>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, TextDocumentPositionParams, CancellationToken>((textBuffer, method, clientName, definitionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentSignatureHelpName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(expectedResult));
-
+            var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, documentSnapshot);
 
-            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker.Object, documentManager, TestLSPProjectionProvider.Instance, LoggerProvider);
+            var signatureHelpHandler = new SignatureHelpHandler(requestInvoker, documentManager, TestLSPProjectionProvider.Instance, LoggerProvider);
             var signatureHelpRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
@@ -217,8 +200,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 signatureHelpRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.Equal(expectedResult.Response, requestResult);
             Assert.Equal("void M(int a, int b, int c)", result.Signatures.First().Label);
         }
 
