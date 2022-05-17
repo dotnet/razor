@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -20,8 +21,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
-using OS = OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
-            string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
+            string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
@@ -123,9 +123,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
                     csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities).ConfigureAwait(false);
-                var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
+                var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParamsBridge, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
-                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), csharpDocumentUri),
+                    CreateVSSemanticTokensRangeParams(csharpRange, csharpDocumentUri),
                     CancellationToken.None).ConfigureAwait(false);
 
                 csharpTokens = result?.Data;
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpResponse;
         }
 
-        protected static OS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, OS.Range razorRange)
+        protected static Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
         {
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
             if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpRange;
         }
 
-        protected static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+        internal static SemanticTokensRangeParamsBridge CreateVSSemanticTokensRangeParams(Range range, Uri uri)
             => new()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },

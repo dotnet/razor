@@ -171,6 +171,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // We use binary search to find that spot.
 
                     var index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart);
+
+                    if (index < 0 && context.SourceText[lineStart] == '@')
+                    {
+                        // Sometimes we are only off by one in finding a source mapping, for example with a simple if statement:
+                        //
+                        // @|if (true)
+                        //
+                        // The sourceMappingIndentationScopes knows about where the pipe is (ie, after the "@") but we're asking
+                        // for indentation at the line start. In these cases we are better off using the real indentation scope,
+                        // than hoping the one before it is correct.
+                        index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart + 1);
+                    }
+
                     if (index < 0)
                     {
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.

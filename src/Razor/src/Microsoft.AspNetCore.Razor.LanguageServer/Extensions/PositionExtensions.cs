@@ -52,6 +52,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return TryGetAbsoluteIndex(position.Character, position.Line, sourceText, logger, out absoluteIndex);
         }
 
+        public static int CompareTo(this Position position, Position other)
+        {
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            var result = position.Line.CompareTo(other.Line);
+            return result != 0 ? result : position.Character.CompareTo(other.Character);
+        }
+
         public static int CompareTo(this OmniSharpPosition position, OmniSharpPosition other)
         {
             if (position is null)

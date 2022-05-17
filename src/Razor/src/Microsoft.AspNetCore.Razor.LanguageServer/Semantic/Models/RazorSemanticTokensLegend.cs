@@ -2,33 +2,33 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
     internal class RazorSemanticTokensLegend
     {
-        private static readonly SemanticTokenType RazorComponentElementType = new SemanticTokenType("razorComponentElement");
-        private static readonly SemanticTokenType RazorComponentAttributeType = new SemanticTokenType("RazorComponentAttribute");
-        private static readonly SemanticTokenType RazorTagHelperElementType = new SemanticTokenType("razorTagHelperElement");
-        private static readonly SemanticTokenType RazorTagHelperAttributeType = new SemanticTokenType("razorTagHelperAttribute");
-        private static readonly SemanticTokenType RazorTransitionType = new SemanticTokenType("razorTransition");
-        private static readonly SemanticTokenType RazorDirectiveAttributeType = new SemanticTokenType("razorDirectiveAttribute");
-        private static readonly SemanticTokenType RazorDirectiveColonType = new SemanticTokenType("razorDirectiveColon");
-        private static readonly SemanticTokenType RazorDirectiveType = new SemanticTokenType("razorDirective");
-        private static readonly SemanticTokenType RazorCommentType = new SemanticTokenType("razorComment");
-        private static readonly SemanticTokenType RazorCommentTransitionType = new SemanticTokenType("razorCommentTransition");
-        private static readonly SemanticTokenType RazorCommentStarType = new SemanticTokenType("razorCommentStar");
+        private static readonly string RazorComponentElementType = "razorComponentElement";
+        private static readonly string RazorComponentAttributeType = "RazorComponentAttribute";
+        private static readonly string RazorTagHelperElementType = "razorTagHelperElement";
+        private static readonly string RazorTagHelperAttributeType = "razorTagHelperAttribute";
+        private static readonly string RazorTransitionType = "razorTransition";
+        private static readonly string RazorDirectiveAttributeType = "razorDirectiveAttribute";
+        private static readonly string RazorDirectiveColonType = "razorDirectiveColon";
+        private static readonly string RazorDirectiveType = "razorDirective";
+        private static readonly string RazorCommentType = "razorComment";
+        private static readonly string RazorCommentTransitionType = "razorCommentTransition";
+        private static readonly string RazorCommentStarType = "razorCommentStar";
 
-        private static readonly SemanticTokenType MarkupTagDelimiterType = new SemanticTokenType("markupTagDelimiter");
-        private static readonly SemanticTokenType MarkupOperatorType = new SemanticTokenType("markupOperator");
-        private static readonly SemanticTokenType MarkupElementType = new SemanticTokenType("markupElement");
-        private static readonly SemanticTokenType MarkupAttributeType = new SemanticTokenType("markupAttribute");
-        private static readonly SemanticTokenType MarkupAttributeValueType = new SemanticTokenType("markupAttributeValue");
-        private static readonly SemanticTokenType MarkupAttributeQuoteType = new SemanticTokenType("markupAttributeQuote");
-        private static readonly SemanticTokenType MarkupTextLiteralType = new SemanticTokenType("markupTextLiteral");
-        private static readonly SemanticTokenType MarkupCommentPunctuationType = new SemanticTokenType("markupCommentPunctuation");
-        private static readonly SemanticTokenType MarkupCommentType = new SemanticTokenType("markupComment");
+        private static readonly string MarkupTagDelimiterType = "markupTagDelimiter";
+        private static readonly string MarkupOperatorType = "markupOperator";
+        private static readonly string MarkupElementType = "markupElement";
+        private static readonly string MarkupAttributeType = "markupAttribute";
+        private static readonly string MarkupAttributeValueType = "markupAttributeValue";
+        private static readonly string MarkupAttributeQuoteType = "markupAttributeQuote";
+        private static readonly string MarkupTextLiteralType = "markupTextLiteral";
+        private static readonly string MarkupCommentPunctuationType = "markupCommentPunctuation";
+        private static readonly string MarkupCommentType = "markupComment";
 
         public static int RazorCommentTransition => TokenTypesLegend[RazorCommentTransitionType];
         public static int RazorCommentStar => TokenTypesLegend[RazorCommentStarType];
@@ -57,90 +57,90 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public static int CSharpString => TokenTypesLegend["string"];
         public static int CSharpPunctuation => TokenTypesLegend["punctuation"];
 
-        public static readonly IReadOnlyList<SemanticTokenType> TokenTypes = new SemanticTokenType[] {
+        public static readonly string[] TokenTypes = new string[] {
             // C# token types
-            new SemanticTokenType("namespace"), // 0
-            new SemanticTokenType("type"),
-            new SemanticTokenType("class"),
-            new SemanticTokenType("enum"),
-            new SemanticTokenType("interface"),
-            new SemanticTokenType("struct"),
-            new SemanticTokenType("typeParameter"),
-            new SemanticTokenType("parameter"),
-            new SemanticTokenType("variable"),
-            new SemanticTokenType("property"),
-            new SemanticTokenType("enumMember"), // 10
-            new SemanticTokenType("event"),
-            new SemanticTokenType("function"),
-            new SemanticTokenType("member"),
-            new SemanticTokenType("macro"),
-            new SemanticTokenType("keyword"),
-            new SemanticTokenType("modifier"),
-            new SemanticTokenType("comment"),
-            new SemanticTokenType("string"),
-            new SemanticTokenType("number"),
-            new SemanticTokenType("regexp"), // 20
-            new SemanticTokenType("operator"),
-            new SemanticTokenType("class name"),
-            new SemanticTokenType("constant name"),
-            new SemanticTokenType("keyword - control"),
-            new SemanticTokenType("delegate name"),
-            new SemanticTokenType("enum member name"),
-            new SemanticTokenType("enum name"),
-            new SemanticTokenType("event name"),
-            new SemanticTokenType("excluded code"),
-            new SemanticTokenType("extension method name"), // 30
-            new SemanticTokenType("field name"),
-            new SemanticTokenType("interface name"),
-            new SemanticTokenType("label name"),
-            new SemanticTokenType("local name"),
-            new SemanticTokenType("method name"),
-            new SemanticTokenType("module name"),
-            new SemanticTokenType("namespace name"),
-            new SemanticTokenType("operator - overloaded"),
-            new SemanticTokenType("parameter name"),
-            new SemanticTokenType("property name"), // 40
-            new SemanticTokenType("preprocessor keyword"),
-            new SemanticTokenType("preprocessor text"),
-            new SemanticTokenType("punctuation"),
-            new SemanticTokenType("record class name"),
-            new SemanticTokenType("record struct name"),
-            new SemanticTokenType("regex - alternation"),
-            new SemanticTokenType("regex - anchor"),
-            new SemanticTokenType("regex - character class"),
-            new SemanticTokenType("regex - comment"),
-            new SemanticTokenType("regex - grouping"), // 50
-            new SemanticTokenType("regex - other escape"),
-            new SemanticTokenType("regex - quantifier"),
-            new SemanticTokenType("regex - self escaped character"),
-            new SemanticTokenType("regex - text"),
-            new SemanticTokenType("string - escape character"),
-            new SemanticTokenType("struct name"),
-            new SemanticTokenType("text"),
-            new SemanticTokenType("type parameter name"),
-            new SemanticTokenType("string - verbatim"),
-            new SemanticTokenType("whitespace"), // 60
-            new SemanticTokenType("xml doc comment - attribute name"),
-            new SemanticTokenType("xml doc comment - attribute quotes"),
-            new SemanticTokenType("xml doc comment - attribute value"),
-            new SemanticTokenType("xml doc comment - cdata section"),
-            new SemanticTokenType("xml doc comment - comment"),
-            new SemanticTokenType("xml doc comment - delimiter"),
-            new SemanticTokenType("xml doc comment - entity reference"),
-            new SemanticTokenType("xml doc comment - name"),
-            new SemanticTokenType("xml doc comment - processing instruction"),
-            new SemanticTokenType("xml doc comment - text"), // 70
-            new SemanticTokenType("xml literal - attribute name"),
-            new SemanticTokenType("xml literal - attribute quotes"),
-            new SemanticTokenType("xml literal - attribute value"),
-            new SemanticTokenType("xml literal - cdata section"),
-            new SemanticTokenType("xml literal - comment"),
-            new SemanticTokenType("xml literal - delimiter"),
-            new SemanticTokenType("xml literal - embedded expression"),
-            new SemanticTokenType("xml literal - entity reference"),
-            new SemanticTokenType("xml literal - name"),
-            new SemanticTokenType("xml literal - processing instruction"), // 80
-            new SemanticTokenType("xml literal - text"),
+            "namespace", // 0
+            "type",
+            "class",
+            "enum",
+            "interface",
+            "struct",
+            "typeParameter",
+            "parameter",
+            "variable",
+            "property",
+            "enumMember", // 10
+            "event",
+            "function",
+            "member",
+            "macro",
+            "keyword",
+            "modifier",
+            "comment",
+            "string",
+            "number",
+            "regexp", // 20
+            "operator",
+            "class name",
+            "constant name",
+            "keyword - control",
+            "delegate name",
+            "enum member name",
+            "enum name",
+            "event name",
+            "excluded code",
+            "extension method name", // 30
+            "field name",
+            "interface name",
+            "label name",
+            "local name",
+            "method name",
+            "module name",
+            "namespace name",
+            "operator - overloaded",
+            "parameter name",
+            "property name", // 40
+            "preprocessor keyword",
+            "preprocessor text",
+            "punctuation",
+            "record class name",
+            "record struct name",
+            "regex - alternation",
+            "regex - anchor",
+            "regex - character class",
+            "regex - comment",
+            "regex - grouping", // 50
+            "regex - other escape",
+            "regex - quantifier",
+            "regex - self escaped character",
+            "regex - text",
+            "string - escape character",
+            "struct name",
+            "text",
+            "type parameter name",
+            "string - verbatim",
+            "whitespace", // 60
+            "xml doc comment - attribute name",
+            "xml doc comment - attribute quotes",
+            "xml doc comment - attribute value",
+            "xml doc comment - cdata section",
+            "xml doc comment - comment",
+            "xml doc comment - delimiter",
+            "xml doc comment - entity reference",
+            "xml doc comment - name",
+            "xml doc comment - processing instruction",
+            "xml doc comment - text", // 70
+            "xml literal - attribute name",
+            "xml literal - attribute quotes",
+            "xml literal - attribute value",
+            "xml literal - cdata section",
+            "xml literal - comment",
+            "xml literal - delimiter",
+            "xml literal - embedded expression",
+            "xml literal - entity reference",
+            "xml literal - name",
+            "xml literal - processing instruction", // 80
+            "xml literal - text",
             RazorTagHelperElementType,
             RazorTagHelperAttributeType,
             RazorTransitionType,
@@ -163,22 +163,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorComponentAttributeType,
         };
 
-        private static readonly IReadOnlyList<SemanticTokenModifier> s_tokenModifiers = new SemanticTokenModifier[] {
+        private static readonly string[] s_tokenModifiers = new string[] {
             // Razor
-            new SemanticTokenModifier("None"),
+            "None",
             // C# Modifiers
-            new SemanticTokenModifier("static"),
+            "static",
         };
 
         public static readonly IReadOnlyDictionary<string, int> TokenTypesLegend = GetMap(TokenTypes);
 
         public static readonly SemanticTokensLegend Instance = new SemanticTokensLegend
         {
-            TokenModifiers = new Container<SemanticTokenModifier>(s_tokenModifiers),
-            TokenTypes = new Container<SemanticTokenType>(TokenTypes),
+            TokenModifiers = s_tokenModifiers,
+            TokenTypes = TokenTypes,
         };
 
-        private static IReadOnlyDictionary<string, int> GetMap(IReadOnlyList<SemanticTokenType> tokens)
+        private static IReadOnlyDictionary<string, int> GetMap(IReadOnlyList<string> tokens)
         {
             var result = new Dictionary<string, int>();
             for (var i = 0; i < tokens.Count; i++)

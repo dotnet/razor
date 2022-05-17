@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), useCurrentDirectory: true);
 
-        protected bool GenerateBaselines { get; set; } = false;
+        protected bool GenerateBaselines { get; set; } = true;
 
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
@@ -51,6 +51,24 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             // Assert
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
+        }
+
+        [IdeFact]
+        public async Task Edits_UpdateColors()
+        {
+            // Arrange
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
+
+            // Act
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", 3);
+
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.IndexPageContent, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", 1);
+
+            // Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Edits_UpdateColors), ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
         }
 

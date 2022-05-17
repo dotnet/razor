@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
-using OSharp = OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -34,10 +34,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 3, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 3, Character = 0 }
             };
 
             var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: 1);
@@ -53,10 +53,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 4, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 4, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -70,10 +70,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 <!--@{var d = ""string"";@<a></a>}-->
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -87,10 +87,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 @{ var d = }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: null);
@@ -104,10 +104,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 @(DateTime.Now)
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -122,10 +122,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 @d
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 3, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 3, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -139,10 +139,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 @{ var d = }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -156,10 +156,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 @{ var d = }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -175,10 +175,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 4, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 4, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -196,10 +196,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 second</p>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 4, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 4, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -212,10 +212,10 @@ second</p>
             var documentText = @"<str class='
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -228,10 +228,10 @@ second</p>
             var documentText = @"<p attr />
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -245,10 +245,10 @@ second</p>
 <input/>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -262,10 +262,10 @@ second</p>
 <!-- comment with comma's -->
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -279,10 +279,10 @@ second</p>
 <!-- comment
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -296,10 +296,10 @@ second</p>
 <!input/>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -315,10 +315,10 @@ second</p>
 @* comment
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -332,10 +332,10 @@ second</p>
 <test1></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -349,10 +349,10 @@ second</p>
 <test1 bool-val='true'></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -366,10 +366,10 @@ second</p>
 <test1 bool-val></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -383,10 +383,10 @@ second</p>
 <test1 notbound></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -400,10 +400,10 @@ second</p>
 <test1 bool-val='true' class='display:none'></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -417,10 +417,10 @@ second</p>
 <test1 bool-val='true' class='display:none'></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -434,10 +434,10 @@ second</p>
 <p bool-val='true'></p>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -454,10 +454,10 @@ second</p>
 }<NotATagHelp @minimized:something />
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -471,10 +471,10 @@ second</p>
 <Component1 bool-val=""true""></Component1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -488,10 +488,10 @@ second</p>
 <Component1 @test:something='Function'></Component1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -505,10 +505,10 @@ second</p>
 <test1 bool-val='true'></test1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -522,10 +522,10 @@ second</p>
 <Component1 @test='Function'></Component1>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -538,10 +538,10 @@ second</p>
             var documentText = @"@@text
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -555,10 +555,10 @@ second</p>
 <p @test='Function'></p>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -572,10 +572,10 @@ second</p>
 <p></p>
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -590,10 +590,10 @@ second</p>
             var documentText = @"@code {}
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -611,10 +611,10 @@ second</p>
 }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 6, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 6, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -627,10 +627,10 @@ second</p>
             var documentText = @"@using Microsoft.AspNetCore.Razor
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -643,10 +643,10 @@ second</p>
             var documentText = @"@functions {}
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -672,10 +672,10 @@ second</p>
             }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 14, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 14, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -690,10 +690,10 @@ second</p>
             }
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 3, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 3, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -707,10 +707,10 @@ second</p>
             var documentText = @"@* A comment *@
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 1, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 1, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
@@ -725,10 +725,10 @@ second</p>
 slf*@
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -742,10 +742,10 @@ slf*@
 things *@
 ";
 
-            var razorRange = new OSharp.Range
+            var razorRange = new VS.Range
             {
-                Start = new OSharp.Position { Line = 0, Character = 0 },
-                End = new OSharp.Position { Line = 2, Character = 0 }
+                Start = new VS.Position { Line = 0, Character = 0 },
+                End = new VS.Position { Line = 2, Character = 0 }
             };
 
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
@@ -755,7 +755,7 @@ things *@
         private async Task AssertSemanticTokensAsync(
             string documentText,
             bool isRazorFile,
-            OSharp.Range range,
+            VS.Range range,
             RazorSemanticTokensInfoService? service = null,
             ProvideSemanticTokensResponse? csharpTokens = null,
             int? documentVersion = 0)
@@ -766,7 +766,7 @@ things *@
         private async Task AssertSemanticTokensAsync(
             string[] documentTexts,
             bool[] isRazorArray,
-            OSharp.Range range,
+            VS.Range range,
             RazorSemanticTokensInfoService? service = null,
             ProvideSemanticTokensResponse? csharpTokens = null,
             int? documentVersion = 0)
@@ -810,7 +810,7 @@ things *@
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<OSharp.SemanticTokensParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<VS.SemanticTokensParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);

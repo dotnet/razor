@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -441,7 +441,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var source = _razorCodeDocument.Source;
-            var range = node.GetRange(source);
+            var range = node.GetVSRange(source);
 
             // LSP spec forbids multi-line tokens, so we need to split this up.
             if (range.Start.Line != range.End.Line)
@@ -456,7 +456,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     {
                         var startPosition = new Position(range.Start.Line + i, charPosition);
                         var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
-                        var lineRange = new Range(startPosition, endPosition);
+                        var lineRange = new Range
+                        {
+                            Start = startPosition,
+                            End = endPosition
+                        };
                         var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
                         AddRange(semantic);
                         charPosition = 0;
@@ -472,7 +476,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
                         if (!token.ContainsOnlyWhitespace())
                         {
-                            var tokenRange = token.GetRange(source);
+                            var tokenRange = token.GetVSRange(source);
 
                             var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
                             AddRange(semantic);

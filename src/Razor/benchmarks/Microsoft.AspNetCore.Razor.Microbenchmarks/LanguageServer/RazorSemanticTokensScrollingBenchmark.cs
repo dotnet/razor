@@ -13,10 +13,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer.RazorSemanticTokensBenchmark;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
@@ -28,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentVersionCache VersionCache { get; set; }
 
-        private DocumentUri DocumentUri { get; set; }
+        private Uri DocumentUri { get; set; }
 
         private DocumentSnapshot DocumentSnapshot { get; set; }
 
@@ -53,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var filePath = Path.Combine(PagesDirectory, $"FormattingTest.razor");
             TargetPath = "/Components/Pages/FormattingTest.razor";
 
-            DocumentUri = DocumentUri.File(filePath);
+            DocumentUri = new Uri(filePath);
             DocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
 
             var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
@@ -77,7 +76,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [Benchmark(Description = "Razor Semantic Tokens Range Scrolling")]
         public async Task RazorSemanticTokensRangeScrollingAsync()
         {
-            var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
+            var textDocumentIdentifier = new TextDocumentIdentifier()
+            {
+                Uri = DocumentUri
+            };
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
 
@@ -89,7 +91,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             while (lineCount != documentLineCount)
             {
                 var newLineCount = Math.Min(lineCount + WindowSize, documentLineCount);
-                var range = new Range(lineCount, 0, newLineCount, 0);
+                var range = new Range
+                {
+                    Start = new Position(lineCount, 0),
+                    End = new Position(newLineCount, 0)
+                };
                 await RazorSemanticTokenService!.GetSemanticTokensAsync(
                     textDocumentIdentifier,
                     range,

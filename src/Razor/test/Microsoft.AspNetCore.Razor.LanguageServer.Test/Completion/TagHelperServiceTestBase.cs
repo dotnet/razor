@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.LanguageServerTagHelperCompletionService;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
@@ -211,7 +211,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         protected static TextDocumentIdentifier GetIdentifier(bool isRazor)
         {
             var file = isRazor ? RazorFile : CSHtmlFile;
-            return new TextDocumentIdentifier(new Uri($"c:\\${file}"));
+            return new TextDocumentIdentifier
+            {
+                Uri = new Uri($"c:\\${file}")
+            };
         }
 
         internal static (Queue<DocumentSnapshot>, Queue<TextDocumentIdentifier>) CreateDocumentSnapshot(string[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)

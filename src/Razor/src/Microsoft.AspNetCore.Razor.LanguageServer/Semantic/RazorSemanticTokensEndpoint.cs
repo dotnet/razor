@@ -5,11 +5,10 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -36,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
-        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
+        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParamsBridge request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -57,15 +56,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticTokens;
         }
 
-        public SemanticTokensRegistrationOptions GetRegistrationOptions(SemanticTokensCapability capability, ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new SemanticTokensRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                Full = false,
-                Legend = RazorSemanticTokensLegend.Instance,
-                Range = true,
-            };
+            const string ServerCapability = "semanticTokensProvider";
+
+            return new RegistrationExtensionResult(ServerCapability,
+                new SemanticTokensOptions
+                {
+                    Full = false,
+                    Legend = RazorSemanticTokensLegend.Instance,
+                    Range = true,
+                });
         }
     }
 }
