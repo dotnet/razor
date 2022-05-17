@@ -350,6 +350,47 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6401")]
+        public async Task Format_SectionDirectiveBlock4()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
+
+                    @section Scripts {
+                    <script></script>
+                    }
+
+                    @if (true)
+                    {
+                        <p></p>
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
+
+                    @section Scripts {
+                        <script></script>
+                    }
+
+                    @if (true)
+                    {
+                        <p></p>
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
         public async Task Formats_CodeBlockDirectiveWithRazorComments()
         {
             await RunFormattingTestAsync(
