@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         public TestLSPRequestInvoker(CSharpTestLspServer csharpServer)
         {
-            if (_csharpServer is null)
+            if (csharpServer is null)
             {
                 throw new ArgumentNullException(nameof(csharpServer));
             }
