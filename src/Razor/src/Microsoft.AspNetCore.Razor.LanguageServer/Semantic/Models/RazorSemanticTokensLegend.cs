@@ -92,14 +92,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "extension method name", // 30
             "field name",
             "interface name",
+            "json - array",
+            "json - comment",
+            "json - constructor name",
+            "json - keyword",
+            "json - number",
+            "json - object",
+            "json - operator",
+            "json - property name", // 40
+            "json - punctuation",
+            "json - string",
+            "json - text",
             "label name",
             "local name",
             "method name",
             "module name",
             "namespace name",
             "operator - overloaded",
-            "parameter name",
-            "property name", // 40
+            "parameter name", // 50
+            "property name",
             "preprocessor keyword",
             "preprocessor text",
             "punctuation",
@@ -108,8 +119,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "regex - alternation",
             "regex - anchor",
             "regex - character class",
-            "regex - comment",
-            "regex - grouping", // 50
+            "regex - comment", // 60
+            "regex - grouping",
             "regex - other escape",
             "regex - quantifier",
             "regex - self escaped character",
@@ -118,8 +129,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "struct name",
             "text",
             "type parameter name",
-            "string - verbatim",
-            "whitespace", // 60
+            "string - verbatim", // 70
+            "whitespace",
             "xml doc comment - attribute name",
             "xml doc comment - attribute quotes",
             "xml doc comment - attribute value",
@@ -128,8 +139,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "xml doc comment - delimiter",
             "xml doc comment - entity reference",
             "xml doc comment - name",
-            "xml doc comment - processing instruction",
-            "xml doc comment - text", // 70
+            "xml doc comment - processing instruction", // 80
+            "xml doc comment - text",
             "xml literal - attribute name",
             "xml literal - attribute quotes",
             "xml literal - attribute value",
@@ -138,8 +149,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "xml literal - delimiter",
             "xml literal - embedded expression",
             "xml literal - entity reference",
-            "xml literal - name",
-            "xml literal - processing instruction", // 80
+            "xml literal - name", // 90
+            "xml literal - processing instruction",
             "xml literal - text",
             RazorTagHelperElementType,
             RazorTagHelperAttributeType,
@@ -147,9 +158,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorDirectiveColonType,
             RazorDirectiveAttributeType,
             RazorDirectiveType,
-            RazorCommentType,
+            RazorCommentType, // 100
             RazorCommentTransitionType,
-            RazorCommentStarType, // 90
+            RazorCommentStarType,
             MarkupTagDelimiterType,
             MarkupElementType,
             MarkupOperatorType,
@@ -157,9 +168,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             MarkupAttributeQuoteType,
             MarkupTextLiteralType,
             MarkupCommentPunctuationType,
-            MarkupCommentType,
+            MarkupCommentType, // 110
             MarkupAttributeValueType,
-            RazorComponentElementType, // 100
+            RazorComponentElementType,
             RazorComponentAttributeType,
         };
 
