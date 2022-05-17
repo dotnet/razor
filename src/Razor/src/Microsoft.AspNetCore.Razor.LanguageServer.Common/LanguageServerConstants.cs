@@ -56,6 +56,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorSemanticTokensRefreshEndpoint = "razor/semanticTokensRefresh";
 
+        public const string RazorTextPresentationEndpoint = "razor/textPresentation";
+
+        public const string RazorUriPresentationEndpoint = "razor/uriPresentation";
+
         // This needs to be the same as in Web Tools, that is used by the HTML editor, because
         // we actually respond to the Web Tools "Wrap With Div" command handler, which sends this message
         // to all servers. We then take the message, get the HTML virtual document, and send it

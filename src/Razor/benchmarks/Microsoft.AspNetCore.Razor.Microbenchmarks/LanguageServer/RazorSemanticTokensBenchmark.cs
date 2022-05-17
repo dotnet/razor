@@ -17,9 +17,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
@@ -31,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentVersionCache VersionCache { get; set; }
 
-        private DocumentUri DocumentUri { get; set; }
+        private Uri DocumentUri { get; set; }
 
         private DocumentSnapshot DocumentSnapshot { get; set; }
 
@@ -56,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var filePath = Path.Combine(PagesDirectory, $"SemanticTokens.razor");
             TargetPath = "/Components/Pages/SemanticTokens.razor";
 
-            DocumentUri = DocumentUri.File(filePath);
+            DocumentUri = new Uri(filePath);
             DocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
 
             var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
@@ -78,7 +77,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [Benchmark(Description = "Razor Semantic Tokens Range Handling")]
         public async Task RazorSemanticTokensRangeAsync()
         {
-            var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
+            var textDocumentIdentifier = new TextDocumentIdentifier
+            {
+                Uri = DocumentUri
+            };
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
 

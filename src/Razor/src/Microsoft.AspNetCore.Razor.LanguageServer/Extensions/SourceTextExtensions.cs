@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
@@ -68,6 +69,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             source.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
             source.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
+        }
+
+        public static void GetLinesAndOffsets(
+            this SourceText source,
+            SourceSpan sourceSpan,
+            out int startLineNumber,
+            out int startOffset,
+            out int endLineNumber,
+            out int endOffset)
+        {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            source.GetLineAndOffset(sourceSpan.AbsoluteIndex, out startLineNumber, out startOffset);
+            source.GetLineAndOffset(sourceSpan.AbsoluteIndex + sourceSpan.Length, out endLineNumber, out endOffset);
         }
 
         public static string GetSubTextString(this SourceText source, TextSpan span)

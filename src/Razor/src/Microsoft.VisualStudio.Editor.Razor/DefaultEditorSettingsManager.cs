@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -17,17 +18,29 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override event EventHandler<EditorSettingsChangedEventArgs> Changed;
 
         private readonly object _settingsAccessorLock = new object();
+        private readonly RazorGlobalOptions _globalOptions;
         private EditorSettings _settings;
 
         [ImportingConstructor]
-        public DefaultEditorSettingsManager([ImportMany] IEnumerable<EditorSettingsChangedTrigger> editorSettingsChangeTriggers)
+        public DefaultEditorSettingsManager(            
+            [ImportMany] IEnumerable<EditorSettingsChangedTrigger> editorSettingsChangeTriggers,
+            RazorGlobalOptions globalOptions = null)
         {
             _settings = EditorSettings.Default;
+
+            // update Roslyn's global options (null in tests):
+            if (globalOptions != null)
+            {
+                globalOptions.TabSize = _settings.IndentSize;
+                globalOptions.UseTabs = _settings.IndentWithTabs;
+            }
 
             foreach (var changeTrigger in editorSettingsChangeTriggers)
             {
                 changeTrigger.Initialize(this);
             }
+
+            _globalOptions = globalOptions;
         }
 
         public override EditorSettings Current
@@ -46,6 +59,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             if (updatedSettings is null)
             {
                 throw new ArgumentNullException(nameof(updatedSettings));
+            }
+
+            // update Roslyn's global options (null in tests):
+            if (_globalOptions != null)
+            {
+                _globalOptions.TabSize = updatedSettings.IndentSize;
+                _globalOptions.UseTabs = updatedSettings.IndentWithTabs;
             }
 
             lock (_settingsAccessorLock)

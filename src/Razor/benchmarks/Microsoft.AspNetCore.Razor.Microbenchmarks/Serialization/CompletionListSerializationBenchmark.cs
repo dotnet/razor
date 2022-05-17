@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using System.IO;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 {
@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 
             Serializer = new LspSerializer();
             Serializer.RegisterRazorConverters();
+            Serializer.RegisterVSInternalExtensionConverters();
         }
 
         private LspSerializer Serializer { get; }
@@ -92,13 +93,22 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
             var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(
                 razorCompletionItems,
                 new CompletionListCache(),
-                new[] { ExtendedCompletionItemKinds.TagHelper },
-                new PlatformAgnosticCompletionCapability()
+                new VSInternalClientCapabilities()
                 {
-                    VSCompletionList = new VSCompletionListCapability()
+                    TextDocument = new TextDocumentClientCapabilities()
                     {
-                        CommitCharacters = true,
-                        Data = true,
+                        Completion = new VSInternalCompletionSetting()
+                        {
+                            CompletionItemKind = new CompletionItemKindSetting()
+                            {
+                                ValueSet = new[] { CompletionItemKind.TagHelper }
+                            },
+                            CompletionList = new VSInternalCompletionListSetting()
+                            {
+                                CommitCharacters = true,
+                                Data = true,
+                            }
+                        }
                     }
                 });
             return completionList;

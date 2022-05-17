@@ -197,6 +197,15 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
+        - task: PublishBuildArtifacts@1
+          displayName: Upload Build BinLog
+          condition: always()
+          continueOnError: true
+          inputs:
+              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+              artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
+              artifactType: Container
+              parallel: true
         - script: eng\cibuild.cmd
             -configuration $(_BuildConfig)
             -msbuildEngine vs
@@ -213,6 +222,15 @@ stages:
           name: Build_Vsix
           displayName: Build and Deploy Vsix
           condition: succeeded()
+        - task: PublishBuildArtifacts@1
+          displayName: Upload Build VSIX BinLog
+          condition: always()
+          continueOnError: true
+          inputs:
+              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+              artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
+              artifactType: Container
+              parallel: true
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
             -prepareMachine
@@ -222,23 +240,15 @@ stages:
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
-        # - task: PublishBuildArtifacts@1
-        #   displayName: Update Integration Tests Data
-        #   condition: always()
-        #   continueOnError: true
-        #   inputs:
-        #     pathtoPublish: artifacts/log/$(_BuildConfig)/Screenshots/
-        #     artifactName: $(Agent.Os)_$(Agent.JobName) IntegrationTestsData $(_BuildConfig)
-        #     artifactType: Container
-        #     parallel: true
-        # Run VSCode functional tests
-        # - powershell: |
-        #     . ../../../../activate.ps1
-        #     yarn test -- --ci --configuration $(_BuildConfig) --no-restore
-        #     deactivate
-        #   workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
-        #   displayName: Run VSCode Tests
-        #   condition: and(succeeded(), ne(variables['_BuildConfig'], 'Release')) # Temporary: Don't run on Release
+        - task: PublishBuildArtifacts@1
+          displayName: Upload Run tests BinLog
+          condition: always()
+          continueOnError: true
+          inputs:
+              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
+              artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
+              artifactType: Container
+              parallel: true
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
           continueOnError: true
@@ -252,14 +262,6 @@ stages:
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
           failOnStderr: true
           condition: and(succeeded(), eq(variables['_BuildConfig'], 'Release'))
-        # - task: PublishTestResults@2
-        #   displayName: Publish Integration Test Results
-        #   condition: always()
-        #   continueOnError: true
-        #   inputs:
-        #     testResultsFormat: 'VSTest'
-        #     testResultsFiles: '*.trx'
-        #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()

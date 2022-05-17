@@ -81,6 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 case VSInternalMethods.DocumentPullDiagnosticName:
                 case VSInternalMethods.WorkspacePullDiagnosticName:
                     return CheckPullDiagnosticCapabilities;
+                case VSInternalMethods.TextDocumentTextPresentationName:
+                    return CheckTextPresentationCapabilities;
+                case VSInternalMethods.TextDocumentUriPresentationName:
+                    return CheckUriPresentationCapabilities;
 
                 default:
                     return FallbackCheckCapabilties;
@@ -281,6 +285,19 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
             return serverCapabilities?.OnAutoInsertProvider != null;
+        }
+
+        private static bool CheckTextPresentationCapabilities(JToken token)
+        {
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+            return serverCapabilities?.TextPresentationProvider == true;
+        }
+        private static bool CheckUriPresentationCapabilities(JToken token)
+        {
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+            return serverCapabilities?.UriPresentationProvider == true;
         }
 
         private static bool CheckLinkedEditingRangeCapabilities(JToken token)

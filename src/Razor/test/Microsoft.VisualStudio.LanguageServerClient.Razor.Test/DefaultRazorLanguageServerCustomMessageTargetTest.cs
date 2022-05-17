@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
@@ -21,8 +22,8 @@ using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using OmniSharpTextDocumentIdentifier = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextDocumentIdentifier;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using VSModels = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -387,12 +388,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Returns(false);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new ProvideSemanticTokensRangeParams(
-                textDocument: new OmniSharpTextDocumentIdentifier()
+                textDocument: new TextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
                 requiredHostDocumentVersion: 1,
-                range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
+                range: new Range());
 
             // Act
             var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
@@ -413,12 +414,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Returns(true);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new ProvideSemanticTokensRangeParams(
-                textDocument: new OmniSharpTextDocumentIdentifier()
+                textDocument: new TextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
                 requiredHostDocumentVersion: 0,
-                range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
+                range: new Range());
 
             // Act
             var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
@@ -431,7 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync()
         {
             // Arrange
-            var testDocUri = new Uri("C:/path/to - project/file.razor");
+            var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
             var testVirtualDocUri = new Uri("C:/path/to - project/file2.razor.g");
             var testCSharpDocUri = new Uri("C:/path/to - project/file.razor.g.cs");
 
@@ -446,11 +447,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedcSharpResults = new VSSemanticTokensResponse();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<VSModels.SemanticTokensRangeParams, VSSemanticTokensResponse>(
                 TextBuffer,
                 Methods.TextDocumentSemanticTokensRangeName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
-                It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams>(),
+                It.IsAny<VSModels.SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedcSharpResults)));
 
@@ -464,12 +465,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
                 uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
             var request = new ProvideSemanticTokensRangeParams(
-                textDocument: new OmniSharpTextDocumentIdentifier()
+                textDocument: new TextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to%20-%20project/file.razor")
                 },
                 requiredHostDocumentVersion: 0,
-                range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
+                range: new Range());
             var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults.Data, documentVersion);
 
             // Act
@@ -497,11 +498,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedResults = new SemanticTokens { };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, SemanticTokens>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParamsBridge, SemanticTokens>(
                 TextBuffer,
                 Methods.TextDocumentSemanticTokensRangeName,
                 LanguageServerKind.CSharp.ToContentType(),
-                It.IsAny<SemanticTokensRangeParams>(),
+                It.IsAny<SemanticTokensRangeParamsBridge>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvocationResponse<SemanticTokens>("languageClient", expectedResults)));
 

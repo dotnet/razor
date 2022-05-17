@@ -27,786 +27,855 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task FormatsCodeBlockDirective()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        public interface Bar {
-}
-}
-",
-expected: @"@code {
-    public class Foo { }
-    public interface Bar
-    {
-    }
-}
-");
+                input: """
+                    @code {
+                     public class Foo{}
+                            public interface Bar {
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public class Foo { }
+                        public interface Bar
+                        {
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Format_DocumentWithDiagnostics()
         {
             await RunFormattingTestAsync(
-input: @"
-@page
-@model BlazorApp58.Pages.Index2Model
-@{
-}
-
-<section class=""section"">
-    <div class=""container"">
-        <h1 class=""title"">Managed pohotos</h1>
-        <p class=""subtitle"">@Model.ReferenceNumber</p>
-    </div>
-</section>
-<section class=""section"">
-    <div class=""container"">
-        @foreach       (var item in Model.Images)
-        {
-            <div><div>
-        }
-    </div>
-</section>
-",
-expected: @"@page
-@model BlazorApp58.Pages.Index2Model
-@{
-}
-
-<section class=""section"">
-    <div class=""container"">
-        <h1 class=""title"">Managed pohotos</h1>
-        <p class=""subtitle"">@Model.ReferenceNumber</p>
-    </div>
-</section>
-<section class=""section"">
-    <div class=""container"">
-        @foreach (var item in Model.Images)
-        {
-            <div>
-                <div>
+                input: """
+                    @page
+                    @model BlazorApp58.Pages.Index2Model
+                    @{
                     }
-                </div>
-    </section>
-",
-            fileKind: FileKinds.Legacy,
-            allowDiagnostics: true);
+
+                    <section class="section">
+                        <div class="container">
+                            <h1 class="title">Managed pohotos</h1>
+                            <p class="subtitle">@Model.ReferenceNumber</p>
+                        </div>
+                    </section>
+                    <section class="section">
+                        <div class="container">
+                            @foreach       (var item in Model.Images)
+                            {
+                                <div><div>
+                            }
+                        </div>
+                    </section>
+                    """,
+                expected: """
+                    @page
+                    @model BlazorApp58.Pages.Index2Model
+                    @{
+                    }
+
+                    <section class="section">
+                        <div class="container">
+                            <h1 class="title">Managed pohotos</h1>
+                            <p class="subtitle">@Model.ReferenceNumber</p>
+                        </div>
+                    </section>
+                    <section class="section">
+                        <div class="container">
+                            @foreach (var item in Model.Images)
+                            {
+                                <div>
+                                    <div>
+                                        }
+                                    </div>
+                        </section>
+                    """,
+                fileKind: FileKinds.Legacy,
+                allowDiagnostics: true);
         }
 
         [Fact]
         public async Task Formats_MultipleBlocksInADirective()
         {
             await RunFormattingTestAsync(
-input: @"
-@{
-void Method(){
-var x = ""foo"";
-@(DateTime.Now)
-    <p></p>
-var y= ""fooo"";
-}
-}
-<div>
-        </div>
-",
-expected: @"@{
-    void Method()
-    {
-        var x = ""foo"";
-        @(DateTime.Now)
-        <p></p>
-        var y = ""fooo"";
-    }
-}
-<div>
-</div>
-");
+                input: """
+                    @{
+                    void Method(){
+                    var x = "foo";
+                    @(DateTime.Now)
+                        <p></p>
+                    var y= "fooo";
+                    }
+                    }
+                    <div>
+                            </div>
+                    """,
+                expected: """
+                    @{
+                        void Method()
+                        {
+                            var x = "foo";
+                            @(DateTime.Now)
+                            <p></p>
+                            var y = "fooo";
+                        }
+                    }
+                    <div>
+                    </div>
+                    """);
         }
 
         [Fact]
         public async Task Formats_NonCodeBlockDirectives()
         {
             await RunFormattingTestAsync(
-input: @"
-@{
-var x = ""foo"";
-}
-<div>
-        </div>
-",
-expected: @"@{
-    var x = ""foo"";
-}
-<div>
-</div>
-");
+                input: """
+                    @{
+                    var x = "foo";
+                    }
+                    <div>
+                            </div>
+                    """,
+                expected: """
+                    @{
+                        var x = "foo";
+                    }
+                    <div>
+                    </div>
+                    """);
         }
 
         [Fact]
         public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-void Method() { var x = ""t""; <div></div> var y = ""t"";}
-}
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        void Method()
-        {
-            var x = ""t"";
-            <div></div>
-            var y = ""t"";
-        }
-    }
-}
-");
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() { var x = "t"; <div></div> var y = "t";}
+                    }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method()
+                            {
+                                var x = "t";
+                                <div></div>
+                                var y = "t";
+                            }
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Formats_CodeBlockDirectiveWithMarkup()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-void Method() { <div></div> }
-}
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        void Method()
-        {
-            <div></div>
-        }
-    }
-}
-");
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() { <div></div> }
+                    }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method()
+                            {
+                                <div></div>
+                            }
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Formats_CodeBlockDirectiveWithImplicitExpressions()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{
-void Method() { @DateTime.Now }
-    }
-}
-",
-expected: @"@code {
-    public class Foo
-    {
-        void Method()
-        {
-            @DateTime.Now
-        }
-    }
-}
-");
+                input: """
+                    @code {
+                     public class Foo{
+                    void Method() { @DateTime.Now }
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public class Foo
+                        {
+                            void Method()
+                            {
+                                @DateTime.Now
+                            }
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task DoesNotFormat_CodeBlockDirectiveWithExplicitExpressions()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-void Method() { @(DateTime.Now) }
-    }
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        void Method()
-        {
-            @(DateTime.Now)
-        }
-    }
-}
-",
-fileKind: FileKinds.Legacy);
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() { @(DateTime.Now) }
+                        }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method()
+                            {
+                                @(DateTime.Now)
+                            }
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task Format_SectionDirectiveBlock1()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-void Method() {  }
-    }
-}
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
 
-@section Scripts {
-<script></script>
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        void Method() { }
-    }
-}
+                    @section Scripts {
+                    <script></script>
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
 
-@section Scripts {
-    <script></script>
-}
-",
-fileKind: FileKinds.Legacy);
+                    @section Scripts {
+                        <script></script>
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task Format_SectionDirectiveBlock2()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-void Method() {  }
-    }
-}
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
 
-@section Scripts {
-<script>
-    function f() {
-    }
-</script>
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        void Method() { }
-    }
-}
+                    @section Scripts {
+                    <script>
+                        function f() {
+                        }
+                    </script>
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
 
-@section Scripts {
-    <script>
-        function f() {
-        }
-    </script>
-}
-",
-fileKind: FileKinds.Legacy);
+                    @section Scripts {
+                        <script>
+                            function f() {
+                            }
+                        </script>
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task Format_SectionDirectiveBlock3()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-void Method() {  }
-    }
-}
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
 
-@section Scripts {
-<p>this is a para</p>
-@if(true)
-{
-<p>and so is this</p>
-}
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        void Method() { }
-    }
-}
+                    @section Scripts {
+                    <p>this is a para</p>
+                    @if(true)
+                    {
+                    <p>and so is this</p>
+                    }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
 
-@section Scripts {
-    <p>this is a para</p>
-    @if (true)
-    {
-        <p>and so is this</p>
-    }
-}
-",
-fileKind: FileKinds.Legacy);
+                    @section Scripts {
+                        <p>this is a para</p>
+                        @if (true)
+                        {
+                            <p>and so is this</p>
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6401")]
+        public async Task Format_SectionDirectiveBlock4()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
+
+                    @section Scripts {
+                    <script></script>
+                    }
+
+                    @if (true)
+                    {
+                        <p></p>
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
+
+                    @section Scripts {
+                        <script></script>
+                    }
+
+                    @if (true)
+                    {
+                        <p></p>
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task Formats_CodeBlockDirectiveWithRazorComments()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-@* This is a Razor Comment *@
-void Method() {  }
-}
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        @* This is a Razor Comment *@
-        void Method() { }
-    }
-}
-");
+                input: """
+                    @functions {
+                     public class Foo{
+                    @* This is a Razor Comment *@
+                    void Method() {  }
+                    }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            @* This is a Razor Comment *@
+                            void Method() { }
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Formats_CodeBlockDirectiveWithRazorStatements()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{
-@* This is a Razor Comment *@
-    }
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-        @* This is a Razor Comment *@
-    }
-}
-");
+                input: """
+                    @functions {
+                     public class Foo{
+                    @* This is a Razor Comment *@
+                        }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            @* This is a Razor Comment *@
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task DoesNotFormat_CodeBlockDirective_NotInSelectedRange()
         {
             await RunFormattingTestAsync(
-input: @"
-[|<div>Foo</div>|]
-@functions {
- public class Foo{}
-        public interface Bar {
-}
-}
-",
-expected: @"
-<div>Foo</div>
-@functions {
- public class Foo{}
-        public interface Bar {
-}
-}
-");
+                input: """
+                    [|<div>Foo</div>|]
+                    @functions {
+                     public class Foo{}
+                            public interface Bar {
+                    }
+                    }
+                    """,
+                expected: """
+                    <div>Foo</div>
+                    @functions {
+                     public class Foo{}
+                            public interface Bar {
+                    }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task OnlyFormatsWithinRange()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{}
-        [|public interface Bar {
-}|]
-}
-",
-expected: @"
-@functions {
- public class Foo{}
-    public interface Bar
-    {
-    }
-}
-");
+                input: """
+                    @functions {
+                     public class Foo{}
+                            [|public interface Bar {
+                    }|]
+                    }
+                    """,
+                expected: """
+                    @functions {
+                     public class Foo{}
+                        public interface Bar
+                        {
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task MultipleCodeBlockDirectives()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
- public class Foo{}
-        public interface Bar {
-}
-}
-Hello World
-@functions {
-      public class Baz    {
-          void Method ( )
-          { }
-          }
-}
-",
-expected: @"@functions {
-    public class Foo { }
-    public interface Bar
-    {
-    }
-}
-Hello World
-@functions {
-    public class Baz
-    {
-        void Method()
-        { }
-    }
-}
-",
-fileKind: FileKinds.Legacy);
+                input: """
+                    @functions {
+                     public class Foo{}
+                            public interface Bar {
+                    }
+                    }
+                    Hello World
+                    @functions {
+                          public class Baz    {
+                              void Method ( )
+                              { }
+                              }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo { }
+                        public interface Bar
+                        {
+                        }
+                    }
+                    Hello World
+                    @functions {
+                        public class Baz
+                        {
+                            void Method()
+                            { }
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
         public async Task MultipleCodeBlockDirectives2()
         {
             await RunFormattingTestAsync(
-input: @"
-Hello World
-@code {
-public class HelloWorld
-{
-}
-}
+                input: """
+                    Hello World
+                    @code {
+                    public class HelloWorld
+                    {
+                    }
+                    }
 
-@functions{
+                    @functions{
 
- public class Bar {}
-}
-",
-expected: @"Hello World
-@code {
-    public class HelloWorld
-    {
-    }
-}
+                        public class Bar {}
+                    }
+                    """,
+                expected: """
+                    Hello World
+                    @code {
+                        public class HelloWorld
+                        {
+                        }
+                    }
 
-@functions {
+                    @functions {
 
-    public class Bar { }
-}
-");
+                        public class Bar { }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task CodeOnTheSameLineAsCodeBlockDirectiveStart()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {public class Foo{
-}
-}
-",
-expected: @"@functions {
-    public class Foo
-    {
-    }
-}
-");
+                input: """
+                    @functions {public class Foo{
+                    }
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task CodeOnTheSameLineAsCodeBlockDirectiveEnd()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {
-public class Foo{
-}}
-",
-expected: @"@functions {
-    public class Foo
-    {
-    }
-}
-");
+                input: """
+                    @functions {
+                    public class Foo{
+                    }}
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task SingleLineCodeBlockDirective()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions {public class Foo{}
-}
-",
-expected: @"@functions {
-    public class Foo { }
-}
-");
+            input: """
+                @functions {public class Foo{}
+                }
+                """,
+            expected: """
+                @functions {
+                    public class Foo { }
+                }
+                """);
         }
 
         [Fact]
         public async Task IndentsCodeBlockDirectiveStart()
         {
             await RunFormattingTestAsync(
-input: @"
-Hello World
-     @functions {public class Foo{}
-}
-",
-expected: @"Hello World
-@functions {
-    public class Foo { }
-}
-");
+                input: """
+                    Hello World
+                         @functions {public class Foo{}
+                    }
+                    """,
+                expected: """
+                    Hello World
+                    @functions {
+                        public class Foo { }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task IndentsCodeBlockDirectiveEnd()
         {
             await RunFormattingTestAsync(
-input: @"
- @functions {
-public class Foo{}
-     }
-",
-expected: @"@functions {
-    public class Foo { }
-     }
-");
+                input: """
+                     @functions {
+                    public class Foo{}
+                         }
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo { }
+                         }
+                    """);
         }
 
         [Fact]
         public async Task ComplexCodeBlockDirective()
         {
             await RunFormattingTestAsync(
-input: @"
-@using System.Buffers
-@functions{
-     public class Foo
-            {
-                public Foo()
-                {
-                    var arr = new string[ ] { ""One"", ""two"",""three"" };
-                    var str = @""
-This should
-not
-be indented.
-"";
-                }
-public int MyProperty { get
-{
-return 0 ;
-} set {} }
+                input: """
+                    @using System.Buffers
+                    @functions{
+                         public class Foo
+                                {
+                                    public Foo()
+                                    {
+                                        var arr = new string[ ] { "One", "two","three" };
+                                        var str = @"
+                    This should
+                    not
+                    be indented.
+                    ";
+                                    }
+                    public int MyProperty { get
+                    {
+                    return 0 ;
+                    } set {} }
 
-void Method(){
+                    void Method(){
 
-}
                     }
-}
-",
-expected: @"@using System.Buffers
-@functions {
-    public class Foo
-    {
-        public Foo()
-        {
-            var arr = new string[] { ""One"", ""two"", ""three"" };
-            var str = @""
-This should
-not
-be indented.
-"";
-        }
-        public int MyProperty
-        {
-            get
-            {
-                return 0;
-            }
-            set { }
-        }
+                                        }
+                    }
+                    """,
+                expected: """
+                    @using System.Buffers
+                    @functions {
+                        public class Foo
+                        {
+                            public Foo()
+                            {
+                                var arr = new string[] { "One", "two", "three" };
+                                var str = @"
+                    This should
+                    not
+                    be indented.
+                    ";
+                            }
+                            public int MyProperty
+                            {
+                                get
+                                {
+                                    return 0;
+                                }
+                                set { }
+                            }
 
-        void Method()
-        {
+                            void Method()
+                            {
 
-        }
-    }
-}
-");
+                            }
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Strings()
         {
             await RunFormattingTestAsync(
-input: @"
-@functions{
-private string str1 = ""hello world"";
-private string str2 = $""hello world"";
-private string str3 = @""hello world"";
-private string str4 = $@""hello world"";
-private string str5 = @""
-    One
-        Two
-            Three
-"";
-private string str6 = $@""
-    One
-        Two
-            Three
-"";
-// This looks wrong, but matches what the C# formatter does. Try it and see!
-private string str7 = ""One"" +
-    ""Two"" +
-        ""Three"" +
-"""";
-}
-",
-expected: @"@functions {
-    private string str1 = ""hello world"";
-    private string str2 = $""hello world"";
-    private string str3 = @""hello world"";
-    private string str4 = $@""hello world"";
-    private string str5 = @""
-    One
-        Two
-            Three
-"";
-    private string str6 = $@""
-    One
-        Two
-            Three
-"";
-    // This looks wrong, but matches what the C# formatter does. Try it and see!
-    private string str7 = ""One"" +
-        ""Two"" +
-            ""Three"" +
-    """";
-}
-");
+                input: """
+                    @functions{
+                    private string str1 = "hello world";
+                    private string str2 = $"hello world";
+                    private string str3 = @"hello world";
+                    private string str4 = $@"hello world";
+                    private string str5 = @"
+                        One
+                            Two
+                                Three
+                    ";
+                    private string str6 = $@"
+                        One
+                            Two
+                                Three
+                    ";
+                    // This looks wrong, but matches what the C# formatter does. Try it and see!
+                    private string str7 = "One" +
+                        "Two" +
+                            "Three" +
+                    "";
+                    }
+                    """,
+                expected: """
+                    @functions {
+                        private string str1 = "hello world";
+                        private string str2 = $"hello world";
+                        private string str3 = @"hello world";
+                        private string str4 = $@"hello world";
+                        private string str5 = @"
+                        One
+                            Two
+                                Three
+                    ";
+                        private string str6 = $@"
+                        One
+                            Two
+                                Three
+                    ";
+                        // This looks wrong, but matches what the C# formatter does. Try it and see!
+                        private string str7 = "One" +
+                            "Two" +
+                                "Three" +
+                        "";
+                    }
+                    """);
         }
 
         [Fact]
         public async Task CodeBlockDirective_UseTabs()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        void Method(  ) {
-}
-}
-",
-expected: @"@code {
-	public class Foo { }
-	void Method()
-	{
-	}
-}
-",
-insertSpaces: false);
+                input: """
+                    @code {
+                     public class Foo{}
+                            void Method(  ) {
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                    	public class Foo { }
+                    	void Method()
+                    	{
+                    	}
+                    }
+                    """,
+                insertSpaces: false);
 
         }
         [Fact]
         public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        void Method(  ) {<div></div>
-}
-}
-",
-expected: @"@code {
-	public class Foo { }
-	void Method()
-	{
-		<div></div>
-	}
-}
-",
-tabSize: 8,
-insertSpaces: false);
+                input: """
+                    @code {
+                     public class Foo{}
+                            void Method(  ) {<div></div>
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                    	public class Foo { }
+                    	void Method()
+                    	{
+                    		<div></div>
+                    	}
+                    }
+                    """,
+                tabSize: 8,
+                insertSpaces: false);
         }
 
         [Fact]
         public async Task CodeBlockDirective_UseTabsWithTabSize8()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        void Method(  ) {
-}
-}
-",
-expected: @"@code {
-	public class Foo { }
-	void Method()
-	{
-	}
-}
-",
-tabSize: 8,
-insertSpaces: false);
+                input: """
+                    @code {
+                     public class Foo{}
+                            void Method(  ) {
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                    	public class Foo { }
+                    	void Method()
+                    	{
+                    	}
+                    }
+                    """,
+                tabSize: 8,
+                insertSpaces: false);
         }
 
         [Fact]
         public async Task CodeBlockDirective_WithTabSize3()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        void Method(  ) {
-}
-}
-",
-expected: @"@code {
-   public class Foo { }
-   void Method()
-   {
-   }
-}
-",
-tabSize: 3);
+                input: """
+                    @code {
+                     public class Foo{}
+                            void Method(  ) {
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                       public class Foo { }
+                       void Method()
+                       {
+                       }
+                    }
+                    """,
+                tabSize: 3);
         }
 
         [Fact]
         public async Task CodeBlockDirective_WithTabSize8()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        void Method(  ) {
-}
-}
-",
-expected: @"@code {
-        public class Foo { }
-        void Method()
-        {
-        }
-}
-",
-tabSize: 8);
+                input: """
+                    @code {
+                     public class Foo{}
+                            void Method(  ) {
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                            public class Foo { }
+                            void Method()
+                            {
+                            }
+                    }
+                    """,
+                tabSize: 8);
         }
 
         [Fact]
         public async Task CodeBlockDirective_WithTabSize12()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
- public class Foo{}
-        void Method(  ) {
-}
-}
-",
-expected: @"@code {
-            public class Foo { }
-            void Method()
-            {
-            }
-}
-",
-tabSize: 12);
+                input: """
+                    @code {
+                     public class Foo{}
+                            void Method(  ) {
+                    }
+                    }
+                    """,
+                expected: """
+                    @code {
+                                public class Foo { }
+                                void Method()
+                                {
+                                }
+                    }
+                    """,
+                tabSize: 12);
         }
 
         [Fact]
@@ -814,18 +883,18 @@ tabSize: 12);
         public async Task CodeBlock_SemiColon_SingleLine()
         {
             await RunFormattingTestAsync(
-input: @"
-<div></div>
-@{ Debugger.Launch()$$;}
-<div></div>
-",
-expected: @"
-<div></div>
-@{
-    Debugger.Launch();
-}
-<div></div>
-");
+                input: """
+                    <div></div>
+                    @{ Debugger.Launch()$$;}
+                    <div></div>
+                    """,
+                expected: """
+                    <div></div>
+                    @{
+                        Debugger.Launch();
+                    }
+                    <div></div>
+                    """);
         }
 
         [Fact]
@@ -833,37 +902,38 @@ expected: @"
         public async Task CodeBlock_NestedComponents()
         {
             await RunFormattingTestAsync(
-input: @"
-@code {
-    private WeatherForecast[] forecasts;
+                input: """
+                    @code {
+                        private WeatherForecast[] forecasts;
 
-    protected override async Task OnInitializedAsync()
-    {
-        <Counter>
-            @{
-                    var t = DateTime.Now;
-                    t.ToString();
-                }
-            </Counter>
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
-    }
-}
-",
-expected: @"@code {
-    private WeatherForecast[] forecasts;
+                        protected override async Task OnInitializedAsync()
+                        {
+                            <Counter>
+                                @{
+                                        var t = DateTime.Now;
+                                        t.ToString();
+                                    }
+                                </Counter>
+                            forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private WeatherForecast[] forecasts;
 
-    protected override async Task OnInitializedAsync()
-    {
-        <Counter>
-            @{
-                var t = DateTime.Now;
-                t.ToString();
-            }
-        </Counter>
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
-    }
-}
-");
+                        protected override async Task OnInitializedAsync()
+                        {
+                            <Counter>
+                                @{
+                                    var t = DateTime.Now;
+                                    t.ToString();
+                                }
+                            </Counter>
+                            forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -873,55 +943,56 @@ expected: @"@code {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
             await RunFormattingTestAsync(
-input: @"
-@code {
-    public List<object> AList = new List<object>()
-    {
-        new
-        {
-            Name = ""One"",
-            Goo = new
-            {
-                First = 1,
-                Second = 2
-            },
-            Bar = new string[] {
-                ""Hello"",
-                ""There""
-            },
-            Baz = new string[]
-            {
-                ""Hello"",
-                ""There""
-            }
-        }
-    };
-}
-",
-expected: @"@code {
-    public List<object> AList = new List<object>()
-    {
-        new
-        {
-            Name = ""One"",
-            Goo = new
-            {
-                First = 1,
-                Second = 2
-            },
-            Bar = new string[] {
-                ""Hello"",
-                ""There""
-            },
-            Baz = new string[]
-            {
-                ""Hello"",
-                ""There""
-            }
-        }
-    };
-}
-");
+                input: """
+                    @code {
+                        public List<object> AList = new List<object>()
+                        {
+                            new
+                            {
+                                Name = "One",
+                                Goo = new
+                                {
+                                    First = 1,
+                                    Second = 2
+                                },
+                                Bar = new string[] {
+                                    "Hello",
+                                    "There"
+                                },
+                                Baz = new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                }
+                            }
+                        };
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public List<object> AList = new List<object>()
+                        {
+                            new
+                            {
+                                Name = "One",
+                                Goo = new
+                                {
+                                    First = 1,
+                                    Second = 2
+                                },
+                                Bar = new string[] {
+                                    "Hello",
+                                    "There"
+                                },
+                                Baz = new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                }
+                            }
+                        };
+                    }
+                    """);
         }
 
         [Fact]
@@ -931,31 +1002,32 @@ expected: @"@code {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
             await RunFormattingTestAsync(
-input: @"
-@code {
-    private void M()
-    {
-        var entries = new string[]
-        {
-            ""a"",
-            ""b"",
-            ""c""
-        };
-    }
-}
-",
-expected: @"@code {
-    private void M()
-    {
-        var entries = new string[]
-        {
-            ""a"",
-            ""b"",
-            ""c""
-        };
-    }
-}
-");
+                input: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new string[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new string[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -965,29 +1037,30 @@ expected: @"@code {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
             await RunFormattingTestAsync(
-input: @"
-@code {
-    private void M()
-    {
-        var entries = new
-        {
-            First = 1,
-            Second = 2
-        };
-    }
-}
-",
-expected: @"@code {
-    private void M()
-    {
-        var entries = new
-        {
-            First = 1,
-            Second = 2
-        };
-    }
-}
-");
+                input: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new
+                            {
+                                First = 1,
+                                Second = 2
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new
+                            {
+                                First = 1,
+                                Second = 2
+                            };
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -997,31 +1070,32 @@ expected: @"@code {
             // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
             await RunFormattingTestAsync(
-input: @"
-@code {
-    private void M()
-    {
-        var entries = new List<string>()
-        {
-            ""a"",
-            ""b"",
-            ""c""
-        };
-    }
-}
-",
-expected: @"@code {
-    private void M()
-    {
-        var entries = new List<string>()
-        {
-            ""a"",
-            ""b"",
-            ""c""
-        };
-    }
-}
-");
+                input: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new List<string>()
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new List<string>()
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -1030,37 +1104,38 @@ expected: @"@code {
         {
             // The C# Formatter _does_ touch these types of initializers if they're empty. Who knew ¯\_(ツ)_/¯
             await RunFormattingTestAsync(
-input: @"
-@code {
-    public void Foo()
-    {
-        SomeMethod(new List<string>()
-            {
+                input: """
+                    @code {
+                        public void Foo()
+                        {
+                            SomeMethod(new List<string>()
+                                {
 
-            });
+                                });
 
-        SomeMethod(new Exception
-            {
+                            SomeMethod(new Exception
+                                {
 
-            });
-    }
-}
-",
-expected: @"@code {
-    public void Foo()
-    {
-        SomeMethod(new List<string>()
-        {
+                                });
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public void Foo()
+                        {
+                            SomeMethod(new List<string>()
+                            {
 
-        });
+                            });
 
-        SomeMethod(new Exception
-        {
+                            SomeMethod(new Exception
+                            {
 
-        });
-    }
-}
-");
+                            });
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -1068,15 +1143,16 @@ expected: @"@code {
         public async Task IfBlock_TopLevel()
         {
             await RunFormattingTestAsync(
-input: @"
-        @if (true)
-{
-}
-",
-expected: @"@if (true)
-{
-}
-");
+                input: """
+                            @if (true)
+                    {
+                    }
+                    """,
+                expected: """
+                    @if (true)
+                    {
+                    }
+                    """);
         }
 
         [Fact]
@@ -1084,23 +1160,24 @@ expected: @"@if (true)
         public async Task IfBlock_TopLevel_WithOtherCode()
         {
             await RunFormattingTestAsync(
-input: @"
-@{
-    // foo
-}
+                input: """
+                    @{
+                        // foo
+                    }
 
-        @if (true)
-{
-}
-",
-expected: @"@{
-    // foo
-}
+                            @if (true)
+                    {
+                    }
+                    """,
+                expected: """
+                    @{
+                        // foo
+                    }
 
-@if (true)
-{
-}
-");
+                    @if (true)
+                    {
+                    }
+                    """);
         }
 
         [Fact]
@@ -1108,20 +1185,20 @@ expected: @"@{
         public async Task IfBlock_Nested()
         {
             await RunFormattingTestAsync(
-input: @"
-<div>
-        @if (true)
-{
-}
-</div>
-",
-expected: @"
-<div>
-    @if (true)
-    {
-    }
-</div>
-");
+                input: """
+                    <div>
+                            @if (true)
+                    {
+                    }
+                    </div>
+                    """,
+                expected: """
+                    <div>
+                        @if (true)
+                        {
+                        }
+                    </div>
+                    """);
         }
 
         [Fact]
@@ -1129,54 +1206,57 @@ expected: @"
         public async Task GenericComponentWithCascadingTypeParameter()
         {
             await RunFormattingTestAsync(
-input: @"
-@page ""/counter""
+                input: """
+                    @page "/counter"
 
-@if(true)
-    {
-                // indented
-        }
+                    @if(true)
+                        {
+                                    // indented
+                            }
 
-<TestGeneric Items=""_items"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-        {
-            <div></div>
-        }
-    </TestGeneric>
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                            {
+                                <div></div>
+                            }
+                        </TestGeneric>
 
-@if(true)
-    {
-                // indented
-            }
+                    @if(true)
+                        {
+                                    // indented
+                                }
 
-@code
-    {
-    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
-}",
-expected: @"@page ""/counter""
+                    @code
+                        {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+                expected: """
+                    @page "/counter"
 
-@if (true)
-{
-    // indented
-}
+                    @if (true)
+                    {
+                        // indented
+                    }
 
-<TestGeneric Items=""_items"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-    {
-        <div></div>
-    }
-</TestGeneric>
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                        {
+                            <div></div>
+                        }
+                    </TestGeneric>
 
-@if (true)
-{
-    // indented
-}
+                    @if (true)
+                    {
+                        // indented
+                    }
 
-@code
-{
-    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
-}",
-tagHelpers: GetComponentWithCascadingTypeParameter());
+                    @code
+                    {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+                tagHelpers: GetComponentWithCascadingTypeParameter());
         }
 
         [Fact]
@@ -1184,46 +1264,49 @@ tagHelpers: GetComponentWithCascadingTypeParameter());
         public async Task GenericComponentWithCascadingTypeParameter_Nested()
         {
             await RunFormattingTestAsync(
-input: @"
-@page ""/counter""
+                input: """
+                    @page "/counter"
 
-<TestGeneric Items=""_items"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-        {
-            <div></div>
-        }
-<TestGeneric Items=""_items"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-        {
-            <div></div>
-        }
-    </TestGeneric>
-    </TestGeneric>
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                            {
+                                <div></div>
+                            }
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                            {
+                                <div></div>
+                            }
+                        </TestGeneric>
+                        </TestGeneric>
 
-@code
-    {
-    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
-}",
-expected: @"@page ""/counter""
+                    @code
+                        {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+                expected: """
+                    @page "/counter"
 
-<TestGeneric Items=""_items"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-    {
-        <div></div>
-    }
-    <TestGeneric Items=""_items"">
-        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-        {
-            <div></div>
-        }
-    </TestGeneric>
-</TestGeneric>
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                        {
+                            <div></div>
+                        }
+                        <TestGeneric Items="_items">
+                            @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                            {
+                                <div></div>
+                            }
+                        </TestGeneric>
+                    </TestGeneric>
 
-@code
-{
-    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
-}",
-tagHelpers: GetComponentWithCascadingTypeParameter());
+                    @code
+                    {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+                tagHelpers: GetComponentWithCascadingTypeParameter());
         }
 
         [Fact]
@@ -1231,179 +1314,187 @@ tagHelpers: GetComponentWithCascadingTypeParameter());
         public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters()
         {
             await RunFormattingTestAsync(
-input: @"
-@page ""/counter""
+                input: """
+                    @page "/counter"
 
-<TestGenericTwo Items=""_items"" ItemsTwo=""_items2"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-        {
-            <div></div>
-        }
-    </TestGenericTwo>
+                    <TestGenericTwo Items="_items" ItemsTwo="_items2">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                            {
+                                <div></div>
+                            }
+                        </TestGenericTwo>
 
-@code
-    {
-    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
-    private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
-}",
-expected: @"@page ""/counter""
+                    @code
+                        {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                        private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+                expected: """
+                    @page "/counter"
 
-<TestGenericTwo Items=""_items"" ItemsTwo=""_items2"">
-    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
-    {
-        <div></div>
-    }
-</TestGenericTwo>
+                    <TestGenericTwo Items="_items" ItemsTwo="_items2">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                        {
+                            <div></div>
+                        }
+                    </TestGenericTwo>
 
-@code
-{
-    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
-    private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
-}",
-tagHelpers: GetComponentWithTwoCascadingTypeParameter());
+                    @code
+                    {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                        private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+                tagHelpers: GetComponentWithTwoCascadingTypeParameter());
         }
 
         [Fact]
         public async Task Formats_MultilineExpressionAtStartOfBlock()
         {
             await RunFormattingTestAsync(
-input: @"
-@{
-    var x = DateTime
-        .Now
-        .ToString();
-}
-",
-expected: @"@{
-    var x = DateTime
-        .Now
-        .ToString();
-}
-");
+                input: """
+                    @{
+                        var x = DateTime
+                            .Now
+                            .ToString();
+                    }
+                    """,
+                expected: """
+                    @{
+                        var x = DateTime
+                            .Now
+                            .ToString();
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Formats_MultilineExpressionAfterWhitespaceAtStartOfBlock()
         {
             await RunFormattingTestAsync(
-input: @"
-@{
-    
-        
-
-    var x = DateTime
-        .Now
-        .ToString();
-}
-",
-expected: @"@{
+                input: """
+                    @{
 
 
 
-    var x = DateTime
-        .Now
-        .ToString();
-}
-");
+                        var x = DateTime
+                            .Now
+                            .ToString();
+                    }
+                    """,
+                expected: """
+                    @{
+
+
+
+                        var x = DateTime
+                            .Now
+                            .ToString();
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Formats_MultilineExpressionNotAtStartOfBlock()
         {
             await RunFormattingTestAsync(
-input: @"
-@{
-    //
-    var x = DateTime
-        .Now
-        .ToString();
-}
-",
-expected: @"@{
-    //
-    var x = DateTime
-        .Now
-        .ToString();
-}
-");
+                input: """
+                    @{
+                        //
+                        var x = DateTime
+                            .Now
+                            .ToString();
+                    }
+                    """,
+                expected: """
+                    @{
+                        //
+                        var x = DateTime
+                            .Now
+                            .ToString();
+                    }
+                    """);
         }
 
         [Fact]
         public async Task Formats_MultilineRazorComment()
         {
             await RunFormattingTestAsync(
-input: @"
-<div></div>
-    @*
-line 1
-  line 2
-    line 3
-            *@
-@code
-{
-    void M()
-    {
-    @*
-line 1
-  line 2
-    line 3
-                *@
-    }
-}
-",
-expected: @"
-<div></div>
-@*
-line 1
-  line 2
-    line 3
-            *@
-@code
-{
-    void M()
-    {
-        @*
-line 1
-  line 2
-    line 3
-                *@
-    }
-}
-");
+                input: """
+                    <div></div>
+                        @*
+                    line 1
+                      line 2
+                        line 3
+                                *@
+                    @code
+                    {
+                        void M()
+                        {
+                        @*
+                    line 1
+                      line 2
+                        line 3
+                                    *@
+                        }
+                    }
+                    """,
+                expected: """
+                    <div></div>
+                    @*
+                    line 1
+                      line 2
+                        line 3
+                                *@
+                    @code
+                    {
+                        void M()
+                        {
+                            @*
+                    line 1
+                      line 2
+                        line 3
+                                    *@
+                        }
+                    }
+                    """);
         }
 
         [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
         public async Task Formats_NoEditsForNoChanges()
         {
-            var input = @"@code {
-    public void M()
-    {
-        Console.WriteLine(""Hello"");
-        Console.WriteLine(""World""); // <-- type/replace semicolon here
-    }
-}
-";
+            var input = """
+                @code {
+                    public void M()
+                    {
+                        Console.WriteLine("Hello");
+                        Console.WriteLine("World"); // <-- type/replace semicolon here
+                    }
+                }
+
+                """;
 
             await RunFormattingTestAsync(input, input, fileKind: FileKinds.Component);
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()
         {
-            var input = @"
-@using System.Collections.Generic
-@using Microsoft.AspNetCore.Components
-@typeparam TItem
-@attribute [CascadingTypeParameter(nameof(TItem))]
+            var input = """
+                @using System.Collections.Generic
+                @using Microsoft.AspNetCore.Components
+                @typeparam TItem
+                @attribute [CascadingTypeParameter(nameof(TItem))]
 
-<h3>TestGeneric</h3>
+                <h3>TestGeneric</h3>
 
-@code
-{
-    [Parameter] public IEnumerable<TItem> Items { get; set; }
-    [Parameter] public RenderFragment ChildContent { get; set; }
-}
-            ";
+                @code
+                {
+                    [Parameter] public IEnumerable<TItem> Items { get; set; }
+                    [Parameter] public RenderFragment ChildContent { get; set; }
+                }
+                """;
 
             var generated = CompileToCSharp("TestGeneric.razor", input, throwOnFailure: true, fileKind: FileKinds.Component);
             var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
@@ -1412,23 +1503,23 @@ line 1
 
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithTwoCascadingTypeParameter()
         {
-            var input = @"
-@using System.Collections.Generic
-@using Microsoft.AspNetCore.Components
-@typeparam TItem
-@typeparam TItemTwo
-@attribute [CascadingTypeParameter(nameof(TItem))]
-@attribute [CascadingTypeParameter(nameof(TItemTwo))]
+            var input = """
+                @using System.Collections.Generic
+                @using Microsoft.AspNetCore.Components
+                @typeparam TItem
+                @typeparam TItemTwo
+                @attribute [CascadingTypeParameter(nameof(TItem))]
+                @attribute [CascadingTypeParameter(nameof(TItemTwo))]
 
-<h3>TestGeneric</h3>
+                <h3>TestGeneric</h3>
 
-@code
-{
-    [Parameter] public IEnumerable<TItem> Items { get; set; }
-    [Parameter] public IEnumerable<TItemTwo> ItemsTwo { get; set; }
-    [Parameter] public RenderFragment ChildContent { get; set; }
-}
-            ";
+                @code
+                {
+                    [Parameter] public IEnumerable<TItem> Items { get; set; }
+                    [Parameter] public IEnumerable<TItemTwo> ItemsTwo { get; set; }
+                    [Parameter] public RenderFragment ChildContent { get; set; }
+                }
+                """;
 
             var generated = CompileToCSharp("TestGenericTwo.razor", input, throwOnFailure: true, fileKind: FileKinds.Component);
             var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
