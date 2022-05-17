@@ -273,7 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 new TextEdit()
                 {
-                    Range = element.StartTag.Name.GetRange(codeDocument.Source),
+                    Range = element.StartTag.Name.GetOmniSharpRange(codeDocument.Source),
                     NewText = newName,
                 },
             };
@@ -281,7 +281,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 edits.Add(new TextEdit()
                 {
-                    Range = element.EndTag.Name.GetRange(codeDocument.Source),
+                    Range = element.EndTag.Name.GetOmniSharpRange(codeDocument.Source),
                     NewText = newName,
                 });
             }
