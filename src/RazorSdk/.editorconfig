@@ -1,9 +1,10 @@
+root = true
+
 # C# files
 [*.cs]
 
-#### Core EditorConfig Options ####
+# Reset to defaults by ignoring the editorconfigs higher up
+# Tracked by: https://github.com/dotnet/razor-compiler/issues/246
 
-# var preferences
-csharp_style_var_elsewhere = true
-csharp_style_var_for_built_in_types = true
-csharp_style_var_when_type_is_apparent = true
+# CA1310: Specify StringComparison for correctness
+dotnet_diagnostic.CA1310.severity = silent

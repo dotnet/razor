@@ -11,30 +11,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- Use a pinned version of the compiler unless building from source. This avoids issues where the source generator is unable to launch in VS because the compiler versions is older than the one in the SDK. -->
-    <RSG_MicrosoftCodeAnalysisCSharpPackageVersion Condition="'$(DotNetBuildFromSource)' != 'true'">$(MicrosoftCodeAnalysisCSharpAnalyzerPinnedVersionPackageVersion)</RSG_MicrosoftCodeAnalysisCSharpPackageVersion>
-    <RSG_MicrosoftCodeAnalysisCSharpPackageVersion Condition="'$(DotNetBuildFromSource)' == 'true'">$(MicrosoftCodeAnalysisCSharpPackageVersion)</RSG_MicrosoftCodeAnalysisCSharpPackageVersion>
-  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RSG_MicrosoftCodeAnalysisCSharpPackageVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal" Version="$(MicrosoftAspNetCoreRazorSourceGeneratorToolingInternalPackageVersion)" GeneratePathProperty="true" />
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" />
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="RazorSourceGenerator.razorencconfig" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
-  <!-- See https://github.com/dotnet/roslyn/discussions/47517#discussioncomment-64145 -->
-  <PropertyGroup>
-    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-  </PropertyGroup>
-
-  <Target Name="GetDependencyTargetPaths">
-    <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="$(PkgMicrosoft_AspNetCore_Razor_SourceGenerator_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal.dll" IncludeRuntimeDependency="false" />
-    </ItemGroup>
-  </Target>
 
 </Project>

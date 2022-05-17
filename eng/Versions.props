@@ -45,5 +45,23 @@
     <XunitVersion>2.4.1</XunitVersion>
     <XunitAssertVersion>$(XunitVersion)</XunitAssertVersion>
     <XunitExtensibilityExecutionVersion>$(XunitVersion)</XunitExtensibilityExecutionVersion>
+
+    <MicrosoftBuildPackageVersion>17.2.0-preview-22178-03</MicrosoftBuildPackageVersion>
+    <MicrosoftBuildFrameworkPackageVersion>$(MicrosoftBuildPackageVersion)</MicrosoftBuildFrameworkPackageVersion>
+    <MicrosoftBuildUtilitiesCorePackageVersion>$(MicrosoftBuildPackageVersion)</MicrosoftBuildUtilitiesCorePackageVersion>
+    <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
+    <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
+    <MicrosoftExtensionsFileSystemGlobbingPackageVersion>6.0.0-preview.7.21377.19</MicrosoftExtensionsFileSystemGlobbingPackageVersion>
+    <MicrosoftAspNetCoreRazorSourceGeneratorToolingInternalPackageVersion>7.0.0-preview.4.22173.1</MicrosoftAspNetCoreRazorSourceGeneratorToolingInternalPackageVersion>
+    <MicrosoftCssParserVersion>1.0.0-20200708.1</MicrosoftCssParserVersion>
+    <NewtonsoftJsonPackageVersion>13.0.1</NewtonsoftJsonPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.4.22173.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
+    <MicrosoftCodeAnalysisRazorToolingInternalVersion>7.0.0-preview.4.22173.1</MicrosoftCodeAnalysisRazorToolingInternalVersion>
+    <MicrosoftAspNetCoreRazorSourceGeneratorToolingInternalPackageVersion>7.0.0-preview.4.22173.1</MicrosoftAspNetCoreRazorSourceGeneratorToolingInternalPackageVersion>
+    <FluentAssertionsVersion>4.19.2</FluentAssertionsVersion>
+    <MoqPackageVersion>4.8.2</MoqPackageVersion>
+    <MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>4.2.0-2.22172.6</MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
+    <MicrosoftExtensionsDependencyModelPackageVersion>7.0.0-preview.4.22179.1</MicrosoftExtensionsDependencyModelPackageVersion>
+
   </PropertyGroup>
 </Project>

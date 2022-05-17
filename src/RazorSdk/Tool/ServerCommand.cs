@@ -5,10 +5,10 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.DotNet.Configurer;
 using Microsoft.NET.Sdk.Razor.Tool.CommandLineUtils;
 
 namespace Microsoft.NET.Sdk.Razor.Tool
@@ -183,6 +183,35 @@ namespace Microsoft.NET.Sdk.Razor.Tool
             }
 
             return path;
+        }
+    }
+
+    // Port of SDK code from https://github.com/dotnet/sdk/blob/5f64de40b65f5e1154b3309339563335d8b15d3e/src/Common/CliFolderPathCalculatorCore.cs
+    static class CliFolderPathCalculatorCore
+    {
+        public const string DotnetHomeVariableName = "DOTNET_CLI_HOME";
+        public const string DotnetProfileDirectoryName = ".dotnet";
+
+        public static string PlatformHomeVariableName =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "USERPROFILE" : "HOME";
+
+        public static string GetDotnetHomePath()
+        {
+            var home = Environment.GetEnvironmentVariable(DotnetHomeVariableName);
+            if (string.IsNullOrEmpty(home))
+            {
+                home = Environment.GetEnvironmentVariable(PlatformHomeVariableName);
+                if (string.IsNullOrEmpty(home))
+                {
+                    home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    if (string.IsNullOrEmpty(home))
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            return home;
         }
     }
 }
