@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "field name",
             "interface name",
             "json - array",
-            "json - comment"),
+            "json - comment",
             "json - constructor name",
             "json - keyword",
             "json - number",
