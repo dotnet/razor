@@ -17,16 +17,15 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class VSHoverParams : TextDocumentPositionParams, IPartialResultParams<VSInternalHover?>
+    internal class VSHoverParams : TextDocumentPositionParams
     {
-        public IProgress<VSInternalHover?>? PartialResultToken { get; set; }
     }
 
     internal class VSHoverParamsBridge : VSHoverParams, IRequest<VSInternalHover?>
     {
     }
 
-    [Parallel, Method(Methods.TextDocumentCompletionName)]
+    [Parallel, Method(Methods.TextDocumentHoverName)]
     internal interface IVSHoverEndpoint : IJsonRpcRequestHandler<VSHoverParamsBridge, VSInternalHover?>, IRegistrationExtension
     {
     }
@@ -110,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            const string AssociatedServerCapability = "";
+            const string AssociatedServerCapability = "hoverProvider";
             _clientCapabilities = clientCapabilities;
 
             var registrationOptions = new HoverOptions()
