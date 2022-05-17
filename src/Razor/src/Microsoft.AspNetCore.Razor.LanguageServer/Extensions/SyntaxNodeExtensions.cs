@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using VSRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using VSPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
+using OmniRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using OmniPosition = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
@@ -107,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
         }
 
-        public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
+        public static VSRange GetVSRange(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -120,14 +122,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             var lineSpan = node.GetLinePositionSpan(source);
-            var range = new Range(
-                new Position(lineSpan.Start.Line, lineSpan.Start.Character),
-                new Position(lineSpan.End.Line, lineSpan.End.Character));
+            var range = new VSRange
+            {
+                Start = new VSPosition(lineSpan.Start.Line, lineSpan.Start.Character),
+                End = new VSPosition(lineSpan.End.Line, lineSpan.End.Character)
+            };
 
             return range;
         }
 
-        public static Range GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+        public static OmniRange GetRange(this SyntaxNode node, RazorSourceDocument source)
+        {
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            var lineSpan = node.GetLinePositionSpan(source);
+            var range = new OmniRange(new OmniPosition(lineSpan.Start.Line, lineSpan.Start.Character), new OmniPosition(lineSpan.End.Line, lineSpan.End.Character));
+
+            return range;
+        }
+
+        public static OmniRange GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -171,9 +193,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
             var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-            var range = new Range(
-                new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
-                new Position(endPositionSpan.End.Line, endPositionSpan.End.Character));
+            var range = new OmniRange
+            {
+                Start = new OmniPosition(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
+                End = new OmniPosition(endPositionSpan.End.Line, endPositionSpan.End.Character)
+            };
 
             return range;
 
@@ -253,7 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var tokens = node.GetTokens();
             var whitespaceLength = 0;
 
-            for (var i = tokens.Count - 1;  i >= 0; i--)
+            for (var i = tokens.Count - 1; i >= 0; i--)
             {
                 var token = tokens[i];
                 if (token.IsWhitespace())
