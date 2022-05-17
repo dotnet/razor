@@ -14,14 +14,29 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly IEnumerable<IWorkspaceService> _workspaceServices;
         private readonly IEnumerable<ILanguageService> _razorLanguageServices;
 
-        private TestServices(IEnumerable<IWorkspaceService> workspaceServices!!, IEnumerable<ILanguageService> razorLanguageServices!!)
+        private TestServices(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
         {
+            if (workspaceServices is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceServices));
+            }
+
+            if (razorLanguageServices is null)
+            {
+                throw new ArgumentNullException(nameof(razorLanguageServices));
+            }
+
             _workspaceServices = workspaceServices;
             _razorLanguageServices = razorLanguageServices;
         }
 
-        protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace!!)
+        protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
         {
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             return new TestWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace);
         }
 

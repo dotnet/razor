@@ -18,19 +18,44 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ErrorReporter _errorReporter;
 
         public DefaultVisualStudioRazorParserFactory(
-            JoinableTaskContext joinableTaskContext!!,
-            ErrorReporter errorReporter!!,
-            VisualStudioCompletionBroker completionBroker!!,
-            ProjectSnapshotProjectEngineFactory projectEngineFactory!!)
+            JoinableTaskContext joinableTaskContext,
+            ErrorReporter errorReporter,
+            VisualStudioCompletionBroker completionBroker,
+            ProjectSnapshotProjectEngineFactory projectEngineFactory)
         {
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (errorReporter is null)
+            {
+                throw new ArgumentNullException(nameof(errorReporter));
+            }
+
+            if (completionBroker is null)
+            {
+                throw new ArgumentNullException(nameof(completionBroker));
+            }
+
+            if (projectEngineFactory is null)
+            {
+                throw new ArgumentNullException(nameof(projectEngineFactory));
+            }
+
             _joinableTaskContext = joinableTaskContext;
             _errorReporter = errorReporter;
             _completionBroker = completionBroker;
             _projectEngineFactory = projectEngineFactory;
         }
 
-        public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker!!)
+        public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
         {
+            if (documentTracker is null)
+            {
+                throw new ArgumentNullException(nameof(documentTracker));
+            }
+
             _joinableTaskContext.AssertUIThread();
 
             var parser = new DefaultVisualStudioRazorParser(

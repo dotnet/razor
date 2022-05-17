@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -23,22 +24,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly AdhocWorkspaceFactory _workspaceFactory;
 
         public DefaultRazorFormattingService(
-            IEnumerable<IFormattingPass> formattingPasses!!,
-            ILoggerFactory loggerFactory!!,
-            AdhocWorkspaceFactory workspaceFactory!!)
+            IEnumerable<IFormattingPass> formattingPasses,
+            ILoggerFactory loggerFactory,
+            AdhocWorkspaceFactory workspaceFactory)
         {
+            if (formattingPasses is null)
+            {
+                throw new ArgumentNullException(nameof(formattingPasses));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
             _logger = loggerFactory.CreateLogger<DefaultRazorFormattingService>();
             _workspaceFactory = workspaceFactory;
         }
 
         public override async Task<TextEdit[]> FormatAsync(
-            DocumentUri uri!!,
-            DocumentSnapshot documentSnapshot!!,
-            Range range!!,
-            FormattingOptions options!!,
+            DocumentUri uri,
+            DocumentSnapshot documentSnapshot,
+            Range range,
+            FormattingOptions options,
             CancellationToken cancellationToken)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
             var originalText = context.SourceText;

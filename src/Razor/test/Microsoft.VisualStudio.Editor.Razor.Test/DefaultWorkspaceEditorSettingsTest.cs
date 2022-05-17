@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Moq;
 using Xunit;

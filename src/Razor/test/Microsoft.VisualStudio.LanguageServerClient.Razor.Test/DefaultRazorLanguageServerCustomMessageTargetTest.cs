@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Text;
@@ -469,8 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 },
                 requiredHostDocumentVersion: 0,
                 range: new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range());
-            var expectedResults = new ProvideSemanticTokensResponse(
-                expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
+            var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults.Data, documentVersion);
 
             // Act
             var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);

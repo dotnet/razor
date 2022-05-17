@@ -117,8 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             internal TestWorkspaceAccessor(
                 bool canGetWorkspaceFromProjectionBuffer,
-                bool canGetWorkspaceFromHostProject) :
-                base(
+                bool canGetWorkspaceFromHostProject)
+                : base(
                     Mock.Of<IBufferGraphFactoryService>(MockBehavior.Strict),
                     Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
                     TestWorkspace.Create())

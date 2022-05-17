@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -20,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
@@ -36,6 +38,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
             Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            Serializer = new LspSerializer();
+            Serializer.RegisterRazorConverters();
+            Serializer.RegisterVSInternalExtensionConverters();
         }
 
         // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
@@ -48,6 +53,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
 
         internal FilePathNormalizer FilePathNormalizer { get; }
+
+        protected LspSerializer Serializer { get; }
 
         protected ILoggerFactory LoggerFactory { get; }
 
@@ -116,6 +123,11 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                     return (TService)(IRazorSpanMappingService)new TestRazorSpanMappingService();
                 }
 
+                if (serviceType == typeof(IRazorDocumentPropertiesService))
+                {
+                    return (TService)(IRazorDocumentPropertiesService)new TestRazorDocumentPropertiesService();
+                }
+
                 return this as TService;
             }
 
@@ -128,6 +140,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 {
                     throw new NotImplementedException();
                 }
+            }
+
+            private class TestRazorDocumentPropertiesService : IRazorDocumentPropertiesService
+            {
+                public bool DesignTimeOnly => false;
+
+                public string DiagnosticsLspClientName => "RazorCSharp";
             }
         }
 

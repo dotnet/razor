@@ -15,11 +15,26 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class ProjectSystemRazorConfiguration : RazorConfiguration
     {
         public ProjectSystemRazorConfiguration(
-            RazorLanguageVersion languageVersion!!,
-            string configurationName!!,
-            RazorExtension[] extensions!!,
+            RazorLanguageVersion languageVersion,
+            string configurationName,
+            RazorExtension[] extensions,
             bool useConsolidatedMvcViews = false)
         {
+            if (languageVersion is null)
+            {
+                throw new ArgumentNullException(nameof(languageVersion));
+            }
+
+            if (configurationName is null)
+            {
+                throw new ArgumentNullException(nameof(configurationName));
+            }
+
+            if (extensions is null)
+            {
+                throw new ArgumentNullException(nameof(extensions));
+            }
+
             LanguageVersion = languageVersion;
             ConfigurationName = configurationName;
             Extensions = extensions;

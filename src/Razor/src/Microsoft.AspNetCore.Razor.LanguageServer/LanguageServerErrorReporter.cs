@@ -13,8 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ILogger _logger;
 
-        public LanguageServerErrorReporter(ILoggerFactory loggerFactory!!)
+        public LanguageServerErrorReporter(ILoggerFactory loggerFactory)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<LanguageServerErrorReporter>();
         }
 
@@ -23,9 +28,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger.LogError(exception, "Error thrown from LanguageServer");
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot project)
+        public override void ReportError(Exception exception, ProjectSnapshot? project)
         {
-            _logger.LogError(exception, $"Error thrown from project {project.FilePath}");
+            _logger.LogError(exception, $"Error thrown from project {project?.FilePath}");
         }
 
         public override void ReportError(Exception exception, Project workspaceProject)

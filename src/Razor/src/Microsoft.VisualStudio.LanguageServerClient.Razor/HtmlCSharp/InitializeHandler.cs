@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
                 {
-                    TriggerCharacters = new[] { "'", "/", "\n" }
+                    TriggerCharacters = new[] { "'", "/", "\n", "=" }
                 },
                 HoverProvider = true,
                 DefinitionProvider = true,
@@ -58,11 +58,31 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public InitializeHandler(
-            JoinableTaskContext joinableTaskContext!!,
-            ILanguageClientBroker languageClientBroker!!,
-            ILanguageServiceBroker2 languageServiceBroker!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            JoinableTaskContext joinableTaskContext,
+            ILanguageClientBroker languageClientBroker,
+            ILanguageServiceBroker2 languageServiceBroker,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (languageClientBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageClientBroker));
+            }
+
+            if (languageServiceBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageServiceBroker));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _languageClientBroker = languageClientBroker;
             _languageServiceBroker = languageServiceBroker;
@@ -299,7 +319,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var purposefullyRemovedTriggerCharacters = new[]
             {
                 ">", // https://github.com/dotnet/aspnetcore-tooling/pull/3797
-                "=", // https://github.com/dotnet/aspnetcore/issues/33677
                 "-", // Typically used to auto-insert HTML comments, now provided by language-configuration.json
             };
             triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);

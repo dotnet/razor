@@ -17,6 +17,7 @@ using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerCl
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {

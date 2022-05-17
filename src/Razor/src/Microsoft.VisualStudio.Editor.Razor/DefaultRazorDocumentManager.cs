@@ -27,17 +27,42 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            JoinableTaskContext joinableTaskContext!!,
-            RazorEditorFactoryService editorFactoryService!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
+            RazorEditorFactoryService editorFactoryService)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (editorFactoryService is null)
+            {
+                throw new ArgumentNullException(nameof(editorFactoryService));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _editorFactoryService = editorFactoryService;
         }
 
-        public async override Task OnTextViewOpenedAsync(ITextView textView!!, IEnumerable<ITextBuffer> subjectBuffers!!)
+        public async override Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
+            if (subjectBuffers is null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffers));
+            }
+
             _joinableTaskContext.AssertUIThread();
 
             foreach (var textBuffer in subjectBuffers)
@@ -65,8 +90,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public async override Task OnTextViewClosedAsync(ITextView textView!!, IEnumerable<ITextBuffer> subjectBuffers!!)
+        public async override Task OnTextViewClosedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
+            if (subjectBuffers is null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffers));
+            }
+
             _joinableTaskContext.AssertUIThread();
 
             // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a

@@ -15,16 +15,17 @@ namespace Microsoft.CodeAnalysis.Razor
     internal class MemoryCache<TKey, TValue>
     {
         private const int DefaultSizeLimit = 50;
+        private const int DefaultConcurrencyLevel = 2;
 
         protected IDictionary<TKey, CacheEntry> _dict;
 
         private readonly object _compactLock;
         private readonly int _sizeLimit;
 
-        public MemoryCache(int sizeLimit = DefaultSizeLimit)
+        public MemoryCache(int sizeLimit = DefaultSizeLimit, int concurrencyLevel = DefaultConcurrencyLevel)
         {
             _sizeLimit = sizeLimit;
-            _dict = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel: 2, capacity: _sizeLimit);
+            _dict = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel, capacity: _sizeLimit);
             _compactLock = new object();
         }
 
@@ -61,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Razor
                 Value = value,
             };
         }
+
+        public void Clear() => _dict.Clear();
 
         protected virtual void Compact()
         {

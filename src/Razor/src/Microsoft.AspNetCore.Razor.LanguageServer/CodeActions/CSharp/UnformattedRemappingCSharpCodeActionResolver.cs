@@ -27,26 +27,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public UnformattedRemappingCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache!!,
-            RazorDocumentMappingService documentMappingService!!)
+            DocumentVersionCache documentVersionCache,
+            RazorDocumentMappingService documentMappingService)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
-            _documentMappingService = documentMappingService;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
         public async override Task<CodeAction?> ResolveAsync(
-            CSharpCodeActionParams csharpParams!!,
-            CodeAction codeAction!!,
+            CSharpCodeActionParams csharpParams,
+            CodeAction codeAction,
             CancellationToken cancellationToken)
         {
+            if (csharpParams is null)
+            {
+                throw new ArgumentNullException(nameof(csharpParams));
+            }
+
+            if (codeAction is null)
+            {
+                throw new ArgumentNullException(nameof(codeAction));
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);

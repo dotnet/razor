@@ -29,8 +29,18 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         [ImportingConstructor]
-        public DefaultRazorDynamicFileInfoProvider(RazorDocumentServiceProviderFactory factory!!, LSPEditorFeatureDetector lspEditorFeatureDetector!!)
+        public DefaultRazorDynamicFileInfoProvider(RazorDocumentServiceProviderFactory factory, LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            if (lspEditorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+            }
+
             _factory = factory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
             _entries = new ConcurrentDictionary<Key, Entry>();
@@ -45,8 +55,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         }
 
         // Called by us to update LSP document entries
-        public override void UpdateLSPFileInfo(Uri documentUri!!, DynamicDocumentContainer documentContainer!!)
+        public override void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer)
         {
+            if (documentUri is null)
+            {
+                throw new ArgumentNullException(nameof(documentUri));
+            }
+
+            if (documentContainer is null)
+            {
+                throw new ArgumentNullException(nameof(documentContainer));
+            }
 
             // This endpoint is only called in LSP cases when the file is open(ed)
             // We report diagnostics are supported to Roslyn in this case
@@ -70,8 +89,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         }
 
         // Called by us to update entries
-        public override void UpdateFileInfo(string projectFilePath!!, DynamicDocumentContainer documentContainer!!)
+        public override void UpdateFileInfo(string projectFilePath, DynamicDocumentContainer documentContainer)
         {
+            if (projectFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            if (documentContainer is null)
+            {
+                throw new ArgumentNullException(nameof(documentContainer));
+            }
 
             // This endpoint is called either when:
             //  1. LSP: File is closed
@@ -96,8 +124,18 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         // Called by us to promote a background document (i.e. assign to a client name). Promoting a background
         // document will allow it to be recognized by the C# server.
-        public void PromoteBackgroundDocument(Uri documentUri!!, IRazorDocumentPropertiesService propertiesService!!)
+        public void PromoteBackgroundDocument(Uri documentUri, IRazorDocumentPropertiesService propertiesService)
         {
+            if (documentUri is null)
+            {
+                throw new ArgumentNullException(nameof(documentUri));
+            }
+
+            if (propertiesService is null)
+            {
+                throw new ArgumentNullException(nameof(propertiesService));
+            }
+
             var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
             if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
@@ -143,8 +181,18 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         }
 
         // Called by us when a document opens in the editor
-        public override void SuppressDocument(string projectFilePath!!, string documentFilePath!!)
+        public override void SuppressDocument(string projectFilePath, string documentFilePath)
         {
+            if (projectFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            if (documentFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(documentFilePath));
+            }
+
             if (_lspEditorFeatureDetector.IsLSPEditorAvailable())
             {
                 return;
@@ -173,15 +221,34 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        public Task<RazorDynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath!!, string filePath!!, CancellationToken cancellationToken)
+        public Task<RazorDynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         {
+            if (projectFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             var key = new Key(projectFilePath, filePath);
             var entry = _entries.GetOrAdd(key, _createEmptyEntry);
             return Task.FromResult(entry.Current);
         }
 
-        public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath!!, string filePath!!, CancellationToken cancellationToken)
+        public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         {
+            if (projectFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
 
             // ---------------------------------------------------------- NOTE & CAUTION --------------------------------------------------------------
             //
@@ -253,8 +320,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // Can't ever be null for thread-safety reasons
             private RazorDynamicFileInfo _current;
 
-            public Entry(RazorDynamicFileInfo current!!)
+            public Entry(RazorDynamicFileInfo current)
             {
+                if (current is null)
+                {
+                    throw new ArgumentNullException(nameof(current));
+                }
+
                 Current = current;
                 Lock = new object();
             }
@@ -344,12 +416,30 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             private readonly TextLoader _textLoader;
 
             public PromotedDynamicDocumentContainer(
-                Uri documentUri!!,
-                IRazorDocumentPropertiesService documentPropertiesService!!,
+                Uri documentUri,
+                IRazorDocumentPropertiesService documentPropertiesService,
                 IRazorDocumentExcerptServiceImplementation documentExcerptService,
                 IRazorSpanMappingService spanMappingService,
-                TextLoader textLoader!!)
+                TextLoader textLoader)
             {
+                // It's valid for the excerpt service and span mapping service to be null in this class,
+                // so we purposefully don't null check them below.
+
+                if (documentUri is null)
+                {
+                    throw new ArgumentNullException(nameof(documentUri));
+                }
+
+                if (documentPropertiesService is null)
+                {
+                    throw new ArgumentNullException(nameof(documentPropertiesService));
+                }
+
+                if (textLoader is null)
+                {
+                    throw new ArgumentNullException(nameof(textLoader));
+                }
+
                 _documentUri = documentUri;
                 _documentPropertiesService = documentPropertiesService;
                 _documentExcerptService = documentExcerptService;

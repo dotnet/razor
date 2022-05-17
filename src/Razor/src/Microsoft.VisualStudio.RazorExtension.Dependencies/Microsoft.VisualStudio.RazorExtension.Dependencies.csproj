@@ -7,10 +7,9 @@
       In general this project should not be deployed (F5'd) by itself as it only includes
       extra dependencies + codebases that may not be present in public VS installs.
     -->
-    
+
     <TargetFramework>net472</TargetFramework>
 
-    <!-- Use the RoslynDev Experimental instance so we can mingle with local builds of Roslyn -->
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <IsShipping>false</IsShipping>

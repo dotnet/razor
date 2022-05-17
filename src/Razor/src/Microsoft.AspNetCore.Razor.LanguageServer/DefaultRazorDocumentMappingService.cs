@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -21,8 +22,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ILogger _logger;
 
-        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory!!) : base()
+        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
         }
 
@@ -196,8 +202,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument!!, Range projectedRange!!, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (projectedRange is null)
+            {
+                throw new ArgumentNullException(nameof(projectedRange));
+            }
+
             if (mappingBehavior == MappingBehavior.Strict)
             {
                 return TryMapFromProjectedDocumentRangeStrict(codeDocument, projectedRange, out originalRange);
@@ -206,14 +222,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return TryMapFromProjectedDocumentRangeInclusive(codeDocument, projectedRange, out originalRange);
             }
+            else if (mappingBehavior == MappingBehavior.Inferred)
+            {
+                return TryMapFromProjectedDocumentRangeInferred(codeDocument, projectedRange, out originalRange);
+            }
             else
             {
                 throw new InvalidOperationException(RazorLS.Resources.Unknown_mapping_behavior);
             }
         }
 
-        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument!!, Range originalRange!!, [NotNullWhen(true)] out Range? projectedRange)
+        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (originalRange is null)
+            {
+                throw new ArgumentNullException(nameof(originalRange));
+            }
+
             projectedRange = default;
 
             if ((originalRange.End.Line < originalRange.Start.Line) ||
@@ -264,8 +294,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument!!, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
+        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {
@@ -299,8 +334,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public override bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
             => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
 
-        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument!!, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {
@@ -348,8 +388,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument!!, int originalIndex)
+        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var syntaxTree = codeDocument.GetSyntaxTree();
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             var tagHelperSpans = syntaxTree.GetTagHelperSpans();
@@ -471,7 +516,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, out Range? originalRange)
+        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
         {
             originalRange = default;
 
@@ -545,6 +590,85 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new Position(endLocation.LineIndex, endLocation.CharacterIndex));
                 return convertedRange;
             }
+        }
+
+        private bool TryMapFromProjectedDocumentRangeInferred(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
+        {
+            // Inferred mapping behavior is a superset of inclusive mapping behavior so if the range is "inclusive" lets use that mapping.
+            if (TryMapFromProjectedDocumentRangeInclusive(codeDocument, projectedRange, out originalRange))
+            {
+                return true;
+            }
+
+            // Doesn't map so lets try and infer some mappings
+
+            originalRange = default;
+            var csharpDoc = codeDocument.GetCSharpDocument();
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var projectedRangeAsSpan = projectedRange.AsTextSpan(csharpSourceText);
+            SourceMapping? mappingBeforeProjectedRange = null;
+            SourceMapping? mappingAfterProjectedRange = null;
+
+            for (var i = csharpDoc.SourceMappings.Count - 1; i >= 0; i--)
+            {
+                var sourceMapping = csharpDoc.SourceMappings[i];
+                var sourceMappingEnd = sourceMapping.GeneratedSpan.AbsoluteIndex + sourceMapping.GeneratedSpan.Length;
+                if (projectedRangeAsSpan.Start >= sourceMappingEnd)
+                {
+                    // This is the source mapping that's before us!
+                    mappingBeforeProjectedRange = sourceMapping;
+
+                    if (i + 1 < csharpDoc.SourceMappings.Count)
+                    {
+                        // We're not at the end of the document there's another source mapping after us
+                        mappingAfterProjectedRange = csharpDoc.SourceMappings[i + 1];
+                    }
+
+                    break;
+                }
+            }
+
+            if (mappingBeforeProjectedRange == null)
+            {
+                // Could not find a mapping before
+                return false;
+            }
+
+            var sourceDocument = codeDocument.Source;
+            var originalSpanBeforeProjectedRange = mappingBeforeProjectedRange.OriginalSpan;
+            var originalEndBeforeProjectedRange = originalSpanBeforeProjectedRange.AbsoluteIndex + originalSpanBeforeProjectedRange.Length;
+            var originalEndPositionBeforeProjectedRange = sourceDocument.Lines.GetLocation(originalEndBeforeProjectedRange);
+            var inferredStartPosition = new Position(originalEndPositionBeforeProjectedRange.LineIndex, originalEndPositionBeforeProjectedRange.CharacterIndex);
+
+            if (mappingAfterProjectedRange != null)
+            {
+                // There's a mapping after the "projected range" lets use its start position as our inferred end position.
+
+                var originalSpanAfterProjectedRange = mappingAfterProjectedRange.OriginalSpan;
+                var originalStartPositionAfterProjectedRange = sourceDocument.Lines.GetLocation(originalSpanAfterProjectedRange.AbsoluteIndex);
+                var inferredEndPosition = new Position(originalStartPositionAfterProjectedRange.LineIndex, originalStartPositionAfterProjectedRange.CharacterIndex);
+
+                originalRange = new Range()
+                {
+                    Start = inferredStartPosition,
+                    End = inferredEndPosition,
+                };
+                return true;
+            }
+
+            // There was no projection after the "projected range". Therefore, lets fallback to the end-document location.
+
+            Debug.Assert(sourceDocument.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
+
+            var endOfDocumentLocation = sourceDocument.Lines.GetLocation(sourceDocument.Length);
+            var endOfDocumentPosition = new Position(endOfDocumentLocation.LineIndex, endOfDocumentLocation.CharacterIndex);
+
+            originalRange = new Range()
+            {
+                Start = inferredStartPosition,
+                End = endOfDocumentPosition,
+            };
+            return true;
         }
 
         private static bool s_haveAsserted = false;

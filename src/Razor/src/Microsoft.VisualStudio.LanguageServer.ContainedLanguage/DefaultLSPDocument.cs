@@ -14,10 +14,25 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private LSPDocumentSnapshot _currentSnapshot;
 
         public DefaultLSPDocument(
-            Uri uri!!,
-            ITextBuffer textBuffer!!,
-            IReadOnlyList<VirtualDocument> virtualDocuments!!)
+            Uri uri,
+            ITextBuffer textBuffer,
+            IReadOnlyList<VirtualDocument> virtualDocuments)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
+
+            if (virtualDocuments is null)
+            {
+                throw new ArgumentNullException(nameof(virtualDocuments));
+            }
+
             Uri = uri;
             TextBuffer = textBuffer;
             VirtualDocuments = virtualDocuments;
@@ -79,11 +94,26 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private class DefaultLSPDocumentSnapshot : LSPDocumentSnapshot
         {
             public DefaultLSPDocumentSnapshot(
-                Uri uri!!,
-                ITextSnapshot snapshot!!,
-                IReadOnlyList<VirtualDocumentSnapshot> virtualDocuments!!,
+                Uri uri,
+                ITextSnapshot snapshot,
+                IReadOnlyList<VirtualDocumentSnapshot> virtualDocuments,
                 int version)
             {
+                if (uri is null)
+                {
+                    throw new ArgumentNullException(nameof(uri));
+                }
+
+                if (snapshot is null)
+                {
+                    throw new ArgumentNullException(nameof(snapshot));
+                }
+
+                if (virtualDocuments is null)
+                {
+                    throw new ArgumentNullException(nameof(virtualDocuments));
+                }
+
                 Uri = uri;
                 Snapshot = snapshot;
                 VirtualDocuments = virtualDocuments;
@@ -97,7 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             public override IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
 
             public override int Version { get; }
-
         }
     }
 }

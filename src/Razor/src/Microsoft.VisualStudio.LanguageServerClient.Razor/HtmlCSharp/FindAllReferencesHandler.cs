@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,13 +37,43 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public FindAllReferencesHandler(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPProjectionProvider projectionProvider!!,
-            LSPDocumentMappingProvider documentMappingProvider!!,
-            LSPProgressListener lspProgressListener!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPProjectionProvider projectionProvider,
+            LSPDocumentMappingProvider documentMappingProvider,
+            LSPProgressListener lspProgressListener,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (projectionProvider is null)
+            {
+                throw new ArgumentNullException(nameof(projectionProvider));
+            }
+
+            if (documentMappingProvider is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingProvider));
+            }
+
+            if (lspProgressListener is null)
+            {
+                throw new ArgumentNullException(nameof(lspProgressListener));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
@@ -53,8 +84,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request!!, ClientCapabilities clientCapabilities!!, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
             _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))

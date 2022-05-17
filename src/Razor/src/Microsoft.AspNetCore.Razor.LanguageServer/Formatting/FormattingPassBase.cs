@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -16,10 +17,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         protected static readonly int DefaultOrder = 1000;
 
         public FormattingPassBase(
-            RazorDocumentMappingService documentMappingService!!,
-            FilePathNormalizer filePathNormalizer!!,
-            ClientNotifierServiceBase server!!)
+            RazorDocumentMappingService documentMappingService,
+            FilePathNormalizer filePathNormalizer,
+            ClientNotifierServiceBase server)
         {
+            if (documentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingService));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
+            if (server is null)
+            {
+                throw new ArgumentNullException(nameof(server));
+            }
+
             DocumentMappingService = documentMappingService;
         }
 
@@ -31,8 +47,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
 
-        protected TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument!!, TextEdit[] projectedTextEdits!!, RazorLanguageKind projectedKind)
+        protected TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits, RazorLanguageKind projectedKind)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (projectedTextEdits is null)
+            {
+                throw new ArgumentNullException(nameof(projectedTextEdits));
+            }
+
             if (projectedKind != RazorLanguageKind.CSharp)
             {
                 // Non C# projections map directly to Razor. No need to remap.

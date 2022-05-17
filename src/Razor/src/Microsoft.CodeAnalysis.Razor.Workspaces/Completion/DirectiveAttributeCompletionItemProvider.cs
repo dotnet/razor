@@ -23,13 +23,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         private readonly TagHelperFactsService _tagHelperFactsService;
 
         [ImportingConstructor]
-        public DirectiveAttributeCompletionItemProvider(TagHelperFactsService tagHelperFactsService!!)
+        public DirectiveAttributeCompletionItemProvider(TagHelperFactsService tagHelperFactsService)
         {
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (context.TagHelperDocumentContext is null)
             {
                 throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
@@ -153,12 +163,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 }
 
                 var (attributeDescriptionInfos, commitCharacters) = completion.Value;
+                var razorCommitCharacters = commitCharacters.Select(static c => new RazorCommitCharacter(c)).ToList();
 
                 var razorCompletionItem = new RazorCompletionItem(
                     completion.Key,
                     insertText,
                     RazorCompletionItemKind.DirectiveAttribute,
-                    commitCharacters: commitCharacters);
+                    commitCharacters: razorCommitCharacters);
                 var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToArray());
                 razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 

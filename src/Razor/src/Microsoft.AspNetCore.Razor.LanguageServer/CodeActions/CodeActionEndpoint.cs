@@ -42,21 +42,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly IReadOnlyCollection<string> _allAvailableCodeActionNames;
 
         public CodeActionEndpoint(
-            RazorDocumentMappingService documentMappingService!!,
-            IEnumerable<RazorCodeActionProvider> razorCodeActionProviders!!,
-            IEnumerable<CSharpCodeActionProvider> csharpCodeActionProviders!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            ClientNotifierServiceBase languageServer!!,
-            LanguageServerFeatureOptions languageServerFeatureOptions!!)
+            RazorDocumentMappingService documentMappingService,
+            IEnumerable<RazorCodeActionProvider> razorCodeActionProviders,
+            IEnumerable<CSharpCodeActionProvider> csharpCodeActionProviders,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            ClientNotifierServiceBase languageServer,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
-            _documentMappingService = documentMappingService;
-            _razorCodeActionProviders = razorCodeActionProviders;
-            _csharpCodeActionProviders = csharpCodeActionProviders;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _languageServer = languageServer;
-            _languageServerFeatureOptions = languageServerFeatureOptions;
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
+            _csharpCodeActionProviders = csharpCodeActionProviders ?? throw new ArgumentNullException(nameof(csharpCodeActionProviders));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+            _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
 
             _allAvailableCodeActionNames = GetAllAvailableCodeActionNames();
         }
@@ -77,8 +77,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
         }
 
-        public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request!!, CancellationToken cancellationToken)
+        public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, cancellationToken).ConfigureAwait(false);
             if (razorCodeActionContext is null)
             {

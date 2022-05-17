@@ -16,8 +16,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             End = new OSharp.Position(-1, -1)
         };
 
-        public static bool OverlapsWith(this OSharp.Range range!!, OSharp.Range other!!)
+        public static bool OverlapsWith(this OSharp.Range range, OSharp.Range other)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -34,8 +44,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this OSharp.Range range!!, OSharp.Range other!!)
+        public static bool LineOverlapsWith(this OSharp.Range range, OSharp.Range other)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             var overlapStart = range.Start.Line;
             if (range.Start.Line.CompareTo(other.Start.Line) < 0)
             {
@@ -51,8 +71,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static OSharp.Range? Overlap(this OSharp.Range range!!, OSharp.Range other!!)
+        public static OSharp.Range? Overlap(this OSharp.Range range, OSharp.Range other)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -74,13 +104,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return null;
         }
 
-        public static bool Contains(this OSharp.Range range!!, OSharp.Range other!!)
+        public static bool Contains(this OSharp.Range range, OSharp.Range other)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
-        public static TextSpan AsTextSpan(this OSharp.Range range!!, SourceText sourceText!!)
+        public static TextSpan AsTextSpan(this OSharp.Range range, SourceText sourceText)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             if (range.Start.Line >= sourceText.Lines.Count)
             {
                 throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
@@ -103,8 +153,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new TextSpan(start, length);
         }
 
-        public static Language.Syntax.TextSpan AsRazorTextSpan(this OSharp.Range range!!, SourceText sourceText!!)
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this OSharp.Range range, SourceText sourceText)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             if (range.Start.Line >= sourceText.Lines.Count)
             {
                 throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
@@ -127,25 +187,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this OSharp.Range range!!)
+        public static bool IsUndefined(this OSharp.Range range)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
             return range == UndefinedRange;
         }
 
-        public static VS.Range AsVSRange(this OSharp.Range range!!)
+        public static VS.Range AsVSRange(this OSharp.Range range)
         {
             return new VS.Range
             {
-                Start = new VS.Position
-                {
-                    Line = range.Start.Line,
-                    Character = range.Start.Character
-                },
-                End = new VS.Position
-                {
-                    Line = range.End.Line,
-                    Character = range.End.Character
-                }
+                Start = range.Start.AsVSPosition(),
+                End = range.End.AsVSPosition()
+            };
+        }
+
+        public static OSharp.Range AsOmniSharpRange(this VS.Range range)
+        {
+            return new OSharp.Range
+            {
+                Start = range.Start.AsOSharpPosition(),
+                End = range.End.AsOSharpPosition()
             };
         }
     }

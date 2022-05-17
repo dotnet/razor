@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -37,13 +38,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentVersionCache _documentVersionCache;
 
         public DefaultCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
-            RazorFormattingService razorFormattingService!!,
-            DocumentVersionCache documentVersionCache!!)
+            RazorFormattingService razorFormattingService,
+            DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (razorFormattingService is null)
+            {
+                throw new ArgumentNullException(nameof(razorFormattingService));
+            }
+
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
@@ -53,10 +74,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public override string Action => LanguageServerConstants.CodeActions.Default;
 
         public async override Task<CodeAction> ResolveAsync(
-            CSharpCodeActionParams csharpParams!!,
-            CodeAction codeAction!!,
+            CSharpCodeActionParams csharpParams,
+            CodeAction codeAction,
             CancellationToken cancellationToken)
         {
+            if (csharpParams is null)
+            {
+                throw new ArgumentNullException(nameof(csharpParams));
+            }
+
+            if (codeAction is null)
+            {
+                throw new ArgumentNullException(nameof(codeAction));
+            }
+
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
             if (resolvedCodeAction.Edit?.DocumentChanges is null)
             {

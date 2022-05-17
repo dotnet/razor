@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -26,24 +25,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentVersionCache _documentVersionCache;
 
         public AddUsingsCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache!!)
+            DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
         public async override Task<CodeAction?> ResolveAsync(
-            CSharpCodeActionParams csharpParams!!,
-            CodeAction codeAction!!,
+            CSharpCodeActionParams csharpParams,
+            CodeAction codeAction,
             CancellationToken cancellationToken)
         {
+            if (csharpParams is null)
+            {
+                throw new ArgumentNullException(nameof(csharpParams));
+            }
+
+            if (codeAction is null)
+            {
+                throw new ArgumentNullException(nameof(codeAction));
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))

@@ -96,6 +96,5 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
                 _context.CodeWriter.WriteLine("Render Children");
             }
         }
-
     }
 }

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
@@ -30,20 +33,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         private readonly ILogger _logger;
 
         public FoldingRangeEndpoint(
-            RazorDocumentMappingService documentMappingService!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            ClientNotifierServiceBase languageServer!!,
-            DocumentVersionCache documentVersionCache!!,
-            IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders!!,
+            RazorDocumentMappingService documentMappingService,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            ClientNotifierServiceBase languageServer,
+            DocumentVersionCache documentVersionCache,
+            IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders,
             ILoggerFactory loggerFactory)
         {
-            _documentMappingService = documentMappingService;
-            _languageServer = languageServer;
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
-            _foldingRangeProviders = foldingRangeProviders;
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _foldingRangeProviders = foldingRangeProviders ?? throw new ArgumentNullException(nameof(foldingRangeProviders));
             _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
         }
 
@@ -136,7 +139,50 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 mappedRanges.AddRange(ranges);
             }
 
-            return new Container<FoldingRange>(mappedRanges);
+            var finalRanges = FinalizeFoldingRanges(mappedRanges, codeDocument);
+            return new Container<FoldingRange>(finalRanges);
+        }
+
+        private IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
+        {
+            // Don't allow ranges to be reported if they aren't spanning at least one line
+            var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
+
+            // Reduce ranges that have the same start line to be a single instance with the largest
+            // range available, since only one button can be shown to collapse per line
+            var reducedRanges = validRanges
+                .GroupBy(r => r.StartLine)
+                .Select(ranges => ranges.OrderByDescending(r => r.EndLine).First());
+
+            // Fix the starting range so the "..." is shown at the end
+            return reducedRanges.Select(r => FixFoldingRangeStart(r, codeDocument));
+        }
+
+        /// <summary>
+        /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
+        /// it so collapsing will still show the text instead of just "..."
+        /// </summary>
+        private FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
+        {
+            Debug.Assert(range.StartLine < range.EndLine);
+
+            var sourceText = codeDocument.GetSourceText();
+            var startLine = range.StartLine;
+            var lineSpan = sourceText.Lines[startLine].Span;
+
+            // Search from the end of the line to the beginning for the first non whitespace character. We want that
+            // to be the offset for the range
+            var offset = sourceText.GetLastNonWhitespaceOffset(lineSpan, out _);
+
+            if (offset.HasValue)
+            {
+                // +1 to the offset value because the helper goes to the character position
+                // that we want to be after. Make sure we don't exceed the line end
+                var newCharacter = Math.Min(offset.Value + 1, lineSpan.Length);
+                return range with { StartCharacter = newCharacter };
+            }
+
+            return range;
         }
 
         private static Range GetRange(FoldingRange foldingRange)

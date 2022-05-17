@@ -16,8 +16,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private EventHandler<EditorSettingsChangedEventArgs> _changed;
         private int _listenerCount = 0;
 
-        public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager!!)
+        public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager)
         {
+            if (editorSettingsManager is null)
+            {
+                throw new ArgumentNullException(nameof(editorSettingsManager));
+            }
+
             _editorSettingsManager = editorSettingsManager;
             _onChanged = OnChanged;
         }

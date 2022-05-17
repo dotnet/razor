@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
         <source>Razor Syntax Visualizer</source>
-        <target state="new">Razor Syntax Visualizer</target>
+        <target state="translated">Syntax Visualizer Razor</target>
         <note />
       </trans-unit>
     </body>

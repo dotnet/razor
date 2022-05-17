@@ -23,8 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             }
         }
 
-        public DefaultLogHubLogWriter(TraceSource traceSource!!)
+        public DefaultLogHubLogWriter(TraceSource traceSource)
         {
+            if (traceSource is null)
+            {
+                throw new ArgumentNullException(nameof(traceSource));
+            }
+
             _traceSource = traceSource;
         }
 

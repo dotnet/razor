@@ -1,12 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -26,11 +28,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
         private readonly ILogger _logger;
 
         public RazorBreakpointSpanEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorDocumentMappingService documentMappingService!!,
-            ILoggerFactory loggerFactory!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (documentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingService));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentMappingService = documentMappingService;

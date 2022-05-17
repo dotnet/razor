@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,11 +81,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
-            var semanticVersion = VersionStamp.Create();
 
             await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
             await RazorSemanticTokenService.GetSemanticTokensAsync(
-                textDocumentIdentifier, DocumentSnapshot, semanticVersion, documentVersion, Range, cancellationToken).ConfigureAwait(false);
+                textDocumentIdentifier, Range, DocumentSnapshot, documentVersion, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
@@ -127,13 +126,13 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
-                LoggerFactory loggerFactory) :
-                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
+                LoggerFactory loggerFactory)
+                : base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
             {
             }
 
             // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
-            internal override Task<SemanticRangeResponse> GetCSharpSemanticRangesAsync(
+            internal override Task<SemanticRange[]> GetCSharpSemanticRangesAsync(
                 RazorCodeDocument codeDocument,
                 TextDocumentIdentifier textDocumentIdentifier,
                 Range range,
@@ -141,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 CancellationToken cancellationToken,
                 string previousResultId = null)
             {
-                var result = SemanticRangeResponse.Default;
+                var result = Array.Empty<SemanticRange>();
                 return Task.FromResult(result);
             }
         }

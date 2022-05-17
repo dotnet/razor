@@ -12,11 +12,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private TestLanguageServerFeatureOptions()
         {
-
         }
 
         public override bool SupportsFileManipulation => false;
 
         public override string ProjectConfigurationFileName => LanguageServerConstants.DefaultProjectConfigurationFile;
+
+        public override string CSharpVirtualDocumentSuffix => ".g.cs";
+
+        public override string HtmlVirtualDocumentSuffix => "__virtual.html";
     }
 }

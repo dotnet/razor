@@ -2,194 +2,124 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
-using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public abstract class AbstractRazorEditorTest : AbstractEditorTest
     {
-        internal const string BlazorProjectName = "BlazorProject";
-
-        private static readonly string s_pagesDir = Path.Combine("Pages");
-        private static readonly string s_sharedDir = Path.Combine("Shared");
-        internal static readonly string FetchDataRazorFile = Path.Combine(s_pagesDir, "FetchData.razor");
-        internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
-        internal static readonly string IndexRazorFile = Path.Combine(s_pagesDir, "Index.razor");
-        internal static readonly string ModifiedIndexRazorFile = Path.Combine(s_pagesDir, "ModifiedIndex.razor");
-        internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
-        internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
-        internal static readonly string ErrorCshtmlFile = Path.Combine(s_pagesDir, "Error.cshtml");
-        internal static readonly string ImportsRazorFile = "_Imports.razor";
-
-        internal static readonly string IndexPageContent = @"@page ""/""
-
-<PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title=""How is Blazor working for you?"" />";
-
-        internal static readonly string MainLayoutContent = @"@inherits LayoutComponentBase
-
-<PageTitle>BlazorApp</PageTitle>
-
-<div class=""page"">
-    <div class=""sidebar"">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class=""top-row px-4"">
-            <a href=""https://docs.microsoft.com/aspnet/"" target=""_blank"">About</a>
-        </div>
-
-        <article class=""content px-4"">
-            @Body
-        </article>
-    </main>
-</div>
-";
-
+        private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
+        private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
         private const string RazorComponentElementClassification = "RazorComponentElement";
-        private const string RazorOutputLogId = "RazorOutputLog";
-        private const string LogHubLogId = "RazorLogHub";
 
         protected override string LanguageName => LanguageNames.Razor;
-
-        private static bool s_customLoggersAdded = false;
 
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
 
-            // Add custom logs on failure if they haven't already been.
-            if (!s_customLoggersAdded)
-            {
-                DataCollectionService.RegisterCustomLogger(RazorOutputPaneLogger, RazorOutputLogId, "log");
-                DataCollectionService.RegisterCustomLogger(RazorLogHubLogger, LogHubLogId, "zip");
+            VisualStudioLogging.AddCustomLoggers();
 
-                s_customLoggersAdded = true;
-            }
+            await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", ControlledHangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
-
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
 
             // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
             // way we know the LSP server is up, running, and has processed both local and library-sourced Components
-            await TestServices.SolutionExplorer.AddFileAsync(BlazorProjectName, ModifiedIndexRazorFile, IndexPageContent, open: true, HangMitigatingCancellationToken);
-            try
-            {
-                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
-            }
-            catch (OperationCanceledException)
-            {
-                // DataCollectionService does not fire in the case that errors or exceptions are thrown during Initialization.
-                // Let's capture some of the things we care about most manually.
-                var logHubFilePath = CreateLogFileName(LogHubLogId, "zip");
-                RazorLogHubLogger(logHubFilePath);
-                var outputPaneFilePath = CreateLogFileName(RazorOutputLogId, "log");
-                RazorOutputPaneLogger(outputPaneFilePath);
-                throw;
-            }
+            await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ModifiedIndexRazorFile, RazorProjectConstants.IndexPageContent, open: true, ControlledHangMitigatingCancellationToken);
+
+            // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
+
+            EnsureLSPEditorEnabled();
+            await EnsureTextViewRolesAsync(ControlledHangMitigatingCancellationToken);
+            await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
+
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, expectedClassification: RazorComponentElementClassification, count: 3);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
-            await TestServices.Editor.CloseDocumentWindowAsync(HangMitigatingCancellationToken);
-
-            void RazorLogHubLogger(string filePath)
-            {
-                // We need to get off our current thread because we're blocking it from writing out any of the files that don't already exist.
-                // Generally we want to avoid _ = Task.Run, but this is test code, run AFTER a faillure already, that can't return a task but needs to run async code, so we're a bit against the wall.
-                // JoinableTaskFactory.Run isn't an option because we might be disposing already (saw it happen).
-                _ = Task.Run(async () =>
-                {
-                    var componentModel = await TestServices.Shell.GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(HangMitigatingCancellationToken);
-                    var feedbackFileProviders = componentModel.GetExtensions<IFeedbackDiagnosticFileProvider>();
-
-                    // Collect all the file names first since they can kick of file creation events that might need extra time to resolve.
-                    var files = new List<string>();
-                    foreach (var feedbackFileProvider in feedbackFileProviders)
-                    {
-                        files.AddRange(feedbackFileProvider.GetFiles());
-                    }
-
-                    foreach (var file in files)
-                    {
-                        var name = Path.GetFileName(file);
-
-                        WaitForFileExists(file);
-                        // Only caputre loghub
-                        if (name.Contains("LogHub") && Path.GetExtension(file) == ".zip")
-                        {
-                            if (File.Exists(file))
-                            {
-                                File.Copy(file, filePath);
-                            }
-                        }
-                    }
-                });
-            }
-
-            void RazorOutputPaneLogger(string filePath)
-            {
-                // Generally we want to avoid _ = Task.Run, but this is test code, run AFTER a faillure already, that can't return a task but needs to run async code, so we're a bit against the wall.
-                // JoinableTaskFactory.Run isn't an option because we might be disposing already (saw it happen).
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
-                        File.WriteAllText(filePath, paneContent);
-                    }
-                    catch (Exception)
-                    {
-                        // Eat any errors so we don't block further collection
-                    }
-                });
-            }
+            await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
         }
 
-        private static void WaitForFileExists(string file)
+        private static void EnsureLSPEditorEnabled()
         {
-            const int MaxRetries = 20;
-            var retries = 0;
-            while (!File.Exists(file) && retries < MaxRetries)
-            {
-                retries++;
-                // Free your thread
-                Thread.Yield();
-                // Wait a bit
-                Thread.Sleep(100);
-            }
+            var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            Assumes.Present(settingsManager);
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var legacyEditorFeatureFlagEnabled = featureFlags.IsFeatureEnabled(LegacyRazorEditorFeatureFlag, defaultValue: false);
+            Assert.AreEqual(false, legacyEditorFeatureFlagEnabled, "Expected Legacy Editor Feature Flag to be disabled, but it was enabled");
+
+            var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+            Assert.AreEqual(false, useLegacyEditor, "Expected the Legacy Razor Editor to be disabled, but it was enabled");
         }
 
-        // We use reflection to get at a couple of the internals of DataCollectionService so that we use the propper LogDirectory.
-        private static string CreateLogFileName(string logId, string extension)
+        private async Task EnsureTextViewRolesAsync(CancellationToken cancellationToken)
         {
-            var dataCollectionServiceType = typeof(DataCollectionService);
-            var getLogDirectoryMethod = dataCollectionServiceType.GetMethod("GetLogDirectory", System.Reflection.BindingFlags.Static);
-            var logDirectory = getLogDirectoryMethod.Invoke(obj: null, new object[] { });
+            var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var contentType = textView.TextSnapshot.ContentType;
+            Assert.AreEqual("Razor", contentType.TypeName);
+        }
 
-            var createLogFileNameMethod = dataCollectionServiceType.GetMethod("CreateLogFileName", System.Reflection.BindingFlags.Static);
-            var timestamp = DateTimeOffset.UtcNow;
-            var testName = "TestInitialization";
-            var errorId = "InitializationError";
-            var @params = new object[] { logDirectory, timestamp, testName, errorId, logId, extension };
-            var logFileName = (string)createLogFileNameMethod.Invoke(obj: null, @params);
-            return logFileName;
+        private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)
+        {
+            const string AssemblyName = "Microsoft.AspNetCore.Razor.LanguageServer";
+            using var semaphore = new SemaphoreSlim(1);
+            await semaphore.WaitAsync(cancellationToken);
+
+            AppDomain.CurrentDomain.AssemblyLoad += CurrentDomain_AssemblyLoad;
+
+            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
+            Assembly? assembly = null;
+            try
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                assembly = assemblies.FirstOrDefault((assembly) => assembly.GetName().Name.Equals(AssemblyName));
+                if (assembly is null)
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+                }
+
+                semaphore.Release();
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.AssemblyLoad -= CurrentDomain_AssemblyLoad;
+            }
+
+            if (assembly is null)
+            {
+                throw new NotImplementedException($"Integration test did not load extension");
+            }
+
+            var version = assembly.GetName().Version;
+
+            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
+            }
+
+            void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
+            {
+                if (args.LoadedAssembly.GetName().Name.Equals(AssemblyName, StringComparison.Ordinal))
+                {
+                    assembly = args.LoadedAssembly;
+                    semaphore.Release();
+                }
+            }
         }
     }
 }

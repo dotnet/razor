@@ -5,7 +5,6 @@
 
 using System;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.LanguageServer.Protocol;

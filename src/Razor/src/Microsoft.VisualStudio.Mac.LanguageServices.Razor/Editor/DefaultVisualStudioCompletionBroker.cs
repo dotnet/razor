@@ -13,8 +13,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
     {
         private const string IsCompletionActiveKey = "RoslynCompletionPresenterSession.IsCompletionActive";
 
-        public override bool IsCompletionActive(ITextView textView!!)
+        public override bool IsCompletionActive(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             if (!textView.HasAggregateFocus)
             {
                 // Text view does not have focus, if the completion window is visible it's for a different text view.

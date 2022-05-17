@@ -18,8 +18,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly BatchingWorkQueue _workQueue;
         private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(250);
 
-        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer!!, ErrorReporter errorReporter!!)
+        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer, ErrorReporter errorReporter)
         {
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (errorReporter is null)
+            {
+                throw new ArgumentNullException(nameof(errorReporter));
+            }
+
             _languageServer = languageServer;
             _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }

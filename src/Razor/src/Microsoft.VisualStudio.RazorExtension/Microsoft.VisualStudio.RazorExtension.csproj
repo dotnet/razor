@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
-    <!-- Use the RoslynDev Experimental instance so we can mingle with local builds of Roslyn -->
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Required to run the project localy -->
@@ -218,6 +217,7 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServerClient.Razor\Microsoft.VisualStudio.LanguageServerClient.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Common\Microsoft.AspNetCore.Razor.LanguageServer.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Protocol\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.csproj" />
   </ItemGroup>
 
   <ItemGroup>

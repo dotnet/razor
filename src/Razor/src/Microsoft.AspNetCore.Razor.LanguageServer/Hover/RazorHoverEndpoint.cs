@@ -29,12 +29,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         private readonly ClientNotifierServiceBase _languageServer;
 
         public RazorHoverEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorHoverInfoService hoverInfoService!!,
-            ClientNotifierServiceBase languageServer!!,
-            ILoggerFactory loggerFactory!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver,
+            RazorHoverInfoService hoverInfoService,
+            ClientNotifierServiceBase languageServer,
+            ILoggerFactory loggerFactory)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (hoverInfoService is null)
+            {
+                throw new ArgumentNullException(nameof(hoverInfoService));
+            }
+
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _hoverInfoService = hoverInfoService;
@@ -42,8 +67,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
         }
 
-        public async Task<HoverModel> Handle(HoverParams request!!, CancellationToken cancellationToken)
+        public async Task<HoverModel> Handle(HoverParams request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);

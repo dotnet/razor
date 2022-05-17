@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +12,7 @@ using IAsyncDisposable = Microsoft.VisualStudio.Threading.IAsyncDisposable;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
-    internal class ProjectSnapshotSynchronizationService : ICollaborationService, IAsyncDisposable
+    internal class ProjectSnapshotSynchronizationService : ICollaborationService, IAsyncDisposable, System.IAsyncDisposable
     {
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly CollaborationSession _sessionContext;
@@ -22,11 +20,31 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         private readonly ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public ProjectSnapshotSynchronizationService(
-            JoinableTaskFactory joinableTaskFactory!!,
-            CollaborationSession sessionContext!!,
-            IProjectSnapshotManagerProxy hostProjectManagerProxy!!,
-            ProjectSnapshotManagerBase projectSnapshotManager!!)
+            JoinableTaskFactory joinableTaskFactory,
+            CollaborationSession sessionContext,
+            IProjectSnapshotManagerProxy hostProjectManagerProxy,
+            ProjectSnapshotManagerBase projectSnapshotManager)
         {
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
+            if (sessionContext is null)
+            {
+                throw new ArgumentNullException(nameof(sessionContext));
+            }
+
+            if (hostProjectManagerProxy is null)
+            {
+                throw new ArgumentNullException(nameof(hostProjectManagerProxy));
+            }
+
+            if (projectSnapshotManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManager));
+            }
+
             _joinableTaskFactory = joinableTaskFactory;
             _sessionContext = sessionContext;
             _hostProjectManagerProxy = hostProjectManagerProxy;
@@ -120,26 +138,36 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args!!)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args)
         {
-            try
+            if (args is null)
             {
-                await _joinableTaskFactory.SwitchToMainThreadAsync();
-
-                UpdateGuestProjectManager(args);
-
+                throw new ArgumentNullException(nameof(args));
             }
-            catch (Exception ex)
+
+            _joinableTaskFactory.Run(async () =>
             {
-                _projectSnapshotManager.ReportError(ex);
-            }
+                try
+                {
+                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+
+                    UpdateGuestProjectManager(args);
+                }
+                catch (Exception ex)
+                {
+                    _projectSnapshotManager.ReportError(ex);
+                }
+            });
         }
 
         private string ResolveGuestPath(Uri filePath)
         {
             return _sessionContext.ConvertSharedUriToLocalPath(filePath);
+        }
+
+        ValueTask System.IAsyncDisposable.DisposeAsync()
+        {
+            return new ValueTask(DisposeAsync());
         }
     }
 }

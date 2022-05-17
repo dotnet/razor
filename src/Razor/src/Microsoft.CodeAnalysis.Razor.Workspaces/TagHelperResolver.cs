@@ -18,8 +18,18 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public abstract Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default);
 
-        protected virtual async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject!!, RazorProjectEngine engine!!, CancellationToken cancellationToken)
+        protected virtual async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, RazorProjectEngine engine, CancellationToken cancellationToken)
         {
+            if (workspaceProject is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceProject));
+            }
+
+            if (engine is null)
+            {
+                throw new ArgumentNullException(nameof(engine));
+            }
+
             var providers = engine.Engine.Features.OfType<ITagHelperDescriptorProvider>().OrderBy(f => f.Order).ToArray();
             if (providers.Length == 0)
             {

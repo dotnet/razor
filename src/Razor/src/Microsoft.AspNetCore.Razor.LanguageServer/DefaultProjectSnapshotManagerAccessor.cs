@@ -23,12 +23,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool _disposed;
 
         public DefaultProjectSnapshotManagerAccessor(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            IEnumerable<ProjectSnapshotChangeTrigger> changeTriggers!!,
-            FilePathNormalizer filePathNormalizer!!,
-            IOptionsMonitor<RazorLSPOptions> optionsMonitor!!,
-            AdhocWorkspaceFactory workspaceFactory!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IEnumerable<ProjectSnapshotChangeTrigger> changeTriggers,
+            FilePathNormalizer filePathNormalizer,
+            IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+            AdhocWorkspaceFactory workspaceFactory)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (changeTriggers is null)
+            {
+                throw new ArgumentNullException(nameof(changeTriggers));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
+            if (optionsMonitor is null)
+            {
+                throw new ArgumentNullException(nameof(optionsMonitor));
+            }
+
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _changeTriggers = changeTriggers;
             _filePathNormalizer = filePathNormalizer;

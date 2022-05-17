@@ -14,13 +14,28 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     {
         public static object CompletionItemKindsKey = new object();
 
-        public static void SetCompletionItemKinds(this PropertyCollection properties!!, ICollection<RazorCompletionItemKind> completionItemKinds!!)
+        public static void SetCompletionItemKinds(this PropertyCollection properties, ICollection<RazorCompletionItemKind> completionItemKinds)
         {
+            if (properties is null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (completionItemKinds is null)
+            {
+                throw new ArgumentNullException(nameof(completionItemKinds));
+            }
+
             properties[CompletionItemKindsKey] = completionItemKinds;
         }
 
-        public static bool TryGetCompletionItemKinds(this PropertyCollection properties!!, out ICollection<RazorCompletionItemKind> completionItemKinds)
+        public static bool TryGetCompletionItemKinds(this PropertyCollection properties, out ICollection<RazorCompletionItemKind> completionItemKinds)
         {
+            if (properties is null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
             return properties.TryGetProperty(CompletionItemKindsKey, out completionItemKinds);
         }
     }

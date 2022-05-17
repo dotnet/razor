@@ -14,8 +14,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private readonly LogHubLogWriter _logWriter;
         private readonly Scope _noopScope;
 
-        public LogHubLogger(string categoryName!!, LogHubLogWriter feedbackFileLogWriter!!)
+        public LogHubLogger(string categoryName, LogHubLogWriter feedbackFileLogWriter)
         {
+            if (categoryName is null)
+            {
+                throw new ArgumentNullException(nameof(categoryName));
+            }
+
+            if (feedbackFileLogWriter is null)
+            {
+                throw new ArgumentNullException(nameof(feedbackFileLogWriter));
+            }
+
             _categoryName = categoryName;
             _logWriter = feedbackFileLogWriter;
             _noopScope = new Scope();

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public abstract void ReportError(Exception exception);
 
-        public abstract void ReportError(Exception exception, ProjectSnapshot project);
+        public abstract void ReportError(Exception exception, ProjectSnapshot? project);
 
         public abstract void ReportError(Exception exception, Project workspaceProject);
     }

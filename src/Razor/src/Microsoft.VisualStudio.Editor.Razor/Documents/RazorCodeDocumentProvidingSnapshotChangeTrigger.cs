@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -36,14 +35,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             _projectManager = projectManager;
 
-            _projectManager.Changed += _projectManager_Changed;
+            _projectManager.Changed += ProjectManager_Changed;
         }
 
-        private void _projectManager_Changed(object sender, ProjectChangeEventArgs e)
+        private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
             if (e.Kind == ProjectChangeKind.ProjectAdded)
             {
-                var projectDocuments = e.Newer.DocumentFilePaths.ToArray();
+                var projectDocuments = e.Newer!.DocumentFilePaths.ToArray();
                 foreach (var doc in _openDocuments)
                 {
                     if (projectDocuments.Contains(doc))
@@ -55,16 +54,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
             else if (e.Kind == ProjectChangeKind.DocumentAdded)
             {
-                _documentProjectMap.Add(e.DocumentFilePath, e.ProjectFilePath);
-                if (_openDocuments.Contains(e.DocumentFilePath))
+                var documentFilePath = e.DocumentFilePath!;
+                _documentProjectMap.Add(documentFilePath, e.ProjectFilePath!);
+                if (_openDocuments.Contains(documentFilePath))
                 {
-                    _openDocuments.Remove(e.DocumentFilePath);
-                    DocumentReady?.Invoke(this, e.DocumentFilePath);
+                    _openDocuments.Remove(documentFilePath);
+                    DocumentReady?.Invoke(this, documentFilePath);
                 }
             }
             else if (e.Kind == ProjectChangeKind.DocumentRemoved)
             {
-                _documentProjectMap.Remove(e.DocumentFilePath);
+                _documentProjectMap.Remove(e.DocumentFilePath!);
             }
         }
 
@@ -76,10 +76,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 return null;
             }
 
-            var project = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                return _projectManager?.GetLoadedProject(projectFilePath);
-            }, cancellationToken);
+            var project = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => _projectManager?.GetLoadedProject(projectFilePath), cancellationToken);
 
             if (project is null)
             {

@@ -11,8 +11,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     {
         public override string Description { get; }
 
-        public DirectiveCompletionDescription(string description!!)
+        public DirectiveCompletionDescription(string description)
         {
+            if (description is null)
+            {
+                throw new ArgumentNullException(nameof(description));
+            }
+
             Description = description;
         }
     }

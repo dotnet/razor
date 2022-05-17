@@ -15,10 +15,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using InsertTextFormat = OmniSharp.Extensions.LanguageServer.Protocol.Models.InsertTextFormat;
+using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -38,13 +41,43 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-        DocumentResolver documentResolver!!,
-        RazorDocumentMappingService documentMappingService!!,
-        ClientNotifierServiceBase languageServer!!,
-        AdhocWorkspaceFactory adhocWorkspaceFactory!!,
-        ILoggerFactory loggerFactory!!)
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        DocumentResolver documentResolver,
+        RazorDocumentMappingService documentMappingService,
+        ClientNotifierServiceBase languageServer,
+        AdhocWorkspaceFactory adhocWorkspaceFactory,
+        ILoggerFactory loggerFactory)
     {
+        if (projectSnapshotManagerDispatcher is null)
+        {
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        }
+
+        if (documentResolver is null)
+        {
+            throw new ArgumentNullException(nameof(documentResolver));
+        }
+
+        if (documentMappingService is null)
+        {
+            throw new ArgumentNullException(nameof(documentMappingService));
+        }
+
+        if (languageServer is null)
+        {
+            throw new ArgumentNullException(nameof(languageServer));
+        }
+
+        if (adhocWorkspaceFactory is null)
+        {
+            throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
+        }
+
+        if (loggerFactory is null)
+        {
+            throw new ArgumentNullException(nameof(loggerFactory));
+        }
+
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _documentResolver = documentResolver;
         _documentMappingService = documentMappingService;
@@ -53,7 +86,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
     }
 
-    public RegistrationExtensionResult GetRegistration()
+    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
 
@@ -66,8 +99,13 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    public async Task<InlineCompletionList?> Handle(InlineCompletionRequest request!!, CancellationToken cancellationToken)
+    public async Task<InlineCompletionList?> Handle(InlineCompletionRequest request, CancellationToken cancellationToken)
     {
+        if (request is null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
         _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
         var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>

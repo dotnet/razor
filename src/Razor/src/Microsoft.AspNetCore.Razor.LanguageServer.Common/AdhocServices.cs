@@ -19,10 +19,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private readonly MethodInfo _createWorkspaceServicesMethod;
 
         private AdhocServices(
-            IEnumerable<IWorkspaceService> workspaceServices!!,
-            IEnumerable<ILanguageService> razorLanguageServices!!,
-            HostServices fallbackHostServices!!)
+            IEnumerable<IWorkspaceService> workspaceServices,
+            IEnumerable<ILanguageService> razorLanguageServices,
+            HostServices fallbackHostServices)
         {
+            if (workspaceServices is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceServices));
+            }
+
+            if (razorLanguageServices is null)
+            {
+                throw new ArgumentNullException(nameof(razorLanguageServices));
+            }
+
+            if (fallbackHostServices is null)
+            {
+                throw new ArgumentNullException(nameof(fallbackHostServices));
+            }
+
             _workspaceServices = workspaceServices;
             _razorLanguageServices = razorLanguageServices;
             _fallbackHostServices = fallbackHostServices;
@@ -33,8 +48,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             _createWorkspaceServicesMethod = typeof(HostServices).GetMethod(nameof(CreateWorkspaceServices), BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
-        protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace!!)
+        protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
         {
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             var fallbackServices = CreateFallbackWorkspaceServices(workspace);
             return new AdhocWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace, fallbackServices);
         }

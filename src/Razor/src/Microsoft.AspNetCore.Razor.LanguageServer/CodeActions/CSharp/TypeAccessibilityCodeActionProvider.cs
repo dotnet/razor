@@ -18,6 +18,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -39,10 +40,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         };
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
-            RazorCodeActionContext context!!,
-            IEnumerable<RazorCodeAction> codeActions!!,
+            RazorCodeActionContext context,
+            IEnumerable<RazorCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (codeActions is null)
+            {
+                throw new ArgumentNullException(nameof(codeActions));
+            }
+
             if (context.Request?.Context?.Diagnostics is null)
             {
                 return EmptyResult;
@@ -156,26 +167,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
                 {
-                    var node = FindImplicitOrExplicitExpressionNode(context);
                     string action;
 
-                    // The formatting pass of our Default code action resolver rejects
-                    // implicit/explicit expressions. So if we're in an implicit expression,
-                    // we run the remapping resolver responsible for simply remapping
-                    // (without formatting) the resolved code action. We do not support
-                    // explicit expressions due to issues with the remapping methodology
-                    // risking document corruption.
-                    if (node is null)
+                    if (!TryGetOwner(context, out var owner))
                     {
-                        action = LanguageServerConstants.CodeActions.Default;
+                        // Failed to locate a valid owner for the light bulb
+                        continue;
                     }
-                    else if (node is CSharpImplicitExpressionSyntax)
+                    else if (IsSingleLineDirectiveNode(owner))
+                    {
+                        // Don't support single line directives
+                        continue;
+                    }
+                    else if (IsExplicitExpressionNode(owner))
+                    {
+                        // Don't support explicit expressions
+                        continue;
+                    }
+                    else if (IsImplicitExpressionNode(owner))
                     {
                         action = LanguageServerConstants.CodeActions.UnformattedRemap;
                     }
                     else
                     {
-                        continue;
+                        // All other scenarios we support default formatted code action behavior
+                        action = LanguageServerConstants.CodeActions.Default;
                     }
 
                     typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, action));
@@ -197,28 +213,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return typeAccessibilityCodeActions;
 
-            static SyntaxNode FindImplicitOrExplicitExpressionNode(RazorCodeActionContext context)
+            static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode owner)
             {
                 var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
                 var syntaxTree = context.CodeDocument.GetSyntaxTree();
                 if (syntaxTree?.Root is null)
                 {
-                    return null;
+                    owner = null;
+                    return false;
                 }
 
-                var owner = syntaxTree.Root.LocateOwner(change);
+                owner = syntaxTree.Root.LocateOwner(change);
                 if (owner is null)
                 {
                     Debug.Fail("Owner should never be null.");
-                    return null;
+                    return false;
                 }
 
+                return true;
+            }
+
+            static bool IsImplicitExpressionNode(SyntaxNode owner)
+            {
                 // E.g, (| is position)
                 //
                 // `@|foo` - true
+                //
+                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
+            }
+
+            static bool IsExplicitExpressionNode(SyntaxNode owner)
+            {
+                // E.g, (| is position)
+                //
                 // `@(|foo)` - true
                 //
-                return owner.AncestorsAndSelf().FirstOrDefault(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
+                return owner.AncestorsAndSelf().Any(n => n is CSharpExplicitExpressionBodySyntax);
+            }
+
+            static bool IsSingleLineDirectiveNode(SyntaxNode owner)
+            {
+                // E.g, (| is position)
+                //
+                // `@inject |SomeType SomeName` - true
+                //
+                return owner.AncestorsAndSelf().Any(
+                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
             }
         }
 

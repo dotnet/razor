@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -1145,8 +1146,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 RazorDocumentMappingService documentMappingService,
-                ILoggerFactory loggerFactory) :
-                base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                ILoggerFactory loggerFactory)
+                : base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
             {
             }
 
@@ -1163,8 +1164,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 RazorDocumentMappingService documentMappingService,
-                ILoggerFactory loggerFactory) :
-                base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                ILoggerFactory loggerFactory)
+                : base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
             {
             }
 

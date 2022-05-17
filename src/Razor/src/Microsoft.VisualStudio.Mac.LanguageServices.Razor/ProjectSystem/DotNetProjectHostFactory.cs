@@ -24,12 +24,37 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         [ImportingConstructor]
         public DotNetProjectHostFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor,
+            TextBufferProjectService projectService,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            VSLanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspaceAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceAccessor));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
@@ -37,8 +62,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
-        public DotNetProjectHost Create(DotNetProject project!!)
+        public DotNetProjectHost Create(DotNetProject project)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             var projectHost = new DefaultDotNetProjectHost(project, _projectSnapshotManagerDispatcher, _workspaceAccessor, _projectService, _projectConfigurationFilePathStore, _languageServerFeatureOptions);
             return projectHost;
         }

@@ -12,8 +12,23 @@ namespace Microsoft.AspNetCore.Razor.Hosting
     {
         private object[] _metadata;
 
-        public DefaultRazorCompiledItem(Type type!!, string kind!!, string identifier!!)
+        public DefaultRazorCompiledItem(Type type, string kind, string identifier)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (kind is null)
+            {
+                throw new ArgumentNullException(nameof(kind));
+            }
+
+            if (identifier is null)
+            {
+                throw new ArgumentNullException(nameof(identifier));
+            }
+
             Type = type;
             Kind = kind;
             Identifier = identifier;

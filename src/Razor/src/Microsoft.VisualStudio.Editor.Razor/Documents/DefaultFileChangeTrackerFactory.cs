@@ -11,8 +11,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     [ExportWorkspaceService(typeof(FileChangeTrackerFactory), layer: ServiceLayer.Editor)]
     internal class DefaultFileChangeTrackerFactory : FileChangeTrackerFactory
     {
-        public override FileChangeTracker Create(string filePath!!)
+        public override FileChangeTracker Create(string filePath)
         {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             return new DefaultFileChangeTracker(filePath);
         }
     }

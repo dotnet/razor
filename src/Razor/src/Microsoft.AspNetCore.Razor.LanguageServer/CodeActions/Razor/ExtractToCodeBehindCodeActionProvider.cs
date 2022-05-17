@@ -8,16 +8,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {

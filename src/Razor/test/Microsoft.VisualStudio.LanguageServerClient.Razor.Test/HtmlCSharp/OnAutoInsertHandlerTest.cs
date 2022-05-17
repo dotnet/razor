@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Test;
@@ -163,12 +164,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Null(response);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/33677")]
+        [Fact]
         public async Task HandleRequestAsync_InvokesHTMLServer_RemapsEdits()
         {
             // Arrange
             var invokedServer = false;
-            var mappedTextEdits = false;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
@@ -192,11 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
-            documentMappingProvider
-                .Setup(d => d.RemapFormattedTextEditsAsync(projectionUri, It.IsAny<TextEdit[]>(), It.IsAny<FormattingOptions>(), /*containsSnippet*/ true, It.IsAny<CancellationToken>()))
-                .Callback(() => mappedTextEdits = true)
-                .Returns(Task.FromResult(new[] { new TextEdit() }));
-
             var handler = new OnAutoInsertHandler(DocumentManager, requestInvoker.Object, projectionProvider.Object, documentMappingProvider.Object, LoggerProvider);
             var request = new VSInternalDocumentOnAutoInsertParams()
             {
@@ -214,7 +209,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(invokedServer);
-            Assert.True(mappedTextEdits);
             Assert.NotNull(response);
         }
 
