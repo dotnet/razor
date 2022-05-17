@@ -313,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // and indent the { to match the @
                 var edit = new TextEdit
                 {
-                    Range = node.GetOmniSharpRange(source),
+                    Range = node.GetRange(source),
                     NewText = context.NewLineString + context.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character)
                 };
                 edits.Add(edit);
@@ -327,7 +327,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // ie, "@code     {" will become "@code {"
             var edit = new TextEdit
             {
-                Range = node.GetOmniSharpRange(source),
+                Range = node.GetRange(source),
                 NewText = " "
             };
             edits.Add(edit);

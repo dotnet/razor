@@ -183,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return null;
         }
 
-        private VSInternalHover AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
+        private VSInternalHover? AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
         {
             var descriptionInfos = descriptors.Select(boundAttribute =>
             {
@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             {
                 var vsHover = new VSInternalHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(),
+                    Contents = Array.Empty<SumType<string, MarkedString>>(),
                     Range = range,
                     RawContent = classifiedTextElement,
                 };
@@ -214,18 +214,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     return null;
                 }
 
-                Enum.TryParse(vsMarkupContent.Kind.Value, out MarkupKind markupKind);
-
                 var markupContent = new MarkupContent()
                 {
                     Value = vsMarkupContent.Value,
-                    Kind = markupKind,
+                    Kind = vsMarkupContent.Kind,
                 };
 
-                var hover = new HoverModel
+                var hover = new VSInternalHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(markupContent),
-                    Range = range
+                    Contents = markupContent,
+                    Range = range,
                 };
 
                 return hover;
@@ -244,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             {
                 var vsHover = new VSInternalHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(),
+                    Contents = Array.Empty<SumType<string, MarkedString>>(),
                     Range = range,
                     RawContent = classifiedTextElement,
                 };
@@ -260,17 +258,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     return null;
                 }
 
-                Enum.TryParse(vsMarkupContent.Kind.Value, out MarkupKind markupKind);
-
                 var markupContent = new MarkupContent()
                 {
                     Value = vsMarkupContent.Value,
-                    Kind = markupKind,
+                    Kind = vsMarkupContent.Kind,
                 };
 
                 var hover = new VSInternalHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(markupContent),
+                    Contents = markupContent,
                     Range = range
                 };
 
@@ -280,8 +276,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         private static VisualStudioMarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
         {
-            var hoverContentFormat = clientCapabilities.TextDocument?.Hover.Value?.ContentFormat;
-            var hoverKind = hoverContentFormat?.Contains(MarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
+            var hoverContentFormat = clientCapabilities.TextDocument?.Hover?.ContentFormat;
+            var hoverKind = hoverContentFormat?.Contains(VisualStudioMarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
             return hoverKind;
         }
     }
