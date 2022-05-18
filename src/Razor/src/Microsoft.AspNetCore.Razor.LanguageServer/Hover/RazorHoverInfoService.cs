@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
     internal abstract class RazorHoverInfoService
     {
-        public abstract HoverModel GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, ClientCapabilities clientCapabilities);
+        public abstract VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities);
     }
 }
