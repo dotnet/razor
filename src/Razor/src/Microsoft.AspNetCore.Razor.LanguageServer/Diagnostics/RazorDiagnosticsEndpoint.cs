@@ -371,7 +371,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag?.Bang != null;
             }
         }
-#nullable disable
 
         private static bool InAttributeContainingCSharp(
                 OmniSharpVSDiagnostic d,
@@ -389,6 +388,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             }
 
             var owner = syntaxTree.GetOwner(sourceText, d.Range.End, logger);
+            if (owner is null)
+            {
+                return false;
+            }
 
             var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
                 n is MarkupAttributeBlockSyntax ||
@@ -494,6 +497,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             return mappedDiagnostics.ToArray();
         }
+
+#nullable disable
 
         private static bool IsRudeEditDiagnostic(OmniSharpVSDiagnostic diagnostic)
         {
