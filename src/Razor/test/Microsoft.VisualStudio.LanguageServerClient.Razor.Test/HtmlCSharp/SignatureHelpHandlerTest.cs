@@ -170,19 +170,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 snapshotContent: codeDocument.GetSourceText().ToString(),
                 csharpDocumentSnapshot);
 
-            var projectionResult = await TestLSPProjectionProvider.Instance.GetProjectionAsync(
-                documentSnapshot, cursorPosition, CancellationToken.None).ConfigureAwait(false);
-
-            var textDocumentIdentifier = new TextDocumentIdentifier { Uri = csharpDocumentUri };
-            var signatureHelpContext = new SignatureHelpContext { IsRetrigger = false, TriggerCharacter = "(", TriggerKind = SignatureHelpTriggerKind.TriggerCharacter };
-            var signatureHelpParams = new SignatureHelpParams { TextDocument = textDocumentIdentifier, Position = projectionResult.Position, Context = signatureHelpContext };
-
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
                 csharpSourceText, csharpDocumentUri, SignatureHelpServerCapabilities).ConfigureAwait(false);
-            var result = await csharpServer.ExecuteRequestAsync<SignatureHelpParams, SignatureHelp>(
-                Methods.TextDocumentSignatureHelpName,
-                signatureHelpParams,
-                CancellationToken.None).ConfigureAwait(false);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
@@ -200,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 signatureHelpRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("void M(int a, int b, int c)", result.Signatures.First().Label);
+            Assert.Equal("void M(int a, int b, int c)", requestResult.Signatures.First().Label);
         }
 
         [Fact]
