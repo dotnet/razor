@@ -4,32 +4,18 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class VSHoverParams : TextDocumentPositionParams
-    {
-    }
-
-    internal class VSHoverParamsBridge : VSHoverParams, IRequest<VSInternalHover?>
-    {
-    }
-
-    [Parallel, Method(Methods.TextDocumentHoverName)]
-    internal interface IVSHoverEndpoint : IJsonRpcRequestHandler<VSHoverParamsBridge, VSInternalHover?>, IRegistrationExtension
-    {
-    }
-
     internal class RazorHoverEndpoint : IVSHoverEndpoint
     {
         private readonly ILogger _logger;
