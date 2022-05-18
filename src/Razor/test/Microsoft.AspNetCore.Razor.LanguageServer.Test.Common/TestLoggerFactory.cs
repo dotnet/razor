@@ -6,7 +6,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
+namespace Microsoft.AspNetCore.Razor.Test.Common
 {
     public class TestLoggerFactory : ILoggerFactory
     {

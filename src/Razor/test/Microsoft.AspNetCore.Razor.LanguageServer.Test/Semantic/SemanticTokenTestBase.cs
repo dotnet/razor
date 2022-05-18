@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,12 +13,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
@@ -120,18 +118,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (csharpRange is not null)
             {
+                var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var files = new List<(Uri, SourceText)>();
-                var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
-                files.Add((documentUri, csharpSourceText));
 
-                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-                using var workspace = CreateTestWorkspace(files, exportProvider);
-                await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
-
-                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParamsBridge, VSSemanticTokensResponse>(
+                await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities).ConfigureAwait(false);
+                var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParamsBridge, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
-                    CreateVSSemanticTokensRangeParams(csharpRange, documentUri), CancellationToken.None);
+                    CreateVSSemanticTokensRangeParams(csharpRange, csharpDocumentUri),
+                    CancellationToken.None).ConfigureAwait(false);
 
                 csharpTokens = result?.Data;
             }
@@ -207,12 +202,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return results.ToArray();
-        }
-
-        private class VSSemanticTokensResponse : SemanticTokens
-        {
-            [DataMember(Name = "isFinalized")]
-            public bool IsFinalized { get; set; }
         }
     }
 }
