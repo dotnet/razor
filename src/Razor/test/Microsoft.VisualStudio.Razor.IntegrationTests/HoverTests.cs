@@ -19,12 +19,11 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             var position = await TestServices.Editor.GetCaretPositionAsync(ControlledHangMitigatingCancellationToken);
 
             // Act
-            var hoverResults = await TestServices.Editor.HoverAsync(position, ControlledHangMitigatingCancellationToken);
+            var hoverString = await TestServices.Editor.GetHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
 
             // Assert
-            var hoverResult = Assert.Single(hoverResults);
-            var expectedResult = hoverResult;
-            Assert.Equal(expectedResult, hoverResult);
+            const string ExpectedResult = "Microsoft.AspNetCore.Components.Web.PageTitleEnables rendering an HTML <c><title></c> to a HeadOutlet component.";
+            Assert.Equal(ExpectedResult, hoverString);
         }
     }
 }
