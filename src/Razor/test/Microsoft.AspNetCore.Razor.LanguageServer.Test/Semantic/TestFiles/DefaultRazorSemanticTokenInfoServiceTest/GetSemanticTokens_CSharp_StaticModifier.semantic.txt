@@ -1,11 +1,11 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 84 0 //razorTransition
-0 1 4 87 0 //razorDirective
-1 0 1 84 0 //razorTransition
+0 0 1 112 0 //razorTransition
+0 1 4 109 0 //razorDirective
+1 0 1 112 0 //razorTransition
 1 4 6 15 0 //keyword
 0 7 3 15 0 //keyword
-0 4 1 31 1 //field name
+0 4 1 41 1 //field name
 0 2 1 21 0 //operator
 0 2 1 19 0 //number
-0 1 1 43 0 //punctuation
-1 0 1 84 0 //razorTransition
+0 1 1 29 0 //punctuation
+1 0 1 112 0 //razorTransition

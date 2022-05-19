@@ -1,12 +1,12 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 91 0 //markupTagDelimiter
-0 1 1 92 0 //markupElement
-0 2 1 91 0 //markupTagDelimiter
-0 1 1 91 0 //markupTagDelimiter
-0 1 1 89 0 //razorCommentTransition
-0 1 1 90 0 //razorCommentStar
-0 1 4 88 0 //razorComment
-1 0 6 88 0 //razorComment
-1 0 3 88 0 //razorComment
-0 3 1 90 0 //razorCommentStar
-0 1 1 89 0 //razorCommentTransition
+0 0 1 100 0 //markupTagDelimiter
+0 1 1 98 0 //markupElement
+0 2 1 100 0 //markupTagDelimiter
+0 1 1 100 0 //markupTagDelimiter
+0 1 1 103 0 //razorCommentTransition
+0 1 1 102 0 //razorCommentStar
+0 1 4 104 0 //razorComment
+1 0 6 104 0 //razorComment
+1 0 3 104 0 //razorComment
+0 3 1 102 0 //razorCommentStar
+0 1 1 103 0 //razorCommentTransition
