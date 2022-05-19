@@ -11,7 +11,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using MonoDevelop.Projects;
 using AssemblyReference = MonoDevelop.Projects.AssemblyReference;
 
@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     internal class FallbackMacRazorProjectHost : MacRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public FallbackMacRazorProjectHost(
             DotNetProject project,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;

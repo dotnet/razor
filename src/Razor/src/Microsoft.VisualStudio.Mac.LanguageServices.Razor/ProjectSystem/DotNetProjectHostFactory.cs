@@ -7,6 +7,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Projects;
 
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public DotNetProjectHostFactory(
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
