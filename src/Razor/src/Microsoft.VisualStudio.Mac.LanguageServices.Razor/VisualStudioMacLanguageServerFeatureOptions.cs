@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    [Export(typeof(VSLanguageServerFeatureOptions))]
-    internal class VSLanguageServerFeatureOptions : LanguageServerFeatureOptions
+    [Export(typeof(LanguageServerFeatureOptions))]
+    internal class VisualStudioMacLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         [ImportingConstructor]
-        public VSLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
+        public VisualStudioMacLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
             if (lspEditorFeatureDetector is null)
             {
@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override string CSharpVirtualDocumentSuffix => ".g.cs";
 
         public override string HtmlVirtualDocumentSuffix => "__virtual.html";
+
+        public override bool SingleServerCompletionSupport => false;
 
         private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly VisualStudioWindowsLanguageServerFeatureOptions _languageServerFeatureOptions;
         private IDisposable _subscription;
 
         [ImportingConstructor]
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            VisualStudioWindowsLanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;

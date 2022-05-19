@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private IDisposable _subscription;
 
         private const string RootNamespaceProperty = "RootNamespace";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly VisualStudioWindowsLanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public DefaultWindowsRazorProjectHost(
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            VisualStudioWindowsLanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;

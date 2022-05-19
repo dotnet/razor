@@ -8,7 +8,7 @@ using Moq;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    internal class TestVSLanguageServerFeatureOptions : VSLanguageServerFeatureOptions
+    internal class TestVSLanguageServerFeatureOptions : VisualStudioMacLanguageServerFeatureOptions
     {
 #pragma warning disable CS0618 // Type or member is obsolete
         public static readonly TestVSLanguageServerFeatureOptions Instance = new();

@@ -12,5 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         public abstract string CSharpVirtualDocumentSuffix { get; }
 
         public abstract string HtmlVirtualDocumentSuffix { get; }
+
+        public abstract bool SingleServerCompletionSupport { get; }
     }
 }
