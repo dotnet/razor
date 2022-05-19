@@ -61,13 +61,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public static int CSharpString => TokenTypesLegend["string"];
         public static int CSharpVariable => TokenTypesLegend["variable"];
 
-        // LSP types + C# types + Razor types
-        public static readonly string[] TokenTypes =
-            // LSP
-            SemanticTokenTypes.AllTypes.Concat(
-            // C#
-            RazorSemanticTokensAccessor.RoslynCustomTokenTypes).Concat(
-            // Razor
+        // C# types + Razor types
+        public static readonly string[] TokenTypes = RazorSemanticTokensAccessor.RoslynTokenTypes.Concat(
             typeof(RazorSemanticTokensLegend).GetFields(BindingFlags.NonPublic | BindingFlags.Static).Where(
                 field => field.GetValue(null) is string).Select(
                 field => (string)field.GetValue(null))).ToArray();
