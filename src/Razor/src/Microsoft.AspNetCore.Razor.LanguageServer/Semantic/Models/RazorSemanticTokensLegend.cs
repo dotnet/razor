@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "enumMember", // 10
             "event",
             "function",
-            "member",
+            "method",
             "macro",
             "keyword",
             "modifier",

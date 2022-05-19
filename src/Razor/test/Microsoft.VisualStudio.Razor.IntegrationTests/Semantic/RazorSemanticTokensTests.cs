@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", 3);
 
             await TestServices.Editor.SetTextAsync(RazorProjectConstants.IndexPageContent, ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", 1);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", 3);
 
             // Assert
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Edits_UpdateColors), ControlledHangMitigatingCancellationToken);
