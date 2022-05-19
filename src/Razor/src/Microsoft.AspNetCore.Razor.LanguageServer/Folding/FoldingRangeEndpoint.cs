@@ -10,19 +10,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 {
-    internal class FoldingRangeEndpoint : IFoldingRangeHandler
+    internal class FoldingRangeEndpoint : IVSFoldingRangeEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -50,13 +49,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
         }
 
-        public FoldingRangeRegistrationOptions GetRegistrationOptions(FoldingRangeCapability capability, ClientCapabilities clientCapabilities)
-            => new()
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
+            const string AssociatedServerCapability = "foldingRangeProvider";
+
+            var registrationOptions = new FoldingRangeOptions()
             {
-                DocumentSelector = RazorDefaults.Selector,
+                WorkDoneProgress = false,
             };
 
-        public async Task<Container<FoldingRange>?> Handle(FoldingRangeRequestParam @params, CancellationToken cancellationToken)
+            return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
+        }
+
+        public async Task<IEnumerable<FoldingRange>?> Handle(VSFoldingRangeParamsBridge @params, CancellationToken cancellationToken)
         {
             using var _ = _logger.BeginScope("FoldingRangeEndpoint.Handle");
 
@@ -87,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 TextDocument = @params.TextDocument
             };
 
-            Container<FoldingRange>? container = null;
+            IEnumerable<FoldingRange>? container = null;
             var retries = 0;
             const int MaxRetries = 5;
 
@@ -106,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             return container;
         }
 
-        private async Task<Container<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorFoldingRangeEndpoint, requestParams).ConfigureAwait(false);
             var foldingResponse = await delegatedRequest.Returning<RazorFoldingRangeResponse?>(cancellationToken).ConfigureAwait(false);
@@ -140,10 +145,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             }
 
             var finalRanges = FinalizeFoldingRanges(mappedRanges, codeDocument);
-            return new Container<FoldingRange>(finalRanges);
+            return finalRanges;
         }
 
-        private IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
+        private static IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
         {
             // Don't allow ranges to be reported if they aren't spanning at least one line
             var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
@@ -162,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
         /// it so collapsing will still show the text instead of just "..."
         /// </summary>
-        private FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
+        private static FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
         {
             Debug.Assert(range.StartLine < range.EndLine);
 
@@ -179,24 +184,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 // +1 to the offset value because the helper goes to the character position
                 // that we want to be after. Make sure we don't exceed the line end
                 var newCharacter = Math.Min(offset.Value + 1, lineSpan.Length);
-                return range with { StartCharacter = newCharacter };
+                range.StartCharacter = newCharacter;
+                return range;
             }
 
             return range;
         }
 
         private static Range GetRange(FoldingRange foldingRange)
-            => new Range(
-                start: new Position()
+            => new Range
+            {
+                Start = new Position()
                 {
                     Character = foldingRange.StartCharacter.GetValueOrDefault(),
                     Line = foldingRange.StartLine
                 },
-                end: new Position()
+                End = new Position()
                 {
                     Character = foldingRange.EndCharacter.GetValueOrDefault(),
                     Line = foldingRange.EndLine
-                });
+                }
+            };
 
         private static FoldingRange GetFoldingRange(Range range)
            => new FoldingRange()

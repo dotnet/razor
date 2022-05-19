@@ -2,9 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal record RazorFoldingRangeResponse(IEnumerable<FoldingRange> HtmlRanges, IEnumerable<FoldingRange> CSharpRanges);
+    internal class VSFoldingRangeParamsBridge : TextDocumentPositionParams, IRequest<IEnumerable<FoldingRange>?>
+    {
+    }
 }

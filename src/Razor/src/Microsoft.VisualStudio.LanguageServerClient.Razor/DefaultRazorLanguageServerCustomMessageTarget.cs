@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
@@ -685,8 +686,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(foldingRangeParams));
             }
 
-            var csharpRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
-            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
+            var csharpRanges = new List<FoldingRange>();
+            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
             var csharpTask = Task.CompletedTask;
             if (csharpDocument is not null)
             {
@@ -705,7 +706,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 }
                             };
 
-                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
                                 Methods.TextDocumentFoldingRange.Name,
                                 RazorLSPConstants.RazorCSharpLanguageServerName,
                                 SupportsFoldingRange,
@@ -718,12 +719,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 csharpRanges.AddRange(result);
                             }
                         }
-                    });
+                    }, cancellationToken);
 
             }
 
-            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
-            var htmlRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
+            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
+            var htmlRanges = new List<FoldingRange>();
             var htmlTask = Task.CompletedTask;
             if (htmlDocument is not null)
             {
@@ -742,7 +743,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 }
                             };
 
-                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
                                 Methods.TextDocumentFoldingRange.Name,
                                 RazorLSPConstants.HtmlLanguageServerName,
                                 SupportsFoldingRange,
@@ -755,7 +756,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 htmlRanges.AddRange(result);
                             }
                         }
-                    });
+                    }, cancellationToken);
             }
 
             var allTasks = Task.WhenAll(htmlTask, csharpTask);
