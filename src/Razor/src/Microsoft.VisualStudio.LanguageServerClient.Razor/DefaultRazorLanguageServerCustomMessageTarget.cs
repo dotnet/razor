@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -11,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
@@ -772,7 +772,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            return new(htmlRanges, csharpRanges);
+            return new(htmlRanges.ToImmutableArray(), csharpRanges.ToImmutableArray());
         }
 
         private static bool SupportsFoldingRange(JToken token)

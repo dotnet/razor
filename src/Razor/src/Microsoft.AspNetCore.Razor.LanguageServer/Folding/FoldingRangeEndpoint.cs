@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -53,10 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             const string AssociatedServerCapability = "foldingRangeProvider";
 
-            var registrationOptions = new FoldingRangeOptions()
-            {
-                WorkDoneProgress = false,
-            };
+            var registrationOptions = new FoldingRangeOptions();
 
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
@@ -92,15 +90,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 TextDocument = @params.TextDocument
             };
 
-            IEnumerable<FoldingRange>? container = null;
+            IEnumerable<FoldingRange>? foldingRanges = null;
             var retries = 0;
             const int MaxRetries = 5;
 
-            while (container is null && ++retries <= MaxRetries)
+            while (foldingRanges is null && ++retries <= MaxRetries)
             {
                 try
                 {
-                    container = await HandleCoreAsync(requestParams, document, codeDocument, cancellationToken);
+                    foldingRanges = await HandleCoreAsync(requestParams, document, codeDocument, cancellationToken);
                 }
                 catch (Exception e) when (retries < MaxRetries)
                 {
@@ -108,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 }
             }
 
-            return container;
+            return foldingRanges;
         }
 
         private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)

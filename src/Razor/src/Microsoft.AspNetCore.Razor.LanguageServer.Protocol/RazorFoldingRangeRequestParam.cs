@@ -2,11 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Runtime.Serialization;
-using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol
 {
-    internal class RazorFoldingRangeRequestParam : VSFoldingRangeParamsBridge
+    internal class RazorFoldingRangeRequestParam : FoldingRangeParams
     {
         [DataMember(Name = "hostDocumentVersion")]
         public int HostDocumentVersion { get; init; }
