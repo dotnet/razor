@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         throw new JsonSerializationException($"Failed to serialize to {nameof(InitializeResult)}");
                     }
 
-                    _serverCapabilities.Add((languageClientInstance.Client, (initializeResult.Capabilities as VSInternalServerCapabilities)!));
+                    _serverCapabilities.Add((languageClientInstance.Client, (VSInternalServerCapabilities)initializeResult.Capabilities));
                 }
             }
 

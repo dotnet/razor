@@ -163,12 +163,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     switch (attribute.Parent.Kind)
                     {
                         case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                            var directiveAttribute = (attribute.Parent as MarkupTagHelperDirectiveAttributeSyntax)!;
+                            var directiveAttribute = (MarkupTagHelperDirectiveAttributeSyntax)attribute.Parent;
                             range.Start.Character -= directiveAttribute.Transition.FullWidth;
                             attributeName = "@" + attributeName;
                             break;
                         case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                            var minimizedAttribute = (containingTagNameToken.Parent as MarkupMinimizedTagHelperDirectiveAttributeSyntax)!;
+                            var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTagNameToken.Parent;
                             range.Start.Character -= minimizedAttribute.Transition.FullWidth;
                             attributeName = "@" + attributeName;
                             break;
