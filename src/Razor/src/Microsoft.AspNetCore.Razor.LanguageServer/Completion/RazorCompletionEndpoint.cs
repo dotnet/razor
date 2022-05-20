@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -132,9 +133,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 _ => CompletionReason.Typing,
             };
             var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
-            var completionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason, completionOptions);
+            var queryableChange = new SourceChange(hostDocumentIndex, length: 0, newText: string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(queryableChange);
+            var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);
 
-            var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext, location);
+            var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext);
 
             _logger.LogTrace($"Resolved {razorCompletionItems.Count} completion items.");
 

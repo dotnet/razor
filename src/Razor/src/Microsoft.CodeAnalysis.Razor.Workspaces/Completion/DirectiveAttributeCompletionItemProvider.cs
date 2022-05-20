@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
             if (context is null)
             {
@@ -51,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return s_noDirectiveAttributeCompletionItems;
             }
 
-            var change = new SourceChange(location, string.Empty);
-            var owner = context.SyntaxTree.Root.LocateOwner(change);
-
+            var owner = context.Owner;
             if (owner is null)
             {
                 return s_noDirectiveAttributeCompletionItems;
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return s_noDirectiveAttributeCompletionItems;
             }
 
-            if (!attributeNameLocation.IntersectsWith(location.AbsoluteIndex))
+            if (!attributeNameLocation.IntersectsWith(context.AbsoluteIndex))
             {
                 // We're trying to retrieve completions on a portion of the name that is not supported (such as a parameter).
                 return s_noDirectiveAttributeCompletionItems;

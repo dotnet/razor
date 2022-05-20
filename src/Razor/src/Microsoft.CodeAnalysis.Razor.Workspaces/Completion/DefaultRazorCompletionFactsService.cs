@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _completionItemProviders = completionItemProviders.ToArray();
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
             if (context is null)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             for (var i = 0; i < _completionItemProviders.Count; i++)
             {
                 var completionItemProvider = _completionItemProviders[i];
-                var items = completionItemProvider.GetCompletionItems(context, location);
+                var items = completionItemProvider.GetCompletionItems(context);
                 completions.AddRange(items);
             }
 

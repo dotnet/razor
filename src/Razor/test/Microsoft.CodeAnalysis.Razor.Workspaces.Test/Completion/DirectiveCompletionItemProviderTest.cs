@@ -145,11 +145,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@");
-            var location = new SourceSpan(2, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 2, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -160,11 +159,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{");
-            var location = new SourceSpan(2, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 2, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -175,11 +173,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@DateTime.Now");
-            var location = new SourceSpan(2, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 2, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -190,11 +187,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@(something)");
-            var location = new SourceSpan(4, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 4, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -205,11 +201,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{ @ }");
-            var location = new SourceSpan(4, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 4, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -220,11 +215,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p>@ </p>");
-            var location = new SourceSpan(4, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 4, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -235,11 +229,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p @ >");
-            var location = new SourceSpan(4, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 4, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -250,11 +243,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@functions { @  }", FunctionsDirective.Directive);
-            var location = new SourceSpan(14, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 14, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -265,11 +257,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@m");
-            var location = new SourceSpan(1, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 1, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.True(result);
@@ -280,11 +271,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@mod");
-            var location = new SourceSpan(2, 0);
-            var context = CreateRazorCompletionContext(syntaxTree, CompletionReason.Typing);
+            var context = CreateRazorCompletionContext(absoluteIndex: 2, syntaxTree, CompletionReason.Typing);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.False(result);
@@ -295,11 +285,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@mod");
-            var location = new SourceSpan(2, 0);
-            var context = CreateRazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(absoluteIndex: 2, syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context);
 
             // Assert
             Assert.True(result);
@@ -371,11 +360,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.False(result);
         }
 
-        private static RazorCompletionContext CreateRazorCompletionContext(RazorSyntaxTree syntaxTree, CompletionReason reason = CompletionReason.Invoked)
+        private static RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, RazorSyntaxTree syntaxTree, CompletionReason reason = CompletionReason.Invoked)
         {
             var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
-
-            return new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason);
+            var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(queryableChange);
+            return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext, reason);
         }
 
         private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null)
