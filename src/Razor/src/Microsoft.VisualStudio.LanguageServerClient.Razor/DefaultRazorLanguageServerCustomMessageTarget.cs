@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -685,8 +686,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(foldingRangeParams));
             }
 
-            var csharpRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
-            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
+            var csharpRanges = new List<FoldingRange>();
+            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
             var csharpTask = Task.CompletedTask;
             if (csharpDocument is not null)
             {
@@ -705,7 +706,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 }
                             };
 
-                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
                                 Methods.TextDocumentFoldingRange.Name,
                                 RazorLSPConstants.RazorCSharpLanguageServerName,
                                 SupportsFoldingRange,
@@ -718,12 +719,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 csharpRanges.AddRange(result);
                             }
                         }
-                    });
+                    }, cancellationToken);
 
             }
 
-            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
-            var htmlRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
+            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
+            var htmlRanges = new List<FoldingRange>();
             var htmlTask = Task.CompletedTask;
             if (htmlDocument is not null)
             {
@@ -742,7 +743,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 }
                             };
 
-                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
                                 Methods.TextDocumentFoldingRange.Name,
                                 RazorLSPConstants.HtmlLanguageServerName,
                                 SupportsFoldingRange,
@@ -755,7 +756,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 htmlRanges.AddRange(result);
                             }
                         }
-                    });
+                    }, cancellationToken);
             }
 
             var allTasks = Task.WhenAll(htmlTask, csharpTask);
@@ -771,7 +772,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            return new(htmlRanges, csharpRanges);
+            return new(htmlRanges.ToImmutableArray(), csharpRanges.ToImmutableArray());
         }
 
         private static bool SupportsFoldingRange(JToken token)
