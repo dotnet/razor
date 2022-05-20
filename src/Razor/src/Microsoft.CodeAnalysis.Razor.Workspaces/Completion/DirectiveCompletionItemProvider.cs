@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
         };
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
             if (context is null)
             {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             var completions = new List<RazorCompletionItem>();
-            if (ShouldProvideCompletions(context, location))
+            if (ShouldProvideCompletions(context))
             {
                 var directiveCompletions = GetDirectiveCompletionItems(context.SyntaxTree);
                 completions.AddRange(directiveCompletions);
@@ -45,16 +45,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         // Internal for testing
-        internal static bool ShouldProvideCompletions(RazorCompletionContext context, SourceSpan location)
+        internal static bool ShouldProvideCompletions(RazorCompletionContext context)
         {
             if (context is null)
             {
                 return false;
             }
 
-            var change = new SourceChange(location, string.Empty);
-            var owner = context.SyntaxTree.Root.LocateOwner(change);
-
+            var owner = context.Owner;
             if (owner is null)
             {
                 return false;

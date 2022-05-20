@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
@@ -53,16 +52,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
             if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var change = new SourceChange(location, string.Empty);
-            var owner = context.SyntaxTree.Root.LocateOwner(change);
-
+            var owner = context.Owner;
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
@@ -71,10 +68,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             var parent = owner.Parent;
             if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
-                containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
+                containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
             {
                 if ((containingTagNameToken.FullWidth > 1 || containingTagNameToken.Content == "-") &&
-                    containingTagNameToken.Span.Start != location.AbsoluteIndex)
+                    containingTagNameToken.Span.Start != context.AbsoluteIndex)
                 {
                     // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
                     // beginning of an HTML element name.
@@ -95,14 +92,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     out var selectedAttributeNameLocation,
                     out attributes) &&
                 (selectedAttributeName is null ||
-                selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true ||
-                (prefixLocation?.IntersectsWith(location.AbsoluteIndex) ?? false)))
+                selectedAttributeNameLocation?.IntersectsWith(context.AbsoluteIndex) == true ||
+                (prefixLocation?.IntersectsWith(context.AbsoluteIndex) ?? false)))
             {
                 if (prefixLocation.HasValue &&
                     prefixLocation.Value.Length == 1 &&
                     selectedAttributeNameLocation.HasValue &&
                     selectedAttributeNameLocation.Value.Length > 1 &&
-                    selectedAttributeNameLocation.Value.Start != location.AbsoluteIndex)
+                    selectedAttributeNameLocation.Value.Start != context.AbsoluteIndex)
                 {
                     // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
                     // beginning of an HTML attribute name. We do extra checks on prefix locations here in order to rule out malformed cases when the Razor
