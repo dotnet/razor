@@ -130,7 +130,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||

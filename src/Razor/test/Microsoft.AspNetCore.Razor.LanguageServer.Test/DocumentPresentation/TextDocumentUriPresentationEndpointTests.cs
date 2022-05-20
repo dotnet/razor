@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
             var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
             var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
             var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -229,7 +229,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
             var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
@@ -296,7 +296,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
@@ -358,7 +358,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var droppedUri = new Uri("file:///c:/path/MyTagHelper.cshtml");
             var uri = new Uri("file://path/test.razor");
@@ -422,7 +422,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var projectedRange = It.IsAny<OmniSharpRange>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.CSharp &&
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
                 s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<OmniSharpRange>(), out projectedRange) == true, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
@@ -478,7 +478,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
@@ -534,7 +534,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
@@ -589,7 +589,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);

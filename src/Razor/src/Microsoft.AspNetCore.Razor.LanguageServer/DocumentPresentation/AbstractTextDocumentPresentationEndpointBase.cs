@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 return null;
             }
 
-            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // See if we can handle this directly in Razor. If not, we'll let things flow to the below delegated handling.
             var result = await TryGetRazorWorkspaceEditAsync(languageKind, request, cancellationToken).ConfigureAwait(false);
             if (result is not null)

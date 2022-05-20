@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             }
 
             var projectedIndex = hostDocumentIndex;
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // If we're in C#, then map to the right position in the generated document
             if (languageKind == RazorLanguageKind.CSharp &&
                 !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))

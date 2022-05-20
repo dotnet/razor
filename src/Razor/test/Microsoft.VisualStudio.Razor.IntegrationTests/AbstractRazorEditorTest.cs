@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {

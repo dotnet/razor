@@ -26,6 +26,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public abstract bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex);
 
-        public abstract RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex);
+        public abstract RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative);
     }
 }

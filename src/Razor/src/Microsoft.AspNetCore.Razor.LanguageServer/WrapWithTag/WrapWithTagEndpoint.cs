@@ -91,7 +91,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 return null;
             }
 
-            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            // Since we're at the start of the selection, lets prefer the language to the right of the cursor if possible.
+            // That way with the following situation:
+            //
+            // @if (true) {
+            //   |<p></p>
+            // }
+            //
+            // Instead of C#, which certainly would be expected to go in an if statement, we'll see HTML, which obviously
+            // is the better choice for this operation.
+            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
             if (languageKind is not RazorLanguageKind.Html)
             {
                 _logger.LogInformation($"Unsupported language {languageKind:G}.");

@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
-            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
             var formattingService = CreateFormattingService(codeDocument);
             var options = new FormattingOptions()
@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 #pragma warning disable CS0618 // Type or member is obsolete
             var mappingService = new DefaultRazorDocumentMappingService();
 #pragma warning restore CS0618 // Type or member is obsolete
-            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
             if (languageKind == RazorLanguageKind.Html)
             {
                 throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");

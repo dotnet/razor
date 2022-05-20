@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
-            documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17)).Returns(RazorLanguageKind.Html);
+            documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
-            documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17)).Returns(RazorLanguageKind.Razor);
+            documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);

@@ -388,7 +388,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex)
+        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative)
         {
             if (codeDocument is null)
             {
@@ -399,7 +399,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             var tagHelperSpans = syntaxTree.GetTagHelperSpans();
             var documentLength = codeDocument.GetSourceText().Length;
-            var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, originalIndex, documentLength);
+            var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, originalIndex, documentLength, rightAssociative);
 
             return languageKind;
         }
@@ -409,7 +409,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
             IReadOnlyList<TagHelperSpanInternal> tagHelperSpans,
             int absoluteIndex,
-            int documentLength)
+            int documentLength,
+            bool rightAssociative)
         {
             for (var i = 0; i < classifiedSpans.Count; i++)
             {
@@ -429,6 +430,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                                 classifiedSpan.AcceptedCharacters == AcceptedCharactersInternal.None)
                             {
                                 // Non-marker spans do not own the edges after it
+                                continue;
+                            }
+
+                            // If we're right associative, then we don't want to use the classification that we're at the end
+                            // of, if we're also at the start of the next one
+                            if (rightAssociative &&
+                                i < classifiedSpans.Count - 1 &&
+                                classifiedSpans[i + 1].Span.AbsoluteIndex == absoluteIndex)
+                            {
                                 continue;
                             }
                         }
