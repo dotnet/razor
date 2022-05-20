@@ -15,18 +15,18 @@
   </PropertyGroup>
   <!-- Versioning for assemblies/packages -->
   <PropertyGroup>
-    <MajorVersion>6</MajorVersion>
+    <MajorVersion>7</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
-    <PreReleaseVersionIteration>5</PreReleaseVersionIteration>
+    <PreReleaseVersionIteration>1</PreReleaseVersionIteration>
     <!--
         When StabilizePackageVersion is set to 'true', this branch will produce stable outputs for 'Shipping' packages
     -->
     <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <DotNetFinalVersionKind Condition="'$(StabilizePackageVersion)' == 'true'">release</DotNetFinalVersionKind>
-    <DefaultNetCoreTargetFramework>net6.0</DefaultNetCoreTargetFramework>
-    <DefaultNetCoreWindowsTargetFramework>net6.0-windows</DefaultNetCoreWindowsTargetFramework>
+    <DefaultNetCoreTargetFramework>net7.0</DefaultNetCoreTargetFramework>
+    <DefaultNetCoreWindowsTargetFramework>net7.0-windows</DefaultNetCoreWindowsTargetFramework>
   </PropertyGroup>
   <!--
     Versioning for tooling releases.
