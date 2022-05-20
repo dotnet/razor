@@ -180,6 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
+                        services.AddSingleton<DocumentContextFactory, DefaultDocumentContextFactory>();
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();

@@ -24,8 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal class RazorCompletionEndpoint : IVSCompletionEndpoint
     {
         private readonly ILogger _logger;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly CompletionListCache _completionListCache;
         private static readonly Command s_retriggerCompletionCommand = new()
@@ -36,20 +35,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorCompletionEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorCompletionFactsService completionFactsService,
             CompletionListCache completionListCache,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (completionFactsService is null)
@@ -67,8 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _completionFactsService = completionFactsService;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
             _completionListCache = completionListCache;
@@ -92,14 +84,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public async Task<VSInternalCompletionList?> Handle(VSCompletionParamsBridge request, CancellationToken cancellationToken)
         {
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (document is null || cancellationToken.IsCancellationRequested)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
@@ -109,22 +95,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
-            if (codeDocument.IsUnsupported())
+            if (!request.Position.TryGetAbsoluteIndex(documentContext.SourceText, _logger, out var hostDocumentIndex))
             {
                 return null;
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-
-            var sourceText = await document.GetTextAsync();
-            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
-            {
-                return null;
-            }
-
-            var location = new SourceSpan(hostDocumentIndex, 0);
             var reason = request.Context.TriggerKind switch
             {
                 CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
@@ -133,6 +108,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 _ => CompletionReason.Typing,
             };
             var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
+            var syntaxTree = documentContext.SyntaxTree;
+            var tagHelperDocumentContext = documentContext.TagHelperContext;
             var queryableChange = new SourceChange(hostDocumentIndex, length: 0, newText: string.Empty);
             var owner = syntaxTree.Root.LocateOwner(queryableChange);
             var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);
