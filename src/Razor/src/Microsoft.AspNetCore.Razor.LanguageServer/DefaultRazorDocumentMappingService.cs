@@ -435,11 +435,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                             // If we're right associative, then we don't want to use the classification that we're at the end
                             // of, if we're also at the start of the next one
-                            if (rightAssociative &&
-                                i < classifiedSpans.Count - 1 &&
-                                classifiedSpans[i + 1].Span.AbsoluteIndex == absoluteIndex)
+                            if (rightAssociative)
                             {
-                                continue;
+                                if (i < classifiedSpans.Count - 1 && classifiedSpans[i + 1].Span.AbsoluteIndex == absoluteIndex)
+                                {
+                                    // If we're at the start of the next span, then use that span
+                                    return GetLanguageFromClassifiedSpan(classifiedSpans[i + 1]);
+                                }
+
+                                // Otherwise, we did not find a match using right associativity, so check for tag helpers
+                                break;
                             }
                         }
 

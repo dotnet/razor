@@ -1050,6 +1050,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(RazorLanguageKind.Html, languageKind);
         }
 
+        [Fact]
+        public void GetLanguageKindCore_TagHelperInCSharpRightAssociative()
+        {
+            // Arrange
+            var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+            descriptor.TagMatchingRule(rule => rule.TagName = "test");
+            descriptor.SetTypeName("TestTagHelper");
+            var text = """
+                       @addTagHelper *, TestAssembly
+                       @if {
+                         <test>@Name</test>
+                       }
+                       """;
+            var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
+
+            // Act\
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 40, text.Length, rightAssociative: true);
+
+            // Assert
+            Assert.Equal(RazorLanguageKind.Html, languageKind);
+        }
+
         private static (IReadOnlyList<ClassifiedSpanInternal> classifiedSpans, IReadOnlyList<TagHelperSpanInternal> tagHelperSpans) GetClassifiedSpans(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             var codeDocument = CreateCodeDocument(text, tagHelpers);
