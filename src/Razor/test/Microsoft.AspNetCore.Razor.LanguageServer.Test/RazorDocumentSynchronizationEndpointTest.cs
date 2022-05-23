@@ -1,18 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -30,7 +29,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = SourceText.From("Hello World");
             var change = new TextDocumentContentChangeEvent()
             {
-                Range = new Range(new Position(0, 5), new Position(0, 5)),
+                Range = new Range
+                {
+                    Start = new Position(0, 5),
+                    End = new Position(0, 5),
+                },
                 RangeLength = 0,
                 Text = "!"
             };
@@ -52,7 +55,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var changes = new[] {
                 new TextDocumentContentChangeEvent()
                 {
-                    Range = new Range(new Position(0, 5), new Position(0, 5)),
+                    Range = new Range{
+                        Start = new Position(0, 5),
+                        End = new Position(0, 5)
+                    },
                     RangeLength = 0,
                     Text = Environment.NewLine
                 },
@@ -61,7 +67,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 new TextDocumentContentChangeEvent()
                 {
-                    Range = new Range(new Position(1, 0), new Position(1, 0)),
+                    Range = new Range{
+                        Start = new Position(1, 0),
+                        End = new Position(1, 0),
+                    },
                     RangeLength = 0,
                     Text = "!"
                 },
@@ -70,7 +79,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 new TextDocumentContentChangeEvent()
                 {
-                    Range = new Range(new Position(0, 1), new Position(0, 1)),
+                    Range = new Range{
+                        Start = new Position(0, 1),
+                        End = new Position(0, 1)
+                    },
                     RangeLength = 4,
                     Text = "i!" + Environment.NewLine
                 },
@@ -109,14 +121,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, documentResolver, projectService.Object, LoggerFactory);
             var change = new TextDocumentContentChangeEvent()
             {
-                Range = new Range(new Position(0, 3), new Position(0, 3)),
+                Range = new Range
+                {
+                    Start = new Position(0, 3),
+                    End = new Position(0, 3),
+                },
                 RangeLength = 0,
                 Text = "</p>"
             };
-            var request = new DidChangeTextDocumentParams()
+            var request = new DidChangeTextDocumentParamsBridge()
             {
-                ContentChanges = new Container<TextDocumentContentChangeEvent>(change),
-                TextDocument = new OptionalVersionedTextDocumentIdentifier()
+                ContentChanges = new TextDocumentContentChangeEvent[] { change },
+                TextDocument = new VersionedTextDocumentIdentifier()
                 {
                     Uri = new Uri(documentPath),
                     Version = 1337,
@@ -146,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Assert.Equal(1337, version);
                 });
             var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, projectService.Object, LoggerFactory);
-            var request = new DidOpenTextDocumentParams()
+            var request = new DidOpenTextDocumentParamsBridge()
             {
                 TextDocument = new TextDocumentItem()
                 {
@@ -173,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
                 .Callback<string>((path) => Assert.Equal(documentPath, path));
             var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, projectService.Object, LoggerFactory);
-            var request = new DidCloseTextDocumentParams()
+            var request = new DidCloseTextDocumentParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
