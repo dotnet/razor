@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -45,36 +45,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 }
 
+                // This is super rare, if we get here it could mean many things. Some of which:
+                //     1. Stale request:
+                //          - Got queued after a "document closed" / "document removed" type action
+                //          - Took too long to run and by the time the request needed the document context the
+                //            version cache has evicted the entry
+                //     2. Client is misbehaving and sending requests for a document that we've never seen before.
                 return null;
             }, cancellationToken).ConfigureAwait(false);
 
             if (documentAndVersion is null)
             {
+                // Stale request or misbehaving client, see above comment.
                 return null;
             }
 
             var (documentSnapshot, version) = documentAndVersion;
             if (documentSnapshot is null)
             {
+                Debug.Fail($"Document snapshot should never be null here for '{documentUri}'. This indicates that our acquisition of documents / versions did not behave as expected.");
                 return null;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
-            {
-                _logger.LogWarning($"Failed to retrieve generated output for document {documentUri}. It is unsupported.");
-                return null;
-            }
-
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (sourceText is null)
-            {
-                return null;
-            }
-
-            var context = new DocumentContext(documentUri, codeDocument, documentSnapshot, sourceText, version);
+            var context = new DocumentContext(documentUri, documentSnapshot, version);
             return context;
         }
 

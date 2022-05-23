@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorFoldingRangeEndpoint, requestParams).ConfigureAwait(false);
             var foldingResponse = await delegatedRequest.Returning<RazorFoldingRangeResponse?>(cancellationToken).ConfigureAwait(false);
-            var codeDocument = documentContext.CodeDocument;
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (foldingResponse is null)
             {

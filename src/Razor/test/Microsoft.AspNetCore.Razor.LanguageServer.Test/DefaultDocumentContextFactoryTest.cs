@@ -56,26 +56,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         }
 
         [Fact]
-        public async Task TryCreateAsync_Unsupported_ReturnsNull()
-        {
-            // Arrange
-            var uri = new Uri("C:/path/to/file.cshtml");
-            var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
-            var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
-            codeDocument.SetUnsupported();
-            documentSnapshot.With(codeDocument);
-            var documentResolver = new TestDocumentResolver(documentSnapshot);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => DocumentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337), CancellationToken.None);
-            var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, DocumentVersionCache, LoggerFactory);
-
-            // Act
-            var documentContext = await factory.TryCreateAsync(uri, CancellationToken.None);
-
-            // Assert
-            Assert.Null(documentContext);
-        }
-
-        [Fact]
         public async Task TryCreateAsync_ResolvesContent()
         {
             // Arrange

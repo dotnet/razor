@@ -10,11 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -95,7 +92,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return null;
             }
 
-            if (!request.Position.TryGetAbsoluteIndex(documentContext.SourceText, _logger, out var hostDocumentIndex))
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
             {
                 return null;
             }
@@ -108,8 +107,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 _ => CompletionReason.Typing,
             };
             var completionOptions = new RazorCompletionOptions(SnippetsSupported: true);
-            var syntaxTree = documentContext.SyntaxTree;
-            var tagHelperDocumentContext = documentContext.TagHelperContext;
+            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tagHelperDocumentContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
             var queryableChange = new SourceChange(hostDocumentIndex, length: 0, newText: string.Empty);
             var owner = syntaxTree.Root.LocateOwner(queryableChange);
             var completionContext = new RazorCompletionContext(hostDocumentIndex, owner, syntaxTree, tagHelperDocumentContext, reason, completionOptions);

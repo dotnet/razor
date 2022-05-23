@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -14,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -595,35 +593,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Enumerable.Empty<TagHelperDescriptor>());
             codeDocument.SetTagHelperContext(tagHelperDocumentContext);
             return codeDocument;
-        }
-
-        private class TestLSPDocumentContextFactory : DocumentContextFactory
-        {
-            private readonly string _filePath;
-            private readonly RazorCodeDocument _codeDocument;
-
-            public TestLSPDocumentContextFactory()
-            {
-            }
-
-            public TestLSPDocumentContextFactory(string filePath, RazorCodeDocument codeDocument)
-            {
-                _filePath = filePath;
-                _codeDocument = codeDocument;
-            }
-
-            public override Task<DocumentContext> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
-            {
-                if (_filePath is null || _codeDocument is null)
-                {
-                    return Task.FromResult<DocumentContext>(null);
-                }
-
-                var sourceText = _codeDocument.GetSourceText();
-                var content = _codeDocument.GetSourceText().ToString();
-                var documentSnapshot = TestDocumentSnapshot.Create(_filePath, content);
-                return Task.FromResult(new DocumentContext(documentUri, _codeDocument, documentSnapshot, sourceText, version: 0));
-            }
         }
     }
 }

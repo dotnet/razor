@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -11,27 +13,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal record DocumentContext
     {
+        private RazorCodeDocument? _codeDocument;
+        private SourceText? _sourceText;
+
         public DocumentContext(
             Uri uri,
-            RazorCodeDocument codeDocument,
             DocumentSnapshot snapshot,
-            SourceText sourceText,
             int version)
         {
             Uri = uri;
-            CodeDocument = codeDocument;
             Snapshot = snapshot;
-            SourceText = sourceText;
             Version = version;
         }
 
         public Uri Uri { get; }
 
-        public RazorCodeDocument CodeDocument { get; }
-
         public DocumentSnapshot Snapshot { get; }
-
-        public SourceText SourceText { get; }
 
         public int Version { get; }
 
@@ -39,14 +36,66 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public string FileKind => Snapshot.FileKind;
 
-        public RazorSyntaxTree SyntaxTree => CodeDocument.GetSyntaxTree();
-
-        public TagHelperDocumentContext TagHelperContext => CodeDocument.GetTagHelperContext();
-
-        public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
-
-        public SourceText HtmlSourceText => CodeDocument.GetHtmlSourceText();
-
         public ProjectSnapshot Project => Snapshot.Project;
+
+        public async Task<RazorCodeDocument> GetCodeDocumentAsync(CancellationToken cancellationToken)
+        {
+            if (_codeDocument is null)
+            {
+                var codeDocument = await Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _codeDocument = codeDocument;
+            }
+
+            return _codeDocument;
+        }
+
+        public async Task<SourceText> GetSourceTextAsync(CancellationToken cancellationToken)
+        {
+            if (_sourceText is null)
+            {
+                var sourceText = await Snapshot.GetTextAsync().ConfigureAwait(false);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _sourceText = sourceText;
+            }
+
+            return _sourceText;
+        }
+
+        public async Task<RazorSyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+        {
+            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = codeDocument.GetSyntaxTree();
+
+            return syntaxTree;
+        }
+
+        public async Task<TagHelperDocumentContext> GetTagHelperContextAsync(CancellationToken cancellationToken)
+        {
+            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var tagHelperContext = codeDocument.GetTagHelperContext();
+
+            return tagHelperContext;
+        }
+
+        public async Task<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
+        {
+            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = codeDocument.GetCSharpSourceText();
+
+            return sourceText;
+        }
+
+        public async Task<SourceText> GetHtmlSourceTextAsync(CancellationToken cancellationToken)
+        {
+            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = codeDocument.GetHtmlSourceText();
+
+            return sourceText;
+        }
     }
 }

@@ -12,10 +12,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 {
     internal class RazorCodeBlockFoldingProvider : RazorFoldingRangeProvider
     {
-        public override Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var sourceText = documentContext.SourceText;
-            var syntaxTree = documentContext.SyntaxTree;
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var codeBlocks = syntaxTree.GetCodeBlockDirectives();
 
             var builder = new List<FoldingRange>();
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 builder.Add(foldingRange);
             }
 
-            return Task.FromResult(builder.ToImmutableArray());
+            return builder.ToImmutableArray();
         }
     }
 }
