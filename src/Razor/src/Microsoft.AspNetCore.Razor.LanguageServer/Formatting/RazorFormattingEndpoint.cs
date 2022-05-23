@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             if (triggerCharacterKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
             {
                 _logger.LogInformation($"Unsupported trigger character language {triggerCharacterKind:G}.");

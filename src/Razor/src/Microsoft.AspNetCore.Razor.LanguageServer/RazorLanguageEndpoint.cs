@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var responsePositionIndex = hostDocumentIndex;
 
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             if (languageKind == RazorLanguageKind.CSharp)
             {
                 if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
