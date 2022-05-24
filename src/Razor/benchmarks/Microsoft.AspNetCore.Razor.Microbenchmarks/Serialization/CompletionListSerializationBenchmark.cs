@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
             var context = new RazorCompletionContext(queryIndex, owner, syntaxTree, tagHelperDocumentContext);
 
             var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);
-            var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(
+            var completionList = RazorCompletionListProvider.CreateLSPCompletionList(
                 razorCompletionItems,
                 new CompletionListCache(),
                 new VSInternalClientCapabilities()

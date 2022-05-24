@@ -5,21 +5,19 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
-    internal class TestLSPDocumentContextFactory : DocumentContextFactory
+    internal class TestDocumentContextFactory : DocumentContextFactory
     {
         private readonly string? _filePath;
         private readonly RazorCodeDocument? _codeDocument;
 
-        public TestLSPDocumentContextFactory()
+        public TestDocumentContextFactory()
         {
         }
 
-        public TestLSPDocumentContextFactory(string filePath, RazorCodeDocument codeDocument)
+        public TestDocumentContextFactory(string filePath, RazorCodeDocument codeDocument)
         {
             _filePath = filePath;
             _codeDocument = codeDocument;
@@ -32,10 +30,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return Task.FromResult<DocumentContext?>(null);
             }
 
-            var content = _codeDocument.GetSourceText().ToString();
-            var documentSnapshot = TestDocumentSnapshot.Create(_filePath, content);
-            documentSnapshot.With(_codeDocument);
-            return Task.FromResult<DocumentContext?>(new DocumentContext(documentUri, documentSnapshot, version: 0));
+            var documentContext = TestDocumentContext.From(_filePath, _codeDocument);
+            return Task.FromResult<DocumentContext?>(documentContext);
         }
     }
 }

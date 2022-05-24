@@ -237,6 +237,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Completion
                         services.AddSingleton<CompletionListCache>();
+                        services.AddSingleton<AggregateCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider, RazorCompletionListProvider>();
                         services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
