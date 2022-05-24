@@ -9,13 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,28 +20,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 {
     internal class FoldingRangeEndpoint : IVSFoldingRangeEndpoint
     {
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
         private readonly ClientNotifierServiceBase _languageServer;
-        private readonly DocumentVersionCache _documentVersionCache;
         private readonly IEnumerable<RazorFoldingRangeProvider> _foldingRangeProviders;
         private readonly ILogger _logger;
 
         public FoldingRangeEndpoint(
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache,
             IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders,
             ILoggerFactory loggerFactory)
         {
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
             _foldingRangeProviders = foldingRangeProviders ?? throw new ArgumentNullException(nameof(foldingRangeProviders));
             _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
         }
@@ -63,30 +53,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             using var _ = _logger.BeginScope("FoldingRangeEndpoint.Handle");
 
-            var documentAndVersion = await TryGetDocumentSnapshotAndVersionAsync(
-                @params.TextDocument.Uri.GetAbsoluteOrUNCPath(),
-                cancellationToken).ConfigureAwait(false);
-
-            if (documentAndVersion is null)
-            {
-                return null;
-            }
-
-            var (document, version) = documentAndVersion;
-            if (document is null || cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
-
-            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
+            var documentContext = await _documentContextFactory.TryCreateAsync(@params.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
             var requestParams = new RazorFoldingRangeRequestParam
             {
-                HostDocumentVersion = version,
+                HostDocumentVersion = documentContext.Version,
                 TextDocument = @params.TextDocument
             };
 
@@ -98,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             {
                 try
                 {
-                    foldingRanges = await HandleCoreAsync(requestParams, document, codeDocument, cancellationToken);
+                    foldingRanges = await HandleCoreAsync(requestParams, documentContext, cancellationToken);
                 }
                 catch (Exception e) when (retries < MaxRetries)
                 {
@@ -109,10 +84,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             return foldingRanges;
         }
 
-        private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorFoldingRangeEndpoint, requestParams).ConfigureAwait(false);
             var foldingResponse = await delegatedRequest.Returning<RazorFoldingRangeResponse?>(cancellationToken).ConfigureAwait(false);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (foldingResponse is null)
             {
@@ -138,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
             foreach (var provider in _foldingRangeProviders)
             {
-                var ranges = await provider.GetFoldingRangesAsync(codeDocument, documentSnapshot, cancellationToken);
+                var ranges = await provider.GetFoldingRangesAsync(documentContext, cancellationToken);
                 mappedRanges.AddRange(ranges);
             }
 
@@ -212,23 +188,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                EndCharacter = range.End.Character,
                EndLine = range.End.Line
            };
-
-        private record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
-
-        private Task<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
-                    }
-                }
-
-                return null;
-            }, cancellationToken);
-        }
     }
 }

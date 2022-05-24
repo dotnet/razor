@@ -9,17 +9,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -349,17 +344,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Null(converted.Command);
         }
 
-        // This is more of an integration test to validate that all the pieces work together
         [Fact]
-        public async Task Handle_Unsupported_NoCompletionItems()
+        public async Task Handle_NoDocumentContext_NoCompletionItems()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
-            var codeDocument = CreateCodeDocument("@");
-            codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory();
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -385,9 +377,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
             var codeDocument = CreateCodeDocument("@");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -422,9 +414,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@in");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -458,9 +450,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -494,9 +486,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -531,9 +523,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("<");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -571,9 +563,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("<test  ");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = new TestLSPDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new RazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -590,20 +582,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocument(string text)
