@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -36,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var registrationOptions = new CompletionOptions()
             {
                 ResolveProvider = true,
-                TriggerCharacters = new[] { "@", "<", ":" },
+                TriggerCharacters = _completionListProvider.AggregateTriggerCharacters.ToArray(),
                 AllCommitCharacters = new[] { ":", ">", " ", "=" },
             };
 
@@ -62,9 +64,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return null;
             }
 
+            if (request.Context is not VSInternalCompletionContext completionContext)
+            {
+                Debug.Fail("Completion context should never be null in practice");
+                return null;
+            }
+
             var completionList = await _completionListProvider.GetCompletionListAsync(
                 hostDocumentIndex,
-                request.Context,
+                completionContext,
                 documentContext,
                 _clientCapabilities!,
                 cancellationToken).ConfigureAwait(false);

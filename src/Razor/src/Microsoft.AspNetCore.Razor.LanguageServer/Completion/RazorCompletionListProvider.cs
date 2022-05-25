@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -38,9 +39,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
         }
 
+        public override ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":" }.ToImmutableHashSet();
+
         public override async Task<VSInternalCompletionList?> GetCompletionListAsync(
             int absoluteIndex,
-            CompletionContext completionContext,
+            VSInternalCompletionContext completionContext,
             DocumentContext documentContext,
             VSInternalClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)

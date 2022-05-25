@@ -4,6 +4,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
@@ -18,10 +20,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public AggregateCompletionListProviderTest()
         {
             CompletionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
-            CompletionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() }; ;
-            CompletionListProvider1 = new TestCompletionListProvider(CompletionList1);
-            CompletionListProvider2 = new TestCompletionListProvider(CompletionList2);
+            CompletionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
+            CompletionListProvider1 = new TestCompletionListProvider(CompletionList1, new[] { SharedTriggerCharacter, });
+            CompletionListProvider2 = new TestCompletionListProvider(CompletionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
         }
+
+        private string SharedTriggerCharacter => "@";
+
+        private string CompletionList2OnlyTriggerCharacter => "<";
 
         private VSInternalCompletionList CompletionList1 { get; }
 
@@ -35,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private CompletionListProvider SyncThrowingCompletionListProvider { get; } = new ThrowingCompletionListProvider(asynchronouslyThrow: false);
 
-        private CompletionContext CompletionContext => new CompletionContext();
+        private VSInternalCompletionContext CompletionContext { get; } = new VSInternalCompletionContext();
 
         private DocumentContext DocumentContext => TestDocumentContext.From("C:/path/to/file.cshtml");
 
@@ -82,6 +88,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public async Task MultipleCompletionLists_DifferentCommitCharacters_OnlyCallsApplicable()
+        {
+            // Arrange
+            var provider = new AggregateCompletionListProvider(new[] { CompletionListProvider1, CompletionListProvider2 }, LoggerFactory);
+            CompletionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
+            CompletionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
+
+            // Act
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
+
+            // Assert
+            Assert.Same(CompletionList2, completionList);
+        }
+
+        [Fact]
         public async Task SynchronousThrowingProvider()
         {
             // Arrange
@@ -111,14 +132,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             private readonly VSInternalCompletionList _completionList;
 
-            public TestCompletionListProvider(VSInternalCompletionList completionList)
+            public TestCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
             {
                 _completionList = completionList;
+                TriggerCharacters = triggerCharacters.ToImmutableHashSet();
             }
+
+            public override ImmutableHashSet<string> TriggerCharacters { get; }
 
             public override Task<VSInternalCompletionList> GetCompletionListAsync(
                 int absoluteIndex,
-                CompletionContext completionContext,
+                VSInternalCompletionContext completionContext,
                 DocumentContext documentContext,
                 VSInternalClientCapabilities clientCapabilities,
                 CancellationToken cancellationToken)
@@ -136,9 +160,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 _asynchronouslyThrow = asynchronouslyThrow;
             }
 
+            public override ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":" }.ToImmutableHashSet();
+
             public override async Task<VSInternalCompletionList> GetCompletionListAsync(
                 int absoluteIndex,
-                CompletionContext completionContext,
+                VSInternalCompletionContext completionContext,
                 DocumentContext documentContext,
                 VSInternalClientCapabilities clientCapabilities,
                 CancellationToken cancellationToken)

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +21,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             _completionListProviders = completionListProviders.ToArray();
             _logger = loggerFactory.CreateLogger<AggregateCompletionListProvider>();
+
+            var allTriggerCharacters = _completionListProviders.SelectMany(provider => provider.TriggerCharacters);
+            var distinctTriggerCharacters = new HashSet<string>(allTriggerCharacters);
+            AggregateTriggerCharacters = distinctTriggerCharacters.ToImmutableHashSet();
         }
+
+        public ImmutableHashSet<string> AggregateTriggerCharacters { get; }
 
         public async Task<VSInternalCompletionList?> GetCompletionListAsync(
             int absoluteIndex,
-            CompletionContext completionContext,
+            VSInternalCompletionContext completionContext,
             DocumentContext documentContext,
             VSInternalClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
@@ -32,6 +39,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionListTasks = new List<Task<VSInternalCompletionList?>>(_completionListProviders.Count);
             foreach (var completionListProvider in _completionListProviders)
             {
+                if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter &&
+                    completionContext.TriggerCharacter is not null &&
+                    !completionListProvider.TriggerCharacters.Contains(completionContext.TriggerCharacter))
+                {
+                    // Trigger character doesn't apply
+                    continue;
+                }
+
                 try
                 {
                     var task = completionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken);
