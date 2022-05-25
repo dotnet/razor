@@ -2,13 +2,18 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal static class CompletionListMerger
     {
+        private static readonly string Data1Key = nameof(MergedCompletionListData.Data1).ToLowerInvariant();
+        private static readonly string Data2Key = nameof(MergedCompletionListData.Data2).ToLowerInvariant();
         private static readonly object EmptyData = new object();
 
         public static VSInternalCompletionList? Merge(VSInternalCompletionList? completionListA, VSInternalCompletionList? completionListB)
@@ -53,6 +58,71 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             };
 
             return mergedCompletionList;
+        }
+
+        public static object? MergeData(object? data1, object? data2)
+        {
+            if (data1 is null)
+            {
+                return data2;
+            }
+
+            if (data2 is null)
+            {
+                return data1;
+            }
+
+            return new MergedCompletionListData(data1, data2);
+        }
+
+        public static bool TrySplit(object? data, [NotNullWhen(true)] out IReadOnlyList<JObject>? splitData)
+        {
+            if (data is null)
+            {
+                splitData = null;
+                return false;
+            }
+
+            var collector = new List<JObject>();
+            Split(data, collector);
+
+            if (collector.Count == 0)
+            {
+                splitData = null;
+                return false;
+            }
+
+            splitData = collector;
+            return true;
+        }
+
+        private static void Split(object data, List<JObject> collector)
+        {
+            if (data is not JObject jobject)
+            {
+                return;
+            }
+
+            if (!jobject.ContainsKey(Data1Key) ||
+                !jobject.ContainsKey(Data2Key))
+            {
+                // Normal, non-merged data
+                collector.Add(jobject);
+            }
+            else
+            {
+                // Merged data
+                var mergedCompletionListData = jobject.ToObject<MergedCompletionListData>();
+
+                if (mergedCompletionListData is null)
+                {
+                    Debug.Fail("Merged completion list data is null, this should never happen.");
+                    return;
+                }
+
+                Split(mergedCompletionListData.Data1, collector);
+                Split(mergedCompletionListData.Data2, collector);
+            }
         }
 
         private static void EnsureMergeableData(VSInternalCompletionList completionListA, VSInternalCompletionList completionListB)
@@ -120,21 +190,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     completionListToStopInheriting.ItemDefaults.CommitCharacters = null;
                 }
             }
-        }
-
-        public static object? MergeData(object? data1, object? data2)
-        {
-            if (data1 is null)
-            {
-                return data2;
-            }
-
-            if (data2 is null)
-            {
-                return data1;
-            }
-
-            return new MergedCompletionListData(data1, data2);
         }
 
         private static IReadOnlyList<VSInternalCompletionItem> GetCompletionsThatDoNotSpecifyCommitCharacters(VSInternalCompletionList completionList)

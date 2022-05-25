@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -79,19 +80,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             VSInternalCompletionItem completionItem = completionItemBridge;
 
-            if (!completionItem.TryGetCompletionListResultId(out var resultId))
+            if (!completionItem.TryGetCompletionListResultIds(out var resultIds))
             {
                 // Couldn't resolve.
                 return Task.FromResult(completionItem);
             }
 
-            if (!_completionListCache.TryGet(resultId.Value, out var cachedCompletionItems))
+            var resultId = resultIds.First();
+
+            if (!_completionListCache.TryGet(resultId, out var cachedCompletionItems))
             {
                 return Task.FromResult(completionItem);
             }
 
+            if (cachedCompletionItems.Context is not IReadOnlyList<RazorCompletionItem> razorCompletionItems)
+            {
+                // Can't recognize the original request context, bail.
+                return Task.FromResult(completionItem);
+            }
+
             var labelQuery = completionItem.Label;
-            var associatedRazorCompletion = cachedCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
+            var associatedRazorCompletion = razorCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
             if (associatedRazorCompletion is null)
             {
                 _logger.LogError("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");

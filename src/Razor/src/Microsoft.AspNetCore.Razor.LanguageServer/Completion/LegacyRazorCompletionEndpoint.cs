@@ -145,6 +145,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _logger.LogTrace($"Resolved {razorCompletionItems.Count} completion items.");
 
             var completionList = CreateLSPCompletionList(razorCompletionItems);
+            var completionCapability = _clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
+
+            // The completion items are cached and can be retrieved via this result id to enable the "resolve" completion functionality.
+            var resultId = _completionListCache.Set(completionList, razorCompletionItems);
+            completionList.SetResultId(resultId, completionCapability);
 
             return completionList;
         }
@@ -170,22 +175,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         // Internal for testing
-        internal VSInternalCompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems) => CreateLSPCompletionList(razorCompletionItems, _completionListCache, _clientCapabilities!);
+        internal VSInternalCompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems) => CreateLSPCompletionList(razorCompletionItems, _clientCapabilities!);
 
         // Internal for benchmarking and testing
         internal static VSInternalCompletionList CreateLSPCompletionList(
             IReadOnlyList<RazorCompletionItem> razorCompletionItems,
-            CompletionListCache completionListCache,
             VSInternalClientCapabilities clientCapabilities)
         {
-            var resultId = completionListCache.Set(razorCompletionItems);
             var completionItems = new List<CompletionItem>();
             foreach (var razorCompletionItem in razorCompletionItems)
             {
                 if (TryConvert(razorCompletionItem, clientCapabilities, out var completionItem))
                 {
-                    // The completion items are cached and can be retrieved via this result id to enable the "resolve" completion functionality.
-                    completionItem = completionItem.CreateWithCompletionListResultId(resultId);
                     completionItems.Add(completionItem);
                 }
             }
