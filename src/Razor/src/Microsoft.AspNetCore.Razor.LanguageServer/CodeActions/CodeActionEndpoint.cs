@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         // internal for testing
-        internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParams request, CancellationToken cancellationToken)
+        internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParamsBridge request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // context.
             //
             // Note: VS Code doesn't provide a `SelectionRange`.
-            var vsCodeActionContext = (OmniSharpVSCodeActionContext)request.Context;
+            var vsCodeActionContext = (VSInternalCodeActionContext)request.Context;
             if (vsCodeActionContext.SelectionRange != null)
             {
                 request.Range = vsCodeActionContext.SelectionRange;
@@ -248,7 +248,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // Internal for testing
         internal async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
-            if (!_documentMappingService.TryMapToProjectedDocumentRange(
+            if (!_documentMappingService.TryMapToProjectedDocumentVSRange(
                     context.CodeDocument,
                     context.Request.Range,
                     out var projectedRange))
@@ -259,7 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var newContext = context.Request.Context;
             if (context.Request.Context is OmniSharpVSCodeActionContext omniSharpContext &&
                 omniSharpContext.SelectionRange is not null &&
-                _documentMappingService.TryMapToProjectedDocumentRange(
+                _documentMappingService.TryMapToProjectedDocumentVSRange(
                     context.CodeDocument,
                     omniSharpContext.SelectionRange,
                     out var selectionRange))

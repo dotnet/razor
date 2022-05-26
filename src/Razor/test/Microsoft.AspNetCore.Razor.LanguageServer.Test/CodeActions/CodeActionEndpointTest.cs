@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new CodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -484,7 +484,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 {
                     Assert.True(c.TryGetFirst(out var command1));
                     var command = Assert.IsType<Command>(command1);
-                    var codeActionParams = command.Arguments.First() as RazorCodeActionResolutionParams;
+                    var codeActionParamsToken = (JToken)command.Arguments.First();
+                    var codeActionParams = codeActionParamsToken.ToObject<RazorCodeActionResolutionParams>();
                     Assert.Equal(LanguageServerConstants.CodeActions.EditBasedCodeActionCommand, codeActionParams.Action);
                 },
                 c => Assert.True(c.TryGetFirst(out var _)));
