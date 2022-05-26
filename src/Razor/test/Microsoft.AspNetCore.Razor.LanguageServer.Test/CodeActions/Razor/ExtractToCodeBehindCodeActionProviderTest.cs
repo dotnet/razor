@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             var codeAction = Assert.Single(commandOrCodeActionContainer);
-            var razorCodeActionResolutionParams = codeAction.Data as RazorCodeActionResolutionParams;
+            var razorCodeActionResolutionParams = ((JObject)codeAction.Data).ToObject<RazorCodeActionResolutionParams>();
             var actionParams = (razorCodeActionResolutionParams.Data as JObject).ToObject<ExtractToCodeBehindCodeActionParams>();
             Assert.Equal(14, actionParams.RemoveStart);
             Assert.Equal(19, actionParams.ExtractStart);
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             var codeAction = Assert.Single(commandOrCodeActionContainer);
-            var razorCodeActionResolutionParams = codeAction.Data as RazorCodeActionResolutionParams;
+            var razorCodeActionResolutionParams = ((JObject)codeAction.Data).ToObject<RazorCodeActionResolutionParams>();
             var actionParams = (razorCodeActionResolutionParams.Data as JObject).ToObject<ExtractToCodeBehindCodeActionParams>();
             Assert.Equal(14, actionParams.RemoveStart);
             Assert.Equal(24, actionParams.ExtractStart);

@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // context.
             //
             // Note: VS Code doesn't provide a `SelectionRange`.
-            var vsCodeActionContext = (VSInternalCodeActionContext)request.Context;
+            var vsCodeActionContext = (OmniSharpVSCodeActionContext)request.Context;
             if (vsCodeActionContext.SelectionRange != null)
             {
                 request.Range = vsCodeActionContext.SelectionRange;

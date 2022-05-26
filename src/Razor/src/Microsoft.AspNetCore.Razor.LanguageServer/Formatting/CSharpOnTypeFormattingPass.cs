@@ -228,7 +228,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             foreach (var usingStatement in newUsings.Except(oldUsings))
             {
                 // This identifier will be eventually thrown away.
-                var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath) };
+                var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
                 var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, codeDocumentIdentifier: identifier);
                 edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
             }

@@ -21,11 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public abstract bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(true)] out VS.Range? originalRange);
 
         public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Omni.Range? originalRange);
-        public abstract bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range range, MappingBehavior mappingBehavior, [NotNullWhen(true)] out VS.Range originalRange);
+
+        public abstract bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range range, MappingBehavior mappingBehavior, [NotNullWhen(true)] out VS.Range? originalRange);
 
         public abstract bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range originalRange, [NotNullWhen(true)] out Omni.Range? projectedRange);
 
-        public abstract bool TryMapToProjectedDocumentVSRange(RazorCodeDocument razorCodeDocument, Range range, [NotNullWhen(true)] out Range projectedRange);
+        public abstract bool TryMapToProjectedDocumentVSRange(RazorCodeDocument razorCodeDocument, Range range, [NotNullWhen(true)] out Range? projectedRange);
 
         public abstract bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Omni.Position? originalPosition, out int originalIndex);
 

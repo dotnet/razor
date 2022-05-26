@@ -203,7 +203,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override VS.TextEdit[] GetProjectedDocumentVSEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits)
         {
-            throw new NotImplementedException();
+            var omniEdits = edits.Select(s => s.AsOmniSharpTextEdit()).ToArray();
+            var omniProjectedEdits = GetProjectedDocumentEdits(codeDocument, omniEdits);
+
+            return omniProjectedEdits.Select(s => s.AsVSTextEdit()).ToArray();
         }
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(true)] out Omni.Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
@@ -305,9 +308,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        public override bool TryMapToProjectedDocumentVSRange(RazorCodeDocument razorCodeDocument, Range range, [NotNullWhen(true)] out Range projectedRange)
+        public override bool TryMapToProjectedDocumentVSRange(RazorCodeDocument razorCodeDocument, Range range, [NotNullWhen(true)] out Range? projectedRange)
         {
-            throw new NotImplementedException();
+            if (TryMapToProjectedDocumentRange(razorCodeDocument, range.AsOmniSharpRange(), out var omniRange))
+            {
+                projectedRange = omniRange.AsVSRange();
+                return true;
+            }
+
+            projectedRange = null;
+            return false;
         }
 
         public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Omni.Position? originalPosition, out int originalIndex)
@@ -348,18 +358,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
 
         public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex)
-        {
-            throw new NotImplementedException();
-        }
+            => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
 
-        public override bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range range, MappingBehavior mappingBehavior, out VS.Range originalRange)
+        public override bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range range, MappingBehavior mappingBehavior, [NotNullWhen(true)] out VS.Range? originalRange)
         {
-            throw new NotImplementedException();
+            if (TryMapFromProjectedDocumentRange(codeDocument, range.AsOmniSharpRange(), out var omniOriginalRange))
+            {
+                originalRange = omniOriginalRange.AsVSRange();
+                return true;
+            }
+
+            originalRange = null;
+            return false;
         }
 
         public override bool TryMapToProjectedDocumentVSPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex)
         {
-            throw new NotImplementedException();
+            if (TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var omniProjectedPosition, out projectedIndex))
+            {
+                projectedPosition = omniProjectedPosition.AsVSPosition();
+                return true;
+            }
+
+            projectedPosition = null;
+            return false;
         }
 
         private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex)
