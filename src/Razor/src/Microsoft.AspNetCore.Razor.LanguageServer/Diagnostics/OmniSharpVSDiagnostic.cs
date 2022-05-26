@@ -2,18 +2,18 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
-    internal record OmniSharpVSDiagnostic : Diagnostic
+    internal class VSDiagnostic : Diagnostic
     {
-        public static readonly PlatformExtensionConverter<Diagnostic, OmniSharpVSDiagnostic> JsonConverter = new();
+        public static readonly PlatformExtensionConverter<Diagnostic, VSDiagnostic> JsonConverter = new();
 
         // We need to override the "Tags" property because the basic Diagnostic Tags property has a custom JsonConverter that does not allow
         // VS extensions to tags.
-        public new Container<OmniSharpVSDiagnosticTag>? Tags { get; init; }
+        public new OmniSharpVSDiagnosticTag[]? Tags { get; init; }
 
         /// <summary>
         /// Gets or sets the project and context (e.g. Win32, MacOS, etc.) in which the diagnostic was generated.

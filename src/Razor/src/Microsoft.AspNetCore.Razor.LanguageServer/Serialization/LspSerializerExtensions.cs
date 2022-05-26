@@ -30,7 +30,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
             serializer.JsonSerializer.Converters.RegisterRazorConverters();
 
             AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
-            AddConverter(serializer, OmniSharpVSDiagnostic.JsonConverter);
+            AddConverter(serializer, Diagnostics.VSDiagnostic.JsonConverter);
+            AddConverter(serializer, OmniSharpVSCodeActionContext.JsonConverter);
         }
 
         public static void RegisterVSInternalExtensionConverters(this LspSerializer serializer)

@@ -16,11 +16,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             End = new OSharp.Position(-1, -1)
         };
 
-        public static VS.Range UndefinedVSRange => new()
+        public static readonly VS.Range UndefinedVSRange = new()
         {
             Start = new VS.Position(-1, -1),
             End = new VS.Position(-1, -1)
         };
+
+        public static bool IntersectsOrTouches(this VS.Range range, VS.Range other)
+        {
+            return range.AsOmniSharpRange().IntersectsOrTouches(other.AsOmniSharpRange());
+        }
 
         public static bool OverlapsWith(this VS.Range range, VS.Range other)
         {
@@ -204,14 +209,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this OSharp.Range range)
+        public static bool IsUndefined(this VS.Range range)
         {
             if (range is null)
             {
                 throw new ArgumentNullException(nameof(range));
             }
 
-            return range == UndefinedRange;
+            return range == UndefinedVSRange;
         }
 
         public static VS.Range AsVSRange(this OSharp.Range range)

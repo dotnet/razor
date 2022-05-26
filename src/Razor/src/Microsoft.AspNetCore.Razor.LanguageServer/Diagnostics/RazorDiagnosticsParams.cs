@@ -16,6 +16,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
         public Uri RazorDocumentUri { get; set; }
 
-        public OmniSharpVSDiagnostic[] Diagnostics { get; set; }
+        public VSDiagnostic[] Diagnostics { get; set; }
     }
 }

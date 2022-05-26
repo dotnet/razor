@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
     internal class RazorDiagnosticsResponse
     {
-        public OmniSharpVSDiagnostic[] Diagnostics { get; set; }
+        public VSDiagnostic[] Diagnostics { get; set; }
 
         public int? HostDocumentVersion { get; set; }
     }

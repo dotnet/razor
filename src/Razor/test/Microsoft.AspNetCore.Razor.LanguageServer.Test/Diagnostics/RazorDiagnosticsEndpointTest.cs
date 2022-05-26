@@ -16,10 +16,10 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
@@ -84,10 +84,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 10), new Position(0, 22)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 10), End = new Position(0, 22) }, } },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+            var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -115,10 +115,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 10), new Position(0, 22)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 10), End = new Position(0, 22) } } },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+            var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -149,10 +149,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.CSharp,
 
                 // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Code = new DiagnosticCode("ENC123"), Range = new Range(new Position(0, 3), new Position(0, 16)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Code = "ENC123", Range = new Range { Start = new Position(0, 3), End = new Position(0, 16) } } },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 3), new Position(0, 16));
+            var expectedRange = new Range { Start = new Position(0, 3), End = new Position(0, 16) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -183,10 +183,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.CSharp,
 
                 // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Code = new DiagnosticCode("ENC123"), Range = new Range(new Position(0, 13), new Position(0, 23)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Code = "ENC123", Range = new Range { Start = new Position(0, 13), End = new Position(0, 23) } } },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 13), new Position(0, 23));
+            var expectedRange = new Range { Start = new Position(0, 13), End = new Position(0, 23) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -222,10 +222,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.CSharp,
 
                 // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Code = new DiagnosticCode("ENC123"), Range = new Range(new Position(0, 9), new Position(0, 36)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Code = "ENC123", Range = new Range { Start = new Position(0, 9), End = new Position(0, 36) } } },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 1), new Position(0, 43));
+            var expectedRange = new Range { Start = new Position(0, 1), End = new Position(0, 43) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -254,15 +254,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Range = new Range(new Position(0, 7), new Position(0, 7)),
+                    new VSDiagnostic() {
+                        Range = new Range { Start = new Position(0, 7),End =  new Position(0, 7) },
                         Code = CSSErrorCodes.MissingSelectorBeforeCombinatorCode,
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 8), new Position(0, 15));
+            var expectedRange = new Range { Start = new Position(0, 8),End =  new Position(0, 15) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -290,8 +290,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Range = new Range(new Position(0, 25), new Position(0, 38)),
+                    new VSDiagnostic() {
+                        Range = new Range { Start = new Position(0, 25),End =  new Position(0, 38) },
                         Code = "CSS123456",
                         Severity = DiagnosticSeverity.Warning
                     }
@@ -325,15 +325,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Range = new Range(new Position(0, 8), new Position(0, 15)),
+                    new VSDiagnostic() {
+                        Range = new Range { Start = new Position(0, 8), End = new Position(0, 15) },
                         Code = CSSErrorCodes.MissingSelectorBeforeCombinatorCode,
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 8), new Position(0, 15));
+            var expectedRange = new Range { Start = new Position(0, 8),End =  new Position(0, 15)};
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -361,15 +361,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Range = new Range(new Position(0, 10), new Position(0, 22)),
+                    new VSDiagnostic() {
+                        Range = new Range { Start = new Position(0, 10), End = new Position(0, 22)},
                         Code = RazorDiagnosticsEndpoint.CSharpDiagnosticsToIgnore.First(),
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+                var expectedRange = new Range { Start = new Position(0, 4),End =  new Position(0, 16)};
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -398,7 +398,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
+                    new VSDiagnostic() {
                         Code = RazorDiagnosticsEndpoint.CSharpDiagnosticsToIgnore.First(),
                         Severity = DiagnosticSeverity.Error
                     }
@@ -433,15 +433,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Range = new Range(new Position(0, 10), new Position(0, 22)),
+                    new VSDiagnostic() {
+                        Range = new Range { Start = new Position(0, 10),End =  new Position(0, 22)},
                         Code = RazorDiagnosticsEndpoint.CSharpDiagnosticsToIgnore.First(),
                         Severity = DiagnosticSeverity.Error
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+            var expectedRange = new Range { Start = new Position(0, 4),End =  new Position(0, 16)};
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -470,9 +470,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
+                    new VSDiagnostic() {
                         Severity = DiagnosticSeverity.Warning,
-                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                        Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -505,9 +505,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
+                    new VSDiagnostic() {
                         Severity = DiagnosticSeverity.Error,
-                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                        Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -517,7 +517,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics[0].Range);
+            Assert.Equal(RangeExtensions.UndefinedVSRange, response.Diagnostics[0].Range);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -536,10 +536,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Code = new DiagnosticCode("CS1525"),
+                    new VSDiagnostic() {
+                        Code = "CS1525",
                         Severity = DiagnosticSeverity.Error,
-                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                        Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -549,7 +549,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics[0].Range);
+            Assert.Equal(RangeExtensions.UndefinedVSRange, response.Diagnostics[0].Range);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -568,10 +568,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Code = new DiagnosticCode("CS1525"),
+                    new VSDiagnostic() {
+                        Code = "CS1525",
                         Severity = DiagnosticSeverity.Error,
-                        Range = new Range(new Position(0, 128), new Position(0, 128))
+                        Range = new Range { Start = new Position(0, 128), End = new Position(0, 128)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -604,15 +604,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] {
-                    new OmniSharpVSDiagnostic() {
-                        Code = new DiagnosticCode("CS1525"),
+                    new VSDiagnostic() {
+                        Code = "CS1525",
                         Severity = DiagnosticSeverity.Error,
-                        Range = new Range(new Position(0, 12), new Position(0, 13))
+                        Range = new Range { Start = new Position(0, 12), End = new Position(0, 13)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 6), new Position(0, 7));
+            var expectedRange = new Range { Start = new Position(0, 6), End = new Position(0, 7)};
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -633,7 +633,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 16), new Position(0, 20)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 16),End =  new Position(0, 20)} } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -656,7 +656,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Razor,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 1), new Position(0, 3)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 1),End =  new Position(0, 3)} } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -687,7 +687,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 10), new Position(0, 22)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 10), End = new Position(0, 22)} } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -716,7 +716,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(1, 1), new Position(1, 7)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(1, 1),End =  new Position(1, 7)} } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -745,7 +745,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(1, 10), new Position(1, 17)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(1, 10),End =  new Position(1, 17)} } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -775,7 +775,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 18), new Position(0, 19)) } },
+                Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 18),End =  new Position(0, 19)} } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -807,11 +807,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 1), new Position(0, 2)) },     // start of `p` tag
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 13), new Position(0, 14)) },   // leading `abc`
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 25), new Position(0, 26)) },   // `@`
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 45), new Position(0, 46)) },   // trailing `abc`
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 55), new Position(0, 57)) }    // in `Hello`
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, 1), End = new Position(0, 2)} },     // start of `p` tag
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, 13),End =  new Position(0, 14)} },   // leading `abc`
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, 25),End =  new Position(0, 26)} },   // `@`
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, 45),End =  new Position(0, 46)} },   // trailing `abc`
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, 55),End =  new Position(0, 57)} }    // in `Hello`
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
@@ -821,8 +821,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             // Assert
             Assert.Collection(response.Diagnostics,
-                d => Assert.Equal(new Range(new Position(0, 1), new Position(0, 2)), d.Range),
-                d => Assert.Equal(new Range(new Position(0, 55), new Position(0, 57)), d.Range));
+                d => Assert.Equal(new Range { Start = new Position(0, 1),End =  new Position(0, 2)}, d.Range),
+                d => Assert.Equal(new Range { Start = new Position(0, 55), End = new Position(0, 57)}, d.Range));
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -857,8 +857,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, addTagHelper.Length + 20), new Position(0, addTagHelper.Length + 25)) },
-                    new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, addTagHelper.Length + 38), new Position(0, addTagHelper.Length + 47)) }
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 20),End =  new Position(0, addTagHelper.Length + 25)} },
+                    new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 38),End =  new Position(0, addTagHelper.Length + 47)} }
                 },
                 RazorDocumentUri = new Uri(documentPath),
             };
@@ -903,15 +903,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.InvalidNestingErrorCode),
-                        Range = new Range(new Position(4, 8), new Position(4, 17))
+                        Code = HtmlErrorCodes.InvalidNestingErrorCode,
+                        Range = new Range { Start = new Position(4, 8),End =  new Position(4, 17)}
                     },
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.InvalidNestingErrorCode),
-                        Range = new Range(new Position(10, 4), new Position(10, 13))
+                        Code = HtmlErrorCodes.InvalidNestingErrorCode,
+                        Range = new Range { Start = new Position(10, 4),End =  new Position(10, 13)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -939,10 +939,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.MissingEndTagErrorCode),
-                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                        Code = HtmlErrorCodes.MissingEndTagErrorCode,
+                        Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -954,7 +954,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             // Assert
             var returnedDiagnostic = Assert.Single(response.Diagnostics);
             Assert.NotNull(returnedDiagnostic.Code);
-            Assert.Equal(HtmlErrorCodes.MissingEndTagErrorCode, returnedDiagnostic.Code!.Value.String);
+            Assert.True(returnedDiagnostic.Code!.Value.TryGetSecond(out var str));
+            Assert.Equal(HtmlErrorCodes.MissingEndTagErrorCode, str);
         }
 
         [Fact]
@@ -970,10 +971,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.MissingEndTagErrorCode),
-                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                        Code = HtmlErrorCodes.MissingEndTagErrorCode,
+                        Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)},
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -999,10 +1000,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.UnexpectedEndTagErrorCode),
-                        Range = new Range(new Position(0, 7), new Position(0, 9))
+                        Code = HtmlErrorCodes.UnexpectedEndTagErrorCode,
+                        Range = new Range { Start = new Position(0, 7),End =  new Position(0, 9)},
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -1014,7 +1015,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             // Assert
             var diagnostic = Assert.Single(response.Diagnostics);
             Assert.NotNull(diagnostic.Code);
-            Assert.Equal(HtmlErrorCodes.UnexpectedEndTagErrorCode, diagnostic.Code!.Value.String);
+            Assert.True(diagnostic.Code!.Value.TryGetSecond(out var str));
+            Assert.Equal(HtmlErrorCodes.UnexpectedEndTagErrorCode, str);
         }
 
         [Fact]
@@ -1030,21 +1032,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.UnexpectedEndTagErrorCode),
-                        Range = new Range(new Position(0, 7), new Position(0, 9))
+                        Code = HtmlErrorCodes.UnexpectedEndTagErrorCode,
+                        Range = new Range { Start = new Position(0, 7),End =  new Position(0, 9)}
                     },
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.InvalidNestingErrorCode),
-                        Range = new Range(new Position(0, 14), new Position(0, 16)),
+                        Code = HtmlErrorCodes.InvalidNestingErrorCode,
+                        Range = new Range { Start = new Position(0, 14),End =  new Position(0, 16)},
                         Message = "'div' cannot be nested inside element 'html'.",
                     },
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.TooFewElementsErrorCode),
-                        Range = new Range(new Position(0, 2),  new Position(0, 3)),
+                        Code = HtmlErrorCodes.TooFewElementsErrorCode,
+                        Range = new Range { Start = new Position(0, 2),  End = new Position(0, 3)},
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -1070,10 +1072,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[]
                 {
-                    new OmniSharpVSDiagnostic()
+                    new VSDiagnostic()
                     {
-                        Code = new DiagnosticCode(HtmlErrorCodes.UnexpectedEndTagErrorCode),
-                        Range = new Range(new Position(0, 7), new Position(0, 9))
+                        Code = HtmlErrorCodes.UnexpectedEndTagErrorCode,
+                        Range = new Range { Start = new Position(0, 7), End = new Position(0, 9)}
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
