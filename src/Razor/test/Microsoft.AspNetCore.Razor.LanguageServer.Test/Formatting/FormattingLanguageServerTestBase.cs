@@ -87,11 +87,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 return Task.FromResult(formattedEdits);
             }
-
-            public override Task<OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit[]> OmniFormatOnTypeAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit[] formattedEdits, OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

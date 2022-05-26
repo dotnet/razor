@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Omni = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -187,11 +186,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var encompassingChange = new TextChange(spanBeforeChange, newText);
 
             return encompassingChange.AsVSTextEdit(sourceText);
-        }
-
-        public override Task<Omni.TextEdit[]> OmniFormatOnTypeAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, Omni.TextEdit[] formattedEdits, Omni.FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }
