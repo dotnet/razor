@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -88,13 +89,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
-            var firstEdit = addUsingsChange.TextDocumentEdit.Edits.First();
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            Assert.Single(textDocumentEdit.Edits);
+            var firstEdit = textDocumentEdit.Edits.First();
             Assert.Equal(0, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
@@ -122,12 +122,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(1, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
@@ -163,12 +162,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(1, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
@@ -196,12 +194,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(0, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
@@ -229,12 +226,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(1, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
@@ -262,12 +258,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(2, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
@@ -295,12 +290,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(1, firstEdit.Range.Start.Line);
             Assert.Equal($"@using System.Linq{Environment.NewLine}", firstEdit.NewText);
         }
@@ -328,12 +322,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var addUsingsChange = documentChanges[0];
-            Assert.True(addUsingsChange.IsTextDocumentEdit);
-            var firstEdit = Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+            var firstEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal(2, firstEdit.Range.Start.Line);
             Assert.Equal($"@using Microsoft.AspNetCore.Razor.Language{Environment.NewLine}", firstEdit.NewText);
         }

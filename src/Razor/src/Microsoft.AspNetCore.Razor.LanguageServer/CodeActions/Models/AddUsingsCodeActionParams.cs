@@ -3,13 +3,13 @@
 
 #nullable disable
 
-using OmniSharp.Extensions.LanguageServer.Protocol;
+using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     internal sealed class AddUsingsCodeActionParams
     {
-        public DocumentUri Uri { get; set; }
+        public Uri Uri { get; set; }
         public string Namespace { get; set; }
     }
 }

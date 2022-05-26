@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ">",
                 Options = new FormattingOptions
                 {
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ">",
                 Options = new FormattingOptions
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Assert.NotNull(result);
             Assert.True(insertProvider1.Called);
             Assert.True(insertProvider2.Called);
-            Assert.Same(insertProvider2.ResolvedTextEdit, result.TextEdit);
+            Assert.Same(insertProvider2.ResolvedTextEdit, result?.TextEdit);
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ">",
                 Options = new FormattingOptions
                 {
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Assert.NotNull(result);
             Assert.True(insertProvider1.Called);
             Assert.False(insertProvider2.Called);
-            Assert.Same(insertProvider1.ResolvedTextEdit, result.TextEdit);
+            Assert.Same(insertProvider1.ResolvedTextEdit, result?.TextEdit);
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = "!",
                 Options = new FormattingOptions
                 {
@@ -170,7 +170,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ">",
                 Options = new FormattingOptions
                 {
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ">",
                 Options = new FormattingOptions
                 {
@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParams()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ">",
                 Options = new FormattingOptions
                 {

@@ -13,10 +13,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
         {
-            var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument, csharpEdits);
+            var actualEdits = _documentMappingService.GetProjectedDocumentVSEdits(codeDocument, csharpEdits);
 
             return actualEdits;
         }
@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Formatting options will already be set in the workspace.
             var changes = CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(root, spanToFormat, workspace, cancellationToken: cancellationToken);
 
-            var edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
+            var edits = changes.Select(c => c.AsVSTextEdit(csharpSourceText)).ToArray();
             return edits;
         }
 

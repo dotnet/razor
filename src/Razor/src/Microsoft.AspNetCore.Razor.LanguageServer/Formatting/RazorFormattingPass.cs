@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             changedText = changedText.WithChanges(formattingChanges);
 
             var finalChanges = changedText.GetTextChanges(originalText);
-            var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+            var finalEdits = finalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
         }

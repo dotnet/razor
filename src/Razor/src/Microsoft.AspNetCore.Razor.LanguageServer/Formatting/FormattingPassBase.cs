@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return Array.Empty<TextEdit>();
             }
 
-            var edits = DocumentMappingService.GetProjectedDocumentEdits(codeDocument, projectedTextEdits);
+            var edits = DocumentMappingService.GetProjectedDocumentVSEdits(codeDocument, projectedTextEdits);
 
             return edits;
         }

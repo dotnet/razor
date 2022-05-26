@@ -18,18 +18,18 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentVSRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
         private readonly DocumentResolver _emptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
         private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
@@ -50,11 +50,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new OmniSharpVSCodeActionContext()
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
+                Context = new CodeActionContext()
             };
 
             // Act
@@ -83,10 +83,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -115,10 +115,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -150,11 +150,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new OmniSharpVSCodeActionContext()
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
+                Context = new CodeActionContext()
             };
 
             // Act
@@ -187,10 +187,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -222,10 +222,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -264,10 +264,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -306,10 +306,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -341,10 +341,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -384,10 +384,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -421,10 +421,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = true
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -435,13 +435,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Collection(commandOrCodeActionContainer,
                 c =>
                 {
-                    Assert.True(c.IsCodeAction);
-                    Assert.True(c.CodeAction is RazorCodeAction);
+                    Assert.True(c.TryGetSecond(out var codeAction));
+                    Assert.True(codeAction is RazorCodeAction);
                 },
                 c =>
                 {
-                    Assert.True(c.IsCodeAction);
-                    Assert.True(c.CodeAction is RazorCodeAction);
+                    Assert.True(c.TryGetSecond(out var codeAction));
+                    Assert.True(codeAction is RazorCodeAction);
                 });
         }
 
@@ -468,10 +468,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParams()
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new OmniSharpVSCodeActionContext()
             };
 
@@ -482,12 +482,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Collection(commandOrCodeActionContainer,
                 c =>
                 {
-                    Assert.True(c.IsCommand);
-                    var command = Assert.IsType<Command>(c.Command);
-                    var codeActionParams = command.Arguments.First().ToObject<RazorCodeActionResolutionParams>();
+                    Assert.True(c.TryGetFirst(out var command1));
+                    var command = Assert.IsType<Command>(command1);
+                    var codeActionParams = command.Arguments.First() as RazorCodeActionResolutionParams;
                     Assert.Equal(LanguageServerConstants.CodeActions.EditBasedCodeActionCommand, codeActionParams.Action);
                 },
-                c => Assert.True(c.IsCommand));
+                c => Assert.True(c.TryGetFirst(out var _)));
         }
 
         [Fact]
@@ -511,11 +511,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var selectionRange = new Range(new Position(0, 5), new Position(0, 5));
-            var request = new CodeActionParams()
+            var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
+            var selectionRange = new Range { Start = new Position(0, 5), End = new Position(0, 5) };
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
                 Context = new OmniSharpVSCodeActionContext()
                 {
@@ -552,10 +552,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var request = new CodeActionParams()
+            var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
                 Context = new OmniSharpVSCodeActionContext()
                 {
@@ -580,7 +580,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             Range projectedRange = null;
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == false
+                d => d.TryMapToProjectedDocumentVSRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == false
             , MockBehavior.Strict);
             var codeActionEndpoint = new CodeActionEndpoint(
                 documentMappingService,
@@ -596,10 +596,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var request = new CodeActionParams()
+            var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
                 Context = new OmniSharpVSCodeActionContext()
             };
@@ -621,7 +621,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentPath = "C:/path/to/Page.razor";
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var projectedRange = new Range(new Position(15, 2), new Position(15, 2));
+            var projectedRange = new Range { Start = new Position(15, 2), End = new Position(15, 2) };
             var documentMappingService = CreateDocumentMappingService(projectedRange);
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
@@ -638,10 +638,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var request = new CodeActionParams()
+            var initialRange = new Range{ Start = new Position(0, 1), End = new Position(0, 1) };
+            var request = new CodeActionParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
                 Context = new OmniSharpVSCodeActionContext()
                 {
@@ -671,9 +671,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range projectedRange = null)
         {
-            projectedRange ??= new Range(new Position(5, 2), new Position(5, 2));
+            projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == true
+                d => d.TryMapToProjectedDocumentVSRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == true
             , MockBehavior.Strict);
             return documentMappingService;
         }
@@ -762,7 +762,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class TestLanguageServer : ClientNotifierServiceBase
         {
-            public override InitializeParams ClientSettings => throw new NotImplementedException();
+            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings => throw new NotImplementedException();
 
             public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken) => Task.CompletedTask;
 

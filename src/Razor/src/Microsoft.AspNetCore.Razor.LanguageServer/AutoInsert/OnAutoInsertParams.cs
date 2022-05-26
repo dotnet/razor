@@ -1,26 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using MediatR;
-using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
-    internal class OnAutoInsertParams : ITextDocumentIdentifierParams, IRequest<OnAutoInsertResponse>, IBaseRequest
+    internal class OnAutoInsertParams : VSInternalDocumentOnAutoInsertParams, IRequest<VSInternalDocumentOnAutoInsertResponseItem>
     {
-        [JsonProperty("_vs_textDocument")]
-        public TextDocumentIdentifier TextDocument { get; set; }
-
-        [JsonProperty("_vs_position")]
-        public Position Position { get; set; }
-
-        [JsonProperty("_vs_ch")]
-        public string Character { get; set; }
-
-        [JsonProperty("_vs_options")]
-        public FormattingOptions Options { get; set; }
     }
 }

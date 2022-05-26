@@ -15,10 +15,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -58,10 +58,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRanges = new[] { new Range(new Position(0, 10), new Position(0, 22)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 22) }, },
                 RazorDocumentUri = new Uri(documentPath),
             };
-            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+            var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
             // Act
             var response = await Task.Run(() => languageEndpoint.Handle(request, default));
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRanges = new[] { new Range(new Position(0, 0), new Position(0, 3)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 0), End = new Position(0, 3) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRanges = new[] { new Range(new Position(0, 0), new Position(0, 22)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 0), End = new Position(0, 22) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRanges = new[] { new Range(new Position(0, 10), new Position(0, 23)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 23) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Html,
-                ProjectedRanges = new[] { new Range(new Position(0, 16), new Position(0, 20)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 16), End = new Position(0, 20) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Razor,
-                ProjectedRanges = new[] { new Range(new Position(0, 3), new Position(0, 4)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 3), End = new Position(0, 4) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -232,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRanges = new[] { new Range(new Position(0, 10), new Position(0, 22)) },
+                ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 22) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
@@ -241,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 

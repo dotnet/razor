@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var finalChanges = changedText.GetTextChanges(originalText);
-            var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+            var finalEdits = finalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
         }

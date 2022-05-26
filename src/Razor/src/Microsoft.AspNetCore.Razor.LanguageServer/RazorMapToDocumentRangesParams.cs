@@ -6,7 +6,7 @@
 using System;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Uri RazorDocumentUri { get; set; }
 
-        public Range[] ProjectedRanges { get; set; }
+        public VS.Range[] ProjectedRanges { get; set; }
 
         public MappingBehavior MappingBehavior { get; set; }
     }

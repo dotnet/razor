@@ -1,18 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     internal static class CodeActionExtensions
     {
-        public static CommandOrCodeAction AsVSCodeCommandOrCodeAction(this RazorCodeAction razorCodeAction)
+        public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this RazorCodeAction razorCodeAction)
         {
             if (razorCodeAction.Data is null)
             {
@@ -22,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                 {
                     Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
                     Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                    Data = razorCodeAction.Edit ?? new WorkspaceEdit()
+                    Data = razorCodeAction.Edit ?? new WorkspaceEdit(),
                 };
 
                 razorCodeAction = new RazorCodeAction()
@@ -36,12 +35,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             var serializedParams = JToken.FromObject(razorCodeAction.Data);
             var arguments = new JArray(serializedParams);
 
-            return new CommandOrCodeAction(new Command
+            return new Command
             {
                 Title = razorCodeAction.Title ?? string.Empty,
-                Name = LanguageServerConstants.RazorCodeActionRunnerCommand,
-                Arguments = arguments
-            });
+                CommandIdentifier = LanguageServerConstants.RazorCodeActionRunnerCommand,
+                Arguments = arguments.ToArray(),
+            };
         }
 
         public static RazorCodeAction WrapResolvableCSharpCodeAction(
@@ -71,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = csharpParams
             };
-            razorCodeAction = razorCodeAction with { Data = JToken.FromObject(resolutionParams) };
+            razorCodeAction.Data = JToken.FromObject(resolutionParams);
 
             if (razorCodeAction.Children != null)
             {

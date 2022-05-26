@@ -15,9 +15,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -43,9 +42,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentRangeFormattingParams()
+            var @params = new DocumentRangeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri)
+                TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
 
             // Act
@@ -66,9 +65,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
             var uri = new Uri("file://path/test.razor");
-            var @params = new DocumentRangeFormattingParams()
+            var @params = new DocumentRangeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri)
+                TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
 
             // Act
@@ -91,9 +90,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentRangeFormattingParams()
+            var @params = new DocumentRangeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri)
+                TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
 
             // Act
@@ -112,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentRangeFormattingParams();
+            var @params = new DocumentRangeFormattingParamsBridge();
 
             // Act
             var result = await endpoint.Handle(@params, CancellationToken.None);
@@ -131,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentOnTypeFormattingParams() { TextDocument = new TextDocumentIdentifier(uri) };
+            var @params = new DocumentOnTypeFormattingParamsBridge { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
 
             // Act
             var result = await endpoint.Handle(@params, CancellationToken.None);
@@ -157,9 +156,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentOnTypeFormattingParams()
+            var @params = new DocumentOnTypeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ".",
                 Position = new Position(2, 11),
                 Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
@@ -189,12 +188,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentOnTypeFormattingParams()
+            var @params = new DocumentOnTypeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ".",
                 Position = new Position(2, 11),
-                Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
+                Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 },
             };
 
             // Act
@@ -222,12 +221,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
-            var @params = new DocumentOnTypeFormattingParams()
+            var @params = new DocumentOnTypeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = "}",
                 Position = new Position(2, 11),
-                Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
+                Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 },
             };
 
             // Act
@@ -255,9 +254,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
-            var @params = new DocumentOnTypeFormattingParams()
+            var @params = new DocumentOnTypeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = "}",
                 Position = new Position(2, 11),
                 Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
@@ -287,9 +286,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
                 Dispatcher, documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
-            var @params = new DocumentOnTypeFormattingParams()
+            var @params = new DocumentOnTypeFormattingParamsBridge()
             {
-                TextDocument = new TextDocumentIdentifier(uri),
+                TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ".",
                 Position = new Position(2, 11),
                 Options = new FormattingOptions { InsertSpaces = true, TabSize = 4 }
@@ -342,25 +341,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             public bool Called { get; private set; }
 
-            public override Task<TextEdit[]> FormatAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, OmniSharp.Extensions.LanguageServer.Protocol.Models.Range range, FormattingOptions options, CancellationToken cancellationToken)
+            public override Task<TextEdit[]> FormatAsync(Uri uri, DocumentSnapshot documentSnapshot, VisualStudio.LanguageServer.Protocol.Range range, FormattingOptions options, CancellationToken cancellationToken)
             {
                 Called = true;
                 return Task.FromResult(Array.Empty<TextEdit>());
             }
 
-            public override Task<TextEdit[]> FormatCodeActionAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+            public override Task<TextEdit[]> FormatCodeActionAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
             {
                 return Task.FromResult(formattedEdits);
             }
 
-            public override Task<TextEdit[]> FormatOnTypeAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+            public override Task<TextEdit[]> FormatOnTypeAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
             {
                 return Task.FromResult(formattedEdits);
             }
 
-            public override Task<TextEdit[]> FormatSnippetAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+            public override Task<TextEdit[]> FormatSnippetAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
             {
                 return Task.FromResult(formattedEdits);
+            }
+
+            public override Task<OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit[]> OmniFormatOnTypeAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit[] formattedEdits, OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
             }
         }
     }

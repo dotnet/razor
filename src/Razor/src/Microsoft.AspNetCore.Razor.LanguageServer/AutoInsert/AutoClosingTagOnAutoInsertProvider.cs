@@ -12,9 +12,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
@@ -96,21 +95,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 edit = new TextEdit()
                 {
                     NewText = $"$0</{tagName}>",
-                    Range = new Range(position, position)
+                    Range = new Range { Start = position, End = position },
                 };
             }
             else
             {
                 Debug.Assert(autoClosingBehavior == AutoClosingBehavior.SelfClosing);
 
-                format = InsertTextFormat.PlainText;
+                format = InsertTextFormat.Plaintext;
 
                 // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
                 var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
                 var insertionPosition = new Position(position.Line, position.Character - 1);
-                var insertionRange = new Range(
-                    start: insertionPosition,
-                    end: insertionPosition);
+                var insertionRange = new Range
+                {
+                    Start = insertionPosition,
+                    End = insertionPosition
+                };
                 edit = new TextEdit()
                 {
                     NewText = insertionText,

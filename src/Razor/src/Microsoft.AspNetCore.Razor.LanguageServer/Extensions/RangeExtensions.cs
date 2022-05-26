@@ -16,6 +16,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             End = new OSharp.Position(-1, -1)
         };
 
+        public static readonly VS.Range UndefinedVSRange = new()
+        {
+            Start = new VS.Position(-1, -1),
+            End = new VS.Position(-1, -1)
+        };
+
         public static bool OverlapsWith(this VS.Range range, VS.Range other)
         {
             if (range is null)
@@ -42,6 +48,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             // Empty ranges do not overlap with any range.
             return overlapStart.CompareTo(overlapEnd) < 0;
+        }
+
+        public static bool LineOverlapsWith(this VS.Range range, VS.Range other)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            var overlapStart = range.Start.Line;
+            if (range.Start.Line.CompareTo(other.Start.Line) < 0)
+            {
+                overlapStart = other.Start.Line;
+            }
+
+            var overlapEnd = range.End.Line;
+            if (range.End.Line.CompareTo(other.End.Line) > 0)
+            {
+                overlapEnd = other.End.Line;
+            }
+
+            return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
         public static bool LineOverlapsWith(this OSharp.Range range, OSharp.Range other)
@@ -102,6 +135,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             return null;
+        }
+
+        public static bool Contains(this VS.Range range, VS.Range other)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
         public static bool Contains(this OSharp.Range range, OSharp.Range other)

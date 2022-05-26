@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // Called by the Razor Language Server to provide inline completions from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<InlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
+        public abstract Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to provide document colors from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]

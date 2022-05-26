@@ -12,12 +12,12 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json.Linq;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code {}";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code {}";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code {}";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code { void Test() { <h1>Hello, world!</h1> } }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code { private var x = 1; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             var codeAction = Assert.Single(commandOrCodeActionContainer);
-            var razorCodeActionResolutionParams = codeAction.Data.ToObject<RazorCodeActionResolutionParams>();
+            var razorCodeActionResolutionParams = codeAction.Data as RazorCodeActionResolutionParams;
             var actionParams = (razorCodeActionResolutionParams.Data as JObject).ToObject<ExtractToCodeBehindCodeActionParams>();
             Assert.Equal(14, actionParams.RemoveStart);
             Assert.Equal(19, actionParams.ExtractStart);
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@code { private var x = 1; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@page \"/test\"\n@functions { private var x = 1; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             var codeAction = Assert.Single(commandOrCodeActionContainer);
-            var razorCodeActionResolutionParams = codeAction.Data.ToObject<RazorCodeActionResolutionParams>();
+            var razorCodeActionResolutionParams = codeAction.Data as RazorCodeActionResolutionParams;
             var actionParams = (razorCodeActionResolutionParams.Data as JObject).ToObject<ExtractToCodeBehindCodeActionParams>();
             Assert.Equal(14, actionParams.RemoveStart);
             Assert.Equal(24, actionParams.ExtractStart);

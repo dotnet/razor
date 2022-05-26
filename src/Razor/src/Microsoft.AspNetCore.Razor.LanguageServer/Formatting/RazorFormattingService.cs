@@ -5,45 +5,55 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using System;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Omni = OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal abstract class RazorFormattingService
     {
-        public abstract Task<TextEdit[]> FormatAsync(
-            DocumentUri uri,
+        public abstract Task<VS.TextEdit[]> FormatAsync(
+            Uri uri,
             DocumentSnapshot documentSnapshot,
-            Range range,
-            FormattingOptions options,
+            VS.Range range,
+            VS.FormattingOptions options,
             CancellationToken cancellationToken);
 
-        public abstract Task<TextEdit[]> FormatOnTypeAsync(
-           DocumentUri uri,
+        public abstract Task<VS.TextEdit[]> FormatOnTypeAsync(
+           Uri uri,
            DocumentSnapshot documentSnapshot,
            RazorLanguageKind kind,
-           TextEdit[] formattedEdits,
-           FormattingOptions options,
+           VS.TextEdit[] formattedEdits,
+           VS.FormattingOptions options,
            int hostDocumentIndex,
            char triggerCharacter,
            CancellationToken cancellationToken);
 
-        public abstract Task<TextEdit[]> FormatCodeActionAsync(
-            DocumentUri uri,
+        public abstract Task<Omni.Models.TextEdit[]> OmniFormatOnTypeAsync(
+           Uri uri,
+           DocumentSnapshot documentSnapshot,
+           RazorLanguageKind kind,
+           Omni.Models.TextEdit[] formattedEdits,
+           Omni.Models.FormattingOptions options,
+           int hostDocumentIndex,
+           char triggerCharacter,
+           CancellationToken cancellationToken);
+
+        public abstract Task<VS.TextEdit[]> FormatCodeActionAsync(
+            Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
-            TextEdit[] formattedEdits,
-            FormattingOptions options,
+            VS.TextEdit[] formattedEdits,
+            VS.FormattingOptions options,
             CancellationToken cancellationToken);
 
-        public abstract Task<TextEdit[]> FormatSnippetAsync(
-            DocumentUri uri,
+        public abstract Task<VS.TextEdit[]> FormatSnippetAsync(
+            Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
-            TextEdit[] formattedEdits,
-            FormattingOptions options,
+            VS.TextEdit[] formattedEdits,
+            VS.FormattingOptions options,
             CancellationToken cancellationToken);
     }
 }

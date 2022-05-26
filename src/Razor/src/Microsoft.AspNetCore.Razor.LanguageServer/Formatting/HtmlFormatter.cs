@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var @params = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
                 Options = context.Options
             };
 
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Position = new Position(line, col),
                 Character = context.TriggerCharacter.ToString(),
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
                 Options = context.Options,
                 HostDocumentVersion = documentVersion.Value,
             };

@@ -13,12 +13,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Newtonsoft.Json.Linq;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -32,12 +32,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
                     Diagnostics = null
-                }
+                },
             };
 
             var location = new SourceLocation(0, -1, -1);
@@ -67,30 +67,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             // Invalid as Error is expected
                             Severity = DiagnosticSeverity.Warning,
-                            Code = new DiagnosticCode("CS0246")
+                            Code = "CS0246"
                         },
                         new Diagnostic()
                         {
                             // Invalid as CS error code is expected
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode(0246)
+                            Code = 0246
                         },
                         new Diagnostic()
                         {
                             // Invalid as CS0246 or CS0103 is expected
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
+                            Code = "CS0183"
                         }
-                    )
+                    }
                 }
             };
 
@@ -121,17 +121,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0246")
+                            Code = "CS0246"
                         }
-                    )
+                    }
                 }
             };
 
@@ -160,31 +160,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
+                            Code = "CS0132"
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode(errorCode),
-                            Range = new Range(
-                                new Position(0, 8),
-                                new Position(0, 12)
-                            )
+                            Code = errorCode,
+                            Range = new Range{
+                                Start = new Position(0, 8),
+                                End = new Position(0, 12),
+                            }
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
+                            Code = "CS0183"
                         }
-                    )
+                    }
                 }
             };
 
@@ -237,11 +237,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@inject Path";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>()
+                    Diagnostics = Array.Empty<Diagnostic>()
                 }
             };
 
@@ -287,11 +287,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>()
+                    Diagnostics = Array.Empty<Diagnostic>()
                 }
             };
 
@@ -343,31 +343,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
+                            Code = "CS0132"
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0246"),
-                            Range = new Range(
-                                new Position(0, 8),
-                                new Position(0, 12)
-                            )
+                            Code = "CS0246",
+                            Range = new Range{
+                                Start = new Position(0, 8),
+                                End = new Position(0, 12)
+                            }
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
+                            Code = "CS0183"
                         }
-                    )
+                    }
                 }
             };
 

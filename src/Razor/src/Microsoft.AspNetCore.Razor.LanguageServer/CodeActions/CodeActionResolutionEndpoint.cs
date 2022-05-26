@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -48,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
-        public async Task<CodeAction> Handle(CodeAction request, CancellationToken cancellationToken)
+        public async Task<CodeAction?> Handle(CodeActionBridge request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -63,6 +61,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var resolutionParams = paramsObj.ToObject<RazorCodeActionResolutionParams>();
 
+            if (resolutionParams is null)
+            {
+                throw new ArgumentOutOfRangeException($"request.Data should be convertable to {nameof(RazorCodeActionResolutionParams)}");
+            }
+
             _logger.LogInformation($"Resolving workspace edit for action {GetCodeActionId(resolutionParams)}.");
 
             // If it's a special "edit based code action" then the edit has been pre-computed and we
@@ -70,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // as it does not support Command.Edit based code actions anymore.
             if (resolutionParams.Action == LanguageServerConstants.CodeActions.EditBasedCodeActionCommand)
             {
-                request = request with { Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>() };
+                request.Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>();
                 return request;
             }
 
@@ -108,12 +111,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
-            codeAction = codeAction with { Edit = edit };
+            codeAction.Edit = edit;
             return codeAction;
         }
 
         // Internal for testing
-        internal async Task<CodeAction> ResolveCSharpCodeActionAsync(
+        internal async Task<CodeAction?> ResolveCSharpCodeActionAsync(
             CodeAction codeAction,
             RazorCodeActionResolutionParams resolutionParams,
             CancellationToken cancellationToken)
@@ -126,7 +129,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var csharpParams = csharpParamsObj.ToObject<CSharpCodeActionParams>();
-            codeAction = codeAction with { Data = csharpParams.Data as JToken };
+            if (csharpParams is null)
+            {
+                throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CSharpCodeActionParams)}");
+            }
+
+            codeAction.Data = csharpParams.Data as JToken;
 
             if (!_csharpCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {

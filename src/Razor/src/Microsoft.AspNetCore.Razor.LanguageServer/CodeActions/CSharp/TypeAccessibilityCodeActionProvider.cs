@@ -5,20 +5,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -77,9 +77,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             IEnumerable<RazorCodeAction> codeActions)
         {
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
-                diagnostic.Severity == DiagnosticSeverity.Error &&
-                diagnostic.Code?.IsString == true &&
-                s_supportedDiagnostics.Any(d => diagnostic.Code.Value.String.Equals(d, StringComparison.OrdinalIgnoreCase)));
+                diagnostic.Severity is not null && diagnostic.Severity.Value == DiagnosticSeverity.Error &&
+                diagnostic.Code is not null && diagnostic.Code.Value.TryGetSecond(out var str) &&
+                s_supportedDiagnostics.Any(d => str.Equals(d, StringComparison.OrdinalIgnoreCase)));
 
             if (diagnostics is null || !diagnostics.Any())
             {
@@ -201,8 +201,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                     AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
-                    var newCodeAction = codeAction with { Title = $"@using {@namespace}" };
-                    typeAccessibilityCodeActions.Add(newCodeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
+                    codeAction.Title = $"@using {@namespace}";
+                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
                 }
                 // Not a type accessibility code action
                 else
@@ -276,11 +276,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Range = fqnDiagnostic.Range
             };
 
-            var fqnWorkspaceEditDocumentChange = new WorkspaceEditDocumentChange(new TextDocumentEdit()
+            var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
             {
                 TextDocument = codeDocumentIdentifier,
                 Edits = new[] { fqnTextEdit },
-            });
+            };
 
             var fqnWorkspaceEdit = new WorkspaceEdit()
             {

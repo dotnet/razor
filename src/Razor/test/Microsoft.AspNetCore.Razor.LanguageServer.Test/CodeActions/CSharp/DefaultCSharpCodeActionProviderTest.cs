@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@functions { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
@@ -125,7 +125,7 @@ Path;
 }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
@@ -157,7 +157,7 @@ Path;
 }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
@@ -186,7 +186,7 @@ Path;
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };

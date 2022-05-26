@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -111,11 +112,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var createFileChange = documentChanges[0];
-            Assert.True(createFileChange.IsCreateFile);
+            var createFileChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(createFileChange.TryGetSecond(out var _));
         }
 
         [Fact]
@@ -141,14 +141,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(2, workspaceEdit.DocumentChanges.Count());
+            Assert.Equal(2, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var createFileChange = documentChanges[0];
-            Assert.True(createFileChange.IsCreateFile);
+            var createFileChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(createFileChange.TryGetSecond(out var _));
 
-            var editNewComponentChange = documentChanges[1];
-            var editNewComponentEdit = editNewComponentChange.TextDocumentEdit.Edits.First();
+            var editNewComponentChange = workspaceEdit.DocumentChanges.Value.Last();
+            var editNewComponentEdit = editNewComponentChange.First.Edits.First();
             Assert.Contains("@namespace Another.Namespace", editNewComponentEdit.NewText, StringComparison.Ordinal);
         }
 

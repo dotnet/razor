@@ -21,8 +21,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentResolver _documentResolver;
         private readonly FilePathNormalizer _filePathNormalizer;
 
-        private static readonly Range s_startOfDocumentRange = new Range(new Position(0, 0), new Position(0, 0));
+        private static readonly Range s_startOfDocumentRange = new Range { Start = new Position(0, 0), End = new Position(0, 0) };
 
         public ExtractToCodeBehindCodeActionResolver(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -104,17 +104,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
             var end = codeDocument.Source.Lines.GetLocation(actionParams.RemoveEnd);
-            var removeRange = new Range(
-                new Position(start.LineIndex, start.CharacterIndex),
-                new Position(end.LineIndex, end.CharacterIndex));
+            var removeRange = new Range
+            {
+                Start = new Position(start.LineIndex, start.CharacterIndex),
+                End = new Position(end.LineIndex, end.CharacterIndex)
+            };
 
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
             var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
 
-            var documentChanges = new List<WorkspaceEditDocumentChange>
+            var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
             {
-                new WorkspaceEditDocumentChange(new CreateFile { Uri = codeBehindUri.ToString() }),
-                new WorkspaceEditDocumentChange(new TextDocumentEdit
+                new CreateFile { Uri = codeBehindUri },
+                new TextDocumentEdit
                 {
                     TextDocument = codeDocumentIdentifier,
                     Edits = new[]
@@ -125,8 +127,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                             Range = removeRange,
                         }
                     },
-                }),
-                new WorkspaceEditDocumentChange(new TextDocumentEdit
+                },
+                new TextDocumentEdit
                 {
                     TextDocument = codeBehindDocumentIdentifier,
                     Edits  = new[]
@@ -137,12 +139,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                             Range = s_startOfDocumentRange,
                         }
                     },
-                })
+                }
             };
 
             return new WorkspaceEdit
             {
-                DocumentChanges = documentChanges,
+                DocumentChanges = documentChanges.ToArray(),
             };
         }
 

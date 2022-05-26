@@ -17,8 +17,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -200,7 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var startTagTextEdit = new TextEdit
             {
-                Range = startTag.Name.GetRange(context.CodeDocument.Source),
+                Range = startTag.Name.GetVSRange(context.CodeDocument.Source),
                 NewText = newTagName,
             };
 
@@ -211,7 +212,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 var endTagTextEdit = new TextEdit
                 {
-                    Range = endTag.Name.GetRange(context.CodeDocument.Source),
+                    Range = endTag.Name.GetVSRange(context.CodeDocument.Source),
                     NewText = newTagName,
                 };
 
@@ -220,16 +221,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return new WorkspaceEdit
             {
-                DocumentChanges = new List<WorkspaceEditDocumentChange>()
+                DocumentChanges = new List<TextDocumentEdit>()
                 {
-                    new WorkspaceEditDocumentChange(
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
-                            Edits = textEdits,
+                            Edits = textEdits.ToArray(),
                         }
-                    )
-                }
+                }.ToArray(),
             };
         }
 

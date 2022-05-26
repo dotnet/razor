@@ -4,13 +4,13 @@
 using System;
 using System.Diagnostics;
 using MediatR;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
 [DebuggerDisplay("{Title,nq}")]
-internal record RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
+internal class RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
 {
     /// <summary>
     /// Gets or sets the children of this action. Only present in VS scenarios.

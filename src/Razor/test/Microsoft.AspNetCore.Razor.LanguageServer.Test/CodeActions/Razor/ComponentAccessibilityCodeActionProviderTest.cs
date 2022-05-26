@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -29,8 +29,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range{ Start = new Position(0, 1), End = new Position(0, 1), },
             };
 
             var location = new SourceLocation(1, -1, -1);
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -78,8 +78,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = " <Component></Component>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(0, -1, -1);
@@ -102,8 +102,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<Component></Component>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
@@ -145,8 +145,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<NewComponent></NewComponent>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
@@ -171,8 +171,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<NewComponent></NewComponent>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
@@ -195,8 +195,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<Component></Component>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -16,13 +17,39 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    internal class RazorFormattingEndpoint : IDocumentFormattingHandler, IDocumentRangeFormattingHandler, IDocumentOnTypeFormattingHandler
+    internal class DocumentFormattingParamsBridge : DocumentFormattingParams, IRequest<TextEdit[]?>
+    {
+    }
+
+    internal class DocumentRangeFormattingParamsBridge : DocumentRangeFormattingParams, IRequest<TextEdit[]?>
+    {
+    }
+
+    internal class DocumentOnTypeFormattingParamsBridge : DocumentOnTypeFormattingParams, IRequest<TextEdit[]?>
+    {
+    }
+
+    [Parallel, Method(Methods.TextDocumentFormattingName, Direction.ClientToServer)]
+    internal interface IVSDocumentFormattingHandler : IJsonRpcRequestHandler<DocumentFormattingParamsBridge, TextEdit[]?>, IRegistrationExtension
+    {
+    }
+
+    [Parallel, Method(Methods.TextDocumentRangeFormattingName, Direction.ClientToServer)]
+    internal interface IVSDocumentRangeFormattingHandler : IJsonRpcRequestHandler<DocumentRangeFormattingParamsBridge, TextEdit[]?>, IRegistrationExtension
+    {
+    }
+
+    [Parallel, Method(Methods.TextDocumentOnTypeFormattingName, Direction.ClientToServer)]
+    internal interface IVSDocumentOnTypeFormattingHandler : IJsonRpcRequestHandler<DocumentOnTypeFormattingParamsBridge, TextEdit[]?>, IRegistrationExtension
+    {
+    }
+
+    internal class RazorFormattingEndpoint : IVSDocumentFormattingHandler, IVSDocumentRangeFormattingHandler, IVSDocumentOnTypeFormattingHandler
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -81,35 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
 
-        public DocumentFormattingRegistrationOptions GetRegistrationOptions(DocumentFormattingCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new DocumentFormattingRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
-        }
-
-        public DocumentRangeFormattingRegistrationOptions GetRegistrationOptions(DocumentRangeFormattingCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new DocumentRangeFormattingRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
-        }
-
-        public DocumentOnTypeFormattingRegistrationOptions GetRegistrationOptions(DocumentOnTypeFormattingCapability capability, ClientCapabilities clientCapabilities)
-        {
-            Assumes.NotNullOrEmpty(s_allTriggerCharacters);
-
-            return new DocumentOnTypeFormattingRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                FirstTriggerCharacter = s_allTriggerCharacters[0],
-                MoreTriggerCharacter = s_allTriggerCharacters.Skip(1).ToArray(),
-            };
-        }
-
-        public async Task<TextEditContainer?> Handle(DocumentFormattingParams request, CancellationToken cancellationToken)
+        public async Task<TextEdit[]?> Handle(DocumentFormattingParamsBridge request, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
             {
@@ -135,15 +134,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
-            var range = span.AsRange(codeDocument.GetSourceText());
+            var range = span.AsVSRange(codeDocument.GetSourceText());
             var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, range, request.Options, cancellationToken);
 
-            var editContainer = new TextEditContainer(edits);
-            return editContainer;
+            return edits;
         }
 
-#nullable disable // OmniSharp annotations don't allow a null return, though the spec does
-        public async Task<TextEditContainer> Handle(DocumentRangeFormattingParams request, CancellationToken cancellationToken)
+        public async Task<TextEdit[]?> Handle(DocumentRangeFormattingParamsBridge request, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
             {
@@ -170,12 +167,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, request.Range, request.Options, cancellationToken);
 
-            var editContainer = new TextEditContainer(edits);
-            return editContainer;
+            return edits;
         }
-#nullable restore
 
-        public async Task<TextEditContainer?> Handle(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+        public async Task<TextEdit[]?> Handle(DocumentOnTypeFormattingParamsBridge request, CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Starting OnTypeFormatting request for {request.TextDocument.Uri}.");
 
@@ -261,6 +256,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Unknown trigger character.
             return false;
+        }
+
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
+            const string ServerCapability = "documentOnTypeFormattingProvider";
+
+            return new RegistrationExtensionResult(ServerCapability,
+                new DocumentOnTypeFormattingOptions
+                {
+                    FirstTriggerCharacter = s_allTriggerCharacters[0],
+                    MoreTriggerCharacter = s_allTriggerCharacters.Skip(1).ToArray(),
+                });
         }
     }
 }

@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // 2. The indentation due to Razor and HTML constructs
 
             var text = context.SourceText;
-            range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+            range ??= TextSpan.FromBounds(0, text.Length).AsVSRange(text);
 
             // To help with figuring out the correct indentation, first we will need the indentation
             // that the C# formatter wants to apply in the following locations,

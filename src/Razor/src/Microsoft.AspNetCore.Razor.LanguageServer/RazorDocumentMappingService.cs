@@ -4,27 +4,36 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Position = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-using TextEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Omni = OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class RazorDocumentMappingService
     {
-        public abstract TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits);
+        public abstract Omni.TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, Omni.TextEdit[] edits);
 
-        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange);
+        public abstract VS.TextEdit[] GetProjectedDocumentVSEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits);
 
-        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange);
+        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(true)] out Omni.Range? originalRange);
 
-        public abstract bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange);
+        public abstract bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(true)] out VS.Range? originalRange);
 
-        public abstract bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex);
+        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Omni.Range? originalRange);
+        public abstract bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range range, MappingBehavior mappingBehavior, [NotNullWhen(true)] out VS.Range originalRange);
 
-        public abstract bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex);
+        public abstract bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range originalRange, [NotNullWhen(true)] out Omni.Range? projectedRange);
 
-        public abstract bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex);
+        public abstract bool TryMapToProjectedDocumentVSRange(RazorCodeDocument razorCodeDocument, Range range, [NotNullWhen(true)] out Range projectedRange);
+
+        public abstract bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Omni.Position? originalPosition, out int originalIndex);
+
+        public abstract bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex);
+
+        public abstract bool TryMapToProjectedDocumentVSPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex);
+
+        public abstract bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex);
 
         public abstract RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative);
     }
