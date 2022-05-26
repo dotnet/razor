@@ -12,13 +12,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class RazorDocumentMappingService
     {
-        public abstract Omni.TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, Omni.TextEdit[] edits);
-
-        public abstract VS.TextEdit[] GetProjectedDocumentVSEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits);
+        public abstract VS.TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits);
 
         public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(true)] out Omni.Range? originalRange);
-
-        public abstract bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(true)] out VS.Range? originalRange);
 
         public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Omni.Range? originalRange);
 
@@ -27,6 +23,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public abstract bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range originalRange, [NotNullWhen(true)] out Omni.Range? projectedRange);
 
         public abstract bool TryMapToProjectedDocumentVSRange(RazorCodeDocument razorCodeDocument, Range range, [NotNullWhen(true)] out Range? projectedRange);
+
+        public abstract bool TryMapFromProjectedDocumentVSPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out VS.Position? originalPosition, out int originalIndex);
 
         public abstract bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Omni.Position? originalPosition, out int originalIndex);
 

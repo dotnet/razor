@@ -38,9 +38,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public DefaultRazorDocumentMappingService() { }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public override Omni.TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, Omni.TextEdit[] edits)
+        public override VS.TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits)
         {
-            var projectedEdits = new List<Omni.TextEdit>();
+            var projectedEdits = new List<VS.TextEdit>();
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var lastNewLineAddedToLine = 0;
 
@@ -59,8 +59,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     break;
                 }
 
-                var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
-                var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
+                var mappedStart = TryMapFromProjectedDocumentVSPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
+                var mappedEnd = TryMapFromProjectedDocumentVSPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
                 // Ideal case, both start and end can be mapped so just return the edit
                 if (mappedStart && mappedEnd)
@@ -69,10 +69,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // between this edit and the previous one, because the normalization will have swallowed it. See
                     // below for a more info.
                     var newText = (lastNewLineAddedToLine == range.Start.Line ? " " : "") + edit.NewText;
-                    projectedEdits.Add(new Omni.TextEdit()
+                    projectedEdits.Add(new VS.TextEdit()
                     {
                         NewText = newText,
-                        Range = new Omni.Range(hostDocumentStart!, hostDocumentEnd!)
+                        Range = new VS.Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
                     });
                     continue;
                 }
@@ -114,15 +114,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         break;
                     }
 
-                    mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
-                    mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
+                    mappedStart = TryMapFromProjectedDocumentVSPosition(codeDocument, startIndex, out hostDocumentStart, out _);
+                    mappedEnd = TryMapFromProjectedDocumentVSPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
 
                     if (mappedStart && mappedEnd)
                     {
-                        projectedEdits.Add(new Omni.TextEdit()
+                        projectedEdits.Add(new VS.TextEdit()
                         {
                             NewText = edit.NewText.Substring(lastNewLine),
-                            Range = new Omni.Range(hostDocumentStart!, hostDocumentEnd!)
+                            Range = new VS.Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
                         });
                         continue;
                     }
@@ -169,27 +169,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                     // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
                     var endOfLine = line.Span.End;
-                    if (TryMapFromProjectedDocumentPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
+                    if (TryMapFromProjectedDocumentVSPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
                     {
                         if (range.Start.Line == lastNewLineAddedToLine)
                         {
                             // If we already added a newline to this line, then we don't want to add another one, but
                             // we do need to add a space between this edit and the previous one, because the normalization
                             // will have swallowed it.
-                            projectedEdits.Add(new Omni.TextEdit()
+                            projectedEdits.Add(new VS.TextEdit()
                             {
                                 NewText = " " + edit.NewText,
-                                Range = new Omni.Range(hostDocumentIndex, hostDocumentIndex)
+                                Range = new VS.Range { Start = hostDocumentIndex, End = hostDocumentIndex }
                             });
                         }
                         else
                         {
                             // Otherwise, add a newline and the real content, and remember where we added it
                             lastNewLineAddedToLine = range.Start.Line;
-                            projectedEdits.Add(new Omni.TextEdit()
+                            projectedEdits.Add(new VS.TextEdit()
                             {
                                 NewText = Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText,
-                                Range = new Omni.Range(hostDocumentIndex, hostDocumentIndex)
+                                Range = new VS.Range { Start = hostDocumentIndex, End = hostDocumentIndex }
                             });
                         }
 
@@ -201,20 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return projectedEdits.ToArray();
         }
 
-        public override VS.TextEdit[] GetProjectedDocumentVSEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits)
-        {
-            var omniEdits = edits.Select(s => s.AsOmniSharpTextEdit()).ToArray();
-            var omniProjectedEdits = GetProjectedDocumentEdits(codeDocument, omniEdits);
-
-            return omniProjectedEdits.Select(s => s.AsVSTextEdit()).ToArray();
-        }
-
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(true)] out Omni.Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
-
-        public override bool TryMapFromProjectedDocumentVSRange(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(true)] out VS.Range? originalRange)
-        {
-            throw new NotImplementedException();
-        }
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Omni.Range? originalRange)
         {
@@ -271,7 +258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var sourceText = codeDocument.GetSourceText();
             var range = originalRange;
-            if (!IsRangeWithinDocument(range, sourceText))
+            if (!IsRangeWithinDocument(range.AsVSRange(), sourceText))
             {
                 return false;
             }
@@ -318,6 +305,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             projectedRange = null;
             return false;
+        }
+
+        public override bool TryMapFromProjectedDocumentVSPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out VS.Position? originalPosition, out int originalIndex)
+        {
+            var result = TryMapFromProjectedDocumentPosition(codeDocument, csharpAbsoluteIndex, out var omniOriginalPosition, out originalIndex);
+
+            originalPosition = omniOriginalPosition?.AsVSPosition();
+
+            return result;
         }
 
         public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Omni.Position? originalPosition, out int originalIndex)
@@ -557,7 +553,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var range = projectedRange;
-            if (!IsRangeWithinDocument(range, csharpSourceText))
+            if (!IsRangeWithinDocument(range.AsVSRange(), csharpSourceText))
             {
                 return false;
             }
@@ -738,7 +734,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private static bool s_haveAsserted = false;
 
-        private bool IsRangeWithinDocument(Omni.Range range, SourceText sourceText)
+        private bool IsRangeWithinDocument(VS.Range range, SourceText sourceText)
         {
             // This might happen when the document that ranges were created against was not the same as the document we're consulting.
             var result = IsPositionWithinDocument(range.Start, sourceText) && IsPositionWithinDocument(range.End, sourceText);
@@ -752,7 +748,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return result;
 
-            static bool IsPositionWithinDocument(Omni.Position position, SourceText sourceText)
+            static bool IsPositionWithinDocument(VS.Position position, SourceText sourceText)
             {
                 return position.Line < sourceText.Lines.Count;
             }

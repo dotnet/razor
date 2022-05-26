@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return Array.Empty<TextEdit>();
             }
 
-            var edits = DocumentMappingService.GetProjectedDocumentVSEdits(codeDocument, projectedTextEdits);
+            var edits = DocumentMappingService.GetProjectedDocumentEdits(codeDocument, projectedTextEdits);
 
             return edits;
         }

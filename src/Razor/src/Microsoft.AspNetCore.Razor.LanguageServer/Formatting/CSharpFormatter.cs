@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
         {
-            var actualEdits = _documentMappingService.GetProjectedDocumentVSEdits(codeDocument, csharpEdits);
+            var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument, csharpEdits);
 
             return actualEdits;
         }
