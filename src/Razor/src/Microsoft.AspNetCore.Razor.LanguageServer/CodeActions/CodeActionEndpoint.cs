@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public CodeActionRegistrationOptions GetRegistrationOptions(CodeActionCapability capability, ClientCapabilities clientCapabilities)
         {
             _capability = capability;
-            _supportsCodeActionResolve = _capability.ResolveSupport != null;
+            _supportsCodeActionResolve = _capability?.ResolveSupport != null;
             return new CodeActionRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector,

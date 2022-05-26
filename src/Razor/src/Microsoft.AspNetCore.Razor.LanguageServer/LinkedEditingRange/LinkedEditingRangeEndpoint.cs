@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
         }
 
         public LinkedEditingRangeRegistrationOptions GetRegistrationOptions(
-            LinkedEditingRangeClientCapabilities capability,
+            LinkedEditingRangeClientCapabilities? capability,
             ClientCapabilities clientCapabilities)
         {
             return new LinkedEditingRangeRegistrationOptions

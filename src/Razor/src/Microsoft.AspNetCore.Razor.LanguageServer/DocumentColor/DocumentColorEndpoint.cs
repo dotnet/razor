@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
 
             _languageServer = languageServer;
         }
-        public DocumentColorRegistrationOptions GetRegistrationOptions(ColorProviderCapability capability, ClientCapabilities clientCapabilities)
+        public DocumentColorRegistrationOptions GetRegistrationOptions(ColorProviderCapability? capability, ClientCapabilities clientCapabilities)
         {
             return new DocumentColorRegistrationOptions()
             {

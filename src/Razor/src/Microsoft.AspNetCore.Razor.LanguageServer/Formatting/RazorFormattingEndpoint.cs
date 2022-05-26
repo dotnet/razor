@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
 
-        public DocumentFormattingRegistrationOptions GetRegistrationOptions(DocumentFormattingCapability capability, ClientCapabilities clientCapabilities)
+        public DocumentFormattingRegistrationOptions GetRegistrationOptions(DocumentFormattingCapability? capability, ClientCapabilities clientCapabilities)
         {
             return new DocumentFormattingRegistrationOptions
             {
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
         }
 
-        public DocumentRangeFormattingRegistrationOptions GetRegistrationOptions(DocumentRangeFormattingCapability capability, ClientCapabilities clientCapabilities)
+        public DocumentRangeFormattingRegistrationOptions GetRegistrationOptions(DocumentRangeFormattingCapability? capability, ClientCapabilities clientCapabilities)
         {
             return new DocumentRangeFormattingRegistrationOptions
             {
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
         }
 
-        public DocumentOnTypeFormattingRegistrationOptions GetRegistrationOptions(DocumentOnTypeFormattingCapability capability, ClientCapabilities clientCapabilities)
+        public DocumentOnTypeFormattingRegistrationOptions GetRegistrationOptions(DocumentOnTypeFormattingCapability? capability, ClientCapabilities clientCapabilities)
         {
             Assumes.NotNullOrEmpty(s_allTriggerCharacters);
 

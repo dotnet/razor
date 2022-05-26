@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
         }
 
-        public DefinitionRegistrationOptions GetRegistrationOptions(DefinitionCapability capability, ClientCapabilities clientCapabilities)
+        public DefinitionRegistrationOptions GetRegistrationOptions(DefinitionCapability? capability, ClientCapabilities clientCapabilities)
         {
             return new DefinitionRegistrationOptions
             {
