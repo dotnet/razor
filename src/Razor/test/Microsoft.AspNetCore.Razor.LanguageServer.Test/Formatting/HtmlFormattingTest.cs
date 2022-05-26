@@ -387,8 +387,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             void Method() { }
                         }
                     }
-                    """,
-                tagHelpers: GetSurveyPrompt());
+                    """);
         }
 
         [Fact]
@@ -870,8 +869,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             <div></div>
                         }
                     }
-                    """,
-                tagHelpers: GetSurveyPrompt());
+                    """);
         }
 
         [Fact]
@@ -934,6 +932,472 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </span>
                     }
                     """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <CascadingValue Value="Variable2">
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                        </CascadingValue>
+                    </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <CascadingValue Value="Variable2">
+                                <SurveyPrompt />
+                                @if (VarBool)
+                                {
+                                    <div class="mb-16">
+                                        <SurveyPrompt />
+                                        <SurveyPrompt />
+                                    </div>
+                                }
+                            </CascadingValue>
+                        </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <CascadingValue Value="Variable1">
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <SurveyPrompt />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt />
+                                    <SurveyPrompt />
+                                </div>
+                            }
+                        </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue3()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        @if (VarBool)
+                        {
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    }
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        @if (VarBool)
+                        {
+                            <SurveyPrompt />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt />
+                                    <SurveyPrompt />
+                                </div>
+                            }
+                        }
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue4()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                        <CascadingValue Value="Variable1">
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    </CascadingValue>
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    <CascadingValue Value="Variable1">
+                        <SurveyPrompt />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <SurveyPrompt />
+                                <SurveyPrompt />
+                            </div>
+                        }
+                    </CascadingValue>
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue5()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <PageTitle>
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    </PageTitle>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <PageTitle>
+                            <SurveyPrompt />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt />
+                                    <SurveyPrompt />
+                                </div>
+                            }
+                        </PageTitle>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    @if (true)
+                                    {
+                                        <option>goo</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    @if (true)
+                                    {
+                                        <option>goo</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    @if (true)
+                                    {
+                                        <option>goo</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        <div>
+                            <InputSelect @bind-Value="_id">
+                                @if (true)
+                                {
+                                    <option>goo</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect3()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                        <option>goo</option>
+                                </InputSelect>
+                            </div>
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        <div>
+                            <InputSelect @bind-Value="_id">
+                                <option>goo</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect4()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                        <option>goo</option>
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    <option>goo</option>
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
         }
 
         [Fact]
@@ -1104,25 +1568,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
                     """,
                 fileKind: FileKinds.Legacy);
-        }
-
-        private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
-        {
-            AdditionalSyntaxTrees.Add(Parse("""
-                using Microsoft.AspNetCore.Components;
-                namespace Test
-                {
-                    public class SurveyPrompt : ComponentBase
-                    {
-                        [Parameter]
-                        public string Title { get; set; }
-                    }
-                }
-                """));
-
-            var generated = CompileToCSharp("SurveyPrompt.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
-            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
-            return tagHelpers;
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
