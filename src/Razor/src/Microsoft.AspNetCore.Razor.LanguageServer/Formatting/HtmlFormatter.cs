@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var @params = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
+                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri) },
                 Options = context.Options
             };
 
