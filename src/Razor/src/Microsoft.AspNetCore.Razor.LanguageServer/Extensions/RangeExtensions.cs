@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             End = new OSharp.Position(-1, -1)
         };
 
-        public static readonly VS.Range UndefinedVSRange = new()
+        public static VS.Range UndefinedVSRange => new()
         {
             Start = new VS.Position(-1, -1),
             End = new VS.Position(-1, -1)

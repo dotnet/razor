@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-        public async override Task<CodeAction?> ResolveAsync(
+        public async override Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
@@ -74,13 +74,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var text = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             if (text is null)
             {
-                return null;
+                return codeAction;
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                return null;
+                return codeAction;
             }
 
             var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>

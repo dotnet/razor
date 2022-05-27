@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormattingHandler
+internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormattingEndpoint
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly DocumentResolver _documentResolver;
@@ -76,6 +76,18 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
         _razorDocumentMappingService = razorDocumentMappingService;
         _optionsMonitor = optionsMonitor;
         _logger = loggerFactory.CreateLogger<RazorDocumentOnTypeFormattingEndpoint>();
+    }
+
+    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    {
+        const string ServerCapability = "documentOnTypeFormattingProvider";
+
+        return new RegistrationExtensionResult(ServerCapability,
+            new DocumentOnTypeFormattingOptions
+            {
+                FirstTriggerCharacter = s_allTriggerCharacters[0],
+                MoreTriggerCharacter = s_allTriggerCharacters.Skip(1).ToArray(),
+            });
     }
 
     public async Task<TextEdit[]?> Handle(DocumentOnTypeFormattingParamsBridge request, CancellationToken cancellationToken)
@@ -164,17 +176,5 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
 
         // Unknown trigger character.
         return false;
-    }
-
-    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
-    {
-        const string ServerCapability = "documentOnTypeFormattingProvider";
-
-        return new RegistrationExtensionResult(ServerCapability,
-            new DocumentOnTypeFormattingOptions
-            {
-                FirstTriggerCharacter = s_allTriggerCharacters[0],
-                MoreTriggerCharacter = s_allTriggerCharacters.Skip(1).ToArray(),
-            });
     }
 }

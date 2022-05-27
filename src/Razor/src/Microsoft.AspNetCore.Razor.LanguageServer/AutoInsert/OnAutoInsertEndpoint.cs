@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -15,13 +17,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
-    internal class OnAutoInsertEndpoint : IVSOnAutoInsertHandler
+    internal class OnAutoInsertEndpoint : IVSOnAutoInsertEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
-        private readonly string[] _onAutoInsertTriggerCharacters;
+        private readonly ImmutableHashSet<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -53,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _documentResolver = documentResolver;
             _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
-            _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToArray();
+            _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToImmutableHashSet();
         }
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
@@ -62,13 +64,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
             var registrationOptions = new VSInternalDocumentOnAutoInsertOptions()
             {
-                TriggerCharacters = _onAutoInsertTriggerCharacters,
+                TriggerCharacters = _onAutoInsertTriggerCharacters.ToArray(),
             };
 
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> Handle(OnAutoInsertParams request, CancellationToken cancellationToken)
+        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> Handle(OnAutoInsertParamsBridge request, CancellationToken cancellationToken)
         {
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {

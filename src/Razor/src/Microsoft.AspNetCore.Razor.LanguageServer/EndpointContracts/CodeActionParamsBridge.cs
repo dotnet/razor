@@ -4,9 +4,8 @@
 using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+internal class CodeActionParamsBridge : CodeActionParams, IRequest<SumType<Command, CodeAction>[]?>
 {
-    internal class OnAutoInsertParams : VSInternalDocumentOnAutoInsertParams, IRequest<VSInternalDocumentOnAutoInsertResponseItem>
-    {
-    }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             LanguageServer = languageServer;
         }
 
-        public abstract Task<CodeAction?> ResolveAsync(
+        public abstract Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken);

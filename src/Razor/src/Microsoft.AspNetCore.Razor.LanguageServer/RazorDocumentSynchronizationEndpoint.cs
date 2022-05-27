@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorDocumentSynchronizationEndpoint : IVSTextDocumentSyncHandler
+    internal class RazorDocumentSynchronizationEndpoint : IVSTextDocumentSyncEndpoint
     {
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;

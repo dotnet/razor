@@ -3,15 +3,9 @@
 
 using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 internal class VSInternalInlineCompletionRequestBridge : VSInternalInlineCompletionRequest, IRequest<VSInternalInlineCompletionList?>
-{
-}
-
-[Parallel, Method("textDocument/_vs_inlineCompletion")]
-internal interface IInlineCompletionHandler : IJsonRpcRequestHandler<VSInternalInlineCompletionRequestBridge, VSInternalInlineCompletionList?>, IRegistrationExtension
 {
 }

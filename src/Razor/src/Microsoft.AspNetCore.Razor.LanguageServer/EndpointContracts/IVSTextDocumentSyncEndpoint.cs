@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal interface IVSTextDocumentSyncHandler
+    internal interface IVSTextDocumentSyncEndpoint
         : IVSDidChangeTextDocumentEndpoint, IVSDidOpenTextDocumentEndpoint, IVSDidCloseTextDocumentEndpoint, IVSDidSaveTextDocumentEndpoint,
         IRegistrationExtension
     {

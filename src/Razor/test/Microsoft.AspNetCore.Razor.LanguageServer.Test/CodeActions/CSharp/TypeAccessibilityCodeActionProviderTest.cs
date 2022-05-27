@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.Net.Dns"
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.Net.Dns"
                 }
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new TypeAccessibilityCodeActionProvider();
-            var csharpCodeActions = Array.Empty<RazorCodeAction>();
+            var csharpCodeActions = Array.Empty<RazorVSInternalCodeAction>();
 
             // Act
             var results = await provider.ProvideAsync(context, csharpCodeActions, default);
@@ -194,12 +194,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.Path",
                     Name = "CodeActionFromVSCode"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.SomethingElse",
                     Name = "CodeActionFromVSCode"
@@ -251,12 +251,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.Path",
                     Name = "FullyQualify"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "using System.IO;",
                     Name = "AddImport"
@@ -301,12 +301,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.Path",
                     Name = "FullyQualify"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "using System.IO;",
                     Name = "AddImport"
@@ -377,12 +377,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "Fully qualify 'Path' -> System.IO.Path",
                     Name = "CodeActionFromVSCode"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "Fully qualify 'Path' -> SuperSpecialNamespace.Path",
                     Name = "CodeActionFromVSCode"

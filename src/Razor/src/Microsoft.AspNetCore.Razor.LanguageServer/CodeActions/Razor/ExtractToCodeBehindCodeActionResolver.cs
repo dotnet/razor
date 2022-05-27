@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -34,8 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentResolver _documentResolver;
         private readonly FilePathNormalizer _filePathNormalizer;
 
-        private static readonly Range s_startOfDocumentRange = new Range { Start = new Position(0, 0), End = new Position(0, 0) };
-
         public ExtractToCodeBehindCodeActionResolver(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
@@ -48,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
 
-        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             if (data is null)
             {
@@ -113,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
             var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
 
-            var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
+            var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
             {
                 new CreateFile { Uri = codeBehindUri },
                 new TextDocumentEdit
@@ -136,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextEdit
                         {
                             NewText = codeBehindContent,
-                            Range = s_startOfDocumentRange,
+                            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
                         }
                     },
                 }
@@ -144,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return new WorkspaceEdit
             {
-                DocumentChanges = documentChanges.ToArray(),
+                DocumentChanges = documentChanges,
             };
         }
 
@@ -200,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 .FindDescendantNodes<IntermediateNode>()
                 .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
 
-            var mock = (ClassDeclarationSyntax)CSharpSyntaxFactory.ParseMemberDeclaration($"class Class {contents}");
+            var mock = (ClassDeclarationSyntax)CSharpSyntaxFactory.ParseMemberDeclaration($"class Class {contents}")!;
             var @class = CSharpSyntaxFactory
                 .ClassDeclaration(className)
                 .AddModifiers(CSharpSyntaxFactory.Token(CSharpSyntaxKind.PublicKeyword), CSharpSyntaxFactory.Token(CSharpSyntaxKind.PartialKeyword))

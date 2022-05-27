@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
+            Assert.NotNull(workspaceEdit!.DocumentChanges);
             Assert.Equal(3, workspaceEdit.DocumentChanges!.Value.Count());
 
             var documentChanges = workspaceEdit.DocumentChanges!.Value.ToArray();
@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
+            Assert.NotNull(workspaceEdit!.DocumentChanges);
             Assert.Equal(3, workspaceEdit.DocumentChanges!.Value.Count());
 
             var documentChanges = workspaceEdit.DocumentChanges!.Value.ToArray();
@@ -233,7 +233,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
+            Assert.NotNull(workspaceEdit!.DocumentChanges);
             Assert.Equal(3, workspaceEdit.DocumentChanges!.Value.Count());
 
             var documentChanges = workspaceEdit.DocumentChanges.Value.ToArray();

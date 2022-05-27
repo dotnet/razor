@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     internal static class CodeActionExtensions
     {
-        public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this RazorCodeAction razorCodeAction)
+        public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction)
         {
             if (razorCodeAction.Data is null)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                     Data = razorCodeAction.Edit ?? new WorkspaceEdit(),
                 };
 
-                razorCodeAction = new RazorCodeAction()
+                razorCodeAction = new VSInternalCodeAction()
                 {
                     Title = razorCodeAction.Title,
                     Data = JToken.FromObject(resolutionParams),
@@ -43,8 +43,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             };
         }
 
-        public static RazorCodeAction WrapResolvableCSharpCodeAction(
-            this RazorCodeAction razorCodeAction,
+        public static RazorVSInternalCodeAction WrapResolvableCSharpCodeAction(
+            this RazorVSInternalCodeAction razorCodeAction,
+            RazorCodeActionContext context,
+            string action = LanguageServerConstants.CodeActions.Default)
+        {
+            if (razorCodeAction is null)
+            {
+                throw new ArgumentNullException(nameof(razorCodeAction));
+            }
+
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var csharpParams = new CSharpCodeActionParams()
+            {
+                Data = razorCodeAction.Data,
+                RazorFileUri = context.Request.TextDocument.Uri
+            };
+
+            var resolutionParams = new RazorCodeActionResolutionParams()
+            {
+                Action = action,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
+                Data = csharpParams
+            };
+            razorCodeAction.Data = JToken.FromObject(resolutionParams);
+
+            if (razorCodeAction.Children != null)
+            {
+                for (var i = 0; i < razorCodeAction.Children.Length; i++)
+                {
+                    razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCSharpCodeAction(context, action);
+                }
+            }
+
+            return razorCodeAction;
+        }
+
+        public static VSInternalCodeAction WrapResolvableCSharpCodeAction(
+            this VSInternalCodeAction razorCodeAction,
             RazorCodeActionContext context,
             string action = LanguageServerConstants.CodeActions.Default)
         {

@@ -4,9 +4,7 @@
 #nullable disable
 
 using System;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -33,7 +31,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
 
             AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
             AddConverter(serializer, OmniSharpVSDiagnostic.JsonConverter);
-            AddConverter(serializer, OmniSharpVSCodeActionContext.JsonConverter);
         }
 
         public static void RegisterVSInternalExtensionConverters(this LspSerializer serializer)

@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
-        public async override Task<CodeAction?> ResolveAsync(
+        public async override Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
@@ -75,13 +75,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
-            if (!documentChanged.TryGetFirst(out var _))
+            if (!documentChanged.TryGetFirst(out var textDocumentEdit))
             {
                 // Only Text Document Edit changes are supported currently, return original code action
                 return codeAction;
             }
 
-            var textEdit = documentChanged.First.Edits.FirstOrDefault();
+            var textEdit = textDocumentEdit.Edits.FirstOrDefault();
             if (textEdit is null)
             {
                 // No text edit available

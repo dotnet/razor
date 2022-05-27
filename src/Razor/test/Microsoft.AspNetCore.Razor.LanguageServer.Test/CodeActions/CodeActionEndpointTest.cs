@@ -23,13 +23,16 @@ using Xunit;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Omni = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentVSRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out It.Ref<Omni.Range>.IsAny) == false, MockBehavior.Strict);
         private readonly DocumentResolver _emptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
         private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
@@ -87,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -119,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -154,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -191,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -226,7 +229,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -268,7 +271,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -310,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -345,7 +348,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -388,7 +391,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -425,7 +428,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -436,12 +439,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 c =>
                 {
                     Assert.True(c.TryGetSecond(out var codeAction));
-                    Assert.True(codeAction is RazorCodeAction);
+                    Assert.True(codeAction is VSInternalCodeAction);
                 },
                 c =>
                 {
                     Assert.True(c.TryGetSecond(out var codeAction));
-                    Assert.True(codeAction is RazorCodeAction);
+                    Assert.True(codeAction is VSInternalCodeAction);
                 });
         }
 
@@ -472,7 +475,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             // Act
@@ -518,7 +521,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
                 {
                     SelectionRange = selectionRange,
                 }
@@ -558,7 +561,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
                 {
                     SelectionRange = null
                 }
@@ -579,9 +582,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentPath = "C:/path/to/Page.razor";
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            Range projectedRange = null;
+            Omni.Range projectedRange = null;
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentVSRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == false
+                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out projectedRange) == false
             , MockBehavior.Strict);
             var codeActionEndpoint = new CodeActionEndpoint(
                 documentMappingService,
@@ -602,7 +605,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
             };
 
             var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
@@ -623,7 +626,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var projectedRange = new Range { Start = new Position(15, 2), End = new Position(15, 2) };
-            var documentMappingService = CreateDocumentMappingService(projectedRange);
+            var documentMappingService = CreateDocumentMappingService(projectedRange.AsOmniSharpRange());
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
                 documentMappingService,
@@ -639,12 +642,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var initialRange = new Range{ Start = new Position(0, 1), End = new Position(0, 1) };
+            var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
             var request = new CodeActionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = initialRange,
-                Context = new OmniSharpVSCodeActionContext()
+                Context = new VSInternalCodeActionContext()
                 {
                     SelectionRange = initialRange
                 }
@@ -670,11 +673,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Equal(projectedRange, diagnostics[1].Range);
         }
 
-        private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range projectedRange = null)
+        private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Omni.Range projectedRange = null)
         {
-            projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
+            projectedRange ??= new Omni.Range { Start = new Omni.Position(5, 2), End = new Omni.Position(5, 2) };
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentVSRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == true
+                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out projectedRange) == true
             , MockBehavior.Strict);
             return documentMappingService;
         }
@@ -710,54 +713,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class MockRazorCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
-                return Task.FromResult(new List<RazorCodeAction>() { new RazorCodeAction() } as IReadOnlyList<RazorCodeAction>);
+                return Task.FromResult(new List<RazorVSInternalCodeAction>() { new RazorVSInternalCodeAction() } as IReadOnlyList<RazorVSInternalCodeAction>);
             }
         }
 
         private class MockMultipleRazorCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
-                return Task.FromResult(new List<RazorCodeAction>()
+                return Task.FromResult(new List<RazorVSInternalCodeAction>()
                 {
-                    new RazorCodeAction(),
-                    new RazorCodeAction()
-                } as IReadOnlyList<RazorCodeAction>);
+                    new RazorVSInternalCodeAction(),
+                    new RazorVSInternalCodeAction()
+                } as IReadOnlyList<RazorVSInternalCodeAction>);
             }
         }
 
         private class MockCSharpCodeActionProvider : CSharpCodeActionProvider
         {
-            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, IEnumerable<RazorCodeAction> codeActions, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, IEnumerable<RazorVSInternalCodeAction> codeActions, CancellationToken cancellationToken)
             {
-                return Task.FromResult(new List<RazorCodeAction>()
+                return Task.FromResult(new List<RazorVSInternalCodeAction>()
                 {
-                    new RazorCodeAction()
-                } as IReadOnlyList<RazorCodeAction>);
+                    new RazorVSInternalCodeAction()
+                } as IReadOnlyList<RazorVSInternalCodeAction>);
             }
         }
 
         private class MockRazorCommandProvider : RazorCodeActionProvider
         {
-            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
                 // O# Code Actions don't have `Data`, but `Commands` do
-                return Task.FromResult(new List<RazorCodeAction>() {
-                    new RazorCodeAction() {
+                return Task.FromResult(new List<RazorVSInternalCodeAction>() {
+                    new RazorVSInternalCodeAction() {
                         Title = "SomeTitle",
                         Data = JToken.FromObject(new AddUsingsCodeActionParams())
                     }
-                } as IReadOnlyList<RazorCodeAction>);
+                } as IReadOnlyList<RazorVSInternalCodeAction>);
             }
         }
 
         private class MockNullRazorCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
-                return Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+                return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>>(null);
             }
         }
 
@@ -784,7 +787,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     throw new InvalidOperationException($"Unexpected method {method}");
                 }
 
-                if (@params is not CodeActionParams codeActionParams || codeActionParams.Context is not OmniSharpVSCodeActionContext codeActionContext)
+                if (@params is not CodeActionParams codeActionParams || codeActionParams.Context is not VSInternalCodeActionContext codeActionContext)
                 {
                     throw new InvalidOperationException(@params.GetType().FullName);
                 }
@@ -795,7 +798,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 // is correct rather than providing specific test hooks in the CodeActionEndpoint
                 var result = new[]
                 {
-                    new RazorCodeAction()
+                    new RazorVSInternalCodeAction()
                     {
                         Data = JToken.FromObject(new { CustomTags = new object[] { "CodeActionName" } }),
                         Diagnostics = new[]

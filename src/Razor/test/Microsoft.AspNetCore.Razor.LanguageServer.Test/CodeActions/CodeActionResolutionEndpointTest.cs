@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -255,7 +256,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "A",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = new AddUsingsCodeActionParams()
+                Data = JToken.FromObject(new AddUsingsCodeActionParams()),
             };
 
             // Act
@@ -281,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "B",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = new AddUsingsCodeActionParams()
+                Data = JToken.FromObject(new AddUsingsCodeActionParams())
             };
 
             // Act

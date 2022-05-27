@@ -8,13 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class CodeActionResolutionEndpoint : IRazorCodeActionResolveHandler
+    internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
     {
         private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
         private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
@@ -46,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
-        public async Task<CodeAction?> Handle(CodeActionBridge request, CancellationToken cancellationToken)
+        public async Task<CodeAction> Handle(CodeActionBridge request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -110,13 +111,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
+            if (resolutionParams.Data is not JObject data)
+            {
+                return codeAction;
+            }
+
+            var edit = await resolver.ResolveAsync(data, cancellationToken).ConfigureAwait(false);
             codeAction.Edit = edit;
             return codeAction;
         }
 
         // Internal for testing
-        internal async Task<CodeAction?> ResolveCSharpCodeActionAsync(
+        internal async Task<CodeAction> ResolveCSharpCodeActionAsync(
             CodeAction codeAction,
             RazorCodeActionResolutionParams resolutionParams,
             CancellationToken cancellationToken)

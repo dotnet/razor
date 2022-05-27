@@ -75,11 +75,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 {
                     foldingRanges = await HandleCoreAsync(requestParams, documentContext, cancellationToken);
                 }
-                catch(OperationCanceledException)
-                {
-                    // We shouln't continue to retry if the request has been cancelled.
-                    break;
-                }
                 catch (Exception e) when (retries < MaxRetries)
                 {
                     _logger.LogWarning(e, $"Try {retries} to get FoldingRange");
@@ -91,9 +86,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
         private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorFoldingRangeEndpoint, requestParams).ConfigureAwait(false);
             var foldingResponse = await delegatedRequest.Returning<RazorFoldingRangeResponse?>(cancellationToken).ConfigureAwait(false);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (foldingResponse is null)
             {

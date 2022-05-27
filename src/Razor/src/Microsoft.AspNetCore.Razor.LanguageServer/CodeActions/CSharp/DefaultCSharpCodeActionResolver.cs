@@ -31,8 +31,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             OtherOptions = new Dictionary<string, object>
             {
                 { "trimTrailingWhitespace", true },
-                {"insertFinalNewline", true },
-                {"trimFinalNewlines", true },
+                { "insertFinalNewline", true },
+                { "trimFinalNewlines", true },
             },
         };
 
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var csharpTextEdits = textDocumentEdit.Edits.ToArray();
+            var csharpTextEdits = textDocumentEdit.Edits;
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.

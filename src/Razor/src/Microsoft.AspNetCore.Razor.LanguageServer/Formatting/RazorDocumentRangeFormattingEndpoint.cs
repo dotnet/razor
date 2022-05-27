@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    internal class RazorDocumentRangeFormattingEndpoint : IVSDocumentRangeFormattingHandler
+    internal class RazorDocumentRangeFormattingEndpoint : IVSDocumentRangeFormattingEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -53,6 +53,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _optionsMonitor = optionsMonitor;
         }
 
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
+            const string ServerCapability = "documentRangeFormattingProvider";
+
+            return new RegistrationExtensionResult(ServerCapability, new DocumentRangeFormattingOptions());
+        }
+
         public async Task<TextEdit[]?> Handle(DocumentRangeFormattingParamsBridge request, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
@@ -81,13 +88,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, request.Range, request.Options, cancellationToken);
 
             return edits;
-        }
-
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        {
-            const string ServerCapability = "documentRangeFormattingProvider";
-
-            return new RegistrationExtensionResult(ServerCapability, new DocumentRangeFormattingOptions());
         }
     }
 }

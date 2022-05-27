@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,9 +37,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             "IDE1007"
         };
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions,
+            IEnumerable<RazorVSInternalCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -69,24 +67,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ProcessCodeActionsVSCode(context, codeActions);
 
             var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToArray();
-            return Task.FromResult(orderedResults as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(orderedResults);
         }
 
-        private static IEnumerable<RazorCodeAction> ProcessCodeActionsVSCode(
+        private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions)
+            IEnumerable<RazorVSInternalCodeAction> codeActions)
         {
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
-                diagnostic.Severity is not null && diagnostic.Severity.Value == DiagnosticSeverity.Error &&
-                diagnostic.Code is not null && diagnostic.Code.Value.TryGetSecond(out var str) &&
+                diagnostic is { Severity: DiagnosticSeverity.Error, Code: { } code } &&
+                code.TryGetSecond(out var str) &&
                 s_supportedDiagnostics.Any(d => str.Equals(d, StringComparison.OrdinalIgnoreCase)));
 
             if (diagnostics is null || !diagnostics.Any())
             {
-                return Array.Empty<RazorCodeAction>();
+                return Array.Empty<RazorVSInternalCodeAction>();
             }
 
-            var typeAccessibilityCodeActions = new List<RazorCodeAction>();
+            var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -111,7 +109,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 foreach (var codeAction in codeActions)
                 {
-                    if (!codeAction.Name.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
+                    var name = codeAction.Name;
+                    if (name is null || !name.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
                     {
                         continue;
                     }
@@ -157,15 +156,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return typeAccessibilityCodeActions;
         }
 
-        private static IEnumerable<RazorCodeAction> ProcessCodeActionsVS(
+        private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVS(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions)
+            IEnumerable<RazorVSInternalCodeAction> codeActions)
         {
-            var typeAccessibilityCodeActions = new List<RazorCodeAction>(1);
+            var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>(1);
 
             foreach (var codeAction in codeActions)
             {
-                if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
+                if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
                 {
                     string action;
 
@@ -198,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
                 // For add using suggestions, the code action title is of the form:
                 // `using System.Net;`
-                else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
+                else if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                     AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
                     codeAction.Title = $"@using {@namespace}";
@@ -213,7 +212,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return typeAccessibilityCodeActions;
 
-            static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode owner)
+            static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
             {
                 var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
                 var syntaxTree = context.CodeDocument.GetSyntaxTree();
@@ -262,10 +261,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         }
 
-        private static RazorCodeAction CreateFQNCodeAction(
+        private static RazorVSInternalCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            RazorCodeAction nonFQNCodeAction,
+            RazorVSInternalCodeAction nonFQNCodeAction,
             string fullyQualifiedName)
         {
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };

@@ -7,11 +7,13 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -23,7 +25,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class InlineCompletionEndpoint : IInlineCompletionHandler
+internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 {
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
         "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
@@ -88,10 +90,9 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
     {
         const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
 
-        var registrationOptions = new InlineCompletionOptions()
+        var registrationOptions = new VSInternalInlineCompletionOptions()
         {
-            DocumentSelector = RazorDefaults.Selector,
-            Pattern = string.Join("|", s_cSharpKeywords)
+            Pattern = new Regex(string.Join("|", s_cSharpKeywords))
         };
 
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);

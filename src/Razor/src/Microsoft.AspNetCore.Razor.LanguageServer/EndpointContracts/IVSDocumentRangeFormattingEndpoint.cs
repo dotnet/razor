@@ -7,7 +7,7 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-[Parallel, Method(Methods.TextDocumentFormattingName)]
-internal interface IVSDocumentFormattingHandler : IJsonRpcRequestHandler<DocumentFormattingParamsBridge, TextEdit[]?>, IRegistrationExtension
+[Parallel, Method(Methods.TextDocumentRangeFormattingName)]
+internal interface IVSDocumentRangeFormattingEndpoint : IJsonRpcRequestHandler<DocumentRangeFormattingParamsBridge, TextEdit[]?>, IRegistrationExtension
 {
 }
