@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var filePathNormalizer = new FilePathNormalizer();
 
             // Act
-            var normalized = filePathNormalizer.Normalize(null);
+            var normalized = filePathNormalizer.Normalize((string)null);
 
             // Assert
             Assert.Equal("/", normalized);
