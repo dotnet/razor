@@ -4,16 +4,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -22,219 +18,106 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         public RazorCompletionResolveEndpointTest()
         {
-            LSPTagHelperTooltipFactory = Mock.Of<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            VSLSPTagHelperTooltipFactory = Mock.Of<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict);
             CompletionListCache = new CompletionListCache();
-            CompletionCapability = new VSInternalCompletionSetting()
-            {
-                CompletionItem = new CompletionItemSetting()
-                {
-                    DocumentationFormat = new[] { MarkupKind.PlainText, MarkupKind.Markdown },
-                }
-            };
-            DefaultClientCapability = new VSInternalClientCapabilities()
-            {
-                TextDocument = new TextDocumentClientCapabilities()
-                {
-                    Completion = CompletionCapability,
-                },
-            };
-            VSClientCapability = new VSInternalClientCapabilities()
-            {
-                TextDocument = new TextDocumentClientCapabilities()
-                {
-                    Completion = CompletionCapability,
-                },
-                SupportsVisualStudioExtensions = true,
-            };
+            Endpoint = new RazorCompletionResolveEndpoint(new AggregateCompletionItemResolver(new[] { new TestCompletionItemResolver() }, LoggerFactory), CompletionListCache);
+            Endpoint.GetRegistration(new VSInternalClientCapabilities());
         }
 
-        private LSPTagHelperTooltipFactory LSPTagHelperTooltipFactory { get; }
-
-        private VSLSPTagHelperTooltipFactory VSLSPTagHelperTooltipFactory { get; }
+        private RazorCompletionResolveEndpoint Endpoint { get; }
 
         private CompletionListCache CompletionListCache { get; }
 
-        private VSInternalCompletionSetting CompletionCapability { get; }
-
-        private VSInternalClientCapabilities DefaultClientCapability { get; }
-
-        private VSInternalClientCapabilities VSClientCapability { get; }
-
         [Fact]
-        public async Task Handle_Resolve_DirectiveCompletion_ReturnsCompletionItemWithDocumentation()
+        public async Task Handle_UncachedCompletionItem_NoChange()
         {
             // Arrange
-            var endpoint = new RazorCompletionResolveEndpoint(LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.Directive);
-            razorCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Test directive"));
-            var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
-            var completionItem = completionList.Items.Single();
+            var completionItem = new VSInternalCompletionItem() { Label = "Test" };
             var parameters = ConvertToBridgedItem(completionItem);
 
             // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
+            var resolvedItem = await Endpoint.Handle(parameters, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(newCompletionItem.Documentation);
+            Assert.Null(resolvedItem.Documentation);
         }
 
         [Fact]
-        public async Task Handle_Resolve_MarkupTransitionCompletion_ReturnsCompletionItemWithDocumentation()
+        public async Task Handle_EvictedCachedCompletionItem_NoChange()
         {
             // Arrange
-            var endpoint = new RazorCompletionResolveEndpoint(LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var razorCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.MarkupTransition);
-            razorCompletionItem.SetMarkupTransitionCompletionDescription(new MarkupTransitionCompletionDescription("Test description"));
-            var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
-            var completionItem = completionList.Items.Single();
+            var completionItem = new VSInternalCompletionItem() { Label = "Test" };
+            var completionList = new VSInternalCompletionList() { Items = new[] { completionItem } };
+            completionList.SetResultId(1337, completionSetting: null);
             var parameters = ConvertToBridgedItem(completionItem);
 
             // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
+            var resolvedItem = await Endpoint.Handle(parameters, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(newCompletionItem.Documentation);
+            Assert.Null(resolvedItem.Documentation);
         }
 
         [Fact]
-        public async Task Handle_Resolve_DirectiveAttributeCompletion_ReturnsCompletionItemWithDocumentation()
+        public async Task Handle_CachedCompletionItem_Resolves()
         {
             // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
-            {
-                Kind = MarkupKind.Markdown,
-                Value = "Some Markdown"
-            };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), MarkupKind.Markdown, out markdown))
-                .Returns(true);
-            var endpoint = new RazorCompletionResolveEndpoint(lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
-            razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
-            var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
-            var completionItem = completionList.Items.Single();
+            var completionItem = new VSInternalCompletionItem() { Label = "Test" };
+            var completionList = new VSInternalCompletionList() { Items = new[] { completionItem } };
+            var resultId = CompletionListCache.Set(completionList, context: null);
+            completionList.SetResultId(resultId, completionSetting: null);
             var parameters = ConvertToBridgedItem(completionItem);
 
             // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
+            var resolvedItem = await Endpoint.Handle(parameters, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(newCompletionItem.Documentation);
+            Assert.NotNull(resolvedItem.Documentation);
         }
 
         [Fact]
-        public async Task Handle_Resolve_DirectiveAttributeParameterCompletion_ReturnsCompletionItemWithDocumentation()
+        public async Task Handle_MultipleResultIdsIgnoresEvictedResultIds_Resolves()
         {
             // Arrange
-            var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
-            {
-                Kind = MarkupKind.Markdown,
-                Value = "Some Markdown"
-            };
-            descriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), MarkupKind.Markdown, out markdown))
-                .Returns(true);
-            var endpoint = new RazorCompletionResolveEndpoint(descriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
-            razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
-            var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
-            var completionItem = completionList.Items.Single();
+            var completionItem = new VSInternalCompletionItem() { Label = "Test" };
+            var completionList = new VSInternalCompletionList() { Items = new[] { completionItem } };
+            completionList.SetResultId(/* Invalid */ 1337, completionSetting: null);
+            var resultId = CompletionListCache.Set(completionList, context: null);
+            completionList.SetResultId(resultId, completionSetting: null);
             var parameters = ConvertToBridgedItem(completionItem);
 
             // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
+            var resolvedItem = await Endpoint.Handle(parameters, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(newCompletionItem.Documentation);
+            Assert.NotNull(resolvedItem.Documentation);
         }
 
         [Fact]
-        public async Task Handle_Resolve_TagHelperElementCompletion_ReturnsCompletionItemWithDocumentation()
+        public async Task Handle_MergedCompletionListFindsProperCompletionList_Resolves()
         {
             // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
-            {
-                Kind = MarkupKind.Markdown,
-                Value = "Some Markdown"
-            };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), MarkupKind.Markdown, out markdown))
-                .Returns(true);
-            var endpoint = new RazorCompletionResolveEndpoint(lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
-            razorCompletionItem.SetTagHelperElementDescriptionInfo(new AggregateBoundElementDescription(Array.Empty<BoundElementDescriptionInfo>()));
-            var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
-            var completionItem = completionList.Items.Single();
-            var parameters = ConvertToBridgedItem(completionItem);
+            var completionSetting = new VSInternalCompletionSetting() { CompletionList = new VSInternalCompletionListSetting() { Data = true } };
+            var completionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
+            var completion1Context = new object();
+            var resultId1 = CompletionListCache.Set(completionList1, completion1Context);
+            completionList1.SetResultId(resultId1, completionSetting);
+
+            var completionItem = new VSInternalCompletionItem() { Label = "Test" };
+            var completionList2 = new VSInternalCompletionList() { Items = new[] { completionItem } };
+            var completion2Context = new object();
+            var resultId2 = CompletionListCache.Set(completionList2, completion2Context);
+            completionList2.SetResultId(resultId2, completionSetting);
+            var mergedCompletionList = CompletionListMerger.Merge(completionList1, completionList2);
+            var mergedCompletionItem = mergedCompletionList.Items.Single();
+            mergedCompletionItem.Data = mergedCompletionList.Data;
+            var parameters = ConvertToBridgedItem(mergedCompletionItem);
 
             // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
+            var resolvedItem = await Endpoint.Handle(parameters, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(newCompletionItem.Documentation);
-        }
-
-        [Fact]
-        public async Task Handle_Resolve_TagHelperAttribute_ReturnsCompletionItemWithDocumentation()
-        {
-            // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
-            {
-                Kind = MarkupKind.Markdown,
-                Value = "Some Markdown"
-            };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundAttributeDescription>(), MarkupKind.Markdown, out markdown))
-                .Returns(true);
-            var endpoint = new RazorCompletionResolveEndpoint(lspDescriptionFactory.Object, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
-            razorCompletionItem.SetAttributeCompletionDescription(new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>()));
-            var completionList = CreateLSPCompletionList(new[] { razorCompletionItem });
-            var completionItem = completionList.Items.Single();
-            var parameters = ConvertToBridgedItem(completionItem);
-
-            // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
-
-            // Assert
-            Assert.NotNull(newCompletionItem.Documentation);
-        }
-
-        [Fact]
-        public async Task Handle_Resolve_NonTagHelperCompletion_Noops()
-        {
-            // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
-            var markdown = new MarkupContent
-            {
-                Kind = MarkupKind.Markdown,
-                Value = "Some Markdown"
-            };
-            lspDescriptionFactory.Setup(factory => factory.TryCreateTooltip(It.IsAny<AggregateBoundElementDescription>(), MarkupKind.Markdown, out markdown))
-                .Returns(true);
-            var endpoint = new RazorCompletionResolveEndpoint(LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, CompletionListCache, LoggerFactory);
-            endpoint.GetRegistration(DefaultClientCapability);
-            var completionItem = new CompletionItem();
-            var parameters = ConvertToBridgedItem(completionItem);
-
-            // Act
-            var newCompletionItem = await endpoint.Handle(parameters, default);
-
-            // Assert
-            Assert.Null(newCompletionItem.Documentation);
-        }
-
-        private VSInternalCompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems)
-        {
-            var completionList = RazorCompletionListProvider.CreateLSPCompletionList(razorCompletionItems, CompletionListCache, DefaultClientCapability);
-            return completionList;
+            Assert.NotNull(resolvedItem.Documentation);
+            Assert.Same(completion2Context, resolvedItem.Data);
         }
 
         private VSCompletionItemBridge ConvertToBridgedItem(CompletionItem completionItem)
@@ -242,6 +125,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var serialized = Serializer.SerializeObject(completionItem);
             var bridgedItem = Serializer.DeserializeObject<VSCompletionItemBridge>(serialized);
             return bridgedItem;
+        }
+
+        private class TestCompletionItemResolver : CompletionItemResolver
+        {
+            public override Task<VSInternalCompletionItem> ResolveAsync(
+                VSInternalCompletionItem item,
+                VSInternalCompletionList containingCompletionlist,
+                object originalRequestContext,
+                VSInternalClientCapabilities clientCapabilities,
+                CancellationToken cancellationToken)
+            {
+                item.Documentation = "I was resolved";
+                item.Data = originalRequestContext;
+                return Task.FromResult(item);
+            }
         }
     }
 }

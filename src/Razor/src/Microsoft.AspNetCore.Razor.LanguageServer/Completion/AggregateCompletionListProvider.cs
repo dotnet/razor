@@ -17,7 +17,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly IReadOnlyList<CompletionListProvider> _completionListProviders;
         private readonly ILogger<AggregateCompletionListProvider> _logger;
 
-        public AggregateCompletionListProvider(IEnumerable<CompletionListProvider> completionListProviders, ILoggerFactory loggerFactory)
+        public AggregateCompletionListProvider(
+            IEnumerable<CompletionListProvider> completionListProviders,
+            ILoggerFactory loggerFactory)
         {
             _completionListProviders = completionListProviders.ToArray();
             _logger = loggerFactory.CreateLogger<AggregateCompletionListProvider>();
@@ -71,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                     cancellationToken.ThrowIfCancellationRequested();
                 }
-                catch (Exception ex) when (ex is not TaskCanceledException)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     _logger.LogError(ex, "Resolving completions failed unexpectedly.");
                 }

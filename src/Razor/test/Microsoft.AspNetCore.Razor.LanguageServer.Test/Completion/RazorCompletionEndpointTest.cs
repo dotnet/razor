@@ -19,7 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             CompletionListProvider = new AggregateCompletionListProvider(Array.Empty<CompletionListProvider>(), LoggerFactory);
         }
-        private AggregateCompletionListProvider CompletionListProvider { get; set; }
+
+        private AggregateCompletionListProvider CompletionListProvider { get; }
 
         [Fact]
         public async Task Handle_NoDocumentContext_NoCompletionItems()

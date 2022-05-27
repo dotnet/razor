@@ -15,7 +15,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (completionCapability is not null)
             {
                 completionList = OptimizeCommitCharacters(completionList, completionCapability);
-                completionList = OptimizeData(completionList, completionCapability);
             }
 
             // We wrap the pre-existing completion list with an optimized completion list to better control serialization/deserialization
@@ -33,19 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             // The commit characters capability is a VS capability with how we utilize it, therefore we want to promote onto the VS list.
             completionList = PromoteVSCommonCommitCharactersOntoList(completionList);
-            return completionList;
-        }
-
-        private static VSInternalCompletionList OptimizeData(VSInternalCompletionList completionList, VSInternalCompletionSetting completionCapability)
-        {
-            var completionListCapability = completionCapability.CompletionList;
-            if (completionListCapability?.Data != true)
-            {
-                return completionList;
-            }
-
-            completionList = PromoteDataOntoList(completionList);
-
             return completionList;
         }
 
@@ -96,26 +82,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             completionList.CommitCharacters = mostUsedCommitCharacterToItems.Value.VsCommitCharacters;
-            return completionList;
-        }
-
-        private static VSInternalCompletionList PromoteDataOntoList(VSInternalCompletionList completionList)
-        {
-            // This piece makes a massive assumption that all completion items will have a resultId associated with them and their
-            // data properties will all be the same. Therefore, we can inspect the first item and empty out the rest.
-            var commonData = completionList.Items.FirstOrDefault()?.Data;
-            if (commonData is null)
-            {
-                // No common data items, nothing to do
-                return completionList;
-            }
-
-            foreach (var completionItem in completionList.Items)
-            {
-                completionItem.Data = null;
-            }
-
-            completionList.Data = commonData;
             return completionList;
         }
 

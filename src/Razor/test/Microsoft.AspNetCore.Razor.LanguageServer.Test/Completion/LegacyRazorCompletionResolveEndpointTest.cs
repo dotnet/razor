@@ -233,7 +233,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private VSInternalCompletionList CreateLSPCompletionList(IReadOnlyList<RazorCompletionItem> razorCompletionItems)
         {
-            var completionList = LegacyRazorCompletionEndpoint.CreateLSPCompletionList(razorCompletionItems, CompletionListCache, DefaultClientCapability);
+            var completionList = LegacyRazorCompletionEndpoint.CreateLSPCompletionList(razorCompletionItems, DefaultClientCapability);
+            var resultId = CompletionListCache.Set(completionList, razorCompletionItems);
+            completionList.SetResultId(resultId, completionSetting: null);
             return completionList;
         }
 
