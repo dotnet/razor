@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -28,6 +29,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         private TestDelegatedCompletionListProvider Provider { get; }
 
         private VSInternalClientCapabilities ClientCapabilities { get; }
+
+        [Fact]
+        public async Task ResponseRewritersGetExecutedInOrder()
+        {
+            // Arrange
+            var completionContext = new VSInternalCompletionContext();
+            var codeDocument = CreateCodeDocument("<");
+            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument);
+            var rewriter1 = new TestResponseRewriter(order: 100);
+            var rewriter2 = new TestResponseRewriter(order: 20);
+            var provider = TestDelegatedCompletionListProvider.Create(LoggerFactory, rewriter1, rewriter2);
+
+            // Act
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+
+            // Assert
+            Assert.Collection(completionList.Items,
+                item => Assert.Equal("20", item.Label),
+                item => Assert.Equal("100", item.Label));
+        }
 
         [Fact]
         public async Task HtmlDelegation_Invoked()
@@ -207,12 +228,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
         }
 
+        private class TestResponseRewriter : DelegatedCompletionResponseRewriter
+        {
+            private readonly int _order;
+
+            public TestResponseRewriter(int order)
+            {
+                _order = order;
+            }
+
+            public override int Order => _order;
+
+            public override Task<VSInternalCompletionList> RewriteAsync(VSInternalCompletionList completionList, int hostDocumentIndex, DocumentContext hostDocumentContext, DelegatedCompletionParams delegatedParameters, CancellationToken cancellationToken)
+            {
+                var completionItem = new VSInternalCompletionItem()
+                {
+                    Label = Order.ToString(),
+                };
+                completionList.Items = completionList.Items.Concat(new[] { completionItem }).ToArray();
+
+                return Task.FromResult(completionList);
+            }
+        }
+
         private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
         {
             private readonly DelegatedCompletionRequestResponseFactory _completionFactory;
 
-            private TestDelegatedCompletionListProvider(ILoggerFactory loggerFactory, DelegatedCompletionRequestResponseFactory completionFactory) :
+            private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, ILoggerFactory loggerFactory, DelegatedCompletionRequestResponseFactory completionFactory) :
                 base(
+                    responseRewriters,
                     new DefaultRazorDocumentMappingService(loggerFactory),
                     new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, object>>()
                     {
@@ -222,10 +267,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 _completionFactory = completionFactory;
             }
 
-            public static TestDelegatedCompletionListProvider Create(ILoggerFactory loggerFactory)
+            public static TestDelegatedCompletionListProvider Create(ILoggerFactory loggerFactory, params DelegatedCompletionResponseRewriter[] responseRewriters)
             {
                 var requestResponseFactory = new DelegatedCompletionRequestResponseFactory();
-                var provider = new TestDelegatedCompletionListProvider(loggerFactory, requestResponseFactory);
+                var provider = new TestDelegatedCompletionListProvider(responseRewriters, loggerFactory, requestResponseFactory);
                 return provider;
             }
 
@@ -239,7 +284,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 {
                     DelegatedParams = (DelegatedCompletionParams)parameters;
 
-                    return new VSInternalCompletionList();
+                    return new VSInternalCompletionList()
+                    {
+                        Items = Array.Empty<CompletionItem>(),
+                    };
                 }
             }
         }

@@ -26,13 +26,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 .Concat(s_htmlTriggerCharacters)
                 .Concat(s_razorTriggerCharacters)
                 .ToImmutableHashSet();
+
+        private readonly IReadOnlyList<DelegatedCompletionResponseRewriter> _responseRewriters;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
 
         public DelegatedCompletionListProvider(
+            IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer)
         {
+            _responseRewriters = responseRewriters.OrderBy(rewriter => rewriter.Order).ToArray();
             _documentMappingService = documentMappingService;
             _languageServer = languageServer;
         }
@@ -60,7 +64,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorCompletionEndpointName, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<VSInternalCompletionList?>(cancellationToken).ConfigureAwait(false);
 
-            return delegatedResponse;
+            if (delegatedResponse is null)
+            {
+                return null;
+            }
+
+            var rewrittenCompletionList = delegatedResponse;
+            foreach (var rewriter in _responseRewriters)
+            {
+                rewrittenCompletionList = await rewriter.RewriteAsync(rewrittenCompletionList,
+                                                                      absoluteIndex,
+                                                                      documentContext,
+                                                                      delegatedParams,
+                                                                      cancellationToken).ConfigureAwait(false);
+            }
+
+            return rewrittenCompletionList;
         }
 
         private CompletionProjection GetProjection(int absoluteIndex, RazorCodeDocument codeDocument, SourceText sourceText)
