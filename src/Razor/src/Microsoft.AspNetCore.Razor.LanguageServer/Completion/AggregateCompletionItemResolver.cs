@@ -68,16 +68,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return null;
             }
 
-            var finalCompletionItem = resolvedCompletionItems.Dequeue();
-            while (resolvedCompletionItems.Count > 0)
-            {
-                var nextCompletionItem = resolvedCompletionItems.Dequeue();
-
-                // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
-                // Instead we'll prioritized the last completion item resolved.
-                finalCompletionItem = nextCompletionItem;
-            }
-
+            // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
+            // Instead we'll prioritized the last completion item resolved.
+            var finalCompletionItem = resolvedCompletionItems.Last();
             return finalCompletionItem;
         }
     }
