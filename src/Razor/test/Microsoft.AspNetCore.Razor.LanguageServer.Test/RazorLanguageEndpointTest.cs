@@ -363,15 +363,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return documentResolver.Object;
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
-        {
-            tagHelpers ??= Array.Empty<TagHelperDescriptor>();
-            var sourceDocument = TestRazorSourceDocument.Create(text);
-            var projectEngine = RazorProjectEngine.Create(builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
-            return codeDocument;
-        }
-
         private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)
         {
             var codeDocument = CreateCodeDocument(razorSource, Array.Empty<TagHelperDescriptor>());

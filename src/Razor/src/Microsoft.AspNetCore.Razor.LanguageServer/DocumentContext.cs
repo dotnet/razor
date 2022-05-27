@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -37,6 +38,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public string FileKind => Snapshot.FileKind;
 
         public ProjectSnapshot Project => Snapshot.Project;
+
+        public VersionedTextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
+        {
+            Uri = Uri,
+            Version = Version,
+        };
 
         public async Task<RazorCodeDocument> GetCodeDocumentAsync(CancellationToken cancellationToken)
         {

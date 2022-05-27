@@ -59,6 +59,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return statements;
         }
 
+        public static SyntaxNode? GetOwner(this RazorSyntaxTree syntaxTree, int absoluteIndex)
+        {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            var change = new SourceChange(absoluteIndex, 0, string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(change);
+            return owner;
+        }
+
         public static SyntaxNode? GetOwner(
             this RazorSyntaxTree syntaxTree,
             SourceText sourceText,
@@ -90,9 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 return default;
             }
 
-            var change = new SourceChange(absoluteIndex, 0, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
-            return owner;
+            return GetOwner(syntaxTree, absoluteIndex);
         }
 
         public static SyntaxNode? GetOwner(
