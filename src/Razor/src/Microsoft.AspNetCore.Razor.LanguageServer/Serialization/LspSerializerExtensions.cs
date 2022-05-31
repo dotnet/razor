@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -30,7 +28,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
             serializer.JsonSerializer.Converters.RegisterRazorConverters();
 
             AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
-            AddConverter(serializer, Diagnostics.VSDiagnostic.JsonConverter);
             AddConverter(serializer, OmniSharpVSCodeActionContext.JsonConverter);
         }
 
