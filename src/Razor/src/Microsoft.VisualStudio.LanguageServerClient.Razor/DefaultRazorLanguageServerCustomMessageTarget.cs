@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
@@ -900,14 +901,100 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 },
             };
 
-            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
-                textBuffer,
-                Methods.TextDocumentCompletion.Name,
-                languageServerName,
-                completionParams,
-                cancellationToken).ConfigureAwait(false);
-            return response?.Response;
+            var continueOnCapturedContext = false;
+            var provisionalTextEdit = request.ProvisionalTextEdit;
+            if (provisionalTextEdit is not null)
+            {
+                await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                var provisionalChange = new VisualStudioTextChange(request.ProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
+                UpdateVirtualDocument(provisionalChange, request.ProjectedKind, request.HostDocument.Version, documentSnapshot.Uri);
+
+                // We want the delegation to continue on the captured context because we're currently on the `main` thread and we need to get back to the
+                // main thread in order to update the virtual buffer with the reverted text edit.
+                continueOnCapturedContext = true;
+            }
+
+            try
+            {
+                var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+                var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
+                    textBuffer,
+                    Methods.TextDocumentCompletion.Name,
+                    languageServerName,
+                    completionParams,
+                    cancellationToken).ConfigureAwait(continueOnCapturedContext);
+                return response?.Response;
+            }
+            finally
+            {
+                if (provisionalTextEdit is not null)
+                {
+                    var revertedProvisionalTextEdit = BuildRevertedEdit(provisionalTextEdit);
+                    var revertedProvisionalChange = new VisualStudioTextChange(revertedProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
+                    UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.HostDocument.Version, documentSnapshot.Uri);
+                }
+            }
+        }
+
+        private static TextEdit BuildRevertedEdit(TextEdit provisionalTextEdit)
+        {
+            TextEdit? revertedProvisionalTextEdit;
+            if (provisionalTextEdit.Range.Start == provisionalTextEdit.Range.End)
+            {
+                // Insertion
+                revertedProvisionalTextEdit = new TextEdit()
+                {
+                    Range = new Range()
+                    {
+                        Start = provisionalTextEdit.Range.Start,
+
+                        // We're making an assumption that provisional text edits do not span more than 1 line.
+                        End = new Position(provisionalTextEdit.Range.End.Line, provisionalTextEdit.Range.End.Character + provisionalTextEdit.NewText.Length),
+                    },
+                    NewText = string.Empty
+                };
+            }
+            else
+            {
+                // Replace
+                revertedProvisionalTextEdit = new TextEdit()
+                {
+                    Range = provisionalTextEdit.Range,
+                    NewText = string.Empty
+                };
+            }
+
+            return revertedProvisionalTextEdit;
+        }
+
+        private void UpdateVirtualDocument(
+            VisualStudioTextChange textChange,
+            RazorLanguageKind virtualDocumentKind,
+            int hostDocumentVersion,
+            Uri documentSnapshotUri)
+        {
+            if (_documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
+            {
+                return;
+            }
+
+            if (virtualDocumentKind == RazorLanguageKind.CSharp)
+            {
+                trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                    documentSnapshotUri,
+                    new[] { textChange },
+                    hostDocumentVersion,
+                    state: null);
+            }
+            else if (virtualDocumentKind == RazorLanguageKind.Html)
+            {
+                trackingDocumentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
+                    documentSnapshotUri,
+                    new[] { textChange },
+                    hostDocumentVersion,
+                    state: null);
+            }
         }
     }
 }
