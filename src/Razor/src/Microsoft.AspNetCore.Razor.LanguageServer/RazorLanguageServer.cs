@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -240,6 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Completion
                         services.AddSingleton<CompletionListCache>();
                         services.AddSingleton<AggregateCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider, DelegatedCompletionListProvider>();
                         services.AddSingleton<CompletionListProvider, RazorCompletionListProvider>();
                         services.AddSingleton<AggregateCompletionItemResolver>();
                         services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();

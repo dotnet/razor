@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
@@ -50,6 +53,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         protected LspSerializer Serializer { get; }
 
         protected ILoggerFactory LoggerFactory { get; }
+
+        protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        {
+            tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+            var sourceDocument = TestRazorSourceDocument.Create(text);
+            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("/"), builder => { });
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
+            return codeDocument;
+        }
 
         [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]
         private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher

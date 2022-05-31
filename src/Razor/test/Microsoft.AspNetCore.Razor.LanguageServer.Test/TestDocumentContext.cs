@@ -10,13 +10,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     internal static class TestDocumentContext
     {
-        public static DocumentContext From(string filePath, RazorCodeDocument codeDocument)
+        public static DocumentContext From(string filePath, RazorCodeDocument codeDocument, int hostDocumentVersion)
         {
             var content = codeDocument.GetSourceText().ToString();
             var documentSnapshot = TestDocumentSnapshot.Create(filePath, content);
             documentSnapshot.With(codeDocument);
             var uri = new Uri(filePath);
-            return new DocumentContext(uri, documentSnapshot, version: 0);
+            return new DocumentContext(uri, documentSnapshot, hostDocumentVersion);
+        }
+
+        public static DocumentContext From(string filePath, RazorCodeDocument codeDocument)
+        {
+            return From(filePath, codeDocument, hostDocumentVersion: 0);
         }
 
         public static DocumentContext From(string filePath)

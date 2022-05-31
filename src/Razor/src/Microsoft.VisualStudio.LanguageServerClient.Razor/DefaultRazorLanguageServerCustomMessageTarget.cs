@@ -847,5 +847,67 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return result?.Response;
         }
+
+        // JToken returning because there's no value in converting the type into its final type because this method serves entirely as a delegation point (immedaitely re-serializes).
+        public override async Task<JToken?> ProvideCompletionsAsync(
+            DelegatedCompletionParams request,
+            CancellationToken cancellationToken)
+        {
+            var hostDocumentUri = request.HostDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
+            if (request.ProjectedKind == RazorLanguageKind.Html &&
+                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlVirtualDocument.Uri;
+                virtualDocumentSnapshot = htmlVirtualDocument;
+            }
+            else if (request.ProjectedKind == RazorLanguageKind.CSharp &&
+                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                projectedUri = csharpVirtualDocument.Uri;
+                virtualDocumentSnapshot = csharpVirtualDocument;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                request.HostDocument.Version, virtualDocumentSnapshot, rejectOnNewerParallelRequest: false, cancellationToken);
+
+            if (!synchronized)
+            {
+                return null;
+            }
+
+            var completionParams = new CompletionParams()
+            {
+                Context = request.Context,
+                Position = request.ProjectedPosition,
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = projectedUri,
+                },
+            };
+
+            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
+                textBuffer,
+                Methods.TextDocumentCompletion.Name,
+                languageServerName,
+                completionParams,
+                cancellationToken).ConfigureAwait(false);
+            return response?.Response;
+        }
     }
 }
