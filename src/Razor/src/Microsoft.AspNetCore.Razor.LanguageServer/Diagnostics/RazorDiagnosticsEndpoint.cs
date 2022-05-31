@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -27,7 +28,7 @@ using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     internal class RazorDiagnosticsEndpoint :
-        IRazorDiagnosticsHandler
+        IRazorDiagnosticsEndpoint
     {
         // Internal for testing
         internal static readonly IReadOnlyCollection<string> CSharpDiagnosticsToIgnore = new HashSet<string>()

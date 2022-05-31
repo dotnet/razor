@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
         public static bool TryMapFromProjectedDocumentVSRange(this RazorDocumentMappingService service, RazorCodeDocument codeDocument, Range range, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
+<<<<<<< HEAD
             if (service.TryMapFromProjectedDocumentRange(codeDocument, range.AsOmniSharpRange(), mappingBehavior, out var omniOriginalRange))
             {
                 originalRange = omniOriginalRange.AsVSRange();
@@ -68,6 +69,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var result = service.TryMapFromProjectedDocumentPosition(codeDocument, csharpAbsoluteIndex, out var omniOriginalPosition, out originalIndex);
 
             originalPosition = omniOriginalPosition?.AsVSPosition();
+=======
+            var result = service.TryMapFromProjectedDocumentRange(codeDocument, range.AsOmniSharpRange(), mappingBehavior, out var omniOriginalRange);
+
+            originalRange = omniOriginalRange?.AsVSRange();
+>>>>>>> 2ecc25da5 (Move diagnostics to VS Contracts)
 
             return result;
         }
