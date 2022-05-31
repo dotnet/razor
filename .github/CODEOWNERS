@@ -1,15 +1,7 @@
 # Users referenced in this file will automatically be requested as reviewers for PRs that modify the given paths.
 # See https://help.github.com/articles/about-code-owners/
 
-*                                                                                 @Pilchie
-/global.json                                                                      @dotnet/aspnet-build
-/azure-pipelines.yml                                                              @dotnet/aspnet-build
-/NuGet.config                                                                     @dotnet/aspnet-build
-/.vscode/                                                                         @dotnet/aspnet-build @TanayParikh
-/.devcontainer/                                                                   @dotnet/aspnet-build @TanayParikh
-/.github/                                                                         @dotnet/aspnet-build
-/src/                                                                             @dotnet/aspnet-blazor-eng
-/eng/                                                                             @dotnet/aspnet-build
+*                                                                                 @dotnet/razor-compiler
 /eng/common/                                                                      @dotnet-maestro-bot
-/eng/Versions.props                                                               @dotnet-maestro-bot @dotnet/aspnet-build
-/eng/Version.Details.xml                                                          @dotnet-maestro-bot @dotnet/aspnet-build
+/eng/Versions.props                                                               @dotnet-maestro-bot
+/eng/Version.Details.xml                                                          @dotnet-maestro-bot
