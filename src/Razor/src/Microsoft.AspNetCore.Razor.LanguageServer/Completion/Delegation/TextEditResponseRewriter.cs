@@ -39,17 +39,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return completionList;
         }
 
-        // The TextEdit positions returned to us from the C#/HTML language servers are positions correlating to the virtual document.
-        // We need to translate these positions to apply to the Razor document instead. Performance is a big concern here, so we want to
-        // make the logic as simple as possible, i.e. no asynchronous calls.
-        // The current logic takes the approach of assuming the original request's position (Razor doc) correlates directly to the positions
-        // returned by the C#/HTML language servers. We use this assumption (+ math) to map from the virtual (projected) doc positions ->
-        // Razor doc positions.
-        internal static VSInternalCompletionList TranslateTextEdits(
+        private static VSInternalCompletionList TranslateTextEdits(
             Position hostDocumentPosition,
             Position projectedPosition,
             VSInternalCompletionList completionList)
         {
+            // The TextEdit positions returned to us from the C#/HTML language servers are positions correlating to the virtual document.
+            // We need to translate these positions to apply to the Razor document instead. Performance is a big concern here, so we want to
+            // make the logic as simple as possible, i.e. no asynchronous calls.
+            // The current logic takes the approach of assuming the original request's position (Razor doc) correlates directly to the positions
+            // returned by the C#/HTML language servers. We use this assumption (+ math) to map from the virtual (projected) doc positions ->
+            // Razor doc positions.
+
             foreach (var item in completionList.Items)
             {
                 if (item.TextEdit != null)
@@ -67,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return completionList;
         }
 
-        internal static Range TranslateRange(Position hostDocumentPosition, Position projectedPosition, Range textEditRange)
+        private static Range TranslateRange(Position hostDocumentPosition, Position projectedPosition, Range textEditRange)
         {
             var offset = projectedPosition.Character - hostDocumentPosition.Character;
 
