@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Position = new Position(line, col),
                 Character = context.TriggerCharacter.ToString(),
-                TextDocument = new TextDocumentIdentifier { Uri = context.Uri },
+                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri) },
                 Options = context.Options,
                 HostDocumentVersion = documentVersion.Value,
             };
