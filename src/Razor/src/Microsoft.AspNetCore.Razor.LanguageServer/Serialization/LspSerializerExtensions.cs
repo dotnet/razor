@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -28,7 +27,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
             serializer.JsonSerializer.Converters.RegisterRazorConverters();
 
             AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
-            AddConverter(serializer, OmniSharpVSCodeActionContext.JsonConverter);
         }
 
         public static void RegisterVSInternalExtensionConverters(this LspSerializer serializer)
