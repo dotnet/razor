@@ -3,16 +3,12 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
@@ -248,47 +244,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 completionList.Items = completionList.Items.Concat(new[] { completionItem }).ToArray();
 
                 return Task.FromResult(completionList);
-            }
-        }
-
-        private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
-        {
-            private readonly DelegatedCompletionRequestResponseFactory _completionFactory;
-
-            private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, ILoggerFactory loggerFactory, DelegatedCompletionRequestResponseFactory completionFactory) :
-                base(
-                    responseRewriters,
-                    new DefaultRazorDocumentMappingService(loggerFactory),
-                    new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, object>>()
-                    {
-                        [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegation,
-                    }))
-            {
-                _completionFactory = completionFactory;
-            }
-
-            public static TestDelegatedCompletionListProvider Create(ILoggerFactory loggerFactory, params DelegatedCompletionResponseRewriter[] responseRewriters)
-            {
-                var requestResponseFactory = new DelegatedCompletionRequestResponseFactory();
-                var provider = new TestDelegatedCompletionListProvider(responseRewriters, loggerFactory, requestResponseFactory);
-                return provider;
-            }
-
-            public DelegatedCompletionParams DelegatedParams => _completionFactory.DelegatedParams;
-
-            private class DelegatedCompletionRequestResponseFactory
-            {
-                public DelegatedCompletionParams DelegatedParams { get; private set; }
-
-                public object OnDelegation(object parameters)
-                {
-                    DelegatedParams = (DelegatedCompletionParams)parameters;
-
-                    return new VSInternalCompletionList()
-                    {
-                        Items = Array.Empty<CompletionItem>(),
-                    };
-                }
             }
         }
     }
