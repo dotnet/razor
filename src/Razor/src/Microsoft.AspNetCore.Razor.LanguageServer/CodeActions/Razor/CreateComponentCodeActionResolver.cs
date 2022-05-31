@@ -17,8 +17,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -86,20 +86,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Host = string.Empty,
             }.Uri;
 
-            var documentChanges = new List<WorkspaceEditDocumentChange>
+            var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
             {
-                new WorkspaceEditDocumentChange(new CreateFile() { Uri = newComponentUri.ToString() })
+                new CreateFile() { Uri = newComponentUri },
             };
 
             TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
 
             return new WorkspaceEdit()
             {
-                DocumentChanges = documentChanges
+                DocumentChanges = documentChanges.ToArray(),
             };
         }
 
-        private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<WorkspaceEditDocumentChange> documentChanges)
+        private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
             var namespaceDirective = syntaxTree.Root.DescendantNodes()
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (namespaceDirective != null)
             {
                 var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
-                documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
+                documentChanges.Add(new TextDocumentEdit
                 {
                     TextDocument = documentIdentifier,
                     Edits = new[]
@@ -119,10 +119,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextEdit()
                         {
                             NewText = namespaceDirective.GetContent(),
-                            Range = new Range(new Position(0, 0), new Position(0, 0)),
+                            Range = new Range{ Start = new Position(0, 0), End = new Position(0, 0) },
                         }
                     }
-                }));
+                });
             }
         }
     }

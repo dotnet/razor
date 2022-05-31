@@ -11,8 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
@@ -67,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             edit = new TextEdit()
             {
                 NewText = $"$0</{SyntaxConstants.TextTagName}>",
-                Range = new Range(position, position)
+                Range = new Range { Start = position, End = position },
             };
 
             return true;

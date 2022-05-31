@@ -16,6 +16,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             End = new OSharp.Position(-1, -1)
         };
 
+        public static VS.Range UndefinedVSRange => new()
+        {
+            Start = new VS.Position(-1, -1),
+            End = new VS.Position(-1, -1)
+        };
+
         public static bool OverlapsWith(this VS.Range range, VS.Range other)
         {
             if (range is null)
@@ -44,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this OSharp.Range range, OSharp.Range other)
+        public static bool LineOverlapsWith(this VS.Range range, VS.Range other)
         {
             if (range is null)
             {
@@ -71,40 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static OSharp.Range? Overlap(this OSharp.Range range, OSharp.Range other)
-        {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
-            var overlapStart = range.Start;
-            if (range.Start.CompareTo(other.Start) < 0)
-            {
-                overlapStart = other.Start;
-            }
-
-            var overlapEnd = range.End;
-            if (range.End.CompareTo(other.End) > 0)
-            {
-                overlapEnd = other.End;
-            }
-
-            // Empty ranges do not overlap with any range.
-            if (overlapStart.CompareTo(overlapEnd) < 0)
-            {
-                return new OSharp.Range(overlapStart, overlapEnd);
-            }
-
-            return null;
-        }
-
-        public static bool Contains(this OSharp.Range range, OSharp.Range other)
+        public static bool Contains(this VS.Range range, VS.Range other)
         {
             if (range is null)
             {
@@ -117,6 +90,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
+        }
+
+        public static bool SpansMultipleLines(this VS.Range range)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            return range.Start.Line != range.End.Line;
         }
 
         public static TextSpan AsTextSpan(this VS.Range range, SourceText sourceText)

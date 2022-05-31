@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return result;
                 }
 
-                textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
+                textEdits = formattingChanges.Select(change => change.AsVSTextEdit(csharpText)).ToArray();
                 _logger.LogInformation($"Received {textEdits.Length} results from C#.");
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Apply the format on type edits sent over by the client.
             var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
             var changedContext = await context.WithTextAsync(formattedText);
-            var rangeAfterFormatting = spanAfterFormatting.AsRange(formattedText);
+            var rangeAfterFormatting = spanAfterFormatting.AsVSRange(formattedText);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -161,18 +161,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // we calculate these positions in the LineDelta method called above.
             // This is essentially: rangeToAdjust = new Range(Math.Min(firstFormattingEdit, userEdit), Math.Max(lastFormattingEdit, userEdit))
             var start = rangeAfterFormatting.Start;
-            if (firstPosition is not null && firstPosition < start)
+            if (firstPosition is not null && firstPosition.CompareTo(start) < 0)
             {
                 start = firstPosition;
             }
 
             var end = new Position(rangeAfterFormatting.End.Line + lineDelta, 0);
-            if (lastPosition is not null && lastPosition < start)
+            if (lastPosition is not null && lastPosition.CompareTo(start) < 0)
             {
                 end = lastPosition;
             }
 
-            var rangeToAdjust = new Range(start, end);
+            var rangeToAdjust = new Range { Start = start, End = end };
 
             Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
 
@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
             var finalChanges = cleanedText.GetTextChanges(originalText);
-            var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
+            var finalEdits = finalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
 
             if (context.AutomaticallyAddUsings)
             {
@@ -227,8 +227,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var edits = new List<TextEdit>();
             foreach (var usingStatement in newUsings.Except(oldUsings))
             {
-                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, null);
-                edits.AddRange(workspaceEdit.DocumentChanges.First().TextDocumentEdit!.Edits);
+                // This identifier will be eventually thrown away.
+                var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
+                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, codeDocumentIdentifier: identifier);
+                edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
             }
 
             edits.AddRange(finalEdits);
@@ -270,17 +272,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var newLineCount = change.NewText is null ? 0 : change.NewText.Split('\n').Length - 1;
 
-                var range = change.Span.AsRange(text);
+                var range = change.Span.AsVSRange(text);
                 Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
 
                 // For convenience, since we're already iterating through things, we also find the extremes
                 // of the range of edits that were made.
-                if (firstPosition is null || firstPosition > range.Start)
+                if (firstPosition is null || firstPosition.CompareTo(range.Start) > 0)
                 {
                     firstPosition = range.Start;
                 }
 
-                if (lastPosition is null || lastPosition < range.End)
+                if (lastPosition is null || lastPosition.CompareTo(range.End) < 0)
                 {
                     lastPosition = range.End;
                 }
@@ -296,14 +298,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
             var text = context.SourceText;
-            range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+            range ??= TextSpan.FromBounds(0, text.Length).AsVSRange(text);
             var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
             var changes = new List<TextChange>();
             foreach (var mapping in csharpDocument.SourceMappings)
             {
                 var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-                var mappingRange = mappingSpan.AsRange(text);
+                var mappingRange = mappingSpan.AsVSRange(text);
                 if (!range.LineOverlapsWith(mappingRange))
                 {
                     // We don't care about this range. It didn't change.
@@ -512,7 +514,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var changes = edits.Select(e => e.AsTextChange(originalText));
             originalTextWithChanges = originalText.WithChanges(changes);
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
-            var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
+            var cleanEdits = cleanChanges.Select(c => c.AsVSTextEdit(originalText)).ToArray();
             return cleanEdits;
         }
     }

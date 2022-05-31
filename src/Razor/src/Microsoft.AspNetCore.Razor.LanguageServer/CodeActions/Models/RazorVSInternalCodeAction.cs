@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
-internal enum RazorCodeActionPriorityLevel
+internal class RazorVSInternalCodeAction : VSInternalCodeAction
 {
-    Lowest = 0,
-    Low = 1,
-    Normal = 2,
-    High = 3,
+    public string? Name { get; set; }
 }

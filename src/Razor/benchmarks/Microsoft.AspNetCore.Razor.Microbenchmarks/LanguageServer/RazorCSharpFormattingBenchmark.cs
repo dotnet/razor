@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,8 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using FormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private RazorFormattingService RazorFormattingService { get; set; }
 
-        private DocumentUri DocumentUri { get; set; }
+        private Uri DocumentUri { get; set; }
 
         private DocumentSnapshot DocumentSnapshot { get; set; }
 
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
             var targetPath = "/Components/Pages/Generated.razor";
 
-            DocumentUri = DocumentUri.File(_filePath);
+            DocumentUri = new Uri(_filePath);
             DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
             DocumentText = await DocumentSnapshot.GetTextAsync();
         }
@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 InsertSpaces = true
             };
 
-            var range = TextSpan.FromBounds(0, DocumentText.Length).AsRange(DocumentText);
+            var range = TextSpan.FromBounds(0, DocumentText.Length).AsVSRange(DocumentText);
             var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range, options, CancellationToken.None);
 
 #if DEBUG

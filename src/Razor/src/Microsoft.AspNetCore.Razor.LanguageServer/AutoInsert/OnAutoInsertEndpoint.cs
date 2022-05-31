@@ -1,30 +1,29 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
-    internal class OnAutoInsertEndpoint : IOnAutoInsertHandler
+    internal class OnAutoInsertEndpoint : IVSOnAutoInsertEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
-        private readonly Container<string> _onAutoInsertTriggerCharacters;
+        private readonly ImmutableHashSet<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -56,23 +55,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _documentResolver = documentResolver;
             _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
-            _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToList();
+            _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToImmutableHashSet();
         }
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
 
-            var registrationOptions = new OnAutoInsertRegistrationOptions()
+            var registrationOptions = new VSInternalDocumentOnAutoInsertOptions()
             {
-                DocumentSelector = RazorDefaults.Selector,
-                TriggerCharacters = _onAutoInsertTriggerCharacters,
+                TriggerCharacters = _onAutoInsertTriggerCharacters.ToArray(),
             };
 
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        public async Task<OnAutoInsertResponse> Handle(OnAutoInsertParams request, CancellationToken cancellationToken)
+        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> Handle(OnAutoInsertParamsBridge request, CancellationToken cancellationToken)
         {
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
@@ -122,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 {
                     if (applicableProviders[i].TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
                     {
-                        return new OnAutoInsertResponse()
+                        return new VSInternalDocumentOnAutoInsertResponseItem()
                         {
                             TextEdit = textEdit,
                             TextEditFormat = format,

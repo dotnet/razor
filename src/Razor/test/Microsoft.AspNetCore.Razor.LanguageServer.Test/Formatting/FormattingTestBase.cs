@@ -24,9 +24,9 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var span = spans.IsEmpty ? new TextSpan(0, input.Length) : spans.Single();
 
             var source = SourceText.From(input);
-            var range = span.AsRange(source);
+            var range = span.AsVSRange(source);
 
             var path = "file:///path/to/Document." + fileKind;
             var uri = new Uri(path);
@@ -210,8 +210,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
             => new TextEdit()
             {
-                Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(startLine, startChar, endLine, endChar),
-                NewText = newText
+                Range = new VisualStudio.LanguageServer.Protocol.Range{
+                    Start = new Position(startLine, startChar),
+                    End = new Position(endLine, endChar),
+                },
+                NewText = newText,
             };
 
         private RazorFormattingService CreateFormattingService(RazorCodeDocument codeDocument)

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -27,9 +28,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             TabSize = 4,
             InsertSpaces = true,
-            TrimTrailingWhitespace = true,
-            InsertFinalNewline = true,
-            TrimFinalNewlines = true
+            OtherOptions = new Dictionary<string, object>
+            {
+                { "trimTrailingWhitespace", true },
+                { "insertFinalNewline", true },
+                { "trimFinalNewlines", true },
+            },
         };
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -95,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
+            if (resolvedCodeAction.Edit.DocumentChanges.Value.Count() != 1)
             {
                 // We don't yet support multi-document code actions, return original code action
                 return codeAction;
@@ -114,8 +118,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
-            if (!documentChanged.IsTextDocumentEdit)
+            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
+            if (!documentChanged.TryGetFirst(out var textDocumentEdit))
             {
                 // Only Text Document Edit changes are supported currently, return original code action
                 return codeAction;
@@ -123,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var csharpTextEdits = documentChanged.TextDocumentEdit.Edits.ToArray();
+            var csharpTextEdits = textDocumentEdit.Edits;
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
@@ -148,17 +152,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Uri = csharpParams.RazorFileUri,
                 Version = documentVersion.Value
             };
-            resolvedCodeAction = resolvedCodeAction with
+            resolvedCodeAction.Edit = new WorkspaceEdit()
             {
-                Edit = new WorkspaceEdit()
-                {
-                    DocumentChanges = new[] {
-                        new WorkspaceEditDocumentChange(
-                            new TextDocumentEdit()
-                            {
-                                TextDocument = codeDocumentIdentifier,
-                                Edits = formattedEdits,
-                            })
+                DocumentChanges = new TextDocumentEdit[] {
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = codeDocumentIdentifier,
+                        Edits = formattedEdits,
                     }
                 }
             };
