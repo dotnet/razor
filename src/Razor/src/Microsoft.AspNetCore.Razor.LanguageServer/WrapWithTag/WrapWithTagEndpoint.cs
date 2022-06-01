@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
-    internal class WrapWithTagEndpoint : IWrapWithTagHandler
+    internal class WrapWithTagEndpoint : IWrapWithTagEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -72,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             if (documentSnapshot is null)
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -81,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to retrieve generated output for document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
