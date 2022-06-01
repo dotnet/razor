@@ -4,12 +4,11 @@
 #nullable disable
 
 using System;
-using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-internal class RazorBreakpointSpanParams : IRequest<RazorBreakpointSpanResponse>
+internal abstract class RazorProximityExpressionsParams
 {
     public Uri Uri { get; set; }
 
