@@ -7,6 +7,6 @@ using OmniSharp.Extensions.JsonRpc;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 
 [Parallel, Method(LanguageServerConstants.RazorWrapWithTagEndpoint)]
-internal interface IWrapWithTagEndpoint : IJsonRpcRequestHandler<WrapWithTagParams, WrapWithTagResponse?>
+internal interface IWrapWithTagEndpoint : IJsonRpcRequestHandler<WrapWithTagParamsBridge, WrapWithTagResponse?>
 {
 }

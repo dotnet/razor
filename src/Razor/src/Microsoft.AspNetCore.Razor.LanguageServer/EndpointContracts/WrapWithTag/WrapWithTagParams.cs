@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
@@ -10,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTa
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vsweb_wrapWithTag request.
 /// </summary>
-internal class WrapWithTagParams : IRequest<WrapWithTagResponse>, IBaseRequest
+internal class WrapWithTagParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be operate on.

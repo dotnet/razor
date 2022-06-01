@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParamsBridge>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParamsBridge>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 LoggerFactory);
 
             uri = new Uri("file://path/nottest.razor");
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };

@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             _logger = loggerFactory.CreateLogger<WrapWithTagEndpoint>();
         }
 
-        public async Task<WrapWithTagResponse?> Handle(WrapWithTagParams request, CancellationToken cancellationToken)
+        public async Task<WrapWithTagResponse?> Handle(WrapWithTagParamsBridge request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
