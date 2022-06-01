@@ -3,11 +3,14 @@
 
 #nullable disable
 
+using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-internal class RazorBreakpointSpanResponse
+internal abstract class RazorBreakpointSpanParams
 {
-    public Range Range { get; set; }
+    public Uri Uri { get; set; }
+
+    public Position Position { get; set; }
 }

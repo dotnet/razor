@@ -3,14 +3,11 @@
 
 #nullable disable
 
-using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-internal abstract class RazorProximityExpressionsParams
+internal class RazorBreakpointSpanResponse
 {
-    public Uri Uri { get; set; }
-
-    public Position Position { get; set; }
+    public Range Range { get; set; }
 }

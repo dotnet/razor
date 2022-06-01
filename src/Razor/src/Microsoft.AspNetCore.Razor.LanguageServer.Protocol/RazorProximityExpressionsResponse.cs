@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 internal class RazorProximityExpressionsResponse
 {
