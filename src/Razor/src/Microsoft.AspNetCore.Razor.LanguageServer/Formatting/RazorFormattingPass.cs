@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     var start = brace.GetRange(source).Start;
                     var edit = new TextEdit
                     {
-                        Range = new Range(start, start),
+                        Range = new Range { Start = start, End = start },
                         NewText = " "
                     };
                     edits.Add(edit);
@@ -354,7 +354,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var edit = new TextEdit
                 {
                     NewText = newText,
-                    Range = new Range(openBraceRange.End, openBraceRange.End),
+                    Range = new Range { Start = openBraceRange.End, End = openBraceRange.End },
                 };
                 edits.Add(edit);
                 didFormat = true;
@@ -370,7 +370,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var edit = new TextEdit
                 {
                     NewText = context.NewLineString,
-                    Range = new Range(codeRange.End, codeRange.End),
+                    Range = new Range { Start = codeRange.End, End = codeRange.End },
                 };
                 edits.Add(edit);
                 didFormat = true;

@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 // These should already be remapped.
-                var range = span.AsVSRange(sourceText);
+                var range = span.AsRange(sourceText);
                 var edits = await CSharpFormatter.FormatAsync(context, range, cancellationToken);
                 csharpEdits.AddRange(edits.Where(e => range.Contains(e.Range)));
             }

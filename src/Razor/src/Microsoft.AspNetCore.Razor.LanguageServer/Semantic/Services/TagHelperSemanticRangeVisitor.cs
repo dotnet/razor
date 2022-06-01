@@ -441,7 +441,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var source = _razorCodeDocument.Source;
-            var range = node.GetVSRange(source);
+            var range = node.GetRange(source);
 
             // LSP spec forbids multi-line tokens, so we need to split this up.
             if (range.Start.Line != range.End.Line)
@@ -476,7 +476,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
                         if (!token.ContainsOnlyWhitespace())
                         {
-                            var tokenRange = token.GetVSRange(source);
+                            var tokenRange = token.GetRange(source);
 
                             var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
                             AddRange(semantic);

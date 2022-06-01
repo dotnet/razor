@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using Omni = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -58,8 +57,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     break;
                 }
 
-                var mappedStart = this.TryMapFromProjectedDocumentVSPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
-                var mappedEnd = this.TryMapFromProjectedDocumentVSPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
+                var mappedStart = this.TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
+                var mappedEnd = this.TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
                 // Ideal case, both start and end can be mapped so just return the edit
                 if (mappedStart && mappedEnd)
@@ -105,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
                     Debug.Assert(lastNewLine == 0 || edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
-                    var proposedRange = new Omni.Range(range.End.Line, 0, range.End.Line, range.End.Character);
+                    var proposedRange = new VS.Range { Start = new VS.Position(range.End.Line, 0), End = new VS.Position(range.End.Line, range.End.Character) };
                     startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
                     endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out endIndex);
                     if (startSync is false || endSync is false)
@@ -113,8 +112,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         break;
                     }
 
-                    mappedStart = this.TryMapFromProjectedDocumentVSPosition(codeDocument, startIndex, out hostDocumentStart, out _);
-                    mappedEnd = this.TryMapFromProjectedDocumentVSPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
+                    mappedStart = this.TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
+                    mappedEnd = this.TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
 
                     if (mappedStart && mappedEnd)
                     {
@@ -168,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                     // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
                     var endOfLine = line.Span.End;
-                    if (this.TryMapFromProjectedDocumentVSPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
+                    if (this.TryMapFromProjectedDocumentPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
                     {
                         if (range.Start.Line == lastNewLineAddedToLine)
                         {
@@ -200,9 +199,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return projectedEdits.ToArray();
         }
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(true)] out Omni.Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(true)] out VS.Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Omni.Range? originalRange)
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, VS.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out VS.Range? originalRange)
         {
             if (codeDocument is null)
             {
@@ -232,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Omni.Range originalRange, [NotNullWhen(true)] out Omni.Range? projectedRange)
+        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, VS.Range originalRange, [NotNullWhen(true)] out VS.Range? projectedRange)
         {
             if (codeDocument is null)
             {
@@ -257,7 +256,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var sourceText = codeDocument.GetSourceText();
             var range = originalRange;
-            if (!IsRangeWithinDocument(range.AsVSRange(), sourceText))
+            if (!IsRangeWithinDocument(range, sourceText))
             {
                 return false;
             }
@@ -287,14 +286,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            projectedRange = new Omni.Range(
-                projectedStart,
-                projectedEnd);
+            projectedRange = new VS.Range
+            {
+                Start = projectedStart,
+                End = projectedEnd,
+            };
 
             return true;
         }
 
-        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Omni.Position? originalPosition, out int originalIndex)
+        public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out VS.Position? originalPosition, out int originalIndex)
         {
             if (codeDocument is null)
             {
@@ -317,7 +318,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         originalIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
                         var originalLocation = codeDocument.Source.Lines.GetLocation(originalIndex);
-                        originalPosition = new Omni.Position(originalLocation.LineIndex, originalLocation.CharacterIndex);
+                        originalPosition = new VS.Position(originalLocation.LineIndex, originalLocation.CharacterIndex);
                         return true;
                     }
                 }
@@ -328,13 +329,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return false;
         }
 
-        public override bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex)
+        public override bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex)
             => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
 
-        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex)
+        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex)
             => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
 
-        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Omni.Position? projectedPosition, out int projectedIndex)
+        private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex)
         {
             if (codeDocument is null)
             {
@@ -379,11 +380,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectedIndex = default;
             return false;
 
-            static Omni.Position GetProjectedPosition(RazorCodeDocument codeDocument, int projectedIndex)
+            static VS.Position GetProjectedPosition(RazorCodeDocument codeDocument, int projectedIndex)
             {
                 var generatedSource = codeDocument.GetCSharpSourceText();
                 var generatedLinePosition = generatedSource.Lines.GetLinePosition(projectedIndex);
-                var projectedPosition = new Omni.Position(generatedLinePosition.Line, generatedLinePosition.Character);
+                var projectedPosition = new VS.Position(generatedLinePosition.Line, generatedLinePosition.Character);
                 return projectedPosition;
             }
         }
@@ -501,13 +502,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private bool TryMapFromProjectedDocumentRangeStrict(RazorCodeDocument codeDocument, Omni.Range projectedRange, out Omni.Range? originalRange)
+        private bool TryMapFromProjectedDocumentRangeStrict(RazorCodeDocument codeDocument, VS.Range projectedRange, out VS.Range? originalRange)
         {
             originalRange = default;
 
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var range = projectedRange;
-            if (!IsRangeWithinDocument(range.AsVSRange(), csharpSourceText))
+            if (!IsRangeWithinDocument(range, csharpSourceText))
             {
                 return false;
             }
@@ -524,14 +525,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            originalRange = new Omni.Range(
-                hostDocumentStart,
-                hostDocumentEnd);
+            originalRange = new VS.Range
+            {
+                Start = hostDocumentStart,
+                End = hostDocumentEnd
+            };
 
             return true;
         }
 
-        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(returnValue: true)] out Omni.Range? originalRange)
+        private bool TryMapFromProjectedDocumentRangeInclusive(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(returnValue: true)] out VS.Range? originalRange)
         {
             originalRange = default;
 
@@ -548,7 +551,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (startMappedDirectly && endMappedDirectly)
             {
                 // We strictly mapped the start/end of the projected range.
-                originalRange = new Omni.Range(hostDocumentStart!, hostDocumentEnd!);
+                originalRange = new VS.Range
+                {
+                    Start = hostDocumentStart!,
+                    End = hostDocumentEnd!
+                };
                 return true;
             }
 
@@ -596,18 +603,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return unchecked((uint)(position - span.AbsoluteIndex) <= (uint)span.Length);
             }
 
-            static Omni.Range ConvertMapping(RazorSourceDocument sourceDocument, SourceMapping mapping)
+            static VS.Range ConvertMapping(RazorSourceDocument sourceDocument, SourceMapping mapping)
             {
                 var startLocation = sourceDocument.Lines.GetLocation(mapping.OriginalSpan.AbsoluteIndex);
                 var endLocation = sourceDocument.Lines.GetLocation(mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length);
-                var convertedRange = new Omni.Range(
-                    new Omni.Position(startLocation.LineIndex, startLocation.CharacterIndex),
-                    new Omni.Position(endLocation.LineIndex, endLocation.CharacterIndex));
+                var convertedRange = new VS.Range
+                {
+                    Start = new VS.Position(startLocation.LineIndex, startLocation.CharacterIndex),
+                    End = new VS.Position(endLocation.LineIndex, endLocation.CharacterIndex)
+                };
                 return convertedRange;
             }
         }
 
-        private bool TryMapFromProjectedDocumentRangeInferred(RazorCodeDocument codeDocument, Omni.Range projectedRange, [NotNullWhen(returnValue: true)] out Omni.Range? originalRange)
+        private bool TryMapFromProjectedDocumentRangeInferred(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(returnValue: true)] out VS.Range? originalRange)
         {
             // Inferred mapping behavior is a superset of inclusive mapping behavior so if the range is "inclusive" lets use that mapping.
             if (TryMapFromProjectedDocumentRangeInclusive(codeDocument, projectedRange, out originalRange))
@@ -653,7 +662,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var originalSpanBeforeProjectedRange = mappingBeforeProjectedRange.OriginalSpan;
             var originalEndBeforeProjectedRange = originalSpanBeforeProjectedRange.AbsoluteIndex + originalSpanBeforeProjectedRange.Length;
             var originalEndPositionBeforeProjectedRange = sourceDocument.Lines.GetLocation(originalEndBeforeProjectedRange);
-            var inferredStartPosition = new Omni.Position(originalEndPositionBeforeProjectedRange.LineIndex, originalEndPositionBeforeProjectedRange.CharacterIndex);
+            var inferredStartPosition = new VS.Position(originalEndPositionBeforeProjectedRange.LineIndex, originalEndPositionBeforeProjectedRange.CharacterIndex);
 
             if (mappingAfterProjectedRange != null)
             {
@@ -661,9 +670,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var originalSpanAfterProjectedRange = mappingAfterProjectedRange.OriginalSpan;
                 var originalStartPositionAfterProjectedRange = sourceDocument.Lines.GetLocation(originalSpanAfterProjectedRange.AbsoluteIndex);
-                var inferredEndPosition = new Omni.Position(originalStartPositionAfterProjectedRange.LineIndex, originalStartPositionAfterProjectedRange.CharacterIndex);
+                var inferredEndPosition = new VS.Position(originalStartPositionAfterProjectedRange.LineIndex, originalStartPositionAfterProjectedRange.CharacterIndex);
 
-                originalRange = new Omni.Range()
+                originalRange = new VS.Range()
                 {
                     Start = inferredStartPosition,
                     End = inferredEndPosition,
@@ -676,9 +685,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Debug.Assert(sourceDocument.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
 
             var endOfDocumentLocation = sourceDocument.Lines.GetLocation(sourceDocument.Length);
-            var endOfDocumentPosition = new Omni.Position(endOfDocumentLocation.LineIndex, endOfDocumentLocation.CharacterIndex);
+            var endOfDocumentPosition = new VS.Position(endOfDocumentLocation.LineIndex, endOfDocumentLocation.CharacterIndex);
 
-            originalRange = new Omni.Range()
+            originalRange = new VS.Range()
             {
                 Start = inferredStartPosition,
                 End = endOfDocumentPosition,

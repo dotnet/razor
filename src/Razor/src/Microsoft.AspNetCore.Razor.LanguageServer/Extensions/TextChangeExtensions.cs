@@ -5,28 +5,12 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class TextChangeExtensions
     {
-        public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText)
-        {
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
-            var range = textChange.Span.AsRange(sourceText);
-
-            return new TextEdit()
-            {
-                NewText = textChange.NewText,
-                Range = range
-            };
-        }
         public static VS.TextEdit AsVSTextEdit(this TextChange textChange, SourceText sourceText)
         {
             if (sourceText is null)
@@ -34,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            var range = textChange.Span.AsVSRange(sourceText);
+            var range = textChange.Span.AsRange(sourceText);
 
             return new VS.TextEdit()
             {

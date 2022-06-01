@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
-            var range = span.AsVSRange(codeDocument.GetSourceText());
+            var range = span.AsRange(codeDocument.GetSourceText());
             var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, range, request.Options, cancellationToken);
 
             return edits;

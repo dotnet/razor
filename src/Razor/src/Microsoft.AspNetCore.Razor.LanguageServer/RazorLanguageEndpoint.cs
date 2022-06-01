@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             if (languageKind == RazorLanguageKind.CSharp)
             {
-                if (_documentMappingService.TryMapToProjectedDocumentVSPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
+                if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
                 {
                     // For C# locations, we attempt to return the corresponding position
                     // within the projected document
@@ -190,7 +190,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 var projectedRange = request.ProjectedRanges[i];
                 if (codeDocument.IsUnsupported() ||
-                    !_documentMappingService.TryMapFromProjectedDocumentVSRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
                     ranges[i] = RangeExtensions.UndefinedVSRange;

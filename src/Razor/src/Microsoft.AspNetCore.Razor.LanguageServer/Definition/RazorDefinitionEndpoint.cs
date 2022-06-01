@@ -193,8 +193,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                     return null;
                 }
 
-                var range = property.Identifier.Span.AsVSRange(csharpText);
-                if (documentMappingService.TryMapFromProjectedDocumentVSRange(codeDocument, range, out var originalRange))
+                var range = property.Identifier.Span.AsRange(csharpText);
+                if (documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var originalRange))
                 {
                     return originalRange;
                 }

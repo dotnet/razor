@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             // Now map that new C# location back to the host document
             var mappingBehavior = GetMappingBehavior(documentSnapshot);
-            if (!_documentMappingService.TryMapFromProjectedDocumentVSRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
             {
                 return null;
             }

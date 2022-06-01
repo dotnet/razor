@@ -306,7 +306,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
@@ -333,7 +333,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
@@ -360,7 +360,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
@@ -391,7 +391,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
