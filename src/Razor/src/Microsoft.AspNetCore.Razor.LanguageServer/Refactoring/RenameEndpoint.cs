@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    internal class RazorComponentRenameEndpoint : IRenameEndpoint
+    internal class RenameEndpoint : IRenameEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-        public RazorComponentRenameEndpoint(
+        public RenameEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine,

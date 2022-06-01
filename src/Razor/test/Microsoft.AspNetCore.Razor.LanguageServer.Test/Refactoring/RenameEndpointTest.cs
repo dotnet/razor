@@ -26,11 +26,11 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 {
-    public class RazorComponentRenameEndpointTest : LanguageServerTestBase
+    public class RenameEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorComponentRenameEndpoint _endpoint;
+        private readonly RenameEndpoint _endpoint;
 
-        public RazorComponentRenameEndpointTest()
+        public RenameEndpointTest()
         {
             _endpoint = CreateEndpoint();
         }
@@ -428,7 +428,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             return documentSnapshot;
         }
 
-        private RazorComponentRenameEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null)
+        private RenameEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null)
         {
             var tagHelperDescriptors = new List<TagHelperDescriptor>();
             tagHelperDescriptors.AddRange(CreateRazorComponentTagHelperDescriptors("First", "First.Components", "Component1"));
@@ -501,7 +501,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
-            var endpoint = new RazorComponentRenameEndpoint(Dispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
+            var endpoint = new RenameEndpoint(Dispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
             return endpoint;
         }
 

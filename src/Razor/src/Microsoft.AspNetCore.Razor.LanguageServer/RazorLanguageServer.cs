@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
-                    .WithHandler<RazorComponentRenameEndpoint>()
+                    .WithHandler<RenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
                     .WithHandler<LinkedEditingRangeEndpoint>()
                     .WithHandler<WrapWithTagEndpoint>()
