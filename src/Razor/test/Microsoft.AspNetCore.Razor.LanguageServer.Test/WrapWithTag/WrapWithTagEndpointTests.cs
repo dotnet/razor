@@ -7,16 +7,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
@@ -36,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParamsBridge>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
@@ -48,9 +50,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
 
             // Act
@@ -75,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParamsBridge>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
@@ -87,9 +89,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
 
             // Act
@@ -120,9 +122,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 LoggerFactory);
 
             uri = new Uri("file://path/nottest.razor");
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
 
             // Act
@@ -152,9 +154,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 documentMappingService,
                 LoggerFactory);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
 
             // Act
