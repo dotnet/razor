@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -16,17 +17,9 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
-    internal class LinkedEditingRangeParamsBridge : LinkedEditingRangeParams, IRequest<,>
-    {
-    }
-
-    [Parallel, Method(Methods.TextDocumentLinkedEditingRangeName)]
-    internal interface ILinkedEditingRangeEndpoint: IJsonRpcRequestHandler<LinkedEditingRangeParamsBridge, LinkedEditingRanges>
-
     internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
     {
         // The regex below excludes characters that can never be valid in a TagHelper name.
@@ -64,22 +57,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
-        public LinkedEditingRangeRegistrationOptions GetRegistrationOptions(
-            LinkedEditingRangeClientCapabilities capability,
-            ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new LinkedEditingRangeRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
+            const string ServerCapability = "linkedEditingRangeProvider";
+            var option = new LinkedEditingRangeOptions { };
+
+            return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
-        // The return type of the handler should be nullable. O# tracking issue:
-        // https://github.com/OmniSharp/csharp-language-server-protocol/issues/644
         public async Task<LinkedEditingRanges?> Handle(
-#pragma warning restore CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
-            LinkedEditingRangeParams request,
+            LinkedEditingRangeParamsBridge request,
             CancellationToken cancellationToken)
         {
             var uri = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
@@ -116,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-                var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
+                var ranges = new Range[2] { startSpan.AsVSRange(), endSpan.AsVSRange() };
 
                 return new LinkedEditingRanges
                 {
