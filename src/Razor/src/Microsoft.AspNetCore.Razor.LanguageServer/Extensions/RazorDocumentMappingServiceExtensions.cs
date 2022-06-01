@@ -27,6 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return result;
         }
 
+        public static bool TryMapFromProjectedDocumentVSRange(this RazorDocumentMappingService service, RazorCodeDocument codeDocument, Range range, [NotNullWhen(true)] out Range? originalRange)
+            => TryMapFromProjectedDocumentVSRange(service, codeDocument, range, MappingBehavior.Strict, out originalRange);
+
         public static bool TryMapFromProjectedDocumentVSRange(this RazorDocumentMappingService service, RazorCodeDocument codeDocument, Range range, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
             if (service.TryMapFromProjectedDocumentRange(codeDocument, range.AsOmniSharpRange(), mappingBehavior, out var omniOriginalRange))
