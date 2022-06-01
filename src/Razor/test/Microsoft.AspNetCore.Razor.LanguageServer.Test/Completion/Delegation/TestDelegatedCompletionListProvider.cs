@@ -24,7 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, object>>()
                 {
                     [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegation,
-                }))
+                }),
+                new CompletionListCache())
         {
             _completionFactory = completionFactory;
         }
