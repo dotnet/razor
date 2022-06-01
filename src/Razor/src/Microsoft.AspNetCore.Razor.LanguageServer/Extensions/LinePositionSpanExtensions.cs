@@ -2,13 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class LinePositionSpanExtensions
     {
-        public static Range AsRange(this LinePositionSpan linePositionSpan)
+        public static Range AsVSRange(this LinePositionSpan linePositionSpan)
         {
             var range = new Range
             {
