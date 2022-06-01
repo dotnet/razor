@@ -2,26 +2,32 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using System.Diagnostics.CodeAnalysis;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
-    internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeHandler
+    internal class LinkedEditingRangeParamsBridge : LinkedEditingRangeParams, IRequest<,>
+    {
+    }
+
+    [Parallel, Method(Methods.TextDocumentLinkedEditingRangeName)]
+    internal interface ILinkedEditingRangeEndpoint: IJsonRpcRequestHandler<LinkedEditingRangeParamsBridge, LinkedEditingRanges>
+
+    internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
     {
         // The regex below excludes characters that can never be valid in a TagHelper name.
         // This is loosely based off logic from the Razor compiler:
