@@ -11,7 +11,7 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [Parallel, Method(Methods.TextDocumentDefinitionName)]
-    internal interface IDefinitionEndpoint : IJsonRpcRequestHandler<DefinitionParams, DefinitionResult?>,
+    internal interface IDefinitionEndpoint : IJsonRpcRequestHandler<DefinitionParamsBridge, DefinitionResult?>,
         IRegistrationExtension
     {
     }

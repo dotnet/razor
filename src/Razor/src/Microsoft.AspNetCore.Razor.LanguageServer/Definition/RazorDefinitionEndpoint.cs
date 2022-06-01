@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        public async Task<DefinitionResult?> Handle(DefinitionParams request, CancellationToken cancellationToken)
+        public async Task<DefinitionResult?> Handle(DefinitionParamsBridge request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting go-to-def endpoint request.");
 
