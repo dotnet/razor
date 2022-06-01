@@ -25,6 +25,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
         }
 
+        internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> ElementAt(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType, int elementIndex)
+        {
+            if (sumType.TryGetFirst(out var textDocumentEdits))
+            {
+                return textDocumentEdits[elementIndex];
+            }
+            else if (sumType.TryGetSecond(out var edits))
+            {
+                return edits[elementIndex];
+            }
+            else
+            {
+                throw new NotImplementedException("Shouldn't be possible");
+            }
+        }
+
         internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] ToArray(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
         {
             if (sumType.TryGetFirst(out var textDocumentEdit))

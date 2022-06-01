@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,20 +13,18 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    internal class RazorComponentRenameEndpoint : IRenameHandler
+    internal class RazorComponentRenameEndpoint : IRenameEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -50,16 +46,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         }
 
-        public RenameRegistrationOptions GetRegistrationOptions(RenameCapability capability, ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new RenameRegistrationOptions
+            const string ServerCapability = "renameProvider";
+            var options = new RenameOptions
             {
                 PrepareProvider = false,
-                DocumentSelector = RazorDefaults.Selector,
             };
+
+            return new RegistrationExtensionResult(ServerCapability, options);
         }
 
-        public async Task<WorkspaceEdit> Handle(RenameParams request, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> Handle(RenameParamsBridge request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -113,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var documentChanges = new List<WorkspaceEditDocumentChange>();
+            var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
             AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
             AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
@@ -125,15 +123,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             return new WorkspaceEdit
             {
-                DocumentChanges = documentChanges,
+                DocumentChanges = documentChanges.ToArray(),
             };
         }
 
-        private async Task<List<DocumentSnapshot>> GetAllDocumentSnapshotsAsync(DocumentSnapshot skipDocumentSnapshot, CancellationToken cancellationToken)
+        private async Task<List<DocumentSnapshot?>> GetAllDocumentSnapshotsAsync(DocumentSnapshot skipDocumentSnapshot, CancellationToken cancellationToken)
         {
             return await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                var documentSnapshots = new List<DocumentSnapshot>();
+                var documentSnapshots = new List<DocumentSnapshot?>();
                 var documentPaths = new HashSet<string>();
                 foreach (var project in _projectSnapshotManager.Projects)
                 {
@@ -162,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }, cancellationToken).ConfigureAwait(false);
         }
 
-        public void AddFileRenameForComponent(List<WorkspaceEditDocumentChange> documentChanges, DocumentSnapshot documentSnapshot, string newPath)
+        public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, DocumentSnapshot documentSnapshot, string newPath)
         {
             var oldUri = new UriBuilder
             {
@@ -177,11 +175,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Scheme = Uri.UriSchemeFile,
             }.Uri;
 
-            documentChanges.Add(new WorkspaceEditDocumentChange(new RenameFile
+            documentChanges.Add(new RenameFile
             {
-                OldUri = oldUri.ToString(),
-                NewUri = newUri.ToString(),
-            }));
+                OldUri = oldUri,
+                NewUri = newUri,
+            });
         }
 
         private static string MakeNewPath(string originalPath, string newName)
@@ -192,10 +190,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
 
         private async Task AddEditsForCodeDocumentAsync(
-            List<WorkspaceEditDocumentChange> documentChanges,
+            List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
             IReadOnlyList<TagHelperDescriptor> originTagHelpers,
             string newName,
-            DocumentSnapshot documentSnapshot)
+            DocumentSnapshot? documentSnapshot)
         {
             if (documentSnapshot is null)
             {
@@ -224,10 +222,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
 
         public void AddEditsForCodeDocument(
-            List<WorkspaceEditDocumentChange> documentChanges,
+            List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
             IReadOnlyList<TagHelperDescriptor> originTagHelpers,
             string newName,
-            DocumentUri uri,
+            Uri uri,
             RazorCodeDocument codeDocument)
         {
             var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
@@ -240,7 +238,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 var editedName = newName;
                 var originTagHelper = originTagHelpers[i];
-                if (originTagHelper?.IsComponentFullyQualifiedNameMatch() == true)
+                if (originTagHelper.IsComponentFullyQualifiedNameMatch() == true)
                 {
                     // Fully qualified binding, our "new name" needs to be fully qualified.
                     var @namespace = originTagHelper.GetTypeNamespace();
@@ -257,23 +255,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 {
                     if (node is MarkupTagHelperElementSyntax tagHelperElement && BindingContainsTagHelper(originTagHelper, tagHelperElement.TagHelperInfo.BindingResult))
                     {
-                        documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
+                        documentChanges.Add(new TextDocumentEdit
                         {
                             TextDocument = documentIdentifier,
-                            Edits = CreateEditsForMarkupTagHelperElement(tagHelperElement, codeDocument, editedName)
-                        }));
+                            Edits = CreateEditsForMarkupTagHelperElement(tagHelperElement, codeDocument, editedName).ToArray(),
+                        });
                     }
                 }
             }
         }
 
-        public List<TextEdit> CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
+        public IReadOnlyCollection<TextEdit> CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
         {
             var edits = new List<TextEdit>
             {
                 new TextEdit()
                 {
-                    Range = element.StartTag.Name.GetRange(codeDocument.Source),
+                    Range = element.StartTag.Name.GetVSRange(codeDocument.Source),
                     NewText = newName,
                 },
             };
@@ -281,7 +279,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 edits.Add(new TextEdit()
                 {
-                    Range = element.EndTag.Name.GetRange(codeDocument.Source),
+                    Range = element.EndTag.Name.GetVSRange(codeDocument.Source),
                     NewText = newName,
                 });
             }
@@ -292,7 +290,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) =>
             potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
-        private async Task<IReadOnlyList<TagHelperDescriptor>> GetOriginTagHelpersAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
+        private async Task<IReadOnlyList<TagHelperDescriptor>?> GetOriginTagHelpersAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
         {
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             var linePosition = new LinePosition((int)position.Line, (int)position.Character);
@@ -354,7 +352,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return originTagHelpers;
         }
 
-        private static TagHelperDescriptor FindAssociatedTagHelper(TagHelperDescriptor tagHelper, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+        private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, IReadOnlyList<TagHelperDescriptor> tagHelpers)
         {
             var typeName = tagHelper.GetTypeName();
             var assemblyName = tagHelper.AssemblyName;

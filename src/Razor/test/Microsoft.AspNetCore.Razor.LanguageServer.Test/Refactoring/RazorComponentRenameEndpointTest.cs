@@ -12,14 +12,16 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
@@ -39,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             // Arrange
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == false, MockBehavior.Strict);
             var endpoint = CreateEndpoint(languageServerFeatureOptions);
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -60,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_WithNamespaceDirective()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -75,16 +77,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.DocumentChanges.Count());
-            var renameChange = result.DocumentChanges.ElementAt(0);
-            Assert.True(renameChange.IsRenameFile);
-            Assert.Equal("file:///c:/First/Component2.razor", renameChange.RenameFile.OldUri);
-            Assert.Equal("file:///c:/First/Component5.razor", renameChange.RenameFile.NewUri);
-            var editChange = result.DocumentChanges.ElementAt(1);
-            Assert.True(editChange.IsTextDocumentEdit);
-            Assert.Equal("file:///c:/First/Component1.razor", editChange.TextDocumentEdit.TextDocument.Uri.ToString());
+            var documentChanges = result.DocumentChanges.Value;
+            Assert.Equal(2, documentChanges.Count());
+            var renameChange = documentChanges.ElementAt(0);
+            Assert.True(renameChange.TryGetThird(out var renameFile));
+            Assert.Equal(new Uri("file:///c:/First/Component2.razor"), renameFile.OldUri);
+            Assert.Equal(new Uri("file:///c:/First/Component5.razor"), renameFile.NewUri);
+            var editChange = documentChanges.ElementAt(1);
+            Assert.True(editChange.TryGetFirst(out var textDocumentEdit));
+            Assert.Equal("file:///c:/First/Component1.razor", textDocumentEdit.TextDocument.Uri.ToString());
             Assert.Collection(
-                editChange.TextDocumentEdit.Edits,
+                textDocumentEdit.Edits,
                 edit =>
                 {
                     Assert.Equal("Component5", edit.NewText);
@@ -107,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentParameter_ReturnsNull()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -128,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnOpeningBrace_ReturnsNull()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -149,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentNameLeadingEdge_ReturnsResult()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -170,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentName_ReturnsResult()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -191,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentNameTrailingEdge_ReturnsResult()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -212,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_FullyQualifiedAndNot()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -227,16 +230,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(3, result.DocumentChanges.Count());
-            var renameChange = result.DocumentChanges.ElementAt(0);
-            Assert.True(renameChange.IsRenameFile);
-            Assert.Equal("file:///c:/First/Component1337.razor", renameChange.RenameFile.OldUri);
-            Assert.Equal("file:///c:/First/Component5.razor", renameChange.RenameFile.NewUri);
-            var editChange1 = result.DocumentChanges.ElementAt(1);
-            Assert.True(editChange1.IsTextDocumentEdit);
-            Assert.Equal("file:///c:/First/Index.razor", editChange1.TextDocumentEdit.TextDocument.Uri.ToString());
+            var documentChanges = result.DocumentChanges.Value;
+            Assert.Equal(3, documentChanges.Count());
+            var renameChange = documentChanges.ElementAt(0);
+            Assert.True(renameChange.TryGetThird(out var renameFile));
+            Assert.Equal(new Uri("file:///c:/First/Component1337.razor"), renameFile.OldUri);
+            Assert.Equal(new Uri("file:///c:/First/Component5.razor"), renameFile.NewUri);
+            var editChange1 = documentChanges.ElementAt(1);
+            Assert.True(editChange1.TryGetFirst(out var textDocumentEdit));
+            Assert.Equal("file:///c:/First/Index.razor", textDocumentEdit.TextDocument.Uri.ToString());
             Assert.Collection(
-                editChange1.TextDocumentEdit.Edits,
+                textDocumentEdit.Edits,
                 edit =>
                 {
                     Assert.Equal("Component5", edit.NewText);
@@ -254,11 +258,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                     Assert.Equal(30, edit.Range.End.Character);
                 });
 
-            var editChange2 = result.DocumentChanges.ElementAt(2);
-            Assert.True(editChange2.IsTextDocumentEdit);
-            Assert.Equal("file:///c:/First/Index.razor", editChange2.TextDocumentEdit.TextDocument.Uri.ToString());
+            var editChange2 = result.DocumentChanges.Value.ElementAt(2);
+            Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
+            Assert.Equal("file:///c:/First/Index.razor", textDocumentEdit2.TextDocument.Uri.ToString());
             Assert.Collection(
-                editChange2.TextDocumentEdit.Edits,
+                textDocumentEdit2.Edits,
                 edit =>
                 {
                     Assert.Equal("Test.Component5", edit.NewText);
@@ -281,7 +285,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_MultipleFileUsages()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -296,16 +300,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(4, result.DocumentChanges.Count());
-            var renameChange = result.DocumentChanges.ElementAt(0);
-            Assert.True(renameChange.IsRenameFile);
-            Assert.Equal("file:///c:/Second/Component3.razor", renameChange.RenameFile.OldUri);
-            Assert.Equal("file:///c:/Second/Component5.razor", renameChange.RenameFile.NewUri);
-            var editChange1 = result.DocumentChanges.ElementAt(1);
-            Assert.True(editChange1.IsTextDocumentEdit);
-            Assert.Equal("file:///c:/Second/Component3.razor", editChange1.TextDocumentEdit.TextDocument.Uri.ToString());
+            Assert.Equal(4, result.DocumentChanges.Value.Count());
+            var renameChange = result.DocumentChanges.Value.ElementAt(0);
+            Assert.True(renameChange.TryGetThird(out var renameFile));
+            Assert.Equal(new Uri("file:///c:/Second/Component3.razor"), renameFile.OldUri);
+            Assert.Equal(new Uri("file:///c:/Second/Component5.razor"), renameFile.NewUri);
+            var editChange1 = result.DocumentChanges.Value.ElementAt(1);
+            Assert.True(editChange1.TryGetFirst(out var textDocumentEdit));
+            Assert.Equal("file:///c:/Second/Component3.razor", textDocumentEdit.TextDocument.Uri.ToString());
             Assert.Collection(
-                editChange1.TextDocumentEdit.Edits,
+                textDocumentEdit.Edits,
                 edit =>
                 {
                     Assert.Equal("Component5", edit.NewText);
@@ -322,17 +326,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                     Assert.Equal(1, edit.Range.End.Line);
                     Assert.Equal(24, edit.Range.End.Character);
                 });
-            var editChange2 = result.DocumentChanges.ElementAt(2);
-            Assert.True(editChange2.IsTextDocumentEdit);
-            Assert.Equal("file:///c:/Second/Component4.razor", editChange2.TextDocumentEdit.TextDocument.Uri.ToString());
-            Assert.Equal(2, editChange2.TextDocumentEdit.Edits.Count());
+            var editChange2 = result.DocumentChanges.Value.ElementAt(2);
+            Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
+            Assert.Equal("file:///c:/Second/Component4.razor", textDocumentEdit2.TextDocument.Uri.ToString());
+            Assert.Equal(2, textDocumentEdit2.Edits.Count());
         }
 
         [Fact]
         public async Task Handle_Rename_DifferentDirectories()
         {
             // Arrange
-            var request = new RenameParams
+            var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -347,16 +351,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.DocumentChanges.Count());
-            var renameChange = result.DocumentChanges.ElementAt(0);
-            Assert.True(renameChange.IsRenameFile);
-            Assert.Equal("file:///c:/Dir2/Directory2.razor", renameChange.RenameFile.OldUri);
-            Assert.Equal("file:///c:/Dir2/TestComponent.razor", renameChange.RenameFile.NewUri);
-            var editChange = result.DocumentChanges.ElementAt(1);
-            Assert.True(editChange.IsTextDocumentEdit);
-            Assert.Equal("file:///c:/Dir1/Directory1.razor", editChange.TextDocumentEdit.TextDocument.Uri.ToString());
+            Assert.Equal(2, result.DocumentChanges.Value.Count());
+            var renameChange = result.DocumentChanges.Value.ElementAt(0);
+            Assert.True(renameChange.TryGetThird(out var renameFile));
+            Assert.Equal(new Uri("file:///c:/Dir2/Directory2.razor"), renameFile.OldUri);
+            Assert.Equal(new Uri("file:///c:/Dir2/TestComponent.razor"), renameFile.NewUri);
+            var editChange = result.DocumentChanges.Value.ElementAt(1);
+            Assert.True(editChange.TryGetFirst(out var textDocumentEdit));
+            Assert.Equal("file:///c:/Dir1/Directory1.razor", textDocumentEdit.TextDocument.Uri.ToString());
             Assert.Collection(
-                editChange.TextDocumentEdit.Edits,
+                textDocumentEdit.Edits,
                 edit =>
                 {
                     Assert.Equal("TestComponent", edit.NewText);
@@ -448,7 +452,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var fileSystem = new TestRazorProjectFileSystem(new[] { item1, item2, item3, item4, itemComponentParam, indexItem, itemDirectory1, itemDirectory2 });
 
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder => {
+            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder =>
+            {
                 builder.AddDirective(NamespaceDirective.Directive);
                 builder.AddTagHelpers(tagHelperDescriptors);
             });
