@@ -5,10 +5,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
+
+internal class RazorProximityExpressionsResponse
 {
-    internal class RazorProximityExpressionsResponse
-    {
-        public IReadOnlyList<string> Expressions { get; set; }
-    }
+    public IReadOnlyList<string> Expressions { get; set; }
 }
