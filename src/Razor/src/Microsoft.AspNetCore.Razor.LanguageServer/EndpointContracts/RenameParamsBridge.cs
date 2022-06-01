@@ -6,6 +6,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
+/// <summary>
+/// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="RenameParams"/>
+/// type does not implement <see cref="IRequest"/>.
+/// </summary>
 internal class RenameParamsBridge : RenameParams, IRequest<WorkspaceEdit?>
 {
 }
