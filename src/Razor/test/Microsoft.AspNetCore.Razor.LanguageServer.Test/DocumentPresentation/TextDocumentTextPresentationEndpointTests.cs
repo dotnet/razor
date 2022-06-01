@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
-using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
@@ -90,10 +89,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var projectedRange = It.IsAny<OmniSharpRange>();
+            var projectedRange = It.IsAny<Range>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
-                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<OmniSharpRange>(), out projectedRange) == true, MockBehavior.Strict);
+                s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
