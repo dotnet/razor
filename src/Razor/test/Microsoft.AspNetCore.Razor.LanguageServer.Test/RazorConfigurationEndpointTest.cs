@@ -1,15 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -34,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var optionsMonitor = new TestRazorLSPOptionsMonitor(ConfigurationService, Cache);
             var endpoint = new RazorConfigurationEndpoint(optionsMonitor, LoggerFactory);
-            var request = new DidChangeConfigurationParams();
+            var request = new DidChangeConfigurationParamsBridge();
 
             // Act
             await endpoint.Handle(request, CancellationToken.None);
