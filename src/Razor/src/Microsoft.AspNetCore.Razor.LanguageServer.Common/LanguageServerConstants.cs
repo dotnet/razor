@@ -35,6 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorCompletionEndpointName = "razor/completion";
 
+        public const string RazorCompletionResolveEndpointName = "razor/completionItem/resolve";
+
         // RZLS Custom Message Targets
         public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
 

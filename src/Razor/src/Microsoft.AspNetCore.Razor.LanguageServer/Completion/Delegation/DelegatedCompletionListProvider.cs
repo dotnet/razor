@@ -31,15 +31,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         private readonly IReadOnlyList<DelegatedCompletionResponseRewriter> _responseRewriters;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
+        private readonly CompletionListCache _completionListCache;
 
         public DelegatedCompletionListProvider(
             IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
             RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer)
+            ClientNotifierServiceBase languageServer,
+            CompletionListCache completionListCache)
         {
             _responseRewriters = responseRewriters.OrderBy(rewriter => rewriter.Order).ToArray();
             _documentMappingService = documentMappingService;
             _languageServer = languageServer;
+            _completionListCache = completionListCache;
         }
 
         public override ImmutableHashSet<string> TriggerCharacters => s_allTriggerCharacters;
@@ -87,6 +90,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                                                                       delegatedParams,
                                                                       cancellationToken).ConfigureAwait(false);
             }
+
+            var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
+            var resolutionContext = new DelegatedCompletionResolutionContext(delegatedParams, rewrittenCompletionList.Data);
+            var resultId = _completionListCache.Set(rewrittenCompletionList, resolutionContext);
+            rewrittenCompletionList.SetResultId(resultId, completionCapability);
 
             return rewrittenCompletionList;
         }
@@ -153,7 +161,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 
             return rewrittenContext;
         }
-
 
         private ProvisionalCompletionInfo? TryGetProvisionalCompletionInfo(
             VSInternalCompletionContext completionContext,

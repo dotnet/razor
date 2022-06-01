@@ -996,5 +996,45 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     state: null);
             }
         }
+
+        public override async Task<JToken?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
+        {
+            var hostDocumentUri = request.HostDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            string languageServerName;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
+            if (request.OriginatingKind == RazorLanguageKind.Html &&
+                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                virtualDocumentSnapshot = htmlVirtualDocument;
+            }
+            else if (request.OriginatingKind == RazorLanguageKind.CSharp &&
+                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                virtualDocumentSnapshot = csharpVirtualDocument;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return null;
+            }
+
+            var completionResolveParams = request.CompletionItem;
+
+            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, JToken?>(
+                textBuffer,
+                Methods.TextDocumentCompletionResolve.Name,
+                languageServerName,
+                completionResolveParams,
+                cancellationToken).ConfigureAwait(false);
+            return response?.Response;
+        }
     }
 }
