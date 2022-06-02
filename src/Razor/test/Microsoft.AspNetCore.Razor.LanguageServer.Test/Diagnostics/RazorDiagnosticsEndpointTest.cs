@@ -4,17 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -27,16 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
     {
         public RazorDiagnosticsEndpointTest()
         {
-            var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
-            int? version = 1337;
-            documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
-                .Returns(true);
-
-            DocumentVersionCache = documentVersionCache.Object;
             MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
         }
-
-        private DocumentVersionCache DocumentVersionCache { get; }
 
         private RazorDocumentMappingService MappingService { get; }
 
@@ -44,17 +33,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_DocumentResolveFailed_ThrowsDebugFail()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            var documentSnapshot = default(DocumentSnapshot);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(false);
+            var documentPath = new Uri("C:/path/to/document.cshtml");
+            var documentContextFactory = new Mock<DocumentContextFactory>(MockBehavior.Strict);
+            documentContextFactory.Setup(resolver => resolver.TryCreateAsync(documentPath, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(value: null);
 
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver.Object, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory.Object, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act & Assert
@@ -65,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_DocumentVersionFailed_ReturnsNullDiagnostics()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -74,18 +62,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
-            int? version = default;
-            documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
-                .Returns(false);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument, documentFound: false);
 
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, documentVersionCache.Object, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 10), End = new Position(0, 22) }, } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
@@ -93,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Null(response.Diagnostics);
             Assert.Null(response.HostDocumentVersion);
         }
 
@@ -101,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_CSharp()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -110,13 +94,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 10), End = new Position(0, 22) } } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
@@ -132,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessRudeEditDiagnostics_StatementLiteral_CSharp()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "@{ void Foo() {} }",
                 "   void Foo() {} ",
@@ -142,15 +126,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(2, 15),
                         new SourceSpan(2, 15))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
 
                 // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
                 Diagnostics = new[] { new VSDiagnostic() { Code = "ENC123", Range = new Range { Start = new Position(0, 3), End = new Position(0, 16) } } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 3), End = new Position(0, 16) };
 
@@ -166,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessRudeEditDiagnostics_ExpressionLiteral_CSharp()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "@Method((parameter) => {})",
                 "__o = Method((parameter) => {})",
@@ -176,15 +160,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(1, 25),
                         new SourceSpan(6, 25))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
 
                 // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
                 Diagnostics = new[] { new VSDiagnostic() { Code = "ENC123", Range = new Range { Start = new Position(0, 13), End = new Position(0, 23) } } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 13), End = new Position(0, 23) };
 
@@ -200,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessRudeEditDiagnostics_Unknown_CSharp()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 " @{ void Foo< @* Comment! *@ TValue>() {} }  ",
                 "    void Foo<  TValue>() {} ",
@@ -215,15 +199,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(28, 14),
                         new SourceSpan(15, 13))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
 
                 // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
                 Diagnostics = new[] { new VSDiagnostic() { Code = "ENC123", Range = new Range { Start = new Position(0, 9), End = new Position(0, 36) } } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 1), End = new Position(0, 43) };
 
@@ -239,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_FilterDiagnostics_CSharpInsideStyleBlockSpace()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<style> @DateTime.Now </style>",
                 "var __o = DateTime.Now",
@@ -248,8 +232,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -260,7 +244,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 8),End =  new Position(0, 15) };
 
@@ -275,7 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_FilterDiagnostics_CSharpInsideStylePropertySpace()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<style> body { overflow: @DateTime.Now; } </style>",
                 "var __o = DateTime.Now",
@@ -284,8 +268,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(26, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -296,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -310,7 +294,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_FilterDiagnostics_CSharpInsideStyleBlock()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<style> @DateTime.Now </style>",
                 "var __o = DateTime.Now",
@@ -319,8 +303,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -331,7 +315,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 8),End =  new Position(0, 15)};
 
@@ -346,7 +330,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_FilterDiagnostics_CSharpWarning()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -355,8 +339,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -367,7 +351,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
                 var expectedRange = new Range { Start = new Position(0, 4),End =  new Position(0, 16)};
 
@@ -383,7 +367,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_UnbalancedHtmlTags()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p><</p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -392,8 +376,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -403,7 +387,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Severity = DiagnosticSeverity.Error
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -418,7 +402,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_DoNotFilterErrorDiagnostics_CSharpError()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -427,8 +411,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -439,7 +423,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Severity = DiagnosticSeverity.Error
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 4),End =  new Position(0, 16)};
 
@@ -455,7 +439,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_CSharpWarning_Unmapped_ReturnsNoDiagnostics()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -464,8 +448,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -475,7 +459,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -490,7 +474,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_CSharpError_Unmapped_ReturnsUndefinedRangeDiagnostic()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -499,8 +483,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -510,7 +494,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 0), End = new Position(0, 3)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -525,13 +509,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_NoRazorDiagnostic_ReturnsDiagnostic()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p @onabort=\"\"></p>",
                 "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
                 sourceMappings: Array.Empty<SourceMapping>());
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -542,7 +526,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -557,13 +541,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_WithRazorDiagnostic_ReturnsNoDiagnostics()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p @onabort=\"\"></p>",
                 "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
                 sourceMappings: Array.Empty<SourceMapping>());
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithRazorDiagnostic(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithRazorDiagnostic(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -574,7 +558,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 128), End = new Position(0, 128)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -589,7 +573,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_NotInAttribute_ReturnsDiagnostics()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now)</p>",
                 "var __o = DateTime.Now)",
@@ -598,8 +582,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(4, 13),
                         new SourceSpan(10, 13))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -610,7 +594,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 12), End = new Position(0, 13)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 6), End = new Position(0, 7)};
 
@@ -626,15 +610,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 16),End =  new Position(0, 20)} } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -649,15 +633,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Razor()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Razor,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 1),End =  new Position(0, 3)} } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -672,7 +656,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Unsupported()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -682,13 +666,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 10), End = new Position(0, 22)} } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -703,7 +687,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_TagHelperStartTag()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
             var codeDocument = CreateCodeDocument(
                 $"{addTagHelper}<button></button>",
@@ -711,13 +695,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 {
                     GetButtonTagHelperDescriptor().Build()
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(1, 1),End =  new Position(1, 7)} } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -732,7 +716,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_TagHelperEndTag()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
             var codeDocument = CreateCodeDocument(
                 $"{addTagHelper}<button></button>",
@@ -740,13 +724,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 {
                     GetButtonTagHelperDescriptor().Build()
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(1, 10),End =  new Position(1, 17)} } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -761,7 +745,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_WithCSharpInAttribute_SingleDiagnostic()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p style=\"padding: @System.Math.PI px;\">Hello</p>",
                 "var __o = System.Math.PI",
@@ -770,13 +754,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(20, 14),
                         new SourceSpan(10, 14))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
                 Diagnostics = new[] { new VSDiagnostic() { Range = new Range { Start = new Position(0, 18),End =  new Position(0, 19)} } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -791,7 +775,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_WithCSharpInAttribute_MultipleDiagnostics()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p style=\"abc;padding: @System.Math.PI px;abc;\">Hello</p>",
                 "var __o = System.Math.PI",
@@ -800,8 +784,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(24, 14),
                         new SourceSpan(10, 14))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -813,7 +797,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     new VSDiagnostic() { Range = new Range { Start = new Position(0, 45),End =  new Position(0, 46)} },   // trailing `abc`
                     new VSDiagnostic() { Range = new Range { Start = new Position(0, 55),End =  new Position(0, 57)} }    // in `Hello`
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -830,7 +814,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_WithCSharpInTagHelperAttribute_MultipleDiagnostics()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
 
             var descriptor = GetButtonTagHelperDescriptor();
 
@@ -850,8 +834,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 new[] {
                     descriptor.Build()
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -860,7 +844,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 20),End =  new Position(0, addTagHelper.Length + 25)} },
                     new VSDiagnostic() { Range = new Range { Start = new Position(0, addTagHelper.Length + 38),End =  new Position(0, addTagHelper.Length + 47)} }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -875,7 +859,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_DisableInvalidNestingWarningInTagHelper()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var descriptor = GetButtonTagHelperDescriptor();
 
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
@@ -896,8 +880,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 new[] {
                     descriptor.Build()
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -914,7 +898,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(10, 4),End =  new Position(10, 13)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -930,10 +914,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_CSHTML_DoNotIgnoreMissingEndTagDiagnostic()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -945,7 +929,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -962,10 +946,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_Razor_IgnoreMissingEndTagDiagnostic()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now", kind: FileKinds.Component);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -977,7 +961,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 0),End =  new Position(0, 3)},
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -991,10 +975,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_Razor_UnbalancedTags_UnexpectedEndTagErrorCode()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<!body></body>", kind: FileKinds.Component);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -1006,7 +990,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 7),End =  new Position(0, 9)},
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -1023,10 +1007,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_Razor_BodyTag_UnexpectedEndTagErrorCode()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<html><!body><div></div></!body></html>", kind: FileKinds.Component);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -1049,7 +1033,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 2),  End = new Position(0, 3)},
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -1063,10 +1047,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public async Task Handle_ProcessDiagnostics_Html_Razor_UnexpectedEndTagErrorCode()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<!body></!body>", kind: FileKinds.Component);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(documentContextFactory, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -1078,7 +1062,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         Range = new Range { Start = new Position(0, 7), End = new Position(0, 9)}
                     }
                 },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -1099,20 +1083,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     .PropertyName("onactivate")
                     .TypeName(typeof(string).FullName));
             return descriptor;
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? kind = null)
@@ -1144,12 +1114,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         class TestRazorDiagnosticsEndpointWithRazorDiagnostic : RazorDiagnosticsEndpoint
         {
             public TestRazorDiagnosticsEndpointWithRazorDiagnostic(
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                DocumentResolver documentResolver,
-                DocumentVersionCache documentVersionCache,
+                DocumentContextFactory documentContextFactory,
                 RazorDocumentMappingService documentMappingService,
                 ILoggerFactory loggerFactory)
-                : base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                : base(documentContextFactory, documentMappingService, loggerFactory)
             {
             }
 
@@ -1162,12 +1130,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         class TestRazorDiagnosticsEndpointWithoutRazorDiagnostic : RazorDiagnosticsEndpoint
         {
             public TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                DocumentResolver documentResolver,
-                DocumentVersionCache documentVersionCache,
+                DocumentContextFactory documentContextFactory,
                 RazorDocumentMappingService documentMappingService,
                 ILoggerFactory loggerFactory)
-                : base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                : base(documentContextFactory, documentMappingService, loggerFactory)
             {
             }
 

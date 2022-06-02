@@ -9,12 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -33,7 +33,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
-            Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
             Serializer = new LspSerializer();
             Serializer.RegisterRazorConverters();
             Serializer.RegisterVSInternalExtensionConverters();
@@ -46,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         // the opportunity to re-write our tests correctly.
         internal ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
 
-        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+        internal readonly ProjectSnapshotManagerDispatcher Dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
 
         internal FilePathNormalizer FilePathNormalizer { get; }
 
@@ -61,6 +60,43 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("/"), builder => { });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
             return codeDocument;
+        }
+
+        internal static DocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)
+        {
+            var codeDocument = CreateCodeDocument(sourceText);
+            return CreateDocumentContextFactory(documentPath, codeDocument);
+        }
+
+        internal static DocumentContextFactory CreateDocumentContextFactory(
+            Uri documentPath,
+            RazorCodeDocument codeDocument,
+            bool documentFound = true,
+            int version = 1337)
+        {
+            var sourceTextChars = new char[codeDocument.Source.Length];
+            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
+            var sourceText = SourceText.From(new string(sourceTextChars));
+
+            var snapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
+            var outVal = documentFound ? codeDocument : null;
+            snapshot.Setup(s => s.TryGetGeneratedOutput(out outVal)).Returns(documentFound);
+            snapshot.Setup(s => s.GetTextAsync()).Returns(Task.FromResult(sourceText));
+            snapshot.Setup(s => s.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
+            snapshot.SetupGet(s => s.FilePath).Returns(documentPath.GetAbsoluteOrUNCPath());
+            snapshot.SetupGet(s => s.FileKind).Returns(codeDocument.GetFileKind());
+            
+            var documentContext = new DocumentContext(documentPath, snapshot.Object, version);
+            var documentContextFactory = new Mock<DocumentContextFactory>(MockBehavior.Strict);
+            documentContextFactory.Setup(factory => factory.TryCreateAsync(documentPath, It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(documentFound ? documentContext : null));
+
+            return documentContextFactory.Object;
+        }
+
+        internal static DocumentContext  CreateDocumentContext(Uri uri, DocumentSnapshot snapshot)
+        {
+            return new DocumentContext(uri, snapshot, version: 0);
         }
 
         [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]

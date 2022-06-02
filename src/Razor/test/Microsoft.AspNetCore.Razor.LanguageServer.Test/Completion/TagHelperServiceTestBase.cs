@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 //using Castle.Core.Logging;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -217,31 +218,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             };
         }
 
-        internal static (Queue<DocumentSnapshot>, Queue<TextDocumentIdentifier>) CreateDocumentSnapshot(string[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
+        internal static (Queue<DocumentContext>, Queue<TextDocumentIdentifier>) CreateDocumentContext(DocumentContentVersion[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
         {
-            var documentSnapshots = new Queue<DocumentSnapshot>();
+            var documentSnapshots = new Queue<DocumentContext>();
             var identifiers = new Queue<TextDocumentIdentifier>();
             foreach (var (text, isRazorFile) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
             {
-                var document = CreateCodeDocument(text, isRazorFile, tagHelpers);
+                var document = CreateCodeDocument(text.Content, isRazorFile, tagHelpers);
 
                 var projectSnapshot = new Mock<ProjectSnapshot>(MockBehavior.Strict);
                 projectSnapshot
                     .Setup(p => p.Version)
                     .Returns(projectVersion);
 
-                var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
-                documentSnapshot.Setup(d => d.GetGeneratedOutputAsync())
+                var documentContext = new Mock<DocumentContext>(MockBehavior.Strict);
+                documentContext.Setup(d => d.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(document);
 
-                var version = VersionStamp.Create();
-                documentSnapshot.Setup(d => d.GetTextVersionAsync())
-                    .ReturnsAsync(version);
+                documentContext.SetupGet(d => d.Version)
+                    .Returns(Random.Shared.Next());
 
-                documentSnapshot.Setup(d => d.Project)
+                documentContext.Setup(d => d.Project)
                     .Returns(projectSnapshot.Object);
 
-                documentSnapshots.Enqueue(documentSnapshot.Object);
+                documentSnapshots.Enqueue(documentContext.Object);
                 var identifier = GetIdentifier(isRazorFile);
                 identifiers.Enqueue(identifier);
             }
@@ -259,5 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             return codeDocument;
         }
+
+        internal record DocumentContentVersion(string Content, int Version = 0);
     }
 }

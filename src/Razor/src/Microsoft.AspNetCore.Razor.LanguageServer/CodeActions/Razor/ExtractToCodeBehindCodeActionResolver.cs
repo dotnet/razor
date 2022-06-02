@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,17 +27,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly FilePathNormalizer _filePathNormalizer;
 
         public ExtractToCodeBehindCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             FilePathNormalizer filePathNormalizer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
@@ -59,17 +55,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var path = _filePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(path, out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-            if (document is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
@@ -88,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Host = string.Empty,
             }.Uri;
 
-            var text = await document.GetTextAsync().ConfigureAwait(false);
+            var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             if (text is null)
             {
                 return null;

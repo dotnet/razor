@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -21,8 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormattingEndpoint
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly DocumentResolver _documentResolver;
+    private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorFormattingService _razorFormattingService;
     private readonly RazorDocumentMappingService _razorDocumentMappingService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
@@ -33,21 +30,15 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
     private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
     public RazorDocumentOnTypeFormattingEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        DocumentResolver documentResolver,
+        DocumentContextFactory documentContextFactory,
         RazorFormattingService razorFormattingService,
         RazorDocumentMappingService razorDocumentMappingService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (documentContextFactory is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (documentResolver is null)
-        {
-            throw new ArgumentNullException(nameof(documentResolver));
+            throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         if (razorFormattingService is null)
@@ -70,8 +61,7 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _documentResolver = documentResolver;
+        _documentContextFactory = documentContextFactory;
         _razorFormattingService = razorFormattingService;
         _razorDocumentMappingService = razorDocumentMappingService;
         _optionsMonitor = optionsMonitor;
@@ -106,14 +96,9 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
             return null;
         }
 
-        var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+        var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
-            return documentSnapshot;
-        }, cancellationToken).ConfigureAwait(false);
-
-        if (documentSnapshot is null)
+        if (documentContext is null)
         {
             _logger.LogWarning("Failed to find document {requestTextDocumentUri}.", request.TextDocument.Uri);
             return null;
@@ -121,14 +106,14 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
         if (codeDocument.IsUnsupported())
         {
             _logger.LogWarning("Failed to retrieve generated output for document {requestTextDocumentUri}.", request.TextDocument.Uri);
             return null;
         }
 
-        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
         {
             return null;
@@ -152,7 +137,7 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
 
         Debug.Assert(request.Character.Length > 0);
 
-        var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+        var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentContext.Snapshot, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
         if (formattedEdits.Length == 0)
         {
             _logger.LogInformation("No formatting changes were necessary");

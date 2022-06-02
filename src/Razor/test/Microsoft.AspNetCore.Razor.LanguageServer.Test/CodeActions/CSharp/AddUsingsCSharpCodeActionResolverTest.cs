@@ -9,10 +9,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -71,10 +68,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             out CSharpCodeActionParams codeActionParams,
             out AddUsingsCSharpCodeActionResolver addUsingResolver)
         {
-            var documentPath = "c:/Test.razor";
-            var documentUri = new Uri(documentPath);
+            var documentUri = new Uri("c:/Test.razor");
             var contents = string.Empty;
-            var codeDocument = CreateCodeDocument(contents, documentPath);
+            var codeDocument = CreateCodeDocument(contents, documentUri.AbsolutePath);
 
             codeActionParams = new CSharpCodeActionParams()
             {
@@ -83,20 +79,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var languageServer = CreateLanguageServer();
-            var documentVersionCache = CreateDocumentVersionCache();
 
             addUsingResolver = new AddUsingsCSharpCodeActionResolver(
-                Dispatcher,
-                CreateDocumentResolver(documentPath, codeDocument),
-                languageServer,
-                documentVersionCache);
-        }
-
-        private static DocumentVersionCache CreateDocumentVersionCache()
-        {
-            int? documentVersion = 2;
-            var documentVersionCache = Mock.Of<DocumentVersionCache>(dvc => dvc.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out documentVersion) == true, MockBehavior.Strict);
-            return documentVersionCache;
+                CreateDocumentContextFactory(documentUri, codeDocument),
+                languageServer);
         }
 
         private static ClientNotifierServiceBase CreateLanguageServer()
@@ -104,21 +90,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             return languageServer.Object;
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver
-                .Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocument(string text, string documentPath)

@@ -11,7 +11,6 @@ using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,31 +24,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
     internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IJsonRpcRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
         where TParams : IPresentationParams, IRequest<WorkspaceEdit?>
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        protected internal readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _razorDocumentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
-        private readonly DocumentVersionCache _documentVersionCache;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         protected readonly ILogger _logger;
 
         protected AbstractTextDocumentPresentationEndpointBase(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             ILogger logger)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (razorDocumentMappingService is null)
@@ -62,11 +52,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
             if (languageServerFeatureOptions is null)
             {
                 throw new ArgumentNullException(nameof(languageServerFeatureOptions));
@@ -77,11 +62,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _razorDocumentMappingService = razorDocumentMappingService;
             _languageServer = languageServer;
-            _documentVersionCache = documentVersionCache;
             _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = logger;
         }
@@ -96,31 +79,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         public async Task<WorkspaceEdit?> Handle(TParams request, CancellationToken cancellationToken)
         {
-            var documentAndVersion = await TryGetDocumentSnapshotAndVersionAsync(
-               request.TextDocument.Uri.GetAbsoluteOrUNCPath(),
-               cancellationToken).ConfigureAwait(false);
-
-            if (documentAndVersion is null)
-            {
-                return null;
-            }
-
-            var (documentSnapshot, version) = documentAndVersion;
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
                 return null;
             }
 
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             if (request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
             {
                 return null;
@@ -142,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var requestParams = CreateRazorRequestParameters(request);
 
-            requestParams.HostDocumentVersion = version;
+            requestParams.HostDocumentVersion = documentContext.Version;
             requestParams.Kind = languageKind;
 
             // For CSharp we need to map the range to the generated document
@@ -329,35 +303,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             }
 
             return workspaceEdit;
-        }
-
-        protected Task<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
-                    }
-                }
-
-                return null;
-            }, cancellationToken);
-        }
-
-        protected Task<DocumentSnapshot?> TryGetDocumentSnapshotAsync(string uri, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    return documentSnapshot;
-                }
-
-                return null;
-            }, cancellationToken);
         }
 
         protected record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);

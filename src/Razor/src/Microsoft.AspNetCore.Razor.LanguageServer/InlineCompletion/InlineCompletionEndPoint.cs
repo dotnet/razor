@@ -10,15 +10,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,8 +29,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly DocumentResolver _documentResolver;
+    private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
@@ -41,21 +37,15 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        DocumentResolver documentResolver,
+        DocumentContextFactory documentContextFactory,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         AdhocWorkspaceFactory adhocWorkspaceFactory,
         ILoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (documentContextFactory is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (documentResolver is null)
-        {
-            throw new ArgumentNullException(nameof(documentResolver));
+            throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         if (documentMappingService is null)
@@ -78,8 +68,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _documentResolver = documentResolver;
+        _documentContextFactory = documentContextFactory;
         _documentMappingService = documentMappingService;
         _languageServer = languageServer;
         _adhocWorkspaceFactory = adhocWorkspaceFactory;
@@ -107,25 +96,19 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
-        var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-            return documentSnapshot;
-        }, cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
+        var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+        if (documentContext is null)
         {
             return null;
         }
 
-        var codeDocument = await document.GetGeneratedOutputAsync();
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
         if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
-        var sourceText = await document.GetTextAsync();
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
@@ -158,7 +141,6 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         }
 
         var items = new List<VSInternalInlineCompletionItem>();
-        var csharpDocOptions = codeDocument.GetCSharpDocument();
         foreach (var item in list.Items)
         {
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
@@ -170,7 +152,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
                 continue;
             }
 
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, request.Options, _adhocWorkspaceFactory);
+            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, documentContext.Snapshot, codeDocument, request.Options, _adhocWorkspaceFactory);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;

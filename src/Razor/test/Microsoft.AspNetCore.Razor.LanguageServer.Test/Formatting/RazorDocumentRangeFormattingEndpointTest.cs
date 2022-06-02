@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
@@ -21,11 +20,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = TestRazorCodeDocument.CreateEmpty();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, optionsMonitor);
+                documentContextFactory, formattingService, optionsMonitor);
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -46,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor);
+                EmptyDocumentContextFactory, formattingService, optionsMonitor);
             var uri = new Uri("file://path/test.razor");
             var @params = new DocumentRangeFormattingParamsBridge()
             {
@@ -67,11 +66,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = TestRazorCodeDocument.CreateEmpty();
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.AbsolutePath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, optionsMonitor);
+                documentContextFactory, formattingService, optionsMonitor);
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -91,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor);
+                EmptyDocumentContextFactory, formattingService, optionsMonitor);
             var @params = new DocumentRangeFormattingParamsBridge();
 
             // Act

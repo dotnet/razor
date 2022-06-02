@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public override async Task<DocumentContext?> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
         {
             var filePath = documentUri.GetAbsoluteOrUNCPath();
+
             var documentAndVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 if (_documentResolver.TryResolveDocument(filePath, out var documentSnapshot))
@@ -51,6 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 //          - Took too long to run and by the time the request needed the document context the
                 //            version cache has evicted the entry
                 //     2. Client is misbehaving and sending requests for a document that we've never seen before.
+                _logger.LogWarning("Tried to create context for document {documentUri} which was not found.", documentUri);
                 return null;
             }, cancellationToken).ConfigureAwait(false);
 
@@ -63,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (documentSnapshot, version) = documentAndVersion;
             if (documentSnapshot is null)
             {
-                Debug.Fail($"Document snapshot should never be null here for '{documentUri}'. This indicates that our acquisition of documents / versions did not behave as expected.");
+                Debug.Fail($"Document snapshot should never be null here for '{filePath}'. This indicates that our acquisition of documents / versions did not behave as expected.");
                 return null;
             }
 

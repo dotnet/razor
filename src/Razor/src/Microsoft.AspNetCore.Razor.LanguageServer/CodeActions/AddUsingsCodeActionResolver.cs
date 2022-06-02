@@ -16,8 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
@@ -25,25 +23,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
 
-        public AddUsingsCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver)
+        public AddUsingsCodeActionResolver(DocumentContextFactory documentContextFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
@@ -61,17 +50,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var path = actionParams.Uri.GetAbsoluteOrUNCPath();
-
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(path, out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken);
+            if (documentContext is null)
             {
                 return null;
             }
+
+            var documentSnapshot = documentContext.Snapshot;
 
             var text = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             if (text is null)

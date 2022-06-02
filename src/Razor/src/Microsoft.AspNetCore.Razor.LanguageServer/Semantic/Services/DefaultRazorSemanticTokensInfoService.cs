@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -29,24 +28,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly ILogger _logger;
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
+            DocumentContextFactory documentContextFactory,
             ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
 
             if (loggerFactory is null)
             {
@@ -61,22 +54,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range range,
             CancellationToken cancellationToken)
         {
-            var documentPath = textDocumentIdentifier.Uri.GetAbsoluteOrUNCPath();
-            if (documentPath is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(textDocumentIdentifier.Uri, cancellationToken);
+            if (documentContext is null)
             {
                 return null;
             }
-
-            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
-            if (documentInfo is null)
-            {
-                return null;
-            }
-
-            var (documentSnapshot, documentVersion) = documentInfo.Value;
 
             var tokens = await GetSemanticTokensAsync(
-                textDocumentIdentifier, range, documentSnapshot, documentVersion, cancellationToken);
+                textDocumentIdentifier, range, documentContext, cancellationToken);
             return tokens;
         }
 
@@ -84,15 +69,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         internal async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
-            DocumentSnapshot documentSnapshot,
-            int documentVersion,
+            DocumentContext documentContext,
             CancellationToken cancellationToken)
         {
-            var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
@@ -101,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             try
             {
                 csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
-                    codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken).ConfigureAwait(false);
+                    codeDocument, textDocumentIdentifier, range, documentContext.Version, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -123,17 +103,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var tokens = new SemanticTokens { Data = data };
 
             return tokens;
-        }
-
-        private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
-        {
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            return codeDocument;
         }
 
         private static IReadOnlyList<SemanticRange>? CombineSemanticRanges(params IReadOnlyList<SemanticRange>?[] rangesArray)
@@ -391,22 +360,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // We don't currently have any need for tokenModifiers
                 targetArray[currentCount + 4] = currentRange.Modifier;
             }
-        }
-
-        private Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot Snapshot, int Version)?>(() =>
-            {
-                if (_documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot))
-                {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return (documentSnapshot, version.Value);
-                    }
-                }
-
-                return null;
-            }, cancellationToken);
         }
     }
 }

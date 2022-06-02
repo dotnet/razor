@@ -7,12 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
@@ -27,16 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_Html_MakesRequest()
         {
             // Arrange
-            int? version = 1;
-            var documentVersionCache = Mock.Of<DocumentVersionCache>(
-                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
-                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
 
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
@@ -49,11 +41,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                documentVersionCache,
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
@@ -82,13 +72,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_CSharp_MakesRequest()
         {
             // Arrange
-            int? version = 1;
-            var documentVersionCache = Mock.Of<DocumentVersionCache>(
-                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
-                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var projectedRange = It.IsAny<Range>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
@@ -105,11 +91,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                documentVersionCache,
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
@@ -138,13 +122,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
             // Arrange
-            int? version = 1;
-            var documentVersionCache = Mock.Of<DocumentVersionCache>(
-                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
-                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
@@ -159,11 +139,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                documentVersionCache,
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
@@ -192,14 +170,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         public async Task Handle_UnsupportedCodeDocument_ReturnsNull()
         {
             // Arrange
-            int? version = 1;
-            var documentVersionCache = Mock.Of<DocumentVersionCache>(
-                s => s.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version) == true,
-                MockBehavior.Strict);
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
@@ -214,11 +188,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                documentVersionCache,
                 TestLanguageServerFeatureOptions.Instance,
                 LoggerFactory);
 
@@ -241,24 +213,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // Assert
             Assert.Null(result);
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-
-            DocumentSnapshot? nullDocumentSnapshot = null;
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(It.IsNotIn(documentPath), out nullDocumentSnapshot))
-                .Returns(false);
-            return documentResolver.Object;
         }
     }
 }

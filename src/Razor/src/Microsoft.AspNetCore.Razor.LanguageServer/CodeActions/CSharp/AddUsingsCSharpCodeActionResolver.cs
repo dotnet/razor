@@ -7,9 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -20,20 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class AddUsingsCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly DocumentContextFactory _documentContextFactory;
 
         public AddUsingsCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache)
+            DocumentContextFactory documentContextFactory,
+            ClientNotifierServiceBase languageServer)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
@@ -61,15 +52,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken);
+            if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
                 return codeAction;
             }
+
+            var documentSnapshot = documentContext.Snapshot;
 
             var text = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             if (text is null)
@@ -83,16 +72,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
-                return version;
-            }, cancellationToken).ConfigureAwait(false);
+            var documentVersion = documentContext.Version;
 
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion.Value
+                Version = documentVersion
             };
 
             var edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);

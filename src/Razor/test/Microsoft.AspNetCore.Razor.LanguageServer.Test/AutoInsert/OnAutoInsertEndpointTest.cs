@@ -8,12 +8,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -25,10 +21,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public OnAutoInsertEndpointTest()
         {
-            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot?>.IsAny) == false, MockBehavior.Strict);
+            EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null), MockBehavior.Strict);
         }
 
-        private DocumentResolver EmptyDocumentResolver { get; }
+        private DocumentContextFactory EmptyDocumentContextFactory { get; }
 
         [Fact]
         public async Task Handle_SingleProvider_InvokesProvider()
@@ -36,9 +32,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(documentContextFactory, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -64,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false, LoggerFactory)
             {
                 ResolvedTextEdit = new TextEdit()
@@ -73,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 ResolvedTextEdit = new TextEdit()
             };
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(documentContextFactory, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -101,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
             {
                 ResolvedTextEdit = new TextEdit()
@@ -110,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 ResolvedTextEdit = new TextEdit()
             };
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(documentContextFactory, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -138,10 +134,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
             var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true, LoggerFactory);
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(documentContextFactory, new[] { insertProvider1, insertProvider2 }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -167,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             // Arrange
             var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, EmptyDocumentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(EmptyDocumentContextFactory, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var uri = new Uri("file://path/test.razor");
             var @params = new OnAutoInsertParamsBridge()
             {
@@ -195,9 +191,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = CreateCodeDocument();
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(documentContextFactory, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -223,9 +219,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = CreateCodeDocument();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false, LoggerFactory);
-            var endpoint = new OnAutoInsertEndpoint(Dispatcher, documentResolver, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
+            var endpoint = new OnAutoInsertEndpoint(documentContextFactory, new[] { insertProvider }, TestAdhocWorkspaceFactory.Instance);
             var @params = new OnAutoInsertParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -280,20 +276,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var syntaxTree = RazorSyntaxTree.Parse(emptySourceDocument);
             codeDocument.SetSyntaxTree(syntaxTree);
             return codeDocument;
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
     }
 }

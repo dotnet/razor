@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -36,27 +32,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             },
         };
 
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorFormattingService _razorFormattingService;
-        private readonly DocumentVersionCache _documentVersionCache;
 
         public DefaultCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             ClientNotifierServiceBase languageServer,
-            RazorFormattingService razorFormattingService,
-            DocumentVersionCache documentVersionCache)
+            RazorFormattingService razorFormattingService)
             : base(languageServer)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (razorFormattingService is null)
@@ -64,15 +51,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(razorFormattingService));
             }
 
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _razorFormattingService = razorFormattingService;
-            _documentVersionCache = documentVersionCache;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.Default;
@@ -93,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction.Edit?.DocumentChanges is null)
+            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
                 return codeAction;
@@ -107,16 +87,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken);
+            if( documentContext is null)
             {
                 return codeAction;
             }
+
+            var documentSnapshot = documentContext.Snapshot;
 
             var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
             if (!documentChanged.TryGetFirst(out var textDocumentEdit))
@@ -141,16 +118,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
-                return version;
-            }, cancellationToken).ConfigureAwait(false);
+            var documentVersion = documentContext.Version;
 
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion.Value
+                Version = documentVersion,
             };
             resolvedCodeAction.Edit = new WorkspaceEdit()
             {
