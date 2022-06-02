@@ -18,10 +18,11 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
-    internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : ITextDocumentUriPresentationHandler<TParams>
+    internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IJsonRpcRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
         where TParams : IPresentationParams, IRequest<WorkspaceEdit?>
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -164,7 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // The responses we get back will be for virtual documents, so we have to map them back to the real
             // document, and in the case of C#, map the returned ranges too
-            var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument);
+            var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument, version);
 
             return edit;
         }
@@ -244,7 +245,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             return remappedChanges;
         }
 
-        private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
+        private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument, int hostDocumentVersion)
         {
             var remappedDocumentEdits = new List<TextDocumentEdit>();
             foreach (var entry in documentEdits)
@@ -272,7 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                     TextDocument = new OptionalVersionedTextDocumentIdentifier()
                     {
                         Uri = razorDocumentUri,
-                        Version = entry.TextDocument.Version
+                        Version = hostDocumentVersion
                     },
                     Edits = remappedEdits
                 });
@@ -307,12 +308,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             return mappedEdits.ToArray();
         }
 
-        private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument)
+        private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument, int hostDocumentVersion)
         {
             if (TryGetDocumentChanges(workspaceEdit, out var documentChanges))
             {
                 // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-                var remappedEdits = MapDocumentChanges(documentChanges, mapRanges, codeDocument);
+                var remappedEdits = MapDocumentChanges(documentChanges, mapRanges, codeDocument, hostDocumentVersion);
                 return new WorkspaceEdit()
                 {
                     DocumentChanges = remappedEdits

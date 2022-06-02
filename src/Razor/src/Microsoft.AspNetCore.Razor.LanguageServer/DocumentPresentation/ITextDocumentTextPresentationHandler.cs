@@ -6,8 +6,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
-    [Parallel, Method(VSInternalMethods.TextDocumentUriPresentationName)]
-    internal interface ITextDocumentUriPresentationHandler : IJsonRpcRequestHandler<UriPresentationParams, WorkspaceEdit?>, IRegistrationExtension
+    [Parallel, Method(VSInternalMethods.TextDocumentTextPresentationName)]
+    internal interface ITextDocumentTextPresentationHandler : IJsonRpcRequestHandler<TextPresentationParams, WorkspaceEdit?>, IRegistrationExtension
     {
     }
 }
