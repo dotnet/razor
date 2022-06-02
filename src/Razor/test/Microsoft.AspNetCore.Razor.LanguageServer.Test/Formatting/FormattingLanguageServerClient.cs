@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
 
-        public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings
+        public override Omni.Models.InitializeParams ClientSettings
         {
             get
             {

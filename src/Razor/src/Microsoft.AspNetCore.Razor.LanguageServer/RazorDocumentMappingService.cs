@@ -4,25 +4,25 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class RazorDocumentMappingService
     {
-        public abstract VS.TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, VS.TextEdit[] edits);
+        public abstract TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits);
 
-        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, VS.Range projectedRange, [NotNullWhen(true)] out VS.Range? originalRange);
+        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange);
 
-        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, VS.Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out VS.Range? originalRange);
+        public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange);
 
-        public abstract bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, VS.Range originalRange, [NotNullWhen(true)] out VS.Range? projectedRange);
+        public abstract bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange);
 
-        public abstract bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out VS.Position? originalPosition, out int originalIndex);
+        public abstract bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex);
 
-        public abstract bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex);
+        public abstract bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex);
 
-        public abstract bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out VS.Position? projectedPosition, out int projectedIndex);
+        public abstract bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex);
 
         public abstract RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative);
     }

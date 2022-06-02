@@ -3,13 +3,13 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class TextEditExtensions
     {
-        public static TextChange AsTextChange(this VS.TextEdit textEdit, SourceText sourceText)
+        public static TextChange AsTextChange(this TextEdit textEdit, SourceText sourceText)
         {
             if (textEdit is null)
             {

@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using VSRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using VSPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
@@ -106,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
         }
 
-        public static VSRange GetRange(this SyntaxNode node, RazorSourceDocument source)
+        public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -119,16 +118,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             var lineSpan = node.GetLinePositionSpan(source);
-            var range = new VSRange
+            var range = new Range
             {
-                Start = new VSPosition(lineSpan.Start.Line, lineSpan.Start.Character),
-                End = new VSPosition(lineSpan.End.Line, lineSpan.End.Character)
+                Start = new Position(lineSpan.Start.Line, lineSpan.Start.Character),
+                End = new Position(lineSpan.End.Line, lineSpan.End.Character)
             };
 
             return range;
         }
 
-        public static VSRange? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+        public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -172,10 +171,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
             var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-            var range = new VSRange
+            var range = new Range
             {
-                Start = new VSPosition(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
-                End = new VSPosition(endPositionSpan.End.Line, endPositionSpan.End.Character)
+                Start = new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
+                End = new Position(endPositionSpan.End.Line, endPositionSpan.End.Character)
             };
 
             return range;

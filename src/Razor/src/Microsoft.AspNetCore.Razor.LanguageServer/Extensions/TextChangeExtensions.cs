@@ -5,13 +5,13 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class TextChangeExtensions
     {
-        public static VS.TextEdit AsVSTextEdit(this TextChange textChange, SourceText sourceText)
+        public static TextEdit AsVSTextEdit(this TextChange textChange, SourceText sourceText)
         {
             if (sourceText is null)
             {
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             var range = textChange.Span.AsRange(sourceText);
 
-            return new VS.TextEdit()
+            return new TextEdit()
             {
                 NewText = textChange.NewText,
                 Range = range

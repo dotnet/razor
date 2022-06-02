@@ -3,14 +3,13 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using VSRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using VSPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class TextSpanExtensions
     {
-        public static VSRange AsRange(this TextSpan span, SourceText sourceText)
+        public static Range AsRange(this TextSpan span, SourceText sourceText)
         {
             if (sourceText is null)
             {
@@ -19,10 +18,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             sourceText.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
 
-            var range = new VSRange
+            var range = new Range
             {
-                Start = new VSPosition(startLine, startChar),
-                End = new VSPosition(endLine, endChar)
+                Start = new Position(startLine, startChar),
+                End = new Position(endLine, endChar)
             };
 
             return range;
