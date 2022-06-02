@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
@@ -35,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParams()
+            var request = new RazorProximityExpressionsParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -59,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var endpoint = new RazorProximityExpressionsEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParams()
+            var request = new RazorProximityExpressionsParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 8)
@@ -83,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var endpoint = new RazorProximityExpressionsEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParams()
+            var request = new RazorProximityExpressionsParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -107,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParams()
+            var request = new RazorProximityExpressionsParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -133,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParams()
+            var request = new RazorProximityExpressionsParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(0, 0)

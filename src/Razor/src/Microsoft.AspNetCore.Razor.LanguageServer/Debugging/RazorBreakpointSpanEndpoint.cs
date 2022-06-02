@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParams request, CancellationToken cancellationToken)
+        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParamsBridge request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             if (documentSnapshot is null)
