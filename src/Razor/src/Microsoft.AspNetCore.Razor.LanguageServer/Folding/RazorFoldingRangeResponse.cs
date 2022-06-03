@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using System.Collections.Immutable;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 {
-    internal record RazorFoldingRangeResponse(ICollection<FoldingRange> HtmlRanges, ICollection<FoldingRange> CSharpRanges);
+    internal record RazorFoldingRangeResponse(ImmutableArray<FoldingRange> HtmlRanges, ImmutableArray<FoldingRange> CSharpRanges);
 }

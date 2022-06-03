@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private IDisposable _subscription;
 
         private const string RootNamespaceProperty = "RootNamespace";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public DefaultWindowsRazorProjectHost(
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;

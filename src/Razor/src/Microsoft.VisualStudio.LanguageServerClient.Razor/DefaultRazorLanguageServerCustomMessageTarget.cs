@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -25,7 +26,6 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
@@ -641,14 +641,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<InlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
+        public override async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
         {
             if (inlineCompletionParams is null)
             {
                 throw new ArgumentNullException(nameof(inlineCompletionParams));
             }
 
-            var hostDocumentUri = inlineCompletionParams.TextDocument.Uri.ToUri();
+            var hostDocumentUri = inlineCompletionParams.TextDocument.Uri;
             if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {
                 return null;
@@ -659,16 +659,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            var csharpRequest = new InlineCompletionRequest
+            var csharpRequest = new VSInternalInlineCompletionRequest
             {
                 Context = inlineCompletionParams.Context,
                 Position = inlineCompletionParams.Position,
-                TextDocument = DocumentUri.From(csharpDoc.Uri),
+                TextDocument = new TextDocumentIdentifier { Uri = csharpDoc.Uri, },
                 Options = inlineCompletionParams.Options,
             };
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
-            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<InlineCompletionRequest, InlineCompletionList?>(
+            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>(
                 textBuffer,
                 VSInternalMethods.TextDocumentInlineCompletionName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
@@ -685,8 +685,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(foldingRangeParams));
             }
 
-            var csharpRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
-            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
+            var csharpRanges = new List<FoldingRange>();
+            var csharpDocument = GetCSharpDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
             var csharpTask = Task.CompletedTask;
             if (csharpDocument is not null)
             {
@@ -705,7 +705,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 }
                             };
 
-                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
                                 Methods.TextDocumentFoldingRange.Name,
                                 RazorLSPConstants.RazorCSharpLanguageServerName,
                                 SupportsFoldingRange,
@@ -718,12 +718,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 csharpRanges.AddRange(result);
                             }
                         }
-                    });
+                    }, cancellationToken);
 
             }
 
-            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri.ToUri());
-            var htmlRanges = new List<OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange>();
+            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
+            var htmlRanges = new List<FoldingRange>();
             var htmlTask = Task.CompletedTask;
             if (htmlDocument is not null)
             {
@@ -742,7 +742,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 }
                             };
 
-                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.FoldingRange[]>(
+                            var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
                                 Methods.TextDocumentFoldingRange.Name,
                                 RazorLSPConstants.HtmlLanguageServerName,
                                 SupportsFoldingRange,
@@ -755,7 +755,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                                 htmlRanges.AddRange(result);
                             }
                         }
-                    });
+                    }, cancellationToken);
             }
 
             var allTasks = Task.WhenAll(htmlTask, csharpTask);
@@ -771,7 +771,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            return new(htmlRanges, csharpRanges);
+            return new(htmlRanges.ToImmutableArray(), csharpRanges.ToImmutableArray());
         }
 
         private static bool SupportsFoldingRange(JToken token)
@@ -787,12 +787,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken)
         {
-            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
+            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
         }
 
         public override Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken)
         {
-            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
+            return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
         }
 
         public async Task<WorkspaceEdit?> ProvidePresentationAsync<TParams>(TParams presentationParams, Uri hostDocumentUri, int hostDocumentVersion, RazorLanguageKind kind, string methodName, CancellationToken cancellationToken)
@@ -846,6 +846,68 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 cancellationToken).ConfigureAwait(false);
 
             return result?.Response;
+        }
+
+        // JToken returning because there's no value in converting the type into its final type because this method serves entirely as a delegation point (immedaitely re-serializes).
+        public override async Task<JToken?> ProvideCompletionsAsync(
+            DelegatedCompletionParams request,
+            CancellationToken cancellationToken)
+        {
+            var hostDocumentUri = request.HostDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
+            if (request.ProjectedKind == RazorLanguageKind.Html &&
+                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlVirtualDocument.Uri;
+                virtualDocumentSnapshot = htmlVirtualDocument;
+            }
+            else if (request.ProjectedKind == RazorLanguageKind.CSharp &&
+                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                projectedUri = csharpVirtualDocument.Uri;
+                virtualDocumentSnapshot = csharpVirtualDocument;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                request.HostDocument.Version, virtualDocumentSnapshot, rejectOnNewerParallelRequest: false, cancellationToken);
+
+            if (!synchronized)
+            {
+                return null;
+            }
+
+            var completionParams = new CompletionParams()
+            {
+                Context = request.Context,
+                Position = request.ProjectedPosition,
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = projectedUri,
+                },
+            };
+
+            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
+                textBuffer,
+                Methods.TextDocumentCompletion.Name,
+                languageServerName,
+                completionParams,
+                cancellationToken).ConfigureAwait(false);
+            return response?.Response;
         }
     }
 }

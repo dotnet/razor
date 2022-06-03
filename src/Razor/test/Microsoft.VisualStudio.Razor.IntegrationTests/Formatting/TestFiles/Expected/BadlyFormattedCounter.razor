@@ -1,5 +1,7 @@
 @page ""/counter""
 
+@if (System.IO.File.Exists("asdf")) { double value = 10.0f; }
+
 @code {
     private int currentCount = 0;
 

@@ -2,11 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
@@ -14,36 +14,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private const string ResultIdKey = "_resultId";
 
-        public static VSInternalCompletionItem CreateWithCompletionListResultId(
-            this VSInternalCompletionItem completionItem,
-            long resultId)
-        {
-            if (completionItem is null)
-            {
-                throw new ArgumentNullException(nameof(completionItem));
-            }
-
-            var data = completionItem.Data as JObject ?? new JObject();
-            data[ResultIdKey] = resultId;
-            completionItem.Data = data;
-
-            return completionItem;
-        }
-
-        public static bool TryGetCompletionListResultId(this VSInternalCompletionItem completion, [NotNullWhen(true)] out int? resultId)
+        public static bool TryGetCompletionListResultIds(this VSInternalCompletionItem completion, [NotNullWhen(true)] out IReadOnlyList<int>? resultIds)
         {
             if (completion is null)
             {
                 throw new ArgumentNullException(nameof(completion));
             }
 
-            if (completion.Data is JObject data && data.ContainsKey(ResultIdKey))
+            if (!CompletionListMerger.TrySplit(completion.Data, out var splitData))
             {
-                resultId = data[ResultIdKey]?.ToObject<int>();
-                return resultId is not null;
+                resultIds = null;
+                return false;
             }
 
-            resultId = default;
+            var ids = new List<int>();
+            for (var i = 0; i < splitData.Count; i++)
+            {
+                var data = splitData[i];
+                if (data.ContainsKey(ResultIdKey))
+                {
+                    var resultId = data[ResultIdKey]?.ToObject<int>();
+                    if (resultId is not null)
+                    {
+                        ids.Add(resultId.Value);
+                    }
+                }
+            }
+
+            if (ids.Count > 0)
+            {
+                resultIds = ids;
+                return true;
+            }
+
+            resultIds = null;
             return false;
         }
 

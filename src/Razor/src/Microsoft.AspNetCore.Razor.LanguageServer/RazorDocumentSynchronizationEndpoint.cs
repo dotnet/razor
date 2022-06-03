@@ -6,20 +6,17 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorDocumentSynchronizationEndpoint : ITextDocumentSyncHandler
+    internal class RazorDocumentSynchronizationEndpoint : IVSTextDocumentSyncEndpoint
     {
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -58,9 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<RazorDocumentSynchronizationEndpoint>();
         }
 
-        public TextDocumentSyncKind Change { get; } = TextDocumentSyncKind.Incremental;
-
-        public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
+        public async Task<Unit> Handle(DidChangeTextDocumentParamsBridge notification, CancellationToken token)
         {
             var uri = notification.TextDocument.Uri.GetAbsoluteOrUNCPath();
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
@@ -78,82 +73,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
-            if (notification.TextDocument.Version is null)
-            {
-                throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
-            }
-
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
+                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version),
                 CancellationToken.None).ConfigureAwait(false);
 
             return Unit.Value;
         }
 
-        public async Task<Unit> Handle(DidOpenTextDocumentParams notification, CancellationToken token)
+        public async Task<Unit> Handle(DidOpenTextDocumentParamsBridge notification, CancellationToken token)
         {
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
-            if (notification.TextDocument.Version is null)
-            {
-                throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
-            }
-
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
+                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version),
                 CancellationToken.None).ConfigureAwait(false);
 
             return Unit.Value;
         }
 
-        public async Task<Unit> Handle(DidCloseTextDocumentParams notification, CancellationToken token)
+        public async Task<Unit> Handle(DidCloseTextDocumentParamsBridge notification, CancellationToken token)
         {
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
-                CancellationToken.None).ConfigureAwait(false);
+                token).ConfigureAwait(false);
 
             return Unit.Value;
         }
 
-        public Task<Unit> Handle(DidSaveTextDocumentParams notification, CancellationToken token)
+        public Task<Unit> Handle(DidSaveTextDocumentParamsBridge notification, CancellationToken _)
         {
             _logger.LogInformation($"Saved Document {notification.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
 
             return Unit.Task;
-        }
-
-        public TextDocumentChangeRegistrationOptions GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new TextDocumentChangeRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                SyncKind = Change
-            };
-        }
-
-        TextDocumentOpenRegistrationOptions IRegistration<TextDocumentOpenRegistrationOptions, SynchronizationCapability>.GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new TextDocumentOpenRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
-        }
-
-        TextDocumentCloseRegistrationOptions IRegistration<TextDocumentCloseRegistrationOptions, SynchronizationCapability>.GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new TextDocumentCloseRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
-        }
-
-        TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions, SynchronizationCapability>.GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new TextDocumentSaveRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                IncludeText = true
-            };
         }
 
         // Internal for testing
@@ -166,12 +117,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     throw new ArgumentNullException(nameof(change.Range), "Range of change should not be null.");
                 }
 
-                var linePosition = new LinePosition(change.Range.Start.Line, change.Range.Start.Character);
-                var position = sourceText.Lines.GetPosition(linePosition);
-                var textSpan = new TextSpan(position, change.RangeLength);
+                var startLinePosition = new LinePosition(change.Range.Start.Line, change.Range.Start.Character);
+                var startPosition = sourceText.Lines.GetPosition(startLinePosition);
+                var endLinePosition = new LinePosition(change.Range.End.Line, change.Range.End.Character);
+                var endPosition = sourceText.Lines.GetPosition(endLinePosition);
+
+                var textSpan = new TextSpan(startPosition, change.RangeLength ?? endPosition - startPosition);
                 var textChange = new TextChange(textSpan, change.Text);
 
-                _logger.LogTrace("Applying " + textChange);
+                _logger.LogTrace($"Applying {textChange}");
 
                 // If there happens to be multiple text changes we generate a new source text for each one. Due to the
                 // differences in VSCode and Roslyn's representation we can't pass in all changes simultaneously because
@@ -182,9 +136,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return sourceText;
         }
 
-        public TextDocumentAttributes GetTextDocumentAttributes(DocumentUri uri)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new TextDocumentAttributes(uri, "razor");
+            const string AssociatedServerCapability = "textDocumentSync";
+            var registrationOptions = new TextDocumentSyncOptions()
+            {
+                Change = TextDocumentSyncKind.Incremental,
+                OpenClose = true,
+                Save = new SaveOptions()
+                {
+                    IncludeText = true,
+                },
+                WillSave = false,
+                WillSaveWaitUntil = false,
+            };
+
+            var result = new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
+
+            return result;
         }
     }
 }

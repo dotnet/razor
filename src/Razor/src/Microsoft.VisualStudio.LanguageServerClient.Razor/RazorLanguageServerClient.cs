@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-        private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer? _server;
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
         {
             if (customTarget is null)
@@ -81,9 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
             }
 
-            if (vsLanguageServerFeatureOptions is null)
+            if (languageServerFeatureOptions is null)
             {
-                throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
             }
 
             _customMessageTarget = customTarget;
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
-            _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
             _shutdownLock = new object();
         }
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
+            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, _languageServerFeatureOptions, ConfigureLanguageServer).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
             _ = _server.InitializedAsync(token);
@@ -158,7 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 logging.AddFilter<LogHubLoggerProvider>(level => true);
                 logging.AddProvider(_loggerProvider);
             });
-            services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
 
             if (_vsHostWorkspaceServicesProvider != null)
             {

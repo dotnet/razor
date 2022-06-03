@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class RazorSemanticTokensEndpoint : ISemanticTokensRangeHandler
+    internal class RazorSemanticTokensEndpoint : ISemanticTokensRangeEndpoint
     {
         private readonly ILogger _logger;
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;

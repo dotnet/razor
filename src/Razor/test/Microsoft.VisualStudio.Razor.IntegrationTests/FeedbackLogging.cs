@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public const string ServiceHubLogId = "ServiceHubLog";
         public const string ComponentModelCacheId = "ComponentModelCache";
         public const string ExtensionDirectoryId = "ExtensionDirectory";
+        public const string MEFErrorId = "MEFErrorsFromHive";
 
         private static readonly object s_lockObj = new();
 
@@ -39,9 +40,21 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     DataCollectionService.RegisterCustomLogger(RazorServiceHubLogger, ServiceHubLogId, "zip");
                     DataCollectionService.RegisterCustomLogger(RazorComponentModelCacheLogger, ComponentModelCacheId, "zip");
                     DataCollectionService.RegisterCustomLogger(RazorExtensionExplorerLogger, ExtensionDirectoryId, "txt");
+                    DataCollectionService.RegisterCustomLogger(RazorMEFErrorLogger, MEFErrorId, "txt");
 
                     s_customLoggersAdded = true;
                 }
+            }
+        }
+
+        private static void RazorMEFErrorLogger(string filePath)
+        {
+            var hiveDirectories = GetHiveDirectories();
+            var hiveDirectory = hiveDirectories.Single();
+            var errorFile = Path.Combine(hiveDirectory, "ComponentModelCache", "Microsoft.VisualStudio.Defaullt.err");
+            if (File.Exists(errorFile))
+            {
+                File.Copy(errorFile, filePath);
             }
         }
 
@@ -118,7 +131,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             File.WriteAllText(filePath, fileBuilder.ToString());
         }
 
-        private static IEnumerable<string> GetHiveDirectories()
+        internal static IEnumerable<string> GetHiveDirectories()
         {
             var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
             var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");

@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -27,18 +28,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Data = null,
             Edit = new WorkspaceEdit()
             {
-                DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                    new WorkspaceEditDocumentChange(
-                        new TextDocumentEdit()
-                        {
-                            Edits = new TextEditContainer(
-                                new TextEdit()
-                                {
-                                    NewText = "using System.Net;"
-                                }
-                            )
+                DocumentChanges = new TextDocumentEdit[] {
+                    new TextDocumentEdit()
+                    {
+                        Edits = new TextEdit[] {
+                            new TextEdit()
+                            {
+                                NewText = "using System.Net;"
+                            }
                         }
-                    ))
+                    }
+                }
             }
         };
 
@@ -59,9 +59,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.Equal(s_defaultResolvedCodeAction.Title, returnedCodeAction.Title);
             Assert.Equal(s_defaultResolvedCodeAction.Data, returnedCodeAction.Data);
-            var returnedEdits = Assert.Single(returnedCodeAction.Edit.DocumentChanges);
-            Assert.True(returnedEdits.IsTextDocumentEdit);
-            var returnedTextDocumentEdit = Assert.Single(returnedEdits.TextDocumentEdit.Edits);
+
+            Assert.Equal(1, returnedCodeAction.Edit.DocumentChanges.Value.Count());
+            var returnedEdits = returnedCodeAction.Edit.DocumentChanges.Value.First();
+            Assert.True(returnedEdits.TryGetFirst(out var textDocumentEdit));
+            var returnedTextDocumentEdit = Assert.Single(textDocumentEdit.Edits);
             Assert.Equal($"@using System.Net{Environment.NewLine}", returnedTextDocumentEdit.NewText);
         }
 

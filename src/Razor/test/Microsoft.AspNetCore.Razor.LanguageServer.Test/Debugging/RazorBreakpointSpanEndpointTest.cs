@@ -7,13 +7,14 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 {
@@ -64,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
+            var request = new RazorBreakpointSpanParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -88,12 +89,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
+            var request = new RazorBreakpointSpanParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
             };
-            var expectedRange = new Range(new Position(1, 5), new Position(1, 19));
+            var expectedRange = new Range { Start = new Position(1, 5), End = new Position(1, 19) };
 
             // Act
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
@@ -113,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
+            var request = new RazorBreakpointSpanParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -136,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
+            var request = new RazorBreakpointSpanParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -162,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
+            var request = new RazorBreakpointSpanParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(1, 0)
@@ -188,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
 
             var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(Dispatcher, documentResolver, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParams()
+            var request = new RazorBreakpointSpanParamsBridge()
             {
                 Uri = new Uri(documentPath),
                 Position = new Position(2, 0)

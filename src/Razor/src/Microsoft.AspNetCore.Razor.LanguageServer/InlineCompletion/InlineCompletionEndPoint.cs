@@ -7,11 +7,13 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -20,12 +22,10 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using InsertTextFormat = OmniSharp.Extensions.LanguageServer.Protocol.Models.InsertTextFormat;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class InlineCompletionEndpoint : IInlineCompletionHandler
+internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 {
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
         "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
@@ -90,16 +90,15 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
     {
         const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
 
-        var registrationOptions = new InlineCompletionOptions()
+        var registrationOptions = new VSInternalInlineCompletionOptions()
         {
-            DocumentSelector = RazorDefaults.Selector,
-            Pattern = string.Join("|", s_cSharpKeywords)
+            Pattern = new Regex(string.Join("|", s_cSharpKeywords))
         };
 
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    public async Task<InlineCompletionList?> Handle(InlineCompletionRequest request, CancellationToken cancellationToken)
+    public async Task<VSInternalInlineCompletionList?> Handle(VSInternalInlineCompletionRequestBridge request, CancellationToken cancellationToken)
     {
         if (request is null)
         {
@@ -130,11 +129,11 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||
-            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
+            !_documentMappingService.TryMapToProjectedDocumentVSPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
         {
             _logger.LogInformation($"Unsupported location for {request.TextDocument.Uri}.");
             return null;
@@ -151,14 +150,14 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
 
         request.Position = projectedPosition;
         var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorInlineCompletionEndpoint, razorRequest).ConfigureAwait(false);
-        var list = await response.Returning<InlineCompletionList>(cancellationToken).ConfigureAwait(false);
+        var list = await response.Returning<VSInternalInlineCompletionList>(cancellationToken).ConfigureAwait(false);
         if (list == null || !list.Items.Any())
         {
             _logger.LogInformation($"Did not get any inline completions from delegation.");
             return null;
         }
 
-        var items = new List<InlineCompletionItem>();
+        var items = new List<VSInternalInlineCompletionItem>();
         var csharpDocOptions = codeDocument.GetCSharpDocument();
         foreach (var item in list.Items)
         {
@@ -177,7 +176,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
                 continue;
             }
 
-            var remappedItem = new InlineCompletionItem
+            var remappedItem = new VSInternalInlineCompletionItem
             {
                 Command = item.Command,
                 Range = rangeInRazorDoc,
@@ -194,7 +193,7 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         }
 
         _logger.LogInformation($"Returning {items.Count} items.");
-        return new InlineCompletionList
+        return new VSInternalInlineCompletionList
         {
             Items = items.ToArray()
         };

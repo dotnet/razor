@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -19,7 +20,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
-    internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsHandler
+    internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorProximityExpressionsResponse?> Handle(RazorProximityExpressionsParams request, CancellationToken cancellationToken)
+        public async Task<RazorProximityExpressionsResponse?> Handle(RazorProximityExpressionsParamsBridge request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             if (documentSnapshot is null)
@@ -77,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             }
 
             var projectedIndex = hostDocumentIndex;
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // If we're in C#, then map to the right position in the generated document
             if (languageKind == RazorLanguageKind.CSharp &&
                 !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -16,11 +17,11 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
-    internal class RazorBreakpointSpanEndpoint : IRazorBreakpointSpanHandler
+    internal class RazorBreakpointSpanEndpoint : IRazorBreakpointSpanEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -59,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParams request, CancellationToken cancellationToken)
+        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParamsBridge request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             if (documentSnapshot is null)
@@ -78,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             }
 
             var projectedIndex = hostDocumentIndex;
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // If we're in C#, then map to the right position in the generated document
             if (languageKind == RazorLanguageKind.CSharp &&
                 !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
@@ -117,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             // Now map that new C# location back to the host document
             var mappingBehavior = GetMappingBehavior(documentSnapshot);
-            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
+            if (!_documentMappingService.TryMapFromProjectedDocumentVSRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
             {
                 return null;
             }

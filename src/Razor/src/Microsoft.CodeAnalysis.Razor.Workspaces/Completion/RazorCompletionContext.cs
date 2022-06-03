@@ -2,10 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal record RazorCompletionContext(
+        int AbsoluteIndex,
+        RazorSyntaxNode? Owner,
         RazorSyntaxTree SyntaxTree,
         TagHelperDocumentContext TagHelperDocumentContext,
         CompletionReason Reason = CompletionReason.Invoked,

@@ -6,6 +6,7 @@
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
@@ -86,13 +87,13 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
             var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
             var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, DefaultTagHelpers);
 
-            var completionQueryLocation = new SourceSpan(queryIndex, length: 0);
-            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
+            var queryableChange = new SourceChange(queryIndex, length: 0, newText: string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(queryableChange);
+            var context = new RazorCompletionContext(queryIndex, owner, syntaxTree, tagHelperDocumentContext);
 
-            var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context, completionQueryLocation);
-            var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(
+            var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);
+            var completionList = RazorCompletionListProvider.CreateLSPCompletionList(
                 razorCompletionItems,
-                new CompletionListCache(),
                 new VSInternalClientCapabilities()
                 {
                     TextDocument = new TextDocumentClientCapabilities()

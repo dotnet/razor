@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -110,10 +109,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var responsePositionIndex = hostDocumentIndex;
 
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             if (languageKind == RazorLanguageKind.CSharp)
             {
-                if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
+                if (_documentMappingService.TryMapToProjectedDocumentVSPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
                 {
                     // For C# locations, we attempt to return the corresponding position
                     // within the projected document
@@ -191,10 +190,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 var projectedRange = request.ProjectedRanges[i];
                 if (codeDocument.IsUnsupported() ||
-                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
+                    !_documentMappingService.TryMapFromProjectedDocumentVSRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
-                    ranges[i] = RangeExtensions.UndefinedRange;
+                    ranges[i] = RangeExtensions.UndefinedVSRange;
                     continue;
                 }
 
@@ -309,7 +308,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
                     // So, let's avoid the error by wrapping the cursor marker in a comment.
                     var wrappedText = snippetEdit.NewText.Replace("$0", "/*$0*/");
-                    snippetEdits[i] = snippetEdit with { NewText = wrappedText };
+                    snippetEdit.NewText = wrappedText;
                 }
             }
 
@@ -321,7 +320,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                     // Unwrap the cursor marker.
                     var unwrappedText = snippetEdit.NewText.Replace("/*$0*/", "$0");
-                    snippetEdits[i] = snippetEdit with { NewText = unwrappedText };
+                    snippetEdit.NewText = unwrappedText;
                 }
             }
         }

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -72,8 +73,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var location = new SourceSpan(triggerLocation.Position, 0);
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
+                var absoluteIndex = triggerLocation.Position;
+                var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+                var owner = syntaxTree.Root.LocateOwner(queryableChange);
+                var razorCompletionContext = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
                 var completionItems = new List<CompletionItem>();
                 foreach (var razorCompletionItem in razorCompletionItems)

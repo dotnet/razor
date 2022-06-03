@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +11,8 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
@@ -43,7 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Test1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Test1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -59,7 +58,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -75,7 +75,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -162,7 +163,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -185,7 +187,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -209,7 +212,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -250,7 +254,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.NotNull(attributeDescriptor);
             Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
         }
@@ -275,7 +280,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.NotNull(attributeDescriptor);
             Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
         }
@@ -300,7 +306,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
@@ -327,7 +333,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
@@ -354,7 +360,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 
@@ -385,7 +391,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+            var expectedRange = selection.AsVSRange(codeDocument.GetSourceText());
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
 

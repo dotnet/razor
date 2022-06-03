@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return result != 0 ? result : position.Character.CompareTo(other.Character);
         }
 
-        public static bool IsValid(this OmniSharpPosition position, SourceText sourceText)
+        public static bool IsValid(this Position position, SourceText sourceText)
         {
             if (position is null)
             {

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -47,7 +48,7 @@ using OmniSharp.Extensions.LanguageServer.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public sealed class RazorLanguageServer : IDisposable
+    internal sealed class RazorLanguageServer : IDisposable
     {
         private readonly ILanguageServer _innerServer;
         private readonly object _disposeLock;
@@ -70,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task InitializedAsync(CancellationToken token) => _innerServer.Initialize(token);
 
-        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
+        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, LanguageServerFeatureOptions featureOptions = null, Action<RazorLanguageServerBuilder> configure = null)
         {
             var serializer = new LspSerializer();
             serializer.RegisterRazorConverters();
@@ -129,20 +130,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         }
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
-                    .WithHandler<RazorCompletionEndpoint>()
-                    .WithHandler<RazorCompletionResolveEndpoint>()
+
+                    // These two are specifically commented out / manually added in the services below based on feature options (for now)
+                    //.WithHandler<RazorCompletionEndpoint>()
+                    //.WithHandler<RazorCompletionResolveEndpoint>()
+
                     .WithHandler<RazorHoverEndpoint>()
                     .WithHandler<RazorLanguageEndpoint>()
                     .WithHandler<RazorDiagnosticsEndpoint>()
                     .WithHandler<RazorConfigurationEndpoint>()
-                    .WithHandler<RazorFormattingEndpoint>()
+                    .WithHandler<RazorDocumentFormattingEndpoint>()
+                    .WithHandler<RazorDocumentOnTypeFormattingEndpoint>()
+                    .WithHandler<RazorDocumentRangeFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
                     .WithHandler<SemanticTokensRefreshEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
-                    .WithHandler<RazorComponentRenameEndpoint>()
+                    .WithHandler<RenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
                     .WithHandler<LinkedEditingRangeEndpoint>()
                     .WithHandler<WrapWithTagEndpoint>()
@@ -155,6 +161,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<TextDocumentUriPresentationEndpoint>()
                     .WithServices(services =>
                     {
+                        featureOptions ??= new DefaultLanguageServerFeatureOptions();
+                        services.AddSingleton(featureOptions);
+
+                        if (featureOptions.SingleServerCompletionSupport)
+                        {
+                            options.WithHandler<RazorCompletionEndpoint>();
+                            options.WithHandler<RazorCompletionResolveEndpoint>();
+                        }
+                        else
+                        {
+                            options.WithHandler<LegacyRazorCompletionEndpoint>();
+                            options.WithHandler<LegacyRazorCompletionResolveEndpoint>();
+                        }
+
                         services.AddLogging(builder => builder
                             .SetMinimumLevel(logLevel)
                             .AddLanguageProtocolLogging());
@@ -163,6 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
+                        services.AddSingleton<DocumentContextFactory, DefaultDocumentContextFactory>();
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
@@ -219,6 +240,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Completion
                         services.AddSingleton<CompletionListCache>();
+                        services.AddSingleton<AggregateCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider, DelegatedCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider, RazorCompletionListProvider>();
+                        services.AddSingleton<DelegatedCompletionResponseRewriter, TextEditResponseRewriter>();
+
+                        services.AddSingleton<AggregateCompletionItemResolver>();
+                        services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
                         services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
@@ -272,9 +300,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             var builder = new RazorLanguageServerBuilder(services);
                             configure(builder);
                         }
-
-                        // Defaults: For when the caller hasn't provided them through the `configure` action.
-                        services.TryAddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
                         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();

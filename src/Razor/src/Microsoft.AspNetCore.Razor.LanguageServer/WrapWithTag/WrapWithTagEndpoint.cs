@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
-    internal class WrapWithTagEndpoint : IWrapWithTagHandler
+    internal class WrapWithTagEndpoint : IWrapWithTagEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
@@ -61,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             _logger = loggerFactory.CreateLogger<WrapWithTagEndpoint>();
         }
 
-        public async Task<WrapWithTagResponse?> Handle(WrapWithTagParams request, CancellationToken cancellationToken)
+        public async Task<WrapWithTagResponse?> Handle(WrapWithTagParamsBridge request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
@@ -72,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             if (documentSnapshot is null)
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -81,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to retrieve generated output for document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -91,7 +92,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 return null;
             }
 
-            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            // Since we're at the start of the selection, lets prefer the language to the right of the cursor if possible.
+            // That way with the following situation:
+            //
+            // @if (true) {
+            //   |<p></p>
+            // }
+            //
+            // Instead of C#, which certainly would be expected to go in an if statement, we'll see HTML, which obviously
+            // is the better choice for this operation.
+            var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
             if (languageKind is not RazorLanguageKind.Html)
             {
                 _logger.LogInformation($"Unsupported language {languageKind:G}.");

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -31,9 +29,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
         };
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions,
+            IEnumerable<RazorVSInternalCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -53,17 +51,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            var results = new List<RazorCodeAction>();
+            var results = new List<RazorVSInternalCodeAction>();
 
             foreach (var codeAction in codeActions)
             {
-                if (SupportedDefaultCodeActionNames.Contains(codeAction.Name))
+                if (codeAction.Name is not null && SupportedDefaultCodeActionNames.Contains(codeAction.Name))
                 {
                     results.Add(codeAction.WrapResolvableCSharpCodeAction(context));
                 }
             }
 
-            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(results);
         }
     }
 }

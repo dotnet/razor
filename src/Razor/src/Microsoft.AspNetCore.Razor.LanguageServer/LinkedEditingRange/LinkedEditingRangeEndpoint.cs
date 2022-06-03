@@ -2,26 +2,25 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using System.Diagnostics.CodeAnalysis;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
-    internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeHandler
+    internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
     {
         // The regex below excludes characters that can never be valid in a TagHelper name.
         // This is loosely based off logic from the Razor compiler:
@@ -58,22 +57,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
-        public LinkedEditingRangeRegistrationOptions GetRegistrationOptions(
-            LinkedEditingRangeClientCapabilities capability,
-            ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new LinkedEditingRangeRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
+            const string ServerCapability = "linkedEditingRangeProvider";
+            var option = new LinkedEditingRangeOptions { };
+
+            return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
-        // The return type of the handler should be nullable. O# tracking issue:
-        // https://github.com/OmniSharp/csharp-language-server-protocol/issues/644
         public async Task<LinkedEditingRanges?> Handle(
-#pragma warning restore CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
-            LinkedEditingRangeParams request,
+            LinkedEditingRangeParamsBridge request,
             CancellationToken cancellationToken)
         {
             var uri = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
@@ -110,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-                var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
+                var ranges = new Range[2] { startSpan.AsVSRange(), endSpan.AsVSRange() };
 
                 return new LinkedEditingRanges
                 {

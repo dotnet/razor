@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +18,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -50,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             if (data is null)
             {
@@ -108,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
              * that now I can come up with a more sophisticated heuristic (something along the lines of checking if
              * there's already an ordering, etc.).
              */
-            var documentChanges = new List<WorkspaceEditDocumentChange>();
+            var documentChanges = new List<TextDocumentEdit>();
             var usingDirectives = FindUsingDirectives(codeDocument);
             if (usingDirectives.Count > 0)
             {
@@ -125,11 +123,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return new WorkspaceEdit()
             {
-                DocumentChanges = documentChanges
+                DocumentChanges = documentChanges.ToArray(),
             };
         }
 
-        private static WorkspaceEditDocumentChange GenerateSingleUsingEditsInterpolated(
+        private static TextDocumentEdit GenerateSingleUsingEditsInterpolated(
             RazorCodeDocument codeDocument,
             OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
             string newUsingNamespace,
@@ -151,7 +149,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 {
                     var usingDirectiveLineIndex = codeDocument.Source.Lines.GetLocation(usingDirective.Node.Span.Start).LineIndex;
                     var head = new Position(usingDirectiveLineIndex, 0);
-                    var edit = new TextEdit() { Range = new Range(head, head), NewText = newText };
+                    var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
                     edits.Add(edit);
                     break;
                 }
@@ -163,18 +161,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 var endIndex = existingUsingDirectives.Last().Node.Span.End;
                 var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
                 var head = new Position(lineIndex, 0);
-                var edit = new TextEdit() { Range = new Range(head, head), NewText = newText };
+                var edit = new TextEdit() { Range = new Range { Start = head, End = head }, NewText = newText };
                 edits.Add(edit);
             }
 
-            return new WorkspaceEditDocumentChange(new TextDocumentEdit()
+            return new TextDocumentEdit()
             {
                 TextDocument = codeDocumentIdentifier,
-                Edits = edits,
-            });
+                Edits = edits.ToArray(),
+            };
         }
 
-        private static WorkspaceEditDocumentChange GenerateSingleUsingEditsAtTop(
+        private static TextDocumentEdit GenerateSingleUsingEditsAtTop(
             RazorCodeDocument codeDocument,
             OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
             string newUsingNamespace)
@@ -194,8 +192,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             // Insert all usings at the given point
-            var range = new Range(head, head);
-            return new WorkspaceEditDocumentChange(new TextDocumentEdit
+            var range = new Range { Start = head, End = head };
+            return new TextDocumentEdit
             {
                 TextDocument = codeDocumentIdentifier,
                 Edits = new[]
@@ -206,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         Range = range,
                     }
                 }
-            });
+            };
         }
 
         private static int GetLineIndexOrEnd(RazorCodeDocument codeDocument, int endIndex)

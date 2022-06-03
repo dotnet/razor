@@ -5,11 +5,12 @@
 
 using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorInlineCompletionRequest : InlineCompletionRequest
+internal class RazorInlineCompletionRequest : VSInternalInlineCompletionRequest
 {
     [DataMember(Name = "razorLanguageKind")]
     [JsonProperty(Required = Required.Always)]

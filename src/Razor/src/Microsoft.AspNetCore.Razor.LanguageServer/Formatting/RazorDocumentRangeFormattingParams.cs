@@ -3,8 +3,7 @@
 
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
