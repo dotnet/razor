@@ -1,20 +1,20 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 112 0 //razorTransition
-0 1 12 109 0 //razorDirective
-1 0 1 100 0 //markupTagDelimiter
-0 1 5 111 0 //razorTagHelperElement
-0 6 8 110 0 //razorTagHelperAttribute
-0 8 1 99 0 //markupOperator
-0 1 1 93 0 //markupAttributeQuote
-0 1 4 15 0 //keyword
-0 4 1 93 0 //markupAttributeQuote
-0 2 5 94 0 //markupAttribute
-0 5 1 99 0 //markupOperator
-0 1 1 93 0 //markupAttributeQuote
-0 1 12 93 0 //markupAttributeQuote
-0 12 1 93 0 //markupAttributeQuote
-0 1 1 100 0 //markupTagDelimiter
-0 1 1 100 0 //markupTagDelimiter
-0 1 1 100 0 //markupTagDelimiter
-0 1 5 111 0 //razorTagHelperElement
-0 5 1 100 0 //markupTagDelimiter
+0 0 1 razorTransition 0
+0 1 12 razorDirective 0
+1 0 1 markupTagDelimiter 0
+0 1 5 razorTagHelperElement 0
+0 6 8 razorTagHelperAttribute 0
+0 8 1 markupOperator 0
+0 1 1 markupAttributeQuote 0
+0 1 4 keyword 0
+0 4 1 markupAttributeQuote 0
+0 2 5 markupAttribute 0
+0 5 1 markupOperator 0
+0 1 1 markupAttributeQuote 0
+0 1 12 markupAttributeQuote 0
+0 12 1 markupAttributeQuote 0
+0 1 1 markupTagDelimiter 0
+0 1 1 markupTagDelimiter 0
+0 1 1 markupTagDelimiter 0
+0 1 5 razorTagHelperElement 0
+0 5 1 markupTagDelimiter 0

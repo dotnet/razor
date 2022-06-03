@@ -1,10 +1,10 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 112 0 //razorTransition
-0 1 13 8 0 //variable
-1 0 1 100 0 //markupTagDelimiter
-0 1 1 98 0 //markupElement
-0 1 1 100 0 //markupTagDelimiter
-0 1 1 100 0 //markupTagDelimiter
-0 1 1 100 0 //markupTagDelimiter
-0 1 1 98 0 //markupElement
-0 1 1 100 0 //markupTagDelimiter
+0 0 1 razorTransition 0
+0 1 13 variable 0
+1 0 1 markupTagDelimiter 0
+0 1 1 markupElement 0
+0 1 1 markupTagDelimiter 0
+0 1 1 markupTagDelimiter 0
+0 1 1 markupTagDelimiter 0
+0 1 1 markupElement 0
+0 1 1 markupTagDelimiter 0
