@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public abstract Task<TextEdit[]> FormatAsync(
             Uri uri,
             DocumentSnapshot documentSnapshot,
-            Range range,
+            Range? range,
             FormattingOptions options,
             CancellationToken cancellationToken);
 

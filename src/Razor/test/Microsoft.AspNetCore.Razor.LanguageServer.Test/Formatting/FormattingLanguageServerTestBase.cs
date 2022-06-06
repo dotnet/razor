@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             public bool Called { get; private set; }
 
-            public override Task<TextEdit[]> FormatAsync(Uri uri, DocumentSnapshot documentSnapshot, VisualStudio.LanguageServer.Protocol.Range range, FormattingOptions options, CancellationToken cancellationToken)
+            public override Task<TextEdit[]> FormatAsync(Uri uri, DocumentSnapshot documentSnapshot, VisualStudio.LanguageServer.Protocol.Range? range, FormattingOptions options, CancellationToken cancellationToken)
             {
                 Called = true;
                 return Task.FromResult(Array.Empty<TextEdit>());

@@ -120,8 +120,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 InsertSpaces = true
             };
 
-            var range = TextSpan.FromBounds(0, DocumentText.Length).AsVSRange(DocumentText);
-            var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range, options, CancellationToken.None);
+            var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range: null, options, CancellationToken.None);
 
 #if DEBUG
             // For debugging purposes only.

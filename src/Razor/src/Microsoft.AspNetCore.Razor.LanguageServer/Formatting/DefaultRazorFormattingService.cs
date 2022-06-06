@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -49,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override async Task<TextEdit[]> FormatAsync(
             Uri uri,
             DocumentSnapshot documentSnapshot,
-            Range range,
+            Range? range,
             FormattingOptions options,
             CancellationToken cancellationToken)
         {
@@ -63,17 +65,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
 
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
             if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+
+            // Range formatting happens on every paste, and if there are Razor diagnostics in the file
+            // that can make some very bad results. eg, given:
+            //
+            // |
+            // @code {
+            // }
+            //
+            // When pasting "<button" at the | the HTML formatter will bring the "@code" onto the same
+            // line as "<button" because as far as it's concerned, its an attribute.
+            //
+            // To defeat that, we simply don't do range formatting if there are diagnostics.
+
+            // Despite what it looks like, codeDocument.GetCSharpDocument().Diagnostics is actually the
+            // Razor diagnostics, not the C# diagnostics 🤦‍
+            if (range is not null &&
+                codeDocument.GetCSharpDocument().Diagnostics.Any(d => range.OverlapsWith(d.Span.AsVSRange(codeDocument.GetSourceText()))))
+            {
+                return Array.Empty<TextEdit>();
+            }
+
             using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
             var originalText = context.SourceText;
 
@@ -84,7 +102,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 result = await pass.ExecuteAsync(context, result, cancellationToken);
             }
 
-            var filteredEdits = result.Edits.Where(e => range.LineOverlapsWith(e.Range));
+            var filteredEdits = range is null
+                ? result.Edits
+                : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
 
             // Make sure the edits actually change something, or its not worth responding
             var textChanges = filteredEdits.Select(e => e.AsTextChange(originalText));
