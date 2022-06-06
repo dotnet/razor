@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -21,6 +23,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -312,6 +316,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
+
                 CleanupSourceMappingStart(context, mappingRange, changes, out var newLineAdded);
 
                 CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
@@ -342,9 +347,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var text = context.SourceText;
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
-            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.PreviousSpan() is { } prevNode &&
+                prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                owner.SpanStart == template.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break after a single line template
                 return;
             }
 
@@ -475,9 +490,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var endSpan = TextSpan.FromBounds(sourceMappingSpan.End, sourceMappingSpan.End);
-            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.NextSpan() is { } nextNode &&
+                nextNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                template.SpanStart == owner.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break in front of a single line template
                 return;
             }
 
@@ -507,6 +532,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // }
             var change = new TextChange(spanToReplace, replacement);
             changes.Add(change);
+        }
+
+        private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
+        {
+            text.GetLineAndOffset(node.Span.Start, out var startLine, out _);
+            text.GetLineAndOffset(node.Span.End, out var endLine, out _);
+
+            return startLine == endLine;
         }
 
         private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)

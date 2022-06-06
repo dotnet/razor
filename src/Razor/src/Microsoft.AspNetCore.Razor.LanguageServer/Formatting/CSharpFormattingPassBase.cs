@@ -56,6 +56,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
             {
                 var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+#if DEBUG
+                var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
+#endif
                 if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true))
                 {
                     // We don't care about this range as this can potentially lead to incorrect scopes.
@@ -269,11 +272,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         {
+            return ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
+        }
+
+        protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out SyntaxNode? foundOwner)
+        {
             // We should be called with the range of various C# SourceMappings.
 
             if (mappingSpan.Start == 0)
             {
                 // The mapping starts at 0. It can't be anything special but pure C#. Let's format it.
+                foundOwner = null;
                 return true;
             }
 
@@ -295,10 +304,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (owner is null)
             {
                 // Can't determine owner of this position. Optimistically allow formatting.
+                foundOwner = null;
                 return true;
             }
 
             owner = FixOwnerToWorkaroundCompilerQuirks(owner);
+            foundOwner = owner;
 
             // special case: If we're formatting implicit statements, we want to treat the `@attribute` directive as one
             // so that the C# definition of the attribute is formatted as C#
