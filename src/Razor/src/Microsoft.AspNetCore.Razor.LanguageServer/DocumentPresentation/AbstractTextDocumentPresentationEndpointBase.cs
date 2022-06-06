@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             // The responses we get back will be for virtual documents, so we have to map them back to the real
             // document, and in the case of C#, map the returned ranges too
-            var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument, version);
+            var edit = MapWorkspaceEdit(response, mapRanges: languageKind == RazorLanguageKind.CSharp, codeDocument, documentContext.Version);
 
             return edit;
         }
