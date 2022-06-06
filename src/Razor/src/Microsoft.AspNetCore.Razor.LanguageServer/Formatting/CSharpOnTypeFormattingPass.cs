@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return result;
                 }
 
-                textEdits = formattingChanges.Select(change => change.AsVSTextEdit(csharpText)).ToArray();
+                textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
                 _logger.LogInformation($"Received {textEdits.Length} results from C#.");
             }
 
@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
             var finalChanges = cleanedText.GetTextChanges(originalText);
-            var finalEdits = finalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
+            var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             if (context.AutomaticallyAddUsings)
             {
@@ -514,7 +514,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var changes = edits.Select(e => e.AsTextChange(originalText));
             originalTextWithChanges = originalText.WithChanges(changes);
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
-            var cleanEdits = cleanChanges.Select(c => c.AsVSTextEdit(originalText)).ToArray();
+            var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
         }
     }

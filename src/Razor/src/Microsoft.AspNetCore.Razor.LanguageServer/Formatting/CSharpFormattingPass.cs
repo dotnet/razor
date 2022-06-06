@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger.LogTestOnly($"Generated C#:\r\n{context.CSharpSourceText}");
 
             var finalChanges = changedText.GetTextChanges(originalText);
-            var finalEdits = finalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
+            var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
         }

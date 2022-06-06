@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 var changes = Formatter.GetFormattedTextChanges(root, spanToFormat, csharpDocument.Project.Solution.Workspace);
 
-                response.Edits = changes.Select(c => c.AsVSTextEdit(csharpSourceText)).ToArray();
+                response.Edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
             }
             else
             {
