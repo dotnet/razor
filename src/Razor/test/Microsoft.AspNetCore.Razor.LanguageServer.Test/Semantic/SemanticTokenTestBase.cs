@@ -169,8 +169,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     builder.Append(actualArray[i]).Append(' ');
                     builder.Append(actualArray[i + 1]).Append(' ');
                     builder.Append(actualArray[i + 2]).Append(' ');
-                    builder.Append(typeString).Append(' ');
-                    builder.Append(actualArray[i + 4]);
+                    builder.Append(actualArray[i + 3]).Append(' ');
+                    builder.Append(actualArray[i + 4]).Append(" //").Append(typeString);
                     builder.AppendLine();
                 }
             }
@@ -186,30 +186,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var tokenTypesList = RazorSemanticTokensLegend.TokenTypes.ToList();
-            var strArr = semanticIntStr.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var strArray = semanticIntStr.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             var results = new List<int>();
-            for (var i = 0; i < strArr.Length; i++)
+            foreach (var str in strArray)
             {
-                if (int.TryParse(strArr[i], System.Globalization.NumberStyles.Integer, Thread.CurrentThread.CurrentCulture, out var intResult))
+                if (str.StartsWith("//", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (int.TryParse(str, System.Globalization.NumberStyles.Integer, Thread.CurrentThread.CurrentCulture, out var intResult))
                 {
                     results.Add(intResult);
-                    continue;
-                }
-
-                // Needed to handle token types with spaces in their names, e.g. C#'s 'local name' type
-                var tokenTypeStr = strArr[i];
-                while (i + 1 < strArr.Length && !int.TryParse(strArr[i + 1], System.Globalization.NumberStyles.Integer, Thread.CurrentThread.CurrentCulture, out _))
-                {
-                    tokenTypeStr += $" {strArr[i + 1]}";
-                    i++;
-                }
-
-                var tokenIndex = tokenTypesList.IndexOf(tokenTypeStr);
-                if (tokenIndex != -1)
-                {
-                    results.Add(tokenIndex);
-                    continue;
                 }
             }
 
