@@ -32,11 +32,11 @@ using Microsoft.WebTools.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
-using Omni = OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
 
-        public override Omni.Models.InitializeParams ClientSettings
+        public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings
         {
             get
             {
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var response = new RazorDocumentFormattingResponse();
 
-            response.Edits = Array.Empty<VS.TextEdit>();
+            response.Edits = Array.Empty<TextEdit>();
 
             // TODO: Update WebTools dependency and call via reflection
 
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var options = @params.Options;
             var response = new RazorDocumentFormattingResponse();
 
-            response.Edits = Array.Empty<VS.TextEdit>();
+            response.Edits = Array.Empty<TextEdit>();
 
             var codeDocument = _documents[@params.TextDocument.Uri.GetAbsoluteOrUNCPath()];
             var generatedHtml = codeDocument.GetHtmlDocument().GeneratedHtml;
@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var applyFormatEditsHandler = Activator.CreateInstance(editHandlerType, new object[] { bufferManager, threadSwitcher, textBufferFactoryService });
 
             // Make sure the buffer manager knows about the source document
-            var documentUri = Omni.DocumentUri.From($"file:///{@params.TextDocument.Uri}");
+            var documentUri = DocumentUri.From($"file:///{@params.TextDocument.Uri}");
             var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
             var initialContent = generatedHtml;
             var snapshotVersionFromLSP = 0;
@@ -181,17 +181,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 #pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore CS0649 // Field 'name' is never assigned to, and will always have its default value
 
-            public VS.TextEdit AsTextEdit(SourceText sourceText)
+            public TextEdit AsTextEdit(SourceText sourceText)
             {
                 var startLinePosition = sourceText.Lines.GetLinePosition(Position);
                 var endLinePosition = sourceText.Lines.GetLinePosition(Position + Length);
 
-                return new VS.TextEdit
+                return new TextEdit
                 {
-                    Range = new VS.Range()
+                    Range = new Range()
                     {
-                        Start = new VS.Position(startLinePosition.Line, startLinePosition.Character),
-                        End = new VS.Position(endLinePosition.Line, endLinePosition.Character),
+                        Start = new Position(startLinePosition.Line, startLinePosition.Character),
+                        End = new Position(endLinePosition.Line, endLinePosition.Character),
                     },
                     NewText = NewText,
                 };
