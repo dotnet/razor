@@ -1,4 +1,4 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 84 0 //razorTransition
-0 1 12 87 0 //razorDirective
-0 13 15 18 0 //string
+0 0 1 razorTransition 0
+0 1 12 razorDirective 0
+0 13 15 string 0
