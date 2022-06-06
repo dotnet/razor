@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -28,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out It.Ref<Omni.Range>.IsAny) == false, MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
         private readonly DocumentContextFactory _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null), MockBehavior.Strict);
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
         private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
@@ -733,7 +732,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings => throw new NotImplementedException();
 
-            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken) => Task.CompletedTask;
+            public override Task OnStarted(OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServer server, CancellationToken cancellationToken) => Task.CompletedTask;
 
             public override Task<IResponseRouterReturns> SendRequestAsync(string method)
             {

@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -108,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             // Now map that new C# location back to the host document
             var mappingBehavior = GetMappingBehavior(documentContext);
-            if (!_documentMappingService.TryMapFromProjectedDocumentVSRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
             {
                 return null;
             }
