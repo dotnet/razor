@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 return null;
             }
 
-            List<FoldingRange> mappedRanges = new();
+                List<FoldingRange> mappedRanges = new();
 
             foreach (var foldingRange in foldingResponse.CSharpRanges)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     range,
                     out var mappedRange))
                 {
-                    mappedRanges.Add(GetFoldingRange(mappedRange));
+                    mappedRanges.Add(GetFoldingRange(mappedRange, foldingRange.CollapsedText));
                 }
             }
 
@@ -145,6 +145,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             Debug.Assert(range.StartLine < range.EndLine);
 
+            // If the range has collapsed text set, we don't need
+            // to adjust anything. Just take that value as what
+            // should be shown
+            if (!string.IsNullOrEmpty(range.CollapsedText))
+            {
+                return range;
+            }
+
             var sourceText = codeDocument.GetSourceText();
             var startLine = range.StartLine;
             var lineSpan = sourceText.Lines[startLine].Span;
@@ -180,13 +188,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 }
             };
 
-        private static FoldingRange GetFoldingRange(Range range)
+        private static FoldingRange GetFoldingRange(Range range, string? collapsedText)
            => new FoldingRange()
            {
                StartLine = range.Start.Line,
                StartCharacter = range.Start.Character,
                EndCharacter = range.End.Character,
-               EndLine = range.End.Line
+               EndLine = range.End.Line,
+               CollapsedText = collapsedText
            };
     }
 }

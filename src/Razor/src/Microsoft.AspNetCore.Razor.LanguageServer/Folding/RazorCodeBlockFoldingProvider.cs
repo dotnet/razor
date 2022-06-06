@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     StartLine = startLine,
                     EndCharacter = endOffset,
                     EndLine = endLine,
+                    CollapsedText = codeBlock.DirectiveDescriptor.Directive
                 };
 
                 builder.Add(foldingRange);
