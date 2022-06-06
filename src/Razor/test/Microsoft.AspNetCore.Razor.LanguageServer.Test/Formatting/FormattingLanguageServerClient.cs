@@ -32,7 +32,6 @@ using Microsoft.WebTools.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
@@ -108,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var applyFormatEditsHandler = Activator.CreateInstance(editHandlerType, new object[] { bufferManager, threadSwitcher, textBufferFactoryService });
 
             // Make sure the buffer manager knows about the source document
-            var documentUri = DocumentUri.From($"file:///{@params.TextDocument.Uri}");
+            var documentUri = OmniSharp.Extensions.LanguageServer.Protocol.DocumentUri.From($"file:///{@params.TextDocument.Uri}");
             var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
             var initialContent = generatedHtml;
             var snapshotVersionFromLSP = 0;
