@@ -235,7 +235,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             }
 
             var tagName = startOrEndTag is MarkupTagHelperStartTagSyntax startTag ? startTag.Name : ((MarkupTagHelperEndTagSyntax)startOrEndTag).Name;
-            var tagNameRange = tagName.GetVSRange(syntaxTree.Source);
+            var tagNameRange = tagName.GetRange(syntaxTree.Source);
 
             if (!tagNameRange.IntersectsOrTouches(diagnostic.Range))
             {
@@ -586,7 +586,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return false;
             }
 
-            if (!_documentMappingService.TryMapFromProjectedDocumentVSRange(
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(
                 codeDocument,
                 diagnostic.Range,
                 MappingBehavior.Inferred,

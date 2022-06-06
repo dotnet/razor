@@ -1,24 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using VSRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using VSPosition = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
-using OmniRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-using OmniPosition = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
-        internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, out SyntaxNode previousSibling)
+        internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, [NotNullWhen(true)] out SyntaxNode? previousSibling)
         {
             var syntaxNodeParent = syntaxNode.Parent;
             if (syntaxNodeParent is null)
@@ -109,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
         }
 
-        public static VSRange GetVSRange(this SyntaxNode node, RazorSourceDocument source)
+        public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -122,34 +118,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             var lineSpan = node.GetLinePositionSpan(source);
-            var range = new VSRange
+            var range = new Range
             {
-                Start = new VSPosition(lineSpan.Start.Line, lineSpan.Start.Character),
-                End = new VSPosition(lineSpan.End.Line, lineSpan.End.Character)
+                Start = new Position(lineSpan.Start.Line, lineSpan.Start.Character),
+                End = new Position(lineSpan.End.Line, lineSpan.End.Character)
             };
 
             return range;
         }
 
-        public static OmniRange GetRange(this SyntaxNode node, RazorSourceDocument source)
-        {
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            var lineSpan = node.GetLinePositionSpan(source);
-            var range = new OmniRange(new OmniPosition(lineSpan.Start.Line, lineSpan.Start.Character), new OmniPosition(lineSpan.End.Line, lineSpan.End.Character));
-
-            return range;
-        }
-
-        public static OmniRange GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+        public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -163,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             var tokens = node.GetTokens();
 
-            SyntaxToken firstToken = null;
+            SyntaxToken? firstToken = null;
             for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
@@ -174,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 }
             }
 
-            SyntaxToken lastToken = null;
+            SyntaxToken? lastToken = null;
             for (var i = tokens.Count - 1; i >= 0; i--)
             {
                 var token = tokens[i];
@@ -193,17 +171,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
             var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-            var range = new OmniRange
+            var range = new Range
             {
-                Start = new OmniPosition(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
-                End = new OmniPosition(endPositionSpan.End.Line, endPositionSpan.End.Character)
+                Start = new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
+                End = new Position(endPositionSpan.End.Line, endPositionSpan.End.Character)
             };
 
             return range;
 
             // This is needed because SyntaxToken positions taken from GetTokens
             // are relative to their parent node and not to the document.
-            static LinePositionSpan GetLinePositionSpan(SyntaxNode node, RazorSourceDocument source, int parentStart)
+            static LinePositionSpan GetLinePositionSpan(SyntaxNode? node, RazorSourceDocument source, int parentStart)
             {
                 if (node is null)
                 {

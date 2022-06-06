@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var startTagTextEdit = new TextEdit
             {
-                Range = startTag.Name.GetVSRange(context.CodeDocument.Source),
+                Range = startTag.Name.GetRange(context.CodeDocument.Source),
                 NewText = newTagName,
             };
 
@@ -210,7 +210,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 var endTagTextEdit = new TextEdit
                 {
-                    Range = endTag.Name.GetVSRange(context.CodeDocument.Source),
+                    Range = endTag.Name.GetRange(context.CodeDocument.Source),
                     NewText = newTagName,
                 };
 

@@ -271,7 +271,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 new TextEdit()
                 {
-                    Range = element.StartTag.Name.GetVSRange(codeDocument.Source),
+                    Range = element.StartTag.Name.GetRange(codeDocument.Source),
                     NewText = newName,
                 },
             };
@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 edits.Add(new TextEdit()
                 {
-                    Range = element.EndTag.Name.GetVSRange(codeDocument.Source),
+                    Range = element.EndTag.Name.GetRange(codeDocument.Source),
                     NewText = newName,
                 });
             }

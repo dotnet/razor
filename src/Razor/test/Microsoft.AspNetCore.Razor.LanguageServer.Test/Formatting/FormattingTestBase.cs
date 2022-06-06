@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var span = spans.IsEmpty ? new TextSpan(0, input.Length) : spans.Single();
 
             var source = SourceText.From(input);
-            var range = span.AsVSRange(source);
+            var range = span.AsRange(source);
 
             var path = "file:///path/to/Document." + fileKind;
             var uri = new Uri(path);

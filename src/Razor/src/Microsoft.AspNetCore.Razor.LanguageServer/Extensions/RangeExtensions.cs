@@ -3,31 +3,40 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using OSharp = OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RangeExtensions
     {
-        public static readonly OSharp.Range UndefinedRange = new()
+        public static readonly Range UndefinedVSRange = new()
         {
-            Start = new OSharp.Position(-1, -1),
-            End = new OSharp.Position(-1, -1)
+            Start = new Position(-1, -1),
+            End = new Position(-1, -1)
         };
 
-        public static readonly VS.Range UndefinedVSRange = new()
+        public static bool IntersectsOrTouches(this Range range, Range other)
         {
-            Start = new VS.Position(-1, -1),
-            End = new VS.Position(-1, -1)
-        };
+            if (range.IsBefore(other))
+            {
+                return false;
+            }
 
-        public static bool IntersectsOrTouches(this VS.Range range, VS.Range other)
-        {
-            return range.AsOmniSharpRange().IntersectsOrTouches(other.AsOmniSharpRange());
+            if (range.IsAfter(other))
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public static bool OverlapsWith(this VS.Range range, VS.Range other)
+        private static bool IsBefore(this Range range, Range other) =>
+            range.End.Line < other.Start.Line || range.End.Line == other.Start.Line && range.End.Character < other.Start.Character;
+
+        private static bool IsAfter(this Range range, Range other) =>
+            other.End.Line < range.Start.Line || other.End.Line == range.Start.Line && other.End.Character < range.Start.Character;
+
+        public static bool OverlapsWith(this Range range, Range other)
         {
             if (range is null)
             {
@@ -55,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this VS.Range range, VS.Range other)
+        public static bool LineOverlapsWith(this Range range, Range other)
         {
             if (range is null)
             {
@@ -82,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static bool Contains(this VS.Range range, VS.Range other)
+        public static bool Contains(this Range range, Range other)
         {
             if (range is null)
             {
@@ -97,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
-        public static bool SpansMultipleLines(this VS.Range range)
+        public static bool SpansMultipleLines(this Range range)
         {
             if (range is null)
             {
@@ -107,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return range.Start.Line != range.End.Line;
         }
 
-        public static TextSpan AsTextSpan(this VS.Range range, SourceText sourceText)
+        public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
         {
             if (range is null)
             {
@@ -141,41 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new TextSpan(start, length);
         }
 
-        public static TextSpan AsTextSpan(this OSharp.Range range, SourceText sourceText)
-        {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
-            if (range.Start.Line >= sourceText.Lines.Count)
-            {
-                throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
-            }
-
-            if (range.End.Line >= sourceText.Lines.Count)
-            {
-                throw new ArgumentOutOfRangeException($"Range end line {range.End.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
-            }
-
-            var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
-            var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
-
-            var length = end - start;
-            if (length < 0)
-            {
-                throw new ArgumentOutOfRangeException($"{range} resolved to zero or negative length.");
-            }
-
-            return new TextSpan(start, length);
-        }
-
-        public static Language.Syntax.TextSpan AsRazorTextSpan(this VS.Range range, SourceText sourceText)
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
         {
             if (range is null)
             {
@@ -209,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this VS.Range range)
+        public static bool IsUndefined(this Range range)
         {
             if (range is null)
             {
@@ -217,24 +192,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             return range == UndefinedVSRange;
-        }
-
-        public static VS.Range AsVSRange(this OSharp.Range range)
-        {
-            return new VS.Range
-            {
-                Start = range.Start.AsVSPosition(),
-                End = range.End.AsVSPosition()
-            };
-        }
-
-        public static OSharp.Range AsOmniSharpRange(this VS.Range range)
-        {
-            return new OSharp.Range
-            {
-                Start = range.Start.AsOSharpPosition(),
-                End = range.End.AsOSharpPosition()
-            };
         }
     }
 }

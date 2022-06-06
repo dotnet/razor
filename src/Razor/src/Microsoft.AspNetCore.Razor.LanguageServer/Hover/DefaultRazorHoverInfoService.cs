@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 {
                     Debug.Assert(binding.Descriptors.Any());
 
-                    var range = containingTagNameToken.GetVSRange(codeDocument.Source);
+                    var range = containingTagNameToken.GetRange(codeDocument.Source);
 
                     var result = ElementInfoToHover(binding.Descriptors, range, clientCapabilities);
                     return result;
@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     }
 
                     var attributeName = attribute.GetContent();
-                    var range = attribute.GetVSRange(codeDocument.Source);
+                    var range = attribute.GetRange(codeDocument.Source);
 
                     // Include the @ in the range
                     switch (attribute.Parent.Kind)

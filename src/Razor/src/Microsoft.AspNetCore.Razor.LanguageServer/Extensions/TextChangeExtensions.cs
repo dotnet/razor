@@ -5,8 +5,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
@@ -22,21 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var range = textChange.Span.AsRange(sourceText);
 
             return new TextEdit()
-            {
-                NewText = textChange.NewText,
-                Range = range
-            };
-        }
-        public static VS.TextEdit AsVSTextEdit(this TextChange textChange, SourceText sourceText)
-        {
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
-            var range = textChange.Span.AsVSRange(sourceText);
-
-            return new VS.TextEdit()
             {
                 NewText = textChange.NewText,
                 Range = range

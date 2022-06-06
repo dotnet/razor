@@ -23,7 +23,6 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using VSModels = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -447,11 +446,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedcSharpResults = new VSSemanticTokensResponse();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<VSModels.SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                 TextBuffer,
                 Methods.TextDocumentSemanticTokensRangeName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
-                It.IsAny<VSModels.SemanticTokensRangeParams>(),
+                It.IsAny<SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedcSharpResults)));
 

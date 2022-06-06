@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // 2. The indentation due to Razor and HTML constructs
 
             var text = context.SourceText;
-            range ??= TextSpan.FromBounds(0, text.Length).AsVSRange(text);
+            range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
 
             // To help with figuring out the correct indentation, first we will need the indentation
             // that the C# formatter wants to apply in the following locations,

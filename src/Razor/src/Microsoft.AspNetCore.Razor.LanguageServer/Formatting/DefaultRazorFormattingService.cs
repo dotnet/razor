@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Only send back the minimum edits
             var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
-            var finalEdits = minimalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
+            var finalEdits = minimalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return finalEdits;
         }
@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var encompassingChange = new TextChange(spanBeforeChange, newText);
 
-            return encompassingChange.AsVSTextEdit(sourceText);
+            return encompassingChange.AsTextEdit(sourceText);
         }
     }
 }
