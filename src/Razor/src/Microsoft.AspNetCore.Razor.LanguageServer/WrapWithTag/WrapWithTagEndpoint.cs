@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
             if (languageKind is not RazorLanguageKind.Html)
             {
-                _logger.LogInformation($"Unsupported language {languageKind:G}.");
+                _logger.LogInformation("Unsupported language {languageKind:G}.", languageKind);
                 return null;
             }
 

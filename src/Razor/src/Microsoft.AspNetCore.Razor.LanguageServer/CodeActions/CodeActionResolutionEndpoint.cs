@@ -67,7 +67,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentOutOfRangeException($"request.Data should be convertable to {nameof(RazorCodeActionResolutionParams)}");
             }
 
-            _logger.LogInformation($"Resolving workspace edit for action {GetCodeActionId(resolutionParams)}.");
+            var codeAtionId = GetCodeActionId(resolutionParams);
+            _logger.LogInformation("Resolving workspace edit for action {codeActionId}.", codeAtionId);
 
             // If it's a special "edit based code action" then the edit has been pre-computed and we
             // can extract the edit details and return to the client. This is only required for VSCode

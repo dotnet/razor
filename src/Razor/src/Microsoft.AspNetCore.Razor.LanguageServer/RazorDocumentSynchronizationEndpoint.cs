@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task<Unit> Handle(DidSaveTextDocumentParamsBridge notification, CancellationToken _)
         {
-            _logger.LogInformation($"Saved Document {notification.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
+            _logger.LogInformation("Saved Document {textDocumentUri}", notification.TextDocument.Uri.GetAbsoluteOrUNCPath());
 
             return Unit.Task;
         }

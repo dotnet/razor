@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                     if (roslynProject is null)
                     {
                         // There's no Roslyn project associated with the Razor document.
-                        _logger.LogTrace($"Could not find a Roslyn project for Razor virtual document '{backgroundVirtualFilePath}'.");
+                        _logger.LogTrace("Could not find a Roslyn project for Razor virtual document '{backgroundVirtualFilePath}'.", backgroundVirtualFilePath);
                         return;
                     }
 

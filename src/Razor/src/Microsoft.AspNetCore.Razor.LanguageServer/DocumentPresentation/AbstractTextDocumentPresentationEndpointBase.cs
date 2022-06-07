@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             if (languageKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
             {
-                _logger.LogInformation($"Unsupported language {languageKind:G}.");
+                _logger.LogInformation("Unsupported language {languageKind}.", languageKind);
                 return null;
             }
 

@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else
             {
-                _logHubLogger?.LogInformation($"Could not find projection for {languageResponse.Kind:G}.");
+                _logHubLogger?.LogInformation("Could not find projection for {languageResponseKind:G}.", languageResponse.Kind);
                 return null;
             }
 

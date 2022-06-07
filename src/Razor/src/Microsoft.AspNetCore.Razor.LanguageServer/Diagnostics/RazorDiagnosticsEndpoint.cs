@@ -89,7 +89,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 throw new ArgumentNullException(nameof(request));
             }
 
-            _logger.LogInformation($"Received {request.Kind:G} diagnostic request for {request.RazorDocumentUri} with {request.Diagnostics.Length} diagnostics.");
+            _logger.LogInformation("Received {requestKind} diagnostic request for {razorDocumentUri} with {diagnosticsLength} diagnostics.",
+                request.Kind, request.RazorDocumentUri, request.Diagnostics.Length);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -110,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             if (documentSnapshot is null)
             {
-                _logger.LogInformation($"Failed to find document {request.RazorDocumentUri}.");
+                _logger.LogInformation("Failed to find document {razorDocumentUri}.", request.RazorDocumentUri);
 
                 return new RazorDiagnosticsResponse()
                 {
@@ -146,7 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 };
             }
 
-            _logger.LogInformation($"{filteredDiagnostics.Length}/{unmappedDiagnostics.Length} diagnostics remain after filtering.");
+            _logger.LogInformation("{filteredDiagnosticsLength}/{unmappedDiagnosticsLength} diagnostics remain after filtering.", filteredDiagnostics.Length, unmappedDiagnostics.Length);
 
             var mappedDiagnostics = MapDiagnostics(
                 request.Kind,
@@ -154,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 codeDocument,
                 sourceText);
 
-            _logger.LogInformation($"Returning {mappedDiagnostics.Length} mapped diagnostics.");
+            _logger.LogInformation("Returning {mappedDiagnosticsLength} mapped diagnostics.", mappedDiagnostics.Length);
 
             return new RazorDiagnosticsResponse()
             {
@@ -532,7 +533,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 default:
                     // Unsupported owner of rude diagnostic, lets map to the entirety of the diagnostic range to be sure the diagnostic can be presented
 
-                    _logger.LogInformation($"Failed to remap rude edit for SyntaxTree owner '{owner?.Kind}'.");
+                    _logger.LogInformation("Failed to remap rude edit for SyntaxTree owner '{ownerKind}'.", owner?.Kind);
 
                     var startLineIndex = diagnosticRange.Start.Line;
                     if (startLineIndex >= sourceText.Lines.Count)

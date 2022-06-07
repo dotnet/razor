@@ -90,7 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return CreateDefaultResponse(token);
             }
 
-            _logger?.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
+            _logger?.LogInformation("Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.",
+                diagnosticParams.Uri, diagnosticParams.Diagnostics.Length);
 
             var htmlDocumentUri = diagnosticParams.Uri;
             var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(htmlDocumentUri);
@@ -103,14 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (!_documentManager.TryGetDocument(razorDocumentUri, out var razorDocumentSnapshot))
             {
-                _logger?.LogInformation($"Failed to find document {razorDocumentUri}.");
+                _logger?.LogInformation("Failed to find document {razorDocumentUri}.", razorDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
             if (!razorDocumentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocumentSnapshot) ||
                 !htmlDocumentSnapshot.Uri.Equals(htmlDocumentUri))
             {
-                _logger?.LogInformation($"Failed to find virtual HTML document {htmlDocumentUri}.");
+                _logger?.LogInformation("Failed to find virtual HTML document {htmlDocumentUri}.", htmlDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
@@ -130,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (processedDiagnostics is null)
             {
-                _logger?.LogWarning($"Failed to semnd request to diagnostic translation server for {htmlDocumentUri}.");
+                _logger?.LogWarning("Failed to semnd request to diagnostic translation server for {htmlDocumentUri}.", htmlDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
@@ -140,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             //
             // This'll need to be revisited based on preferences with flickering vs lingering.
 
-            _logger?.LogInformation($"Returning {processedDiagnostics.Diagnostics.Length} diagnostics.");
+            _logger?.LogInformation("Returning {processedDiagnostics.Diagnostics.Length} diagnostics.", processedDiagnostics.Diagnostics.Length);
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);

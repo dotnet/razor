@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to sync client configuration on the server: {ex}");
+                _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
                 return null;
             }
         }

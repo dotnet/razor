@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 }
                 catch (Exception e) when (retries < MaxRetries)
                 {
-                    _logger.LogWarning(e, $"Try {retries} to get FoldingRange");
+                    _logger.LogWarning(e, "Try {retries} to get FoldingRange", retries);
                 }
             }
 

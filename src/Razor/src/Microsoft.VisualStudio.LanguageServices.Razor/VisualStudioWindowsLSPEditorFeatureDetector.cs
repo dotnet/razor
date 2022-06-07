@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             if (!IsLSPEditorAvailable())
             {
-                _logger.LogVerbose($"Using Legacy editor because the option was set to true");
+                _logger.LogVerbose("Using Legacy editor because the option was set to true");
                 return false;
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             if (!ProjectSupportsLSPEditor(documentMoniker, ivsHierarchy))
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
-                _logger.LogVerbose($"Using Legacy editor because the current project does not support LSP Editor");
+                _logger.LogVerbose("Using Legacy editor because the current project does not support LSP Editor");
                 return false;
             }
 

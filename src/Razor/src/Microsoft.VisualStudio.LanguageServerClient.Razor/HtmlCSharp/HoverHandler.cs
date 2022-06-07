@@ -76,11 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            _logger.LogInformation("Starting request for {request.TextDocument.Uri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {request.TextDocument.Uri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            _logger.LogInformation($"Requesting hovers for {projectionResult.Uri}.");
+            _logger.LogInformation("Requesting hovers for {projectionResult.Uri}.", projectionResult.Uri);
 
             var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
@@ -147,7 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else if (mappingResult.HostDocumentVersion != documentSnapshot.Version)
             {
-                _logger.LogInformation($"Discarding result, document has changed. {documentSnapshot.Version} -> {mappingResult.HostDocumentVersion}");
+                _logger.LogInformation("Discarding result, document has changed. {documentSnapshot.Version} -> {mappingResult.HostDocumentVersion}",
+                    documentSnapshot.Version, mappingResult.HostDocumentVersion);
                 return null;
             }
 
