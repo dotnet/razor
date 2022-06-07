@@ -316,7 +316,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-
                 CleanupSourceMappingStart(context, mappingRange, changes, out var newLineAdded);
 
                 CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
