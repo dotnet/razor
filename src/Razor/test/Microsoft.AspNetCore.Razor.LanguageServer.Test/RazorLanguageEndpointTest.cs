@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 

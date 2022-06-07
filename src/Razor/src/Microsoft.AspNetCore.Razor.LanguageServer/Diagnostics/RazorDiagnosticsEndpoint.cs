@@ -569,7 +569,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 // For `Error` Severity diagnostics we still show the diagnostics to
                 // the user, however we set the range to an undefined range to ensure
                 // clicking on the diagnostic doesn't cause errors.
-                originalRange = RangeExtensions.UndefinedVSRange;
+                originalRange = RangeExtensions.UndefinedRange;
             }
 
             return true;

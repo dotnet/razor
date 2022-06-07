@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-                var ranges = new Range[2] { startSpan.AsVSRange(), endSpan.AsVSRange() };
+                var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
 
                 return new LinkedEditingRanges
                 {

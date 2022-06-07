@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -329,7 +328,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var editChange2 = result.DocumentChanges.Value.ElementAt(2);
             Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
             Assert.Equal("file:///c:/Second/Component4.razor", textDocumentEdit2.TextDocument.Uri.ToString());
-            Assert.Equal(2, textDocumentEdit2.Edits.Count());
+            Assert.Equal(2, textDocumentEdit2.Edits.Length);
         }
 
         [Fact]
@@ -494,15 +493,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
 
             var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
-                d.TryCreateAsync(new Uri("c:/First/Component1.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component1) &&
-                d.TryCreateAsync(new Uri("c:/First/Component2.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component2) &&
-                d.TryCreateAsync(new Uri("c:/Second/Component3.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component3) &&
-                d.TryCreateAsync(new Uri("c:/Second/Component4.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component4) &&
-                d.TryCreateAsync(new Uri("c:/Second/ComponentWithParam.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(componentWithParam) &&
-                d.TryCreateAsync(new Uri(index.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(index) &&
-                d.TryCreateAsync(new Uri(component1337.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component1337) &&
-                d.TryCreateAsync(new Uri(itemDirectory1.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(directory1Component) &&
-                d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(directory2Component), MockBehavior.Strict);
+                d.TryCreateAsync(new Uri("c:/First/Component1.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component1) &&
+                d.TryCreateAsync(new Uri("c:/First/Component2.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component2) &&
+                d.TryCreateAsync(new Uri("c:/Second/Component3.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component3) &&
+                d.TryCreateAsync(new Uri("c:/Second/Component4.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component4) &&
+                d.TryCreateAsync(new Uri("c:/Second/ComponentWithParam.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(componentWithParam) &&
+                d.TryCreateAsync(new Uri(index.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(index) &&
+                d.TryCreateAsync(new Uri(component1337.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(component1337) &&
+                d.TryCreateAsync(new Uri(itemDirectory1.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory1Component) &&
+                d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory2Component), MockBehavior.Strict);
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);

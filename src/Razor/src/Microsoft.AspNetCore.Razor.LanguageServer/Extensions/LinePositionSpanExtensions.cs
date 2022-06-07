@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class LinePositionSpanExtensions
     {
-        public static Range AsVSRange(this LinePositionSpan linePositionSpan)
+        public static Range AsRange(this LinePositionSpan linePositionSpan)
         {
             var range = new Range
             {

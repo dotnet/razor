@@ -501,7 +501,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response.Diagnostics[0].Range);
+            Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics[0].Range);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -533,7 +533,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response.Diagnostics[0].Range);
+            Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics[0].Range);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 

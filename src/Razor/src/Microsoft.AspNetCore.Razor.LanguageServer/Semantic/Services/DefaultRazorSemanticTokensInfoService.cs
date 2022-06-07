@@ -222,8 +222,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
             {
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var startRange = minGeneratedSpan.Value.AsVSRange(csharpSourceText);
-                var endRange = maxGeneratedSpan.Value.AsVSRange(csharpSourceText);
+                var startRange = minGeneratedSpan.Value.AsRange(csharpSourceText);
+                var endRange = maxGeneratedSpan.Value.AsRange(csharpSourceText);
 
                 csharpRange = new Range { Start = startRange.Start, End = endRange.End };
                 Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");

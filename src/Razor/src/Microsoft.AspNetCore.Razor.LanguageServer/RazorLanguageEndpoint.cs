@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
-                    ranges[i] = RangeExtensions.UndefinedVSRange;
+                    ranges[i] = RangeExtensions.UndefinedRange;
                     continue;
                 }
 
