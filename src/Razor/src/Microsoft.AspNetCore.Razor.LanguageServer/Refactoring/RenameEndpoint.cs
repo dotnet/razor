@@ -25,17 +25,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     internal class RenameEndpoint : IRenameEndpoint
     {
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public RenameEndpoint(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentContextFactory documentContextFactory,
             RazorComponentSearchEngine componentSearchEngine,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
@@ -123,35 +126,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         {
             var documentSnapshots = new List<DocumentSnapshot?>();
             var documentPaths = new HashSet<string>();
-            foreach (var project in _projectSnapshotManager.Projects)
-            {
-                foreach (var documentPath in project.DocumentFilePaths)
-                {
-                    // We've already added refactoring edits for our document snapshot
-                    if (string.Equals(documentPath, skipDocumentSnapshot.FilePath, FilePathComparison.Instance))
-                    {
-                        continue;
-                    }
-
-                    // Don't add duplicates between projects
-                    if (documentPaths.Contains(documentPath))
-                    {
-                        continue;
-                    }
-
-                    // Add to the list and add the path to the set
-                    var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken);
-                    if(documentContext is null)
-                    {
-                        throw new NotImplementedException($"{documentPath} in project but not retrievable");
-                    }
-
-                    documentSnapshots.Add(documentContext.Snapshot);
-                    documentPaths.Add(documentPath);
-                }
-            }
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(GetAllDocumentSnapshotsInternalAsync, cancellationToken);
 
             return documentSnapshots;
+
+            async Task GetAllDocumentSnapshotsInternalAsync()
+            {
+                foreach (var project in _projectSnapshotManager.Projects)
+                {
+                    foreach (var documentPath in project.DocumentFilePaths)
+                    {
+                        // We've already added refactoring edits for our document snapshot
+                        if (string.Equals(documentPath, skipDocumentSnapshot.FilePath, FilePathComparison.Instance))
+                        {
+                            continue;
+                        }
+
+                        // Don't add duplicates between projects
+                        if (documentPaths.Contains(documentPath))
+                        {
+                            continue;
+                        }
+
+                        // Add to the list and add the path to the set
+                        var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken);
+                        if (documentContext is null)
+                        {
+                            throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
+                        }
+
+                        documentSnapshots.Add(documentContext.Snapshot);
+                        documentPaths.Add(documentPath);
+                    }
+                }
+            }
         }
 
         public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, DocumentSnapshot documentSnapshot, string newPath)

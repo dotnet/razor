@@ -58,26 +58,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentSnapshot = documentContext.Snapshot;
-
-            var text = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (text is null)
-            {
-                return codeAction;
-            }
-
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return codeAction;
             }
 
-            var documentVersion = documentContext.Version;
-
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion
+                Version = documentContext.Version
             };
 
             var edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);
