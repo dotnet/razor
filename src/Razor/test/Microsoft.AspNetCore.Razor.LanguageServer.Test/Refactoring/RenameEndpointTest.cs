@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -490,7 +491,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { firstProject, secondProject }, MockBehavior.Strict);
             var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
 
-            var documentResolver = Mock.Of<DocumentContextFactory>(d =>
+            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+
+            var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
                 d.TryCreateAsync(new Uri("c:/First/Component1.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component1) &&
                 d.TryCreateAsync(new Uri("c:/First/Component2.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component2) &&
                 d.TryCreateAsync(new Uri("c:/Second/Component3.razor"), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(component3) &&
@@ -503,7 +506,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
-            var endpoint = new RenameEndpoint(documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
+            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
             return endpoint;
         }
 
