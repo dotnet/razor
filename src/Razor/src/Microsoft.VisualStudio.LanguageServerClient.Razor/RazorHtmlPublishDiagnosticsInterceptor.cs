@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (processedDiagnostics is null)
             {
-                _logger?.LogWarning("Failed to semnd request to diagnostic translation server for {htmlDocumentUri}.", htmlDocumentUri);
+                _logger?.LogWarning("Failed to send request to diagnostic translation server for {htmlDocumentUri}.", htmlDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
