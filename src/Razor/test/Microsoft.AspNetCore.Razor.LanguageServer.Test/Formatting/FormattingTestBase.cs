@@ -79,10 +79,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             fileKind ??= FileKinds.Component;
 
             TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> spans);
-            var span = spans.IsEmpty ? new TextSpan(0, input.Length) : spans.Single();
 
             var source = SourceText.From(input);
-            var range = span.AsRange(source);
+            var range = spans.IsEmpty
+                ? null
+                : spans.Single().AsRange(source);
 
             var path = "file:///path/to/Document." + fileKind;
             var uri = new Uri(path);
@@ -210,7 +211,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
             => new TextEdit()
             {
-                Range = new VisualStudio.LanguageServer.Protocol.Range{
+                Range = new VisualStudio.LanguageServer.Protocol.Range
+                {
                     Start = new Position(startLine, startChar),
                     End = new Position(endLine, endChar),
                 },

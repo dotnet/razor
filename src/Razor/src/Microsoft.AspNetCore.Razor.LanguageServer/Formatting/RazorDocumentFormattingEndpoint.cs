@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -87,9 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
-            var range = span.AsRange(codeDocument.GetSourceText());
-            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, range, request.Options, cancellationToken);
+            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, range: null, request.Options, cancellationToken);
 
             return edits;
         }
