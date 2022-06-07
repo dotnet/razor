@@ -96,11 +96,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation("Starting request for {request.TextDocument.Uri}.", request.TextDocument.Uri);
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning("Failed to find document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation("Requesting references for {projectionResult.Uri}.", projectionResult.Uri);
+            _logger.LogInformation("Requesting references for {projectionResultUri}.", projectionResult.Uri);
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSInternalReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Results returned through Progress notification
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation("Returning {remappedResults.Length} results.", remappedResults.Length);
+            _logger.LogInformation("Returning {remappedResultsLength} results.", remappedResults.Length);
 
             return remappedResults;
 
@@ -202,10 +202,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            _logger.LogInformation("Received {result.Length} references, remapping.", result.Length);
+            _logger.LogInformation("Received {resultLength} references, remapping.", result.Length);
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation("Reporting {remappedResults.Length} results.", remappedResults.Length);
+            _logger.LogInformation("Reporting {remappedResultsLength} results.", remappedResults.Length);
             progress.Report(remappedResults);
         }
 

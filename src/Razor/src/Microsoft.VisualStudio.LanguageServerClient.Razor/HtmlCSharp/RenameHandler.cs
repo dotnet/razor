@@ -76,11 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation("Starting request for {request.TextDocument.Uri}.", request.TextDocument.Uri);
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning("Failed to find document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            _logger.LogInformation("Requesting rename for {projectionResult.Uri}.", projectionResult.Uri);
+            _logger.LogInformation("Requesting rename for {projectionResultUri}.", projectionResult.Uri);
 
             var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);

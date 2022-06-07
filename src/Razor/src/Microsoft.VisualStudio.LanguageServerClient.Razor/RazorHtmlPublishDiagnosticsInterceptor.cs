@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return CreateDefaultResponse(token);
             }
 
-            _logger?.LogInformation("Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.",
+            _logger?.LogInformation("Received HTML Publish diagnostic request for {diagnosticParamsUri} with {diagnosticsLength} diagnostics.",
                 diagnosticParams.Uri, diagnosticParams.Diagnostics.Length);
 
             var htmlDocumentUri = diagnosticParams.Uri;
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             //
             // This'll need to be revisited based on preferences with flickering vs lingering.
 
-            _logger?.LogInformation("Returning {processedDiagnostics.Diagnostics.Length} diagnostics.", processedDiagnostics.Diagnostics.Length);
+            _logger?.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics.Length);
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);

@@ -76,11 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation("Starting request for {request.TextDocument.Uri}.", request.TextDocument.Uri);
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning("Failed to find document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return new();
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
             var languageServerName = serverKind.ToLanguageServerName();
 
-            _logger.LogInformation("Requesting {languageServerName} implementation for {projectionResult.Uri}.", languageServerName, projectionResult.Uri);
+            _logger.LogInformation("Requesting {languageServerName} implementation for {projectionResultUri}.", languageServerName, projectionResult.Uri);
 
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(
@@ -130,14 +130,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, cancellationToken).ConfigureAwait(false);
 
-                _logger.LogInformation("Returning {remappedLocations?.Length} internal reference items.", remappedLocations?.Length);
+                _logger.LogInformation("Returning {remappedLocationsLength} internal reference items.", remappedLocations?.Length);
                 return remappedLocations;
             }
             else if (result.Value is Location[] locations)
             {
                 var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
 
-                _logger.LogInformation("Returning {remappedLocations?.Length} locations.", remappedLocations?.Length);
+                _logger.LogInformation("Returning {remappedLocationsLength} locations.", remappedLocations?.Length);
 
                 return remappedLocations;
             }
