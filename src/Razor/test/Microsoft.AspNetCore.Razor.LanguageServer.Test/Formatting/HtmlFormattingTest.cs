@@ -1570,6 +1570,99 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 fileKind: FileKinds.Legacy);
         }
 
+        [Fact]
+        public async Task RazorDiagnostics_SkipRangeFormatting()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @page "Goo"
+
+                    <div></div>
+
+                    [|<button|]
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                expected: """
+                    @page "Goo"
+                    
+                    <div></div>
+                    
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_DontSkipDocumentFormatting()
+        {
+            // Yes this format result looks wrong, but this is only done in direct response
+            // to user action, and they can always undo it.
+            await RunFormattingTestAsync(
+                input: """
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                expected: """
+                    <button @functions {
+                            void M() { }
+                            }
+                    """,
+                allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_SkipRangeFormatting_WholeDocumentRange()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    [|<button
+                    @functions {
+                     void M() { }
+                    }|]
+                    """,
+                expected: """
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_DontSkipWhenOutsideOfRange()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @page "Goo"
+                    
+                    [|      <div></div>|]
+                    
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                expected: """
+                    @page "Goo"
+                    
+                    <div></div>
+                    
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                allowDiagnostics: true);
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
         {
             AdditionalSyntaxTrees.Add(Parse("""
