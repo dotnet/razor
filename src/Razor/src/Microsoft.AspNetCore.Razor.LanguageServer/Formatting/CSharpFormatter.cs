@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Formatting options will already be set in the workspace.
             var changes = CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(root, spanToFormat, workspace, cancellationToken: cancellationToken);
 
-            var edits = changes.Select(c => c.AsVSTextEdit(csharpSourceText)).ToArray();
+            var edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
             return edits;
         }
 

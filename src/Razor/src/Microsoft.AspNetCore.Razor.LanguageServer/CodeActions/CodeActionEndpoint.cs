@@ -239,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // Internal for testing
         internal async Task<IEnumerable<RazorVSInternalCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
-            if (!_documentMappingService.TryMapToProjectedDocumentVSRange(
+            if (!_documentMappingService.TryMapToProjectedDocumentRange(
                     context.CodeDocument,
                     context.Request.Range,
                     out var projectedRange))
@@ -250,7 +250,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var newContext = context.Request.Context;
             if (context.Request.Context is VSInternalCodeActionContext omniSharpContext &&
                 omniSharpContext.SelectionRange is not null &&
-                _documentMappingService.TryMapToProjectedDocumentVSRange(
+                _documentMappingService.TryMapToProjectedDocumentRange(
                     context.CodeDocument,
                     omniSharpContext.SelectionRange,
                     out var selectionRange))

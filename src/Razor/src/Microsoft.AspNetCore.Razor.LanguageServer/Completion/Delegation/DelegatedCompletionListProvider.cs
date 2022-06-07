@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var languageKind = _documentMappingService.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
             if (languageKind == RazorLanguageKind.CSharp)
             {
-                if (_documentMappingService.TryMapToProjectedDocumentVSPosition(codeDocument, absoluteIndex, out var mappedPosition, out _))
+                if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var mappedPosition, out _))
                 {
                     // For C# locations, we attempt to return the corresponding position
                     // within the projected document

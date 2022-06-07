@@ -133,7 +133,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||
-            !_documentMappingService.TryMapToProjectedDocumentVSPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
+            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
         {
             _logger.LogInformation($"Unsupported location for {request.TextDocument.Uri}.");
             return null;

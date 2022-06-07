@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -699,7 +699,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 1)),
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
-            var range = new Range(new Position(1, 10), new Position(1, 13));
+            var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
             // Act & Assert
             if (service.TryMapToProjectedDocumentRange(
@@ -729,7 +729,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 new[] {
                     new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 1)),
                 });
-            var range = new Range(new Position(1, 10), new Position(1, 13));
+            var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
             // Act
             var result = service.TryMapToProjectedDocumentRange(
@@ -755,7 +755,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 3), new SourceSpan(11, 3)),
                     new SourceMapping(new SourceSpan(19, 10), new SourceSpan(5, 10))
                 });
-            var range = new Range(new Position(1, 10), new Position(1, 13));
+            var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
             // Act
             var result = service.TryMapToProjectedDocumentRange(

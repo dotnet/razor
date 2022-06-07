@@ -663,6 +663,80 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        public async Task ComponentInCSharp1()
+        {
+            await RunOnTypeFormattingTestAsync(
+                input: """
+                    @code {
+                        public void Sink(RenderFragment r)
+                        {
+                        }
+                    
+                        public void M()
+                        {
+                            Sink(@<PageTitle />);$$ // <-- this should not move
+                    
+                            Console.WriteLine("Hello");
+                            Console.WriteLine("World"); // <-- type/replace semicolon here
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public void Sink(RenderFragment r)
+                        {
+                        }
+                    
+                        public void M()
+                        {
+                            Sink(@<PageTitle />); // <-- this should not move
+                    
+                            Console.WriteLine("Hello");
+                            Console.WriteLine("World"); // <-- type/replace semicolon here
+                        }
+                    }
+                    """,
+                triggerCharacter: ';');
+        }
+
+        [Fact]
+        public async Task ComponentInCSharp2()
+        {
+            await RunOnTypeFormattingTestAsync(
+                input: """
+                    @code {
+                        public void Sink(RenderFragment r)
+                        {
+                        }
+                    
+                        public void M()
+                        {
+                            Sink(@<PageTitle />); // <-- this should not move
+                    
+                            Console.WriteLine("Hello");
+                            Console.WriteLine("World");$$ // <-- type/replace semicolon here
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public void Sink(RenderFragment r)
+                        {
+                        }
+                    
+                        public void M()
+                        {
+                            Sink(@<PageTitle />); // <-- this should not move
+                    
+                            Console.WriteLine("Hello");
+                            Console.WriteLine("World"); // <-- type/replace semicolon here
+                        }
+                    }
+                    """,
+                triggerCharacter: ';');
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
         public async Task Format_NestedLambdas()
         {

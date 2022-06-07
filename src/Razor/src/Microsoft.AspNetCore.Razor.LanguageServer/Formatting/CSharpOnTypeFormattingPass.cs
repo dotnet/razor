@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -21,6 +23,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -87,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return result;
                 }
 
-                textEdits = formattingChanges.Select(change => change.AsVSTextEdit(csharpText)).ToArray();
+                textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
                 _logger.LogInformation($"Received {textEdits.Length} results from C#.");
             }
 
@@ -107,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Apply the format on type edits sent over by the client.
             var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
             var changedContext = await context.WithTextAsync(formattedText);
-            var rangeAfterFormatting = spanAfterFormatting.AsVSRange(formattedText);
+            var rangeAfterFormatting = spanAfterFormatting.AsRange(formattedText);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -185,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
             var finalChanges = cleanedText.GetTextChanges(originalText);
-            var finalEdits = finalChanges.Select(f => f.AsVSTextEdit(originalText)).ToArray();
+            var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             if (context.AutomaticallyAddUsings)
             {
@@ -272,7 +276,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var newLineCount = change.NewText is null ? 0 : change.NewText.Split('\n').Length - 1;
 
-                var range = change.Span.AsVSRange(text);
+                var range = change.Span.AsRange(text);
                 Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
 
                 // For convenience, since we're already iterating through things, we also find the extremes
@@ -298,14 +302,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
             var text = context.SourceText;
-            range ??= TextSpan.FromBounds(0, text.Length).AsVSRange(text);
+            range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
             var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
             var changes = new List<TextChange>();
             foreach (var mapping in csharpDocument.SourceMappings)
             {
                 var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-                var mappingRange = mappingSpan.AsVSRange(text);
+                var mappingRange = mappingSpan.AsRange(text);
                 if (!range.LineOverlapsWith(mappingRange))
                 {
                     // We don't care about this range. It didn't change.
@@ -342,9 +346,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var text = context.SourceText;
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
-            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.PreviousSpan() is { } prevNode &&
+                prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                owner.SpanStart == template.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break after a single line template
                 return;
             }
 
@@ -475,9 +489,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var endSpan = TextSpan.FromBounds(sourceMappingSpan.End, sourceMappingSpan.End);
-            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.NextSpan() is { } nextNode &&
+                nextNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                template.SpanStart == owner.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break in front of a single line template
                 return;
             }
 
@@ -509,12 +533,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             changes.Add(change);
         }
 
+        private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
+        {
+            text.GetLineAndOffset(node.Span.Start, out var startLine, out _);
+            text.GetLineAndOffset(node.Span.End, out var endLine, out _);
+
+            return startLine == endLine;
+        }
+
         private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
         {
             var changes = edits.Select(e => e.AsTextChange(originalText));
             originalTextWithChanges = originalText.WithChanges(changes);
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
-            var cleanEdits = cleanChanges.Select(c => c.AsVSTextEdit(originalText)).ToArray();
+            var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
         }
     }

@@ -23,7 +23,6 @@ using Xunit;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using Omni = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -32,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out It.Ref<Omni.Range>.IsAny) == false, MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
         private readonly DocumentResolver _emptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
         private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
@@ -582,9 +581,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentPath = "C:/path/to/Page.razor";
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            Omni.Range projectedRange = null;
+            Range projectedRange = null;
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out projectedRange) == false
+                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == false
             , MockBehavior.Strict);
             var codeActionEndpoint = new CodeActionEndpoint(
                 documentMappingService,
@@ -626,7 +625,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var projectedRange = new Range { Start = new Position(15, 2), End = new Position(15, 2) };
-            var documentMappingService = CreateDocumentMappingService(projectedRange.AsOmniSharpRange());
+            var documentMappingService = CreateDocumentMappingService(projectedRange);
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
                 documentMappingService,
@@ -673,11 +672,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Equal(projectedRange, diagnostics[1].Range);
         }
 
-        private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Omni.Range projectedRange = null)
+        private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range projectedRange = null)
         {
-            projectedRange ??= new Omni.Range { Start = new Omni.Position(5, 2), End = new Omni.Position(5, 2) };
+            projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Omni.Range>(), out projectedRange) == true
+                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == true
             , MockBehavior.Strict);
             return documentMappingService;
         }
