@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var textSpan = new TextSpan(startPosition, change.RangeLength ?? endPosition - startPosition);
                 var textChange = new TextChange(textSpan, change.Text);
 
-                _logger.LogTrace($"Applying {textChange}");
+                _logger.LogTrace("Applying {textChange}", textChange);
 
                 // If there happens to be multiple text changes we generate a new source text for each one. Due to the
                 // differences in VSCode and Roslyn's representation we can't pass in all changes simultaneously because

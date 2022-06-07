@@ -125,7 +125,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogTrace($"Breakpoint span request for ({request.Position.Line}, {request.Position.Character}) = ({hostDocumentRange.Start.Line}, {hostDocumentRange.Start.Character}");
+            _logger.LogTrace("Breakpoint span request for ({requestLine}, {requestCharacter}) = ({hostDocumentStartLine}, {hostDocumentStartCharacter}",
+                request.Position.Line, request.Position.Character, hostDocumentRange.Start.Line, hostDocumentRange.Start.Character);
 
             return new RazorBreakpointSpanResponse()
             {

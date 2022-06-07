@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (_logger.IsEnabled(LogLevel.Trace))
             {
                 var diagnosticString = string.Join(", ", diagnostics.Select(diagnostic => diagnostic.Id));
-                _logger.LogTrace($"Publishing diagnostics for document '{document.FilePath}': {diagnosticString}");
+                _logger.LogTrace("Publishing diagnostics for document '{FilePath}': {diagnosticString}", document.FilePath, diagnosticString);
             }
         }
 

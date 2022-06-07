@@ -129,7 +129,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            _logger.LogTrace($"Language query request for ({request.Position.Line}, {request.Position.Character}) = {languageKind} at ({responsePosition.Line}, {responsePosition.Character})");
+            _logger.LogTrace("Language query request for ({requestPositionLine}, {requestPositionCharacter}) = {languageKind} at ({responsePositionLine}, {responsePositionCharacter})",
+                request.Position.Line, request.Position.Character, languageKind, responsePosition.Line, responsePosition.Character);
 
             return new RazorLanguageQueryResponse()
             {

@@ -169,7 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
+                _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
                 return defaultValue;
             }
         }

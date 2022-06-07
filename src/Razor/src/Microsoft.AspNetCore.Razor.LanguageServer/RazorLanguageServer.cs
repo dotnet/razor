@@ -310,7 +310,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var factory = new LoggerFactory();
                 var logger = factory.CreateLogger<RazorLanguageServer>();
                 var assemblyInformationAttribute = typeof(RazorLanguageServer).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-                logger.LogInformation("Razor Language Server version " + assemblyInformationAttribute.InformationalVersion);
+                logger.LogInformation("Razor Language Server version {RazorVersion}", assemblyInformationAttribute.InformationalVersion);
                 factory.Dispose();
             }
             catch

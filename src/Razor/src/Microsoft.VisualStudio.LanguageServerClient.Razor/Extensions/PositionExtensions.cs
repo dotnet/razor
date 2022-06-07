@@ -26,11 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
             var linePosition = new LinePosition(position.Line, position.Character);
             if (linePosition.Line >= sourceText.Lines.Count)
             {
-                var errorMessage = Resources.FormatPositionIndex_Outside_Range(
-                    position.Line,
+#pragma warning disable CA2254 // Template should be a static expression
+                // Resources.GetResourceString won't vary, so this is fine
+                logger?.LogError(Resources.GetResourceString("FormatPositionIndex_Outside_Range"), position.Line,
                     nameof(sourceText),
                     sourceText.Lines.Count);
-                logger?.LogError(errorMessage);
+#pragma warning restore CA2254 // Template should be a static expression
                 absoluteIndex = -1;
                 return false;
             }

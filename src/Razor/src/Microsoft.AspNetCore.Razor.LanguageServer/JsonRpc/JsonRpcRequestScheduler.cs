@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
             }
             catch (Exception e)
             {
-                _logger.LogCritical($"Work queue threw an uncaught exception. Stopping processing: {e.Message}");
+                _logger.LogCritical("Work queue threw an uncaught exception. Stopping processing: {exceptionMessage}", e.Message);
             }
         }
 

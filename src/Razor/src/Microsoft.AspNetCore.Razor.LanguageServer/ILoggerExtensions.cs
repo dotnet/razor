@@ -11,11 +11,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public static bool TestOnlyLoggingEnabled = false;
 
         [Conditional("DEBUG")]
-        public static void LogTestOnly(this ILogger logger, string message)
+        public static void LogTestOnly(this ILogger logger, string message, params object?[] args)
         {
             if (TestOnlyLoggingEnabled)
             {
-                logger.LogDebug(message);
+#pragma warning disable CA2254 // Template should be a static expression
+                // This is test-only, so we don't mind losing structured logging for it.
+                logger.LogDebug(message, args);
+#pragma warning restore CA2254 // Template should be a static expression
             }
         }
     }
