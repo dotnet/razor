@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 return null;
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         {
             var documentSnapshots = new List<DocumentSnapshot?>();
             var documentPaths = new HashSet<string>();
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(GetAllDocumentSnapshotsInternalAsync, cancellationToken);
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(GetAllDocumentSnapshotsInternalAsync, cancellationToken).ConfigureAwait(false);
 
             return documentSnapshots;
 

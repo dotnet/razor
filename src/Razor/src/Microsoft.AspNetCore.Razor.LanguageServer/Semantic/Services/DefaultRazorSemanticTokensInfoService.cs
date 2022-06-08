@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range range,
             CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(textDocumentIdentifier.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(textDocumentIdentifier.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 return null;

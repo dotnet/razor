@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
             var documentUri = request.Uri.GetAbsoluteOrUNCPath();
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 _logger.LogError("Failed to get the document snapshot '{documentUri}', could not map to document ranges.", documentUri);
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 // Document requested without prior knowledge
@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 throw new InvalidOperationException($"Unable to resolve document {request.RazorDocumentUri.GetAbsoluteOrUNCPath()}.");

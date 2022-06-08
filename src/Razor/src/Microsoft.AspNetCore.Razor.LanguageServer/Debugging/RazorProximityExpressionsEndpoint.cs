@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
         public async Task<RazorProximityExpressionsResponse?> Handle(RazorProximityExpressionsParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 return null;

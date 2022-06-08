@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 return null;

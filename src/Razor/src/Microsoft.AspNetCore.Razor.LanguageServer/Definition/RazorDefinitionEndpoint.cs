@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
             if (documentContext is null)
             {

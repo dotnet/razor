@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // internal for testing
         internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             if(documentContext is null)
             {
                 return null;

@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken).ConfigureAwait(false);
 
             if (documentContext is null)
             {

@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
         public async Task<WrapWithTagResponse?> Handle(WrapWithTagParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);

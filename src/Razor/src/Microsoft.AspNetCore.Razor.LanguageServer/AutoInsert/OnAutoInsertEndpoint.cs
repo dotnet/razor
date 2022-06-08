@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public async Task<VSInternalDocumentOnAutoInsertResponseItem?> Handle(OnAutoInsertParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
                 return null;
