@@ -4,9 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,18 +14,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
     internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>, ITextDocumentTextPresentationHandler
     {
         public TextDocumentTextPresentationEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
-            : base(projectSnapshotManagerDispatcher,
-                 documentResolver,
+            : base(documentContextFactory,
                  razorDocumentMappingService,
                  languageServer,
-                 documentVersionCache,
                  languageServerFeatureOptions,
                  loggerFactory.CreateLogger<TextDocumentTextPresentationEndpoint>())
         {

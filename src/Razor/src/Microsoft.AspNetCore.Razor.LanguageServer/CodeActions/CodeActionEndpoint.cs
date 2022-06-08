@@ -14,9 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,8 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly IEnumerable<RazorCodeActionProvider> _razorCodeActionProviders;
         private readonly IEnumerable<CSharpCodeActionProvider> _csharpCodeActionProviders;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ClientNotifierServiceBase _languageServer;
 
@@ -42,16 +39,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorDocumentMappingService documentMappingService,
             IEnumerable<RazorCodeActionProvider> razorCodeActionProviders,
             IEnumerable<CSharpCodeActionProvider> csharpCodeActionProviders,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             ClientNotifierServiceBase languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
             _csharpCodeActionProviders = csharpCodeActionProviders ?? throw new ArgumentNullException(nameof(csharpCodeActionProviders));
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
 
@@ -119,16 +114,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // internal for testing
         internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if(documentContext is null)
             {
                 return null;
             }
+
+            var documentSnapshot = documentContext.Snapshot;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())

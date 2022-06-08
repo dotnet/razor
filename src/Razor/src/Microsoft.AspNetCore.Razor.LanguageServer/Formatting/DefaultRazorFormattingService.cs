@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Despite what it looks like, codeDocument.GetCSharpDocument().Diagnostics is actually the
             // Razor diagnostics, not the C# diagnostics 🤦‍
             if (range is not null &&
-                codeDocument.GetCSharpDocument().Diagnostics.Any(d => range.OverlapsWith(d.Span.AsVSRange(codeDocument.GetSourceText()))))
+                codeDocument.GetCSharpDocument().Diagnostics.Any(d => range.OverlapsWith(d.Span.AsRange(codeDocument.GetSourceText()))))
             {
                 return Array.Empty<TextEdit>();
             }

@@ -27,9 +27,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentVersionCache VersionCache { get; set; }
 
-        private Uri DocumentUri { get; set; }
+        private DocumentContext DocumentContext { get; set; }
 
-        private DocumentSnapshot DocumentSnapshot { get; set; }
+        private Uri DocumentUri => DocumentContext.Uri;
+
+        private DocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
         private Range Range { get; set; }
 
@@ -52,8 +54,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var filePath = Path.Combine(PagesDirectory, $"FormattingTest.razor");
             TargetPath = "/Components/Pages/FormattingTest.razor";
 
-            DocumentUri = new Uri(filePath);
-            DocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+            var documentUri = new Uri(filePath);
+            var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+            DocumentContext = new DocumentContext(documentUri, documentSnapshot, version: 1);
 
             var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
             Range = new Range
@@ -99,8 +102,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 await RazorSemanticTokenService!.GetSemanticTokensAsync(
                     textDocumentIdentifier,
                     range,
-                    DocumentSnapshot,
-                    documentVersion,
+                    DocumentContext,
                     cancellationToken);
 
                 lineCount = newLineCount;

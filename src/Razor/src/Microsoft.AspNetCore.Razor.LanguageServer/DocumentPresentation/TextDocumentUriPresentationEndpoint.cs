@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -24,19 +23,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
 
         public TextDocumentUriPresentationEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             RazorComponentSearchEngine razorComponentSearchEngine,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
-            : base(projectSnapshotManagerDispatcher,
-                 documentResolver,
+            : base(documentContextFactory,
                  razorDocumentMappingService,
                  languageServer,
-                 documentVersionCache,
                  languageServerFeatureOptions,
                  loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>())
         {
@@ -129,8 +124,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         {
             _logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 
-            var documentSnapshot = await TryGetDocumentSnapshotAsync(uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 _logger.LogInformation($"Failed to find document for component {uri}.");
                 return null;
@@ -138,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
+            var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
             if (descriptor is null)
             {
                 _logger.LogInformation($"Failed to find tag helper descriptor.");

@@ -8,13 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
@@ -22,25 +18,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
     internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsEndpoint
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorProximityExpressionsEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (documentMappingService is null)
@@ -53,22 +42,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
         public async Task<RazorProximityExpressionsResponse?> Handle(RazorProximityExpressionsParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            var sourceText = await documentSnapshot.GetTextAsync();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
             var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
@@ -111,19 +99,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             {
                 Expressions = expressions,
             };
-        }
-
-        private Task<DocumentSnapshot?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    return documentSnapshot;
-                }
-
-                return null;
-            }, cancellationToken);
         }
     }
 }

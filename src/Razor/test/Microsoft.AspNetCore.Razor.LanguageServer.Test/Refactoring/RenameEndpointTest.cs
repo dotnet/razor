@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -329,7 +328,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var editChange2 = result.DocumentChanges.Value.ElementAt(2);
             Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
             Assert.Equal("file:///c:/Second/Component4.razor", textDocumentEdit2.TextDocument.Uri.ToString());
-            Assert.Equal(2, textDocumentEdit2.Edits.Count());
+            Assert.Equal(2, textDocumentEdit2.Edits.Length);
         }
 
         [Fact]
@@ -406,7 +405,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             };
         }
 
-        private static DocumentSnapshot CreateRazorDocumentSnapshot(RazorProjectEngine projectEngine, TestRazorProjectItem item, string rootNamespaceName, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+        private static DocumentContext CreateRazorDocumentContext(RazorProjectEngine projectEngine, TestRazorProjectItem item, string rootNamespaceName, IReadOnlyList<TagHelperDescriptor> tagHelpers)
         {
             var codeDocument = projectEngine.ProcessDesignTime(item);
 
@@ -419,12 +418,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var sourceText = SourceText.From(new string(item.Content));
             var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, LanguageVersion.Default);
             var projectSnapshot = TestProjectSnapshot.Create("C:/project.csproj", projectWorkspaceState);
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(d =>
+            var snapshot = Mock.Of<DocumentSnapshot>(d =>
                 d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
                 d.FilePath == item.FilePath &&
                 d.FileKind == FileKinds.Component &&
                 d.GetTextAsync() == Task.FromResult(sourceText) &&
                 d.Project == projectSnapshot, MockBehavior.Strict);
+            var version = 1337;
+            var documentSnapshot = new DocumentContext(new Uri(item.FilePath), snapshot, version);
+
             return documentSnapshot;
         }
 
@@ -458,50 +460,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 builder.AddTagHelpers(tagHelperDescriptors);
             });
 
-            var component1 = CreateRazorDocumentSnapshot(projectEngine, item1, "First.Components", tagHelperDescriptors);
-            var component2 = CreateRazorDocumentSnapshot(projectEngine, item2, "Test", tagHelperDescriptors);
-            var component3 = CreateRazorDocumentSnapshot(projectEngine, item3, "Second.Components", tagHelperDescriptors);
-            var component4 = CreateRazorDocumentSnapshot(projectEngine, item4, "Second.Components", tagHelperDescriptors);
-            var componentWithParam = CreateRazorDocumentSnapshot(projectEngine, itemComponentParam, "Second.Components", tagHelperDescriptors);
-            var component1337 = CreateRazorDocumentSnapshot(projectEngine, item1337, "Test", tagHelperDescriptors);
-            var index = CreateRazorDocumentSnapshot(projectEngine, indexItem, "First.Components", tagHelperDescriptors);
-            var directory1Component = CreateRazorDocumentSnapshot(projectEngine, itemDirectory1, "Test.Components", tagHelperDescriptors);
-            var directory2Component = CreateRazorDocumentSnapshot(projectEngine, itemDirectory2, "Test.Components", tagHelperDescriptors);
+            var component1 = CreateRazorDocumentContext(projectEngine, item1, "First.Components", tagHelperDescriptors);
+            var component2 = CreateRazorDocumentContext(projectEngine, item2, "Test", tagHelperDescriptors);
+            var component3 = CreateRazorDocumentContext(projectEngine, item3, "Second.Components", tagHelperDescriptors);
+            var component4 = CreateRazorDocumentContext(projectEngine, item4, "Second.Components", tagHelperDescriptors);
+            var componentWithParam = CreateRazorDocumentContext(projectEngine, itemComponentParam, "Second.Components", tagHelperDescriptors);
+            var component1337 = CreateRazorDocumentContext(projectEngine, item1337, "Test", tagHelperDescriptors);
+            var index = CreateRazorDocumentContext(projectEngine, indexItem, "First.Components", tagHelperDescriptors);
+            var directory1Component = CreateRazorDocumentContext(projectEngine, itemDirectory1, "Test.Components", tagHelperDescriptors);
+            var directory2Component = CreateRazorDocumentContext(projectEngine, itemDirectory2, "Test.Components", tagHelperDescriptors);
 
             var firstProject = Mock.Of<ProjectSnapshot>(p =>
                 p.FilePath == "c:/First/First.csproj" &&
                 p.DocumentFilePaths == new[] { "c:/First/Component1.razor", "c:/First/Component2.razor", itemDirectory1.FilePath, itemDirectory2.FilePath, component1337.FilePath } &&
-                p.GetDocument("c:/First/Component1.razor") == component1 &&
-                p.GetDocument("c:/First/Component2.razor") == component2 &&
-                p.GetDocument(itemDirectory1.FilePath) == directory1Component &&
-                p.GetDocument(itemDirectory2.FilePath) == directory2Component &&
-                p.GetDocument(component1337.FilePath) == component1337, MockBehavior.Strict);
+                p.GetDocument("c:/First/Component1.razor") == component1.Snapshot &&
+                p.GetDocument("c:/First/Component2.razor") == component2.Snapshot &&
+                p.GetDocument(itemDirectory1.FilePath) == directory1Component.Snapshot &&
+                p.GetDocument(itemDirectory2.FilePath) == directory2Component.Snapshot &&
+                p.GetDocument(component1337.FilePath) == component1337.Snapshot, MockBehavior.Strict);
 
             var secondProject = Mock.Of<ProjectSnapshot>(p =>
                 p.FilePath == "c:/Second/Second.csproj" &&
                 p.DocumentFilePaths == new[] { "c:/Second/Component3.razor", "c:/Second/Component4.razor", index.FilePath } &&
-                p.GetDocument("c:/Second/Component3.razor") == component3 &&
-                p.GetDocument("c:/Second/Component4.razor") == component4 &&
-                p.GetDocument("c:/Second/ComponentWithParam.razor") == componentWithParam &&
-                p.GetDocument(index.FilePath) == index, MockBehavior.Strict);
+                p.GetDocument("c:/Second/Component3.razor") == component3.Snapshot &&
+                p.GetDocument("c:/Second/Component4.razor") == component4.Snapshot &&
+                p.GetDocument("c:/Second/ComponentWithParam.razor") == componentWithParam.Snapshot &&
+                p.GetDocument(index.FilePath) == index.Snapshot, MockBehavior.Strict);
 
             var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { firstProject, secondProject }, MockBehavior.Strict);
             var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
 
-            var documentResolver = Mock.Of<DocumentResolver>(d =>
-                d.TryResolveDocument("c:/First/Component1.razor", out component1) == true &&
-                d.TryResolveDocument("c:/First/Component2.razor", out component2) == true &&
-                d.TryResolveDocument("c:/Second/Component3.razor", out component3) == true &&
-                d.TryResolveDocument("c:/Second/Component4.razor", out component4) == true &&
-                d.TryResolveDocument("c:/Second/ComponentWithParam.razor", out componentWithParam) == true &&
-                d.TryResolveDocument(index.FilePath, out index) == true &&
-                d.TryResolveDocument(component1337.FilePath, out component1337) == true &&
-                d.TryResolveDocument(itemDirectory1.FilePath, out directory1Component) == true &&
-                d.TryResolveDocument(itemDirectory2.FilePath, out directory2Component) == true, MockBehavior.Strict);
+            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+
+            var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
+                d.TryCreateAsync(new Uri("c:/First/Component1.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component1) &&
+                d.TryCreateAsync(new Uri("c:/First/Component2.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component2) &&
+                d.TryCreateAsync(new Uri("c:/Second/Component3.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component3) &&
+                d.TryCreateAsync(new Uri("c:/Second/Component4.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component4) &&
+                d.TryCreateAsync(new Uri("c:/Second/ComponentWithParam.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(componentWithParam) &&
+                d.TryCreateAsync(new Uri(index.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(index) &&
+                d.TryCreateAsync(new Uri(component1337.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(component1337) &&
+                d.TryCreateAsync(new Uri(itemDirectory1.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory1Component) &&
+                d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory2Component), MockBehavior.Strict);
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
-            var endpoint = new RenameEndpoint(Dispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
+            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
             return endpoint;
         }
 

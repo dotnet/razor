@@ -8,13 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -30,15 +27,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     internal class RazorDefinitionEndpoint : IDefinitionEndpoint
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger<RazorDefinitionEndpoint> _logger;
 
         public RazorDefinitionEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorComponentSearchEngine componentSearchEngine,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
@@ -48,8 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
@@ -73,33 +67,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-                _documentResolver.TryResolveDocument(path, out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
-            if (documentSnapshot is null)
+            if (documentContext is null)
             {
                 _logger.LogWarning("Document snapshot is null for document.");
                 return null;
             }
 
-            if (!FileKinds.IsComponent(documentSnapshot.FileKind))
+            if (!FileKinds.IsComponent(documentContext.FileKind))
             {
-                _logger.LogInformation("FileKind '{fileKind}' is not a component type.", documentSnapshot.FileKind);
+                _logger.LogInformation("FileKind '{fileKind}' is not a component type.", documentContext.FileKind);
                 return null;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
-            {
-                _logger.LogInformation("Generated document is unsupported.");
-                return null;
-            }
-
-            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, request.Position, _logger).ConfigureAwait(false);
+            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, request.Position, _logger, cancellationToken).ConfigureAwait(false);
             if (originTagDescriptor is null)
             {
                 _logger.LogInformation("Origin TagHelper descriptor is null.");
@@ -208,19 +190,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         }
 
         internal static async Task<(TagHelperDescriptor?, BoundAttributeDescriptor?)> GetOriginTagHelperBindingAsync(
-            DocumentSnapshot documentSnapshot,
-            RazorCodeDocument codeDocument,
+            DocumentContext documentContext,
             Position position,
-            ILogger logger)
+            ILogger logger,
+            CancellationToken cancellationToken)
         {
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var linePosition = new LinePosition(position.Line, position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, position.Line, position.Character);
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree?.Root is null)
+            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
+            if (syntaxTree.Root is null)
             {
                 logger.LogInformation("Could not retrieve syntax tree.");
                 return (null, null);

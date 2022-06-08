@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -13,11 +12,8 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
@@ -37,32 +33,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             "IDE0005_gen", // Using directive is unnecessary
         };
 
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorDiagnosticsEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (documentMappingService is null)
@@ -75,9 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
+            _documentContextFactory = documentContextFactory;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorDiagnosticsEndpoint>();
         }
@@ -93,22 +73,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            int? documentVersion = null;
-            DocumentSnapshot? documentSnapshot = null;
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken).ConfigureAwait(false);
 
-                Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
-
-                if (documentSnapshot is null ||
-                    !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
-                {
-                    documentVersion = null;
-                }
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            if (documentContext is null)
             {
                 _logger.LogInformation($"Failed to find document {request.RazorDocumentUri}.");
 
@@ -119,18 +86,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 };
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            if (codeDocument?.IsUnsupported() != false)
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            if (codeDocument.IsUnsupported() != false)
             {
                 _logger.LogInformation("Unsupported code document.");
                 return new RazorDiagnosticsResponse()
                 {
                     Diagnostics = Array.Empty<VSDiagnostic>(),
-                    HostDocumentVersion = documentVersion
+                    HostDocumentVersion = documentContext.Version
                 };
             }
 
-            var sourceText = await documentSnapshot.GetTextAsync();
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
             var unmappedDiagnostics = request.Diagnostics;
             var filteredDiagnostics = request.Kind == RazorLanguageKind.CSharp ?
                 FilterCSharpDiagnostics(unmappedDiagnostics, codeDocument, sourceText) :
@@ -142,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return new RazorDiagnosticsResponse()
                 {
                     Diagnostics = Array.Empty<VSDiagnostic>(),
-                    HostDocumentVersion = documentVersion
+                    HostDocumentVersion = documentContext.Version,
                 };
             }
 
@@ -159,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             return new RazorDiagnosticsResponse()
             {
                 Diagnostics = mappedDiagnostics,
-                HostDocumentVersion = documentVersion,
+                HostDocumentVersion = documentContext.Version,
             };
         }
 
@@ -602,7 +569,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 // For `Error` Severity diagnostics we still show the diagnostics to
                 // the user, however we set the range to an undefined range to ensure
                 // clicking on the diagnostic doesn't cause errors.
-                originalRange = RangeExtensions.UndefinedVSRange;
+                originalRange = RangeExtensions.UndefinedRange;
             }
 
             return true;

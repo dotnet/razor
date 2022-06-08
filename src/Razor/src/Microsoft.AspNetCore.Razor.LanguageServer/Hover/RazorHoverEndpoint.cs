@@ -7,9 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,25 +16,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
     internal class RazorHoverEndpoint : IVSHoverEndpoint
     {
         private readonly ILogger _logger;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorHoverInfoService _hoverInfoService;
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorHoverEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorHoverInfoService hoverInfoService,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (hoverInfoService is null)
@@ -50,8 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _hoverInfoService = hoverInfoService;
             _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
         }
@@ -63,25 +52,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (document is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
             if (codeDocument.IsUnsupported())
             {
                 return null;
             }
 
-            var sourceText = await document.GetTextAsync();
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
             var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
