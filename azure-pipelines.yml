@@ -15,6 +15,8 @@ variables:
   value: .NETCORE
 - name: _DotNetValidationArtifactsCategory
   value: .NETCOREVALIDATION
+- name: Codeql.Enabled
+  value: true
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
   - group: DotNet-MSRC-Storage
   - name: _InternalRuntimeDownloadArgs
