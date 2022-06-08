@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +10,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -30,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 #pragma warning restore CS0618 // Type or member is obsolete
             FilePathNormalizer = new FilePathNormalizer();
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
             Serializer = new LspSerializer();
@@ -53,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         protected ILoggerFactory LoggerFactory { get; }
 
-        protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
@@ -71,30 +69,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         internal static DocumentContextFactory CreateDocumentContextFactory(
             Uri documentPath,
             RazorCodeDocument codeDocument,
-            bool documentFound = true,
-            int version = 1337)
+            bool documentFound = true)
         {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-
-            var snapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
-            var outVal = documentFound ? codeDocument : null;
-            snapshot.Setup(s => s.TryGetGeneratedOutput(out outVal)).Returns(documentFound);
-            snapshot.Setup(s => s.GetTextAsync()).Returns(Task.FromResult(sourceText));
-            snapshot.Setup(s => s.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
-            snapshot.SetupGet(s => s.FilePath).Returns(documentPath.GetAbsoluteOrUNCPath());
-            snapshot.SetupGet(s => s.FileKind).Returns(codeDocument.GetFileKind());
-            
-            var documentContext = new DocumentContext(documentPath, snapshot.Object, version);
-            var documentContextFactory = new Mock<DocumentContextFactory>(MockBehavior.Strict);
-            documentContextFactory.Setup(factory => factory.TryCreateAsync(documentPath, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(documentFound ? documentContext : null));
-
-            return documentContextFactory.Object;
+            var documentContextFactory = documentFound
+                ? new TestDocumentContextFactory(documentPath.GetAbsoluteOrUNCPath(), codeDocument, version: 1337)
+                : new TestDocumentContextFactory();
+            return documentContextFactory;
         }
 
-        internal static DocumentContext  CreateDocumentContext(Uri uri, DocumentSnapshot snapshot)
+        internal static DocumentContext CreateDocumentContext(Uri uri, DocumentSnapshot snapshot)
         {
             return new DocumentContext(uri, snapshot, version: 0);
         }

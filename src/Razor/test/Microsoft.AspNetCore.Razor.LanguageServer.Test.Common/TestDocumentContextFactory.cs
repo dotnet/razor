@@ -5,23 +5,24 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     internal class TestDocumentContextFactory : DocumentContextFactory
     {
         private readonly string? _filePath;
         private readonly RazorCodeDocument? _codeDocument;
+        private readonly int? _version;
 
         public TestDocumentContextFactory()
         {
         }
 
-        public TestDocumentContextFactory(string filePath, RazorCodeDocument codeDocument)
+        public TestDocumentContextFactory(string filePath, RazorCodeDocument codeDocument, int? version = null)
         {
             _filePath = filePath;
             _codeDocument = codeDocument;
+            _version = version;
         }
 
         public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
@@ -31,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 return Task.FromResult<DocumentContext?>(null);
             }
 
-            var documentContext = TestDocumentContext.From(_filePath, _codeDocument);
+            var documentContext = _version is null ? TestDocumentContext.From(_filePath, _codeDocument) : TestDocumentContext.From(_filePath, _codeDocument, _version.Value);
             return Task.FromResult<DocumentContext?>(documentContext);
         }
     }
