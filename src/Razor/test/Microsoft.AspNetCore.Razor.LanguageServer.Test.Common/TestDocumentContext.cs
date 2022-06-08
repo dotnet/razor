@@ -11,14 +11,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
 internal static class TestDocumentContext
 {
-    private static readonly Random s_random = new();
-
     public static DocumentContext Create(Uri uri) => Create(uri, string.Empty);
 
-    public static DocumentContext Create(Uri uri, string text)
+    public static DocumentContext Create(Uri uri, string text, int version = 0)
     {
         var snapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath(), text);
-        var version = s_random.Next();
         return new DocumentContext(uri, snapshot, version);
     }
 
