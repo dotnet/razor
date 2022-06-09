@@ -10,9 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -22,22 +19,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public UnformattedRemappingCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
@@ -88,26 +79,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentInfo = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot, int)?>(() =>
-            {
-                if (_documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot))
-                {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return (documentSnapshot, version.Value);
-                    }
-                }
-
-                return null;
-            }, cancellationToken).ConfigureAwait(false);
-            if (documentInfo is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return codeAction;
             }
 
-            var (documentSnapshot, documentVersion) = documentInfo.Value;
-
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return codeAction;
@@ -124,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion
+                Version = documentContext.Version,
             };
             resolvedCodeAction.Edit = new WorkspaceEdit()
             {

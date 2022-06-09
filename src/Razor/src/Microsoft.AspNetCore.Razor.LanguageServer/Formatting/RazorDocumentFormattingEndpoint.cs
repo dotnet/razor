@@ -7,10 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -18,25 +15,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorDocumentFormattingEndpoint : IVSDocumentFormattingEndpoint
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
         public RazorDocumentFormattingEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorFormattingService razorFormattingService,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (razorFormattingService is null)
@@ -49,8 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(optionsMonitor));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _razorFormattingService = razorFormattingService;
             _optionsMonitor = optionsMonitor;
         }
@@ -69,28 +58,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (document is null || cancellationToken.IsCancellationRequested)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
             if (codeDocument.IsUnsupported())
             {
                 return null;
             }
 
-            var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
-            var range = span.AsRange(codeDocument.GetSourceText());
-            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, range, request.Options, cancellationToken);
-
+            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, documentContext.Snapshot, range: null, request.Options, cancellationToken);
             return edits;
         }
     }

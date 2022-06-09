@@ -10,11 +10,8 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Moq;
@@ -26,16 +23,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public RazorLanguageEndpointTest()
         {
-            var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
-            int? version = 1337;
-            documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
-                .Returns(true);
-
-            DocumentVersionCache = documentVersionCache.Object;
             MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
         }
-
-        private DocumentVersionCache DocumentVersionCache { get; }
 
         private RazorDocumentMappingService MappingService { get; }
 
@@ -44,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_CSharp()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -53,13 +42,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 22) }, },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
             var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
@@ -76,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_CSharp_Unmapped()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -85,13 +74,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 0), End = new Position(0, 3) } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -99,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -107,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_CSharp_LeadingOverlapsUnmapped()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -116,13 +105,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 0), End = new Position(0, 22) } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -130,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -138,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_CSharp_TrailingOverlapsUnmapped()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -147,13 +136,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 23) } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -161,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -169,15 +158,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_Html()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Html,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 16), End = new Position(0, 20) } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -193,15 +182,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_Razor()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Razor,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 3), End = new Position(0, 4) } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -217,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_MapToDocumentRanges_Unsupported()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "<p>@DateTime.Now</p>",
                 "var __o = DateTime.Now",
@@ -227,13 +216,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(10, 12))
                 });
             codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRanges = new[] { new Range { Start = new Position(0, 10), End = new Position(0, 22) } },
-                RazorDocumentUri = new Uri(documentPath),
+                RazorDocumentUri = documentPath,
             };
 
             // Act
@@ -241,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(RangeExtensions.UndefinedVSRange, response!.Ranges[0]);
+            Assert.Equal(RangeExtensions.UndefinedRange, response!.Ranges[0]);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
@@ -249,13 +238,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_ResolvesLanguageRequest_Razor()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@{}");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorLanguageQueryParams()
             {
-                Uri = new Uri(documentPath),
+                Uri = documentPath,
                 Position = new Position(0, 1),
             };
 
@@ -273,13 +262,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_ResolvesLanguageRequest_Html()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<s");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorLanguageQueryParams()
             {
-                Uri = new Uri(documentPath),
+                Uri = documentPath,
                 Position = new Position(0, 2),
             };
 
@@ -297,16 +286,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_ResolvesLanguageRequest_CSharp()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "@",
                 "/* CSharp */",
                 new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorLanguageQueryParams()
             {
-                Uri = new Uri(documentPath),
+                Uri = documentPath,
                 Position = new Position(0, 1),
             };
 
@@ -325,17 +314,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_Unsupported_ResolvesLanguageRequest_Html()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
                 "@",
                 "/* CSharp */",
                 new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
             codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
             var request = new RazorLanguageQueryParams()
             {
-                Uri = new Uri(documentPath),
+                Uri = documentPath,
                 Position = new Position(0, 1),
             };
 
@@ -347,20 +336,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(0, response.Position.Line);
             Assert.Equal(1, response.Position.Character);
             Assert.Equal(1337, response.HostDocumentVersion);
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)

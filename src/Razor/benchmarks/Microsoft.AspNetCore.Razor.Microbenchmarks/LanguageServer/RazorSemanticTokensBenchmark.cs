@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -30,9 +29,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentVersionCache VersionCache { get; set; }
 
-        private Uri DocumentUri { get; set; }
+        private Uri DocumentUri => DocumentContext.Uri;
 
-        private DocumentSnapshot DocumentSnapshot { get; set; }
+        private DocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
+
+        private DocumentContext DocumentContext { get; set; }
 
         private Range Range { get; set; }
 
@@ -55,10 +56,12 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var filePath = Path.Combine(PagesDirectory, $"SemanticTokens.razor");
             TargetPath = "/Components/Pages/SemanticTokens.razor";
 
-            DocumentUri = new Uri(filePath);
-            DocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+            var documentUri = new Uri(filePath);
+            var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+            var version = 1;
+            DocumentContext = new DocumentContext(documentUri, documentSnapshot, version);
 
-            var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
+            var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
             Range = new Range
             {
                 Start = new Position
@@ -84,15 +87,15 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
 
-            await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
+            await UpdateDocumentAsync(documentVersion, DocumentSnapshot, cancellationToken).ConfigureAwait(false);
             await RazorSemanticTokenService.GetSemanticTokensAsync(
-                textDocumentIdentifier, Range, DocumentSnapshot, documentVersion, cancellationToken).ConfigureAwait(false);
+                textDocumentIdentifier, Range, DocumentContext, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
+        private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
         {
             await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
+                () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), cancellationToken).ConfigureAwait(false);
         }
 
         [GlobalCleanup]
@@ -125,11 +128,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             public TestRazorSemanticTokensInfoService(
                 ClientNotifierServiceBase languageServer,
                 RazorDocumentMappingService documentMappingService,
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                DocumentResolver documentResolver,
-                DocumentVersionCache documentVersionCache,
+                DocumentContextFactory documentContextFactory,
                 LoggerFactory loggerFactory)
-                : base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
+                : base(languageServer, documentMappingService, documentContextFactory, loggerFactory)
             {
             }
 

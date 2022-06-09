@@ -29,6 +29,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                     StartLine = startLine,
                     EndCharacter = endOffset,
                     EndLine = endLine,
+
+                    // Directives remove the "@" but for collapsing we want to keep it for users.
+                    // Shows "@code" instead of "code".
+                    CollapsedText = "@" + codeBlock.DirectiveDescriptor.Directive 
                 };
 
                 builder.Add(foldingRange);

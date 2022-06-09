@@ -7,11 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -22,10 +20,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public FormattingLanguageServerTestBase()
         {
-            EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot?>.IsAny) == false, MockBehavior.Strict);
+            EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null), MockBehavior.Strict);
         }
 
-        internal DocumentResolver EmptyDocumentResolver { get; }
+        internal DocumentContextFactory EmptyDocumentContextFactory { get; }
 
         internal static RazorCodeDocument CreateCodeDocument(string content, IReadOnlyList<SourceMapping> sourceMappings)
         {
@@ -47,27 +45,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return monitor.Object;
         }
 
-        internal static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(It.IsNotIn(documentPath), out documentSnapshot))
-                .Returns(false);
-            return documentResolver.Object;
-        }
-
         internal class TestRazorFormattingService : RazorFormattingService
         {
             public bool Called { get; private set; }
 
-            public override Task<TextEdit[]> FormatAsync(Uri uri, DocumentSnapshot documentSnapshot, VisualStudio.LanguageServer.Protocol.Range range, FormattingOptions options, CancellationToken cancellationToken)
+            public override Task<TextEdit[]> FormatAsync(Uri uri, DocumentSnapshot documentSnapshot, VisualStudio.LanguageServer.Protocol.Range? range, FormattingOptions options, CancellationToken cancellationToken)
             {
                 Called = true;
                 return Task.FromResult(Array.Empty<TextEdit>());

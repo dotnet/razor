@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RangeExtensions
     {
-        public static readonly Range UndefinedVSRange = new()
+        public static readonly Range UndefinedRange = new()
         {
             Start = new Position(-1, -1),
             End = new Position(-1, -1)
@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(range));
             }
 
-            return range == UndefinedVSRange;
+            return range == UndefinedRange;
         }
     }
 }

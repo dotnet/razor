@@ -11,9 +11,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,23 +25,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
         // Internal for testing only.
         internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly ILogger _logger;
 
         public LinkedEditingRangeEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (loggerFactory is null)
@@ -52,8 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
@@ -69,41 +58,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             LinkedEditingRangeParamsBridge request,
             CancellationToken cancellationToken)
         {
-            var uri = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
-                if (!_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    _logger.LogWarning("Unable to resolve document for {Uri}", uri);
-                    return null;
-                }
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (document is null || cancellationToken.IsCancellationRequested)
-            {
-                _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", uri);
+                _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", request.TextDocument.Uri);
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
             if (codeDocument.IsUnsupported())
             {
                 _logger.LogWarning("FileKind {FileKind} is unsupported", codeDocument.GetFileKind());
                 return null;
             }
 
-            var location = await GetSourceLocation(request, document).ConfigureAwait(false);
+            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
+
+            var location = await GetSourceLocation(request, documentContext, cancellationToken).ConfigureAwait(false);
 
             // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
-            if (TryGetNearestMarkupNameTokens(codeDocument, location, out var startTagNameToken, out var endTagNameToken) &&
+            if (TryGetNearestMarkupNameTokens(syntaxTree, location, out var startTagNameToken, out var endTagNameToken) &&
                 (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex) ||
                 startTagNameToken.Span.End == location.AbsoluteIndex || endTagNameToken.Span.End == location.AbsoluteIndex))
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-                var ranges = new Range[2] { startSpan.AsVSRange(), endSpan.AsVSRange() };
+                var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
 
                 return new LinkedEditingRanges
                 {
@@ -112,14 +92,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 };
             }
 
-            _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, uri);
+            _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, request.TextDocument.Uri);
             return null;
 
             static async Task<SourceLocation> GetSourceLocation(
                 LinkedEditingRangeParams request,
-                DocumentSnapshot document)
+                DocumentContext documentContext,
+                CancellationToken cancellationToken)
             {
-                var sourceText = await document.GetTextAsync().ConfigureAwait(false);
+                var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
                 var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
                 var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
                 var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
@@ -128,12 +109,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             }
 
             static bool TryGetNearestMarkupNameTokens(
-                RazorCodeDocument codeDocument,
+                RazorSyntaxTree syntaxTree,
                 SourceLocation location,
                 [NotNullWhen(true)] out SyntaxToken? startTagNameToken,
                 [NotNullWhen(true)] out SyntaxToken? endTagNameToken)
             {
-                var syntaxTree = codeDocument.GetSyntaxTree();
                 var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
                 var owner = syntaxTree.Root.LocateOwner(change);
                 var element = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(

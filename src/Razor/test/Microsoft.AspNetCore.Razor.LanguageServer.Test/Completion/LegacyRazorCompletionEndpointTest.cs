@@ -354,18 +354,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_Unsupported_NoCompletionItems()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@");
             codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
@@ -383,17 +383,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_ProvidesDirectiveCompletionItems()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@");
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
@@ -414,7 +414,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_ProvidesInjectOnIncomplete_KeywordIn()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
             builder.TagMatchingRule(rule => rule.TagName = "Test");
             builder.SetTypeName("TestNamespace.TestTagHelper");
@@ -422,15 +422,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@in");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext()
@@ -450,7 +450,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_DoesNotProvideInjectOnInvoked()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
             builder.TagMatchingRule(rule => rule.TagName = "Test");
             builder.SetTypeName("TestNamespace.TestTagHelper");
@@ -458,15 +458,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext()
@@ -486,7 +486,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_ProvidesInjectOnIncomplete()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.razor";
+            var documentPath = new Uri("C:/path/to/document.razor");
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
             builder.TagMatchingRule(rule => rule.TagName = "Test");
             builder.SetTypeName("TestNamespace.TestTagHelper");
@@ -494,15 +494,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext()
@@ -523,7 +523,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_ProvidesTagHelperElementCompletionItems()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
             builder.TagMatchingRule(rule => rule.TagName = "Test");
             builder.SetTypeName("TestNamespace.TestTagHelper");
@@ -531,15 +531,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("<");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
@@ -557,7 +557,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_ProvidesTagHelperAttributeItems()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
+            var documentPath = new Uri("C:/path/to/document.cshtml");
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
             builder.TagMatchingRule(rule => rule.TagName = "*");
             builder.BindAttribute(attribute =>
@@ -571,15 +571,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("<test  ");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                Dispatcher, documentResolver, CompletionFactsService, CompletionListCache, LoggerFactory);
+                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath)
+                    Uri = documentPath,
                 },
                 Position = new Position(0, 6),
                 Context = new VSInternalCompletionContext(),
@@ -590,20 +590,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocument(string text)

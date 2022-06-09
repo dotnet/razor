@@ -8,12 +8,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
@@ -30,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
                 .Setup(l => l.Returning<WrapWithTagResponse>(It.IsAny<CancellationToken>()))
@@ -45,8 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(
                 languageServer.Object,
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 LoggerFactory);
 
@@ -69,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
                 .Setup(l => l.Returning<WrapWithTagResponse>(It.IsAny<CancellationToken>()))
@@ -84,8 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(
                 languageServer.Object,
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 LoggerFactory);
 
@@ -107,8 +101,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
         {
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-            var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var realUri = new Uri("file://path/test.razor");
+            var missingUri = new Uri("file://path/nottest.razor");
+            var documentContextFactory = CreateDocumentContextFactory(missingUri, codeDocument, documentFound: false);
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
@@ -116,13 +111,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(
                 languageServer.Object,
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 LoggerFactory);
 
-            uri = new Uri("file://path/nottest.razor");
-            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = missingUri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -141,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
@@ -149,8 +142,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(
                 languageServer.Object,
-                Dispatcher,
-                documentResolver,
+                documentContextFactory,
                 documentMappingService,
                 LoggerFactory);
 
@@ -164,24 +156,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             // Assert
             Assert.Null(result);
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-
-            DocumentSnapshot? nullDocumentSnapshot = null;
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(It.IsNotIn(documentPath), out nullDocumentSnapshot))
-                .Returns(false);
-            return documentResolver.Object;
         }
     }
 }

@@ -20,12 +20,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorProjectService _projectService;
 
         public RazorDocumentSynchronizationEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             RazorProjectService projectService,
             ILoggerFactory loggerFactory)
         {
@@ -34,9 +34,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentResolver is null)
+            if (documentContextFactory is null)
             {
-                throw new ArgumentNullException(nameof(documentResolver));
+                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (projectService is null)
@@ -50,31 +50,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory;
             _projectService = projectService;
             _logger = loggerFactory.CreateLogger<RazorDocumentSynchronizationEndpoint>();
         }
 
         public async Task<Unit> Handle(DidChangeTextDocumentParamsBridge notification, CancellationToken token)
         {
-            var uri = notification.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentContext = await _documentContextFactory.TryCreateAsync(notification.TextDocument.Uri, token).ConfigureAwait(false);
+            if (documentContext is null)
             {
-                _documentResolver.TryResolveDocument(uri, out var documentSnapshot);
-
-                return documentSnapshot;
-            }, CancellationToken.None).ConfigureAwait(false);
-
-            if (document is null)
-            {
-                throw new InvalidOperationException(RazorLS.Resources.FormatDocument_Not_Found(uri));
+                throw new InvalidOperationException(RazorLS.Resources.FormatDocument_Not_Found(notification.TextDocument.Uri));
             }
 
-            var sourceText = await document.GetTextAsync();
+            var sourceText = await documentContext.GetSourceTextAsync(token);
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version),
+                () => _projectService.UpdateDocument(documentContext.FilePath, sourceText, notification.TextDocument.Version),
                 CancellationToken.None).ConfigureAwait(false);
 
             return Unit.Value;
