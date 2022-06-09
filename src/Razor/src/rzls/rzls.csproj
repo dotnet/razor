@@ -14,6 +14,12 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="$(RepositoryRoot)NOTICE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target Name="_IncludeOmniSharpPlugin" Condition="Exists('$(PublishDir)')">
     <PropertyGroup>
       <TargetPluginOutputPath>$(PublishDir)\OmniSharpPlugin</TargetPluginOutputPath>
