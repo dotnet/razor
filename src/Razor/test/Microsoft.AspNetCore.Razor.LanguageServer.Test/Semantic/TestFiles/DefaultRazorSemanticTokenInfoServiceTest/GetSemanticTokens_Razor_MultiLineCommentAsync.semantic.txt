@@ -1,7 +1,7 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 89 0 //razorCommentTransition
-0 1 1 90 0 //razorCommentStar
-0 1 5 88 0 //razorComment
-1 0 7 88 0 //razorComment
-0 7 1 90 0 //razorCommentStar
-0 1 1 89 0 //razorCommentTransition
+0 0 1 razorCommentTransition 0
+0 1 1 razorCommentStar 0
+0 1 5 razorComment 0
+1 0 7 razorComment 0
+0 7 1 razorCommentStar 0
+0 1 1 razorCommentTransition 0
