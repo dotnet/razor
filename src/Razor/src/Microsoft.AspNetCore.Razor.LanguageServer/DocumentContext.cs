@@ -27,25 +27,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Version = version;
         }
 
-        public Uri Uri { get; }
+        public virtual Uri Uri { get; }
 
-        public DocumentSnapshot Snapshot { get; }
+        public virtual DocumentSnapshot Snapshot { get; }
 
-        public int Version { get; }
+        public virtual int Version { get; }
 
-        public string FilePath => Snapshot.FilePath;
+        public virtual string FilePath => Snapshot.FilePath;
 
-        public string FileKind => Snapshot.FileKind;
+        public virtual string FileKind => Snapshot.FileKind;
 
-        public ProjectSnapshot Project => Snapshot.Project;
+        public virtual ProjectSnapshot Project => Snapshot.Project;
 
-        public VersionedTextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
+        public virtual VersionedTextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
         {
             Uri = Uri,
             Version = Version,
         };
 
-        public async Task<RazorCodeDocument> GetCodeDocumentAsync(CancellationToken cancellationToken)
+        public virtual async Task<RazorCodeDocument> GetCodeDocumentAsync(CancellationToken cancellationToken)
         {
             if (_codeDocument is null)
             {
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return _codeDocument;
         }
 
-        public async Task<SourceText> GetSourceTextAsync(CancellationToken cancellationToken)
+        public virtual async Task<SourceText> GetSourceTextAsync(CancellationToken cancellationToken)
         {
             if (_sourceText is null)
             {
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return _sourceText;
         }
 
-        public async Task<RazorSyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+        public virtual async Task<RazorSyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
         {
             var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return syntaxTree;
         }
 
-        public async Task<TagHelperDocumentContext> GetTagHelperContextAsync(CancellationToken cancellationToken)
+        public virtual async Task<TagHelperDocumentContext> GetTagHelperContextAsync(CancellationToken cancellationToken)
         {
             var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var tagHelperContext = codeDocument.GetTagHelperContext();
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return tagHelperContext;
         }
 
-        public async Task<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
+        public virtual async Task<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
         {
             var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = codeDocument.GetCSharpSourceText();
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return sourceText;
         }
 
-        public async Task<SourceText> GetHtmlSourceTextAsync(CancellationToken cancellationToken)
+        public virtual async Task<SourceText> GetHtmlSourceTextAsync(CancellationToken cancellationToken)
         {
             var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = codeDocument.GetHtmlSourceText();

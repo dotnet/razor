@@ -759,7 +759,15 @@ things *@
             ProvideSemanticTokensResponse? csharpTokens = null,
             int documentVersion = 0)
         {
-            await AssertSemanticTokensAsync(new DocumentContentVersion[] { new DocumentContentVersion(documentText, documentVersion )}, new bool[] { isRazorFile }, range, service, csharpTokens);
+            await AssertSemanticTokensAsync(new DocumentContentVersion[]
+            {
+                new DocumentContentVersion(documentText, documentVersion)
+            },
+            isRazorArray: new bool[] { isRazorFile },
+            range,
+            service,
+            csharpTokens,
+            documentVersion);
         }
 
         private async Task AssertSemanticTokensAsync(
@@ -767,7 +775,8 @@ things *@
             bool[] isRazorArray,
             Range range,
             RazorSemanticTokensInfoService? service = null,
-            ProvideSemanticTokensResponse? csharpTokens = null)
+            ProvideSemanticTokensResponse? csharpTokens = null,
+            int documentVersion = 0)
         {
             // Arrange
             if (csharpTokens is null)
@@ -775,7 +784,8 @@ things *@
                 csharpTokens = new ProvideSemanticTokensResponse(tokens: null, csharpTokens?.HostDocumentSyncVersion);
             }
 
-            var (documentContexts, textDocumentIdentifiers) = CreateDocumentContext(documentTexts, isRazorArray, DefaultTagHelpers);
+            var (documentContexts, textDocumentIdentifiers) = CreateDocumentContext(
+                documentTexts, isRazorArray, DefaultTagHelpers, documentVersion: documentVersion);
 
             if (service is null)
             {

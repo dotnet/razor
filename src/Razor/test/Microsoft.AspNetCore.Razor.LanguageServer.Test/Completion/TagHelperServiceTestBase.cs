@@ -218,9 +218,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             };
         }
 
-        internal static (Queue<DocumentContext>, Queue<TextDocumentIdentifier>) CreateDocumentContext(DocumentContentVersion[] textArray, bool[] isRazorArray, TagHelperDescriptor[] tagHelpers, VersionStamp projectVersion = default)
+        internal static (Queue<DocumentContext>, Queue<TextDocumentIdentifier>) CreateDocumentContext(
+            DocumentContentVersion[] textArray,
+            bool[] isRazorArray,
+            TagHelperDescriptor[] tagHelpers,
+            VersionStamp projectVersion = default,
+            int? documentVersion = null)
         {
-            var documentSnapshots = new Queue<DocumentContext>();
+            var documentContexts = new Queue<DocumentContext>();
             var identifiers = new Queue<TextDocumentIdentifier>();
             foreach (var (text, isRazorFile) in textArray.Zip(isRazorArray, (t, r) => (t, r)))
             {
@@ -231,22 +236,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     .Setup(p => p.Version)
                     .Returns(projectVersion);
 
-                var documentContext = new Mock<DocumentContext>(MockBehavior.Strict);
+                var documentSnapshot = Mock.Of<DocumentSnapshot>(MockBehavior.Strict);
+                var documentContext = new Mock<DocumentContext>(MockBehavior.Strict, new Uri("c:/path/to/file.razor"), documentSnapshot, 0);
                 documentContext.Setup(d => d.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(document);
 
                 documentContext.SetupGet(d => d.Version)
-                    .Returns(Random.Shared.Next());
+                    .Returns(documentVersion ?? Random.Shared.Next());
 
                 documentContext.Setup(d => d.Project)
                     .Returns(projectSnapshot.Object);
 
-                documentSnapshots.Enqueue(documentContext.Object);
+                documentContexts.Enqueue(documentContext.Object);
                 var identifier = GetIdentifier(isRazorFile);
                 identifiers.Enqueue(identifier);
             }
 
-            return (documentSnapshots, identifiers);
+            return (documentContexts, identifiers);
         }
 
         internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, params TagHelperDescriptor[] tagHelpers)
