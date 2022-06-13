@@ -94,7 +94,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             throw new ArgumentNullException(nameof(request));
         }
 
-        _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
+        _logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
 
         var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
@@ -118,7 +118,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         if (languageKind != RazorLanguageKind.CSharp ||
             !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
         {
-            _logger.LogInformation($"Unsupported location for {request.TextDocument.Uri}.");
+            _logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
             return null;
         }
 
@@ -136,7 +136,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         var list = await response.Returning<VSInternalInlineCompletionList>(cancellationToken).ConfigureAwait(false);
         if (list == null || !list.Items.Any())
         {
-            _logger.LogInformation($"Did not get any inline completions from delegation.");
+            _logger.LogInformation("Did not get any inline completions from delegation.");
             return null;
         }
 
@@ -148,7 +148,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var rangeInRazorDoc))
             {
-                _logger.LogWarning($"Could not remap projected range {range} to razor document");
+                _logger.LogWarning("Could not remap projected range {range} to razor document", range);
                 continue;
             }
 
@@ -170,11 +170,11 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         if (items.Count == 0)
         {
-            _logger.LogInformation($"Could not format / map the items from delegation.");
+            _logger.LogInformation("Could not format / map the items from delegation.");
             return null;
         }
 
-        _logger.LogInformation($"Returning {items.Count} items.");
+        _logger.LogInformation("Returning {itemsCount} items.", items.Count);
         return new VSInternalInlineCompletionList
         {
             Items = items.ToArray()

@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // `GetMatchingCSharpResponseAsync` that will cause us to retry in a bit.
             if (csharpResponse is null)
             {
-                _logger.LogWarning($"Issue with retrieving C# response for Razor range: {razorRange}");
+                _logger.LogWarning("Issue with retrieving C# response for Razor range: {razorRange}", razorRange);
                 return null;
             }
 

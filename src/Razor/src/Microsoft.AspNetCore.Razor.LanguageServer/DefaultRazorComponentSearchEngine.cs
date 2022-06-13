@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var namespaceName = tagHelper.GetTypeNamespace();
             if (typeName == null || namespaceName == null)
             {
-                _logger.LogWarning($"Could not split namespace and type for name {tagHelper.Name}.");
+                _logger.LogWarning("Could not split namespace and type for name {tagHelperName}.", tagHelper.Name);
                 return null;
             }
 
@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var namespacesMatch = new StringSegment(namespaceNode.Content).Equals(namespaceName, StringComparison.Ordinal);
             if (!namespacesMatch)
             {
-                _logger.LogInformation($"Namespace name {namespaceNode.Content} does not match namespace name {namespaceName}.");
+                _logger.LogInformation("Namespace name {namespaceNodeContent} does not match namespace name {namespaceName}.", namespaceNode.Content, namespaceName);
             }
 
             return namespacesMatch;

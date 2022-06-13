@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else
             {
-                _logHubLogger?.LogInformation($"Could not find projection for {languageResponse.Kind:G}.");
+                _logHubLogger?.LogInformation("Could not find projection for {languageResponseKind:G}.", languageResponse.Kind);
                 return null;
             }
 
@@ -126,9 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // There should always be a document version attached to an open document.
                 // Log it and move on as if it was synchronized.
-                var message = $"Could not find a document version associated with the document '{documentSnapshot.Uri}'";
-                _activityLogger.LogVerbose(message);
-                _logHubLogger?.LogWarning(message);
+                _activityLogger.LogVerbose($"Could not find a document version associated with the document '{documentSnapshot.Uri}'");
+                _logHubLogger?.LogWarning("Could not find a document version associated with the document '{documentSnapshotUri}'", documentSnapshot.Uri);
             }
             else
             {

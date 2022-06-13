@@ -72,6 +72,9 @@ csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
+
+# CA2254: The logging message template should not vary between calls to 'ILogger.Log*'
+dotnet_diagnostic.CA2254.severity = warning
 # csharp_style_allow_blank_lines_between_consecutive_braces_experimental
 dotnet_diagnostic.IDE2002.severity = warning
 # csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental

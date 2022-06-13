@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to sync client configuration on the server: {ex}");
+                _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
                 return null;
             }
         }
@@ -169,7 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
+                _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
                 return defaultValue;
             }
         }

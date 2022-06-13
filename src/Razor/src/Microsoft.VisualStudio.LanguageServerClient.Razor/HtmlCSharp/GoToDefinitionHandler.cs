@@ -76,11 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                _logger.LogWarning($"Projection result was null");
+                _logger.LogWarning("Projection result was null");
                 return null;
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            _logger.LogInformation($"Requesting GoToDef for {projectionResult.Uri}.");
+            _logger.LogInformation("Requesting GoToDef for {projectionResultUri}.", projectionResult.Uri);
 
             var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
             var languageServerName = serverKind.ToLanguageServerName();
@@ -128,13 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return locations;
             }
 
-            _logger.LogInformation($"Received {locations.Length} results, remapping.");
+            _logger.LogInformation("Received {locationsLength} results, remapping.", locations.Length);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Returning {remappedLocations?.Length} definitions.");
+            _logger.LogInformation("Returning {remappedLocationsLength} definitions.", remappedLocations?.Length);
             return remappedLocations;
         }
     }

@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unexpected exception got thrown from the Razor plugin: " + ex);
+                _logger.LogError("Unexpected exception got thrown from the Razor plugin: {exception}", ex);
             }
         }
 

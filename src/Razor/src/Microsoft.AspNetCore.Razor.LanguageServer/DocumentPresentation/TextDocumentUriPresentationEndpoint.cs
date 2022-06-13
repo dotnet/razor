@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             if (request.Uris is null || request.Uris.Length == 0)
             {
-                _logger.LogInformation($"No URIs were included in the request?");
+                _logger.LogInformation("No URIs were included in the request?");
                 return null;
             }
 
@@ -122,12 +122,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
+            _logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
 
             var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
-                _logger.LogInformation($"Failed to find document for component {uri}.");
+                _logger.LogInformation("Failed to find document for component {uri}.", uri);
                 return null;
             }
 
@@ -136,14 +136,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
             if (descriptor is null)
             {
-                _logger.LogInformation($"Failed to find tag helper descriptor.");
+                _logger.LogInformation("Failed to find tag helper descriptor.");
                 return null;
             }
 
             var typeName = descriptor.GetTypeNameIdentifier();
             if (string.IsNullOrWhiteSpace(typeName))
             {
-                _logger.LogWarning($"Found a tag helper, {descriptor.Name}, but it has an empty TypeNameIdentifier.");
+                _logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
                 return null;
             }
 
