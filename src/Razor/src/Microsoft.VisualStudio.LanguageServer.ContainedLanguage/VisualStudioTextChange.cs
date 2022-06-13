@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
@@ -14,6 +15,19 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             OldSpan = new Span(oldStart, oldLength);
             NewText = newText;
+        }
+
+        public VisualStudioTextChange(TextEdit textEdit, ITextSnapshot textSnapshot)
+        {
+            var startRange = textEdit.Range.Start;
+            var startLine = textSnapshot.GetLineFromLineNumber(startRange.Line);
+            var startAbsoluteIndex = startLine.Start + startRange.Character;
+            var endRange = textEdit.Range.End;
+            var endLine = textSnapshot.GetLineFromLineNumber(endRange.Line);
+            var endAbsoluteIndex = endLine.Start + endRange.Character;
+            var length = endAbsoluteIndex - startAbsoluteIndex;
+            OldSpan = new Span(startAbsoluteIndex, length);
+            NewText = textEdit.NewText;
         }
 
         public Span OldSpan { get; }

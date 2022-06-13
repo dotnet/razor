@@ -9,5 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol
         VersionedTextDocumentIdentifier HostDocument,
         Position ProjectedPosition,
         RazorLanguageKind ProjectedKind,
-        VSInternalCompletionContext Context);
+        VSInternalCompletionContext Context,
+        TextEdit? ProvisionalTextEdit);
 }

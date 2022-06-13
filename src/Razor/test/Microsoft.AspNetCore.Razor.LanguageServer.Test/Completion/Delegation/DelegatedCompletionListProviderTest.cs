@@ -64,6 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
             Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -90,6 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
             Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -116,6 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
             Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -138,6 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
             Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -166,6 +170,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
             Assert.Equal(VSInternalCompletionInvokeKind.Explicit, delegatedParameters.Context.InvokeKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -194,6 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
             Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -222,6 +228,65 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
             Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
             Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
+        }
+
+        [Fact]
+        public async Task ProvisionalCompletion_TranslatesToCSharpWithProvisionalTextEdit()
+        {
+            // Arrange
+            var completionContext = new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                TriggerCharacter = ".",
+            };
+            var codeDocument = CreateCodeDocument("@DateTime.");
+            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+
+            // Act
+            await Provider.GetCompletionListAsync(absoluteIndex: 10, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+
+            // Assert
+            var delegatedParameters = Provider.DelegatedParams;
+            Assert.NotNull(delegatedParameters);
+            Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
+
+            // Just validating that we're generating code in a way that's different from the top-level document. Don't need to be specific.
+            Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
+            Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
+            Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
+            Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.NotNull(delegatedParameters.ProvisionalTextEdit);
+        }
+
+        [Fact]
+        public async Task DotTriggerInMiddleOfCSharpImplicitExpressionNotTreatedAsProvisional()
+        {
+            // Arrange
+            var completionContext = new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                TriggerCharacter = ".",
+            };
+            var codeDocument = CreateCodeDocument("@DateTime.Now");
+            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
+
+            // Act
+            await Provider.GetCompletionListAsync(absoluteIndex: 10, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+
+            // Assert
+            var delegatedParameters = Provider.DelegatedParams;
+            Assert.NotNull(delegatedParameters);
+            Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
+
+            // Just validating that we're generating code in a way that's different from the top-level document. Don't need to be specific.
+            Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
+            Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
+            Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
+            Assert.Equal(1337, delegatedParameters.HostDocument.Version);
+            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         private class TestResponseRewriter : DelegatedCompletionResponseRewriter
