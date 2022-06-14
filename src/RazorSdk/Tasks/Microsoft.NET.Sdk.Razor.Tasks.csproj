@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>$(DefaultNetCoreTargetFramework);net472</TargetFrameworks>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="Runtime" />
+    <PackageReference Include="System.Reflection.Metadata" Condition="'$(TargetFramework)'=='net472'" />
+    <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)'=='net472'" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Tool\CommandLine\ArgumentEscaper.cs">
+      <Link>Shared\CommandLine\%(FileName)</Link>
+    </Compile>
+    <Compile Include="..\Tool\ServerProtocol\*.cs">
+      <Link>Shared\ServerProtocol\%(FileName)</Link>
+    </Compile>
+    <Compile Include="..\Tool\PipeName.cs">
+      <Link>Shared\PipeName.cs</Link>
+    </Compile>
+    <Compile Include="..\Tool\MutexName.cs">
+      <Link>Shared\MutexName.cs</Link>
+    </Compile>
+    <Compile Include="..\Tool\Client.cs">
+      <Link>Shared\Client.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <Target Name="CopyFileSystemGlobbing" AfterTargets="ResolveReferences" Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'">
+    <ItemGroup>
+      <_FileSystemGlobbing Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == 'Microsoft.Extensions.FileSystemGlobbing'" />
+      <_FileSystemGlobbingContent Include="@(_FileSystemGlobbing)" TargetPath="%(_FileSystemGlobbing.Filename)%(_FileSystemGlobbing.Extension)" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_FileSystemGlobbingContent)" DestinationFiles="@(_FileSystemGlobbingContent->'$(OutDir)%(TargetPath)')" SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
+
+</Project>
