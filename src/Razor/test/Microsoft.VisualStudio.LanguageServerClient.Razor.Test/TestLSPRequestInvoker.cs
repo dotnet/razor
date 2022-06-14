@@ -18,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
     {
         private readonly CSharpTestLspServer _csharpServer;
 
+        public TestLSPRequestInvoker() { }
+
         public TestLSPRequestInvoker(CSharpTestLspServer csharpServer)
         {
             if (csharpServer is null)

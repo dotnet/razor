@@ -136,6 +136,7 @@
     <Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
     <Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
     <Tooling_MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
     <Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
