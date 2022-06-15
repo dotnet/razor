@@ -13,16 +13,24 @@ using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
+using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -37,22 +45,22 @@ using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
-using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
-using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
-using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public sealed class RazorLanguageServer : IDisposable
+    internal sealed class RazorLanguageServer : IDisposable
     {
         private readonly ILanguageServer _innerServer;
         private readonly object _disposeLock;
         private bool _disposed;
 
-        private RazorLanguageServer(ILanguageServer innerServer!!)
+        private RazorLanguageServer(ILanguageServer innerServer)
         {
+            if (innerServer is null)
+            {
+                throw new ArgumentNullException(nameof(innerServer));
+            }
+
             _innerServer = innerServer;
             _disposeLock = new object();
         }
@@ -63,10 +71,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task InitializedAsync(CancellationToken token) => _innerServer.Initialize(token);
 
-        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
+        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, LanguageServerFeatureOptions featureOptions = null, Action<RazorLanguageServerBuilder> configure = null)
         {
             var serializer = new LspSerializer();
             serializer.RegisterRazorConverters();
+            serializer.RegisterVSInternalExtensionConverters();
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
@@ -93,10 +102,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         var handlersManager = s.GetRequiredService<IHandlersManager>();
                         var jsonRpcHandlers = handlersManager.Descriptors.Select(d => d.Handler);
                         var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>().Distinct();
+                        var vsCapabilities = s.ClientSettings.Capabilities.ToVSClientCapabilities(serializer);
                         foreach (var registrationExtension in registrationExtensions)
                         {
-                            var optionsResult = registrationExtension.GetRegistration();
-                            response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JObject.FromObject(optionsResult.Options);
+                            var optionsResult = registrationExtension.GetRegistration(vsCapabilities);
+                            if (optionsResult != null)
+                            {
+                                response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JToken.FromObject(optionsResult.Options);
+                            }
                         }
 
                         RazorLanguageServerCapability.AddTo(response.Capabilities);
@@ -117,18 +130,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         }
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
-                    .WithHandler<RazorCompletionEndpoint>()
+
+                    // These two are specifically commented out / manually added in the services below based on feature options (for now)
+                    //.WithHandler<RazorCompletionEndpoint>()
+                    //.WithHandler<RazorCompletionResolveEndpoint>()
+
                     .WithHandler<RazorHoverEndpoint>()
                     .WithHandler<RazorLanguageEndpoint>()
                     .WithHandler<RazorDiagnosticsEndpoint>()
                     .WithHandler<RazorConfigurationEndpoint>()
-                    .WithHandler<RazorFormattingEndpoint>()
+                    .WithHandler<RazorDocumentFormattingEndpoint>()
+                    .WithHandler<RazorDocumentOnTypeFormattingEndpoint>()
+                    .WithHandler<RazorDocumentRangeFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
+                    .WithHandler<SemanticTokensRefreshEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
-                    .WithHandler<RazorComponentRenameEndpoint>()
+                    .WithHandler<RenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
                     .WithHandler<LinkedEditingRangeEndpoint>()
                     .WithHandler<WrapWithTagEndpoint>()
@@ -137,8 +157,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorProximityExpressionsEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
                     .WithHandler<FoldingRangeEndpoint>()
+                    .WithHandler<TextDocumentTextPresentationEndpoint>()
+                    .WithHandler<TextDocumentUriPresentationEndpoint>()
                     .WithServices(services =>
                     {
+                        featureOptions ??= new DefaultLanguageServerFeatureOptions();
+                        services.AddSingleton(featureOptions);
+
+                        if (featureOptions.SingleServerCompletionSupport)
+                        {
+                            options.WithHandler<RazorCompletionEndpoint>();
+                            options.WithHandler<RazorCompletionResolveEndpoint>();
+                        }
+                        else
+                        {
+                            options.WithHandler<LegacyRazorCompletionEndpoint>();
+                            options.WithHandler<LegacyRazorCompletionResolveEndpoint>();
+                        }
+
                         services.AddLogging(builder => builder
                             .SetMinimumLevel(logLevel)
                             .AddLanguageProtocolLogging());
@@ -147,6 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
+                        services.AddSingleton<DocumentContextFactory, DefaultDocumentContextFactory>();
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
@@ -202,6 +239,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
                         // Completion
+                        services.AddSingleton<CompletionListCache>();
+                        services.AddSingleton<AggregateCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider, DelegatedCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider, RazorCompletionListProvider>();
+                        services.AddSingleton<DelegatedCompletionResponseRewriter, TextEditResponseRewriter>();
+                        services.AddSingleton<DelegatedCompletionResponseRewriter, DesignTimeHelperResponseRewriter>();
+
+                        services.AddSingleton<AggregateCompletionItemResolver>();
+                        services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
+                        services.AddSingleton<CompletionItemResolver, DelegatedCompletionItemResolver>();
                         services.AddSingleton<TagHelperCompletionService, LanguageServerTagHelperCompletionService>();
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
@@ -217,9 +264,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Folding Range Providers
                         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
-
-                        // Disabling equals => `="|"` OnAutoInsert support until dynamic overtyping is a thing: https://github.com/dotnet/aspnetcore/issues/33677
-                        // services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
 
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
@@ -260,9 +304,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         }
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
-                        services.TryAddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
-
-                        // Defaults: For when the caller hasn't provided them through the `configure` action.
                         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
                     }));
 
@@ -271,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var factory = new LoggerFactory();
                 var logger = factory.CreateLogger<RazorLanguageServer>();
                 var assemblyInformationAttribute = typeof(RazorLanguageServer).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-                logger.LogInformation("Razor Language Server version " + assemblyInformationAttribute.InformationalVersion);
+                logger.LogInformation("Razor Language Server version {RazorVersion}", assemblyInformationAttribute.InformationalVersion);
                 factory.Dispose();
             }
             catch

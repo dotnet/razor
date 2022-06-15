@@ -29,14 +29,22 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, int lastResultId, CancellationToken cancellationToken)
             => RazorBrokeredServiceImplementation.RunServiceAsync(cancellationToken => GetTagHelpersDeltaCoreAsync(solutionInfo, projectHandle, factoryTypeName, lastResultId, cancellationToken), cancellationToken);
 
-        private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle!!, string factoryTypeName, CancellationToken cancellationToken)
+        private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken)
         {
+            if (projectHandle is null)
+            {
+                throw new ArgumentNullException(nameof(projectHandle));
+            }
+
             if (string.IsNullOrEmpty(factoryTypeName))
             {
                 throw new ArgumentException($"'{nameof(factoryTypeName)}' cannot be null or empty.", nameof(factoryTypeName));
             }
 
+            // We should replace the below call: https://github.com/dotnet/razor-tooling/issues/6316
+#pragma warning disable CS0618 // Type or member is obsolete
             var solution = await solutionInfo.GetSolutionAsync(ServiceBrokerClient, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0618 // Type or member is obsolete
             var projectSnapshot = await GetProjectSnapshotAsync(projectHandle, cancellationToken).ConfigureAwait(false);
             var workspaceProject = solution
                 .Projects

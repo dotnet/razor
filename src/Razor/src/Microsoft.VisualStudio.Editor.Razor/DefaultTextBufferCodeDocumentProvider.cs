@@ -14,8 +14,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(TextBufferCodeDocumentProvider))]
     internal class DefaultTextBufferCodeDocumentProvider : TextBufferCodeDocumentProvider
     {
-        public override bool TryGetFromBuffer(ITextBuffer textBuffer!!, out RazorCodeDocument codeDocument)
+        public override bool TryGetFromBuffer(ITextBuffer textBuffer, out RazorCodeDocument codeDocument)
         {
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
+
             if (textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser) && parser.CodeDocument != null)
             {
                 codeDocument = parser.CodeDocument;

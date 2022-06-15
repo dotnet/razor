@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -75,7 +76,7 @@ public class Foo { }
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(2, 0))
+                    Range = new Range{ Start = new Position(2, 0), End = new Position(2, 0) }
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
@@ -103,7 +104,7 @@ public class Foo { }
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(3, 0)) // Nukes a line
+                    Range = new Range{ Start = new Position(2, 0), End = new Position(3, 0) } // Nukes a line
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);

@@ -9,44 +9,47 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
-using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
 using Xunit;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
-using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 {
     public class DefaultRazorHoverInfoServiceTest : TagHelperServiceTestBase
     {
-        internal static ClientNotifierServiceBase LanguageServer
+        internal static VSInternalClientCapabilities MarkDownCapabilities
         {
             get
             {
-                var initializeParams = new InitializeParams
+                return new VSInternalClientCapabilities
                 {
-                    Capabilities = new PlatformAgnosticClientCapabilities
+                    TextDocument = new TextDocumentClientCapabilities
                     {
-                        TextDocument = new TextDocumentClientCapabilities
+                        Hover = new HoverSetting
                         {
-                            Hover = new Supports<HoverCapability>
-                            {
-                                Value = new HoverCapability
-                                {
-                                    ContentFormat = new Container<MarkupKind>(MarkupKind.Markdown)
-                                }
-                            }
+                            ContentFormat = new MarkupKind[] { MarkupKind.Markdown },
                         }
                     }
                 };
+            }
+        }
 
-                var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-                languageServer.SetupGet(server => server.ClientSettings)
-                    .Returns(initializeParams);
-
-                return languageServer.Object;
+        internal static VSInternalClientCapabilities PlainTextCapabilities
+        {
+            get
+            {
+                return new VSInternalClientCapabilities
+                {
+                    TextDocument = new TextDocumentClientCapabilities
+                    {
+                        Hover = new HoverSetting
+                        {
+                            ContentFormat = new MarkupKind[] { MarkupKind.PlainText },
+                        }
+                    }
+                };
             }
         }
 
@@ -58,14 +61,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**Test1TagHelper**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 1), new Position(1, 6));
+            Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 1),
+                End = new Position(1, 6),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -77,14 +83,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.LastIndexOf("test1", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**Test1TagHelper**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 9), new Position(1, 14));
+            Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 9),
+                End = new Position(1, 14),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -96,15 +105,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.DoesNotContain("**IntVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 7),
+                End = new Position(1, 15),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -117,15 +129,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var service = GetDefaultRazorHoverInfoService();
             var edgeLocation = txt.IndexOf("bool-val", StringComparison.Ordinal) + "bool-val".Length;
             var location = new SourceLocation(edgeLocation, 0, edgeLocation);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.DoesNotContain("**IntVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 7),
+                End = new Position(1, 15),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -137,10 +152,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("true", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
             Assert.Null(hover);
@@ -154,10 +168,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("=", StringComparison.Ordinal) + 1, -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
             Assert.Null(hover);
@@ -171,10 +184,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("true'", StringComparison.Ordinal) + 5, -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
             Assert.Null(hover);
@@ -188,15 +200,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.DoesNotContain("**IntVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 7),
+                End = new Position(1, 15),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -214,15 +229,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var service = GetDefaultRazorHoverInfoService();
             var charIndex = txt.IndexOf("@test", StringComparison.Ordinal) + 2;
             var location = new SourceLocation(charIndex, -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
             Assert.NotNull(hover);
-            Assert.Contains("**Test**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 5), new Position(1, 10));
+            Assert.Contains("**Test**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 5),
+                End = new Position(1, 10),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -234,14 +252,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**Test1TagHelper**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 1), new Position(1, 6));
+            Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 1),
+                End = new Position(1, 6),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -253,15 +274,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
-            Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.DoesNotContain("**IntVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 7),
+                End = new Position(1, 15),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -273,10 +297,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("strong", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
 
             // Assert
             Assert.Null(hover);
@@ -289,19 +312,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
 
             // Assert
-            Assert.Contains("Test1TagHelper", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.Equal(MarkupKind.PlainText, hover.Contents.MarkupContent.Kind);
-            var expectedRange = new RangeModel(new Position(1, 1), new Position(1, 6));
+            Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 1),
+                End = new Position(1, 6),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -312,19 +336,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.LastIndexOf("test1", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
 
             // Assert
-            Assert.Contains("Test1TagHelper", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.Equal(MarkupKind.PlainText, hover.Contents.MarkupContent.Kind);
-            var expectedRange = new RangeModel(new Position(1, 9), new Position(1, 14));
+            Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 9),
+                End = new Position(1, 14),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -335,20 +360,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
 
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
 
             // Assert
-            Assert.Contains("BoolVal", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.DoesNotContain("IntVal", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
-            Assert.Equal(MarkupKind.PlainText, hover.Contents.MarkupContent.Kind);
-            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.Contains("BoolVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.DoesNotContain("IntVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
+            Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 7),
+                End = new Position(1, 15),
+            };
             Assert.Equal(expectedRange, hover.Range);
         }
 
@@ -359,14 +385,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong></strong></p>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
 
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("strong", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
 
             // Assert
             Assert.Null(hover);
@@ -379,14 +402,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong class=\"weak\"></strong></p>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false);
 
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Hover.Value.ContentFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var service = GetDefaultRazorHoverInfoService(languageServer);
+            var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("weak", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = languageServer.ClientSettings.Capabilities;
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
 
             // Assert
             Assert.Null(hover);
@@ -400,26 +420,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
-            ((PlatformAgnosticClientCapabilities)clientCapabilities).SupportsVisualStudioExtensions = true;
+            var clientCapabilities = MarkDownCapabilities;
+            clientCapabilities.SupportsVisualStudioExtensions = true;
 
             // Act
-            var vsHover = (OmniSharpVSHover)service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
-            Assert.False(vsHover.Contents.HasMarkupContent);
-            Assert.True(vsHover.Contents.HasMarkedStrings && !vsHover.Contents.MarkedStrings.Any());
-            var expectedRange = new RangeModel(new Position(1, 1), new Position(1, 6));
+            Assert.False(vsHover.Contents.TryGetThird(out var _));
+            Assert.True(vsHover.Contents.TryGetSecond(out var _) && !vsHover.Contents.Second.Any());
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 1),
+                End = new Position(1, 6),
+            };
             Assert.Equal(expectedRange, vsHover.Range);
 
-            var container = (VSContainerElement)vsHover.RawContent;
+            var container = (ContainerElement)vsHover.RawContent;
             var containerElements = container.Elements.ToList();
-            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style);
             Assert.Single(containerElements);
 
             // [TagHelper Glyph] Test1TagHelper
-            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
-            var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            var innerContainer = ((ContainerElement)containerElements[0]).Elements.ToList();
+            var classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -434,26 +458,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
-            var clientCapabilities = LanguageServer.ClientSettings.Capabilities;
-            ((PlatformAgnosticClientCapabilities)clientCapabilities).SupportsVisualStudioExtensions = true;
+            var clientCapabilities = MarkDownCapabilities;
+            clientCapabilities.SupportsVisualStudioExtensions = true;
 
             // Act
-            var vsHover = (OmniSharpVSHover)service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
-            Assert.False(vsHover.Contents.HasMarkupContent);
-            Assert.True(vsHover.Contents.HasMarkedStrings && !vsHover.Contents.MarkedStrings.Any());
-            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.False(vsHover.Contents.TryGetThird(out var _));
+            Assert.True(vsHover.Contents.TryGetSecond(out var markedStrings) && !markedStrings.Any());
+            var expectedRange = new Range
+            {
+                Start = new Position(1, 7),
+                End = new Position(1, 15),
+            };
             Assert.Equal(expectedRange, vsHover.Range);
 
-            var container = (VSContainerElement)vsHover.RawContent;
+            var container = (ContainerElement)vsHover.RawContent;
             var containerElements = container.Elements.ToList();
-            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(ContainerElementStyle.Stacked, container.Style);
             Assert.Single(containerElements);
 
             // [TagHelper Glyph] bool Test1TagHelper.BoolVal
-            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
-            var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
+            var innerContainer = ((ContainerElement)containerElements[0]).Elements.ToList();
+            var classifiedTextElement = (ClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(PropertyGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
@@ -464,14 +492,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", VSPredefinedClassificationTypeNames.Identifier));
         }
 
-        private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService(ClientNotifierServiceBase languageServer = null)
+        private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService()
         {
-            if (languageServer is null)
-            {
-                languageServer = LanguageServer;
-            }
-
-            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
+            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
             var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
             return new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
         }

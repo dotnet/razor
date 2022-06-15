@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -56,6 +56,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
             {
                 var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+#if DEBUG
+                var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
+#endif
                 if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true))
                 {
                     // We don't care about this range as this can potentially lead to incorrect scopes.
@@ -171,6 +174,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // We use binary search to find that spot.
 
                     var index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart);
+
+                    if (index < 0 && context.SourceText[lineStart] == '@')
+                    {
+                        // Sometimes we are only off by one in finding a source mapping, for example with a simple if statement:
+                        //
+                        // @|if (true)
+                        //
+                        // The sourceMappingIndentationScopes knows about where the pipe is (ie, after the "@") but we're asking
+                        // for indentation at the line start. In these cases we are better off using the real indentation scope,
+                        // than hoping the one before it is correct.
+                        index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart + 1);
+                    }
+
                     if (index < 0)
                     {
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
@@ -256,11 +272,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         {
+            return ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
+        }
+
+        protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out SyntaxNode? foundOwner)
+        {
             // We should be called with the range of various C# SourceMappings.
 
             if (mappingSpan.Start == 0)
             {
                 // The mapping starts at 0. It can't be anything special but pure C#. Let's format it.
+                foundOwner = null;
                 return true;
             }
 
@@ -282,10 +304,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (owner is null)
             {
                 // Can't determine owner of this position. Optimistically allow formatting.
+                foundOwner = null;
                 return true;
             }
 
             owner = FixOwnerToWorkaroundCompilerQuirks(owner);
+            foundOwner = owner;
 
             // special case: If we're formatting implicit statements, we want to treat the `@attribute` directive as one
             // so that the C# definition of the attribute is formatted as C#
@@ -299,7 +323,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 IsInHtmlTag() ||
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
-                IsImplicitOrExplicitExpression() ||
+                IsImplicitExpression() ||
                 IsInSectionDirectiveCloseBrace() ||
                 (!allowImplicitStatements && IsImplicitStatementStart()))
             {
@@ -382,14 +406,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
             }
 
-            bool IsImplicitOrExplicitExpression()
+            bool IsImplicitExpression()
             {
                 // E.g, (| is position)
                 //
                 // `@|foo` - true
-                // `@(|foo)` - true
                 //
-                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
+                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
             }
 
             bool IsInSectionDirectiveCloseBrace()

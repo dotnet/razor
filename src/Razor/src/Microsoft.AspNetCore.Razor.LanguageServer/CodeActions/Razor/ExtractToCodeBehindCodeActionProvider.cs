@@ -1,31 +1,29 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             if (context is null)
             {
@@ -109,9 +107,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var codeAction = RazorCodeActionFactory.CreateExtractToCodeBehind(resolutionParams);
-            var codeActions = new List<RazorCodeAction> { codeAction };
+            var codeActions = new List<RazorVSInternalCodeAction> { codeAction };
 
-            return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
         }
 
         private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)

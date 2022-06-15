@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
@@ -46,13 +47,33 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         public RazorDirectiveAttributeCompletionSource(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            VisualStudioRazorParser parser!!,
-            RazorCompletionFactsService completionFactsService!!,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            VisualStudioRazorParser parser,
+            RazorCompletionFactsService completionFactsService,
             ICompletionBroker completionBroker,
-            VisualStudioDescriptionFactory descriptionFactory!!,
+            VisualStudioDescriptionFactory descriptionFactory,
             JoinableTaskFactory joinableTaskFactory)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (parser is null)
+            {
+                throw new ArgumentNullException(nameof(parser));
+            }
+
+            if (completionFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(completionFactsService));
+            }
+
+            if (descriptionFactory is null)
+            {
+                throw new ArgumentNullException(nameof(descriptionFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _parser = parser;
             _completionFactsService = completionFactsService;
@@ -74,10 +95,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-                var location = new SourceSpan(triggerLocation.Position, 0);
-
-                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
+                var absoluteIndex = triggerLocation.Position;
+                var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+                var owner = syntaxTree.Root.LocateOwner(queryableChange);
+                var razorCompletionContext = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
                 if (razorCompletionItems.Count == 0)
                 {
@@ -140,8 +162,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             }
         }
 
-        public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, CompletionItem item!!, CancellationToken token)
+        public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
         {
+            if (item is null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
             if (!item.Properties.TryGetProperty(DescriptionKey, out AggregateBoundAttributeDescription completionDescription))
             {
                 return Task.FromResult<object>(string.Empty);

@@ -21,20 +21,21 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
     <PublishWindowsPdb>true</PublishWindowsPdb>
     <GenerateResxSource>true</GenerateResxSource>
     <GenerateResxSourceEmitFormatMethods>true</GenerateResxSourceEmitFormatMethods>
     <ExcludeFromSourceBuild Condition="'$(IsUnitTestProject)' == 'true'">true</ExcludeFromSourceBuild>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
 
     <SharedSourceRoot>$(MSBuildThisFileDirectory)src\Shared\</SharedSourceRoot>
 
     <!-- Embed source files that are not tracked by the source control manager in the PDB. -->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
-    <!-- Working around https://github.com/NuGet/Home/issues/8467 -->
-    <NoWarn>$(NoWarn);NU5131</NoWarn>
+    <!-- Working around https://github.com/dotnet/sdk/issues/24747 -->
+    <NoWarn>$(NoWarn);NU1505</NoWarn>
 
     <!-- Working around https://github.com/microsoft/msbuild/pull/4764 -->
     <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>

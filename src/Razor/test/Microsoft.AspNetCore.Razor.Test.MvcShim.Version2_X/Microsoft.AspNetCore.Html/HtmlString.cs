@@ -39,8 +39,18 @@ namespace Microsoft.AspNetCore.Html
         public string Value { get; }
 
         /// <inheritdoc />
-        public void WriteTo(TextWriter writer!!, HtmlEncoder encoder!!)
+        public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (encoder is null)
+            {
+                throw new ArgumentNullException(nameof(encoder));
+            }
+
             writer.Write(Value);
         }
 

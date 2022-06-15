@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
@@ -34,17 +35,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
-            LSPDocumentManager documentManager!!,
-            LSPDiagnosticsTranslator diagnosticsProvider!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPDocumentManager documentManager,
+            LSPDiagnosticsTranslator diagnosticsProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (diagnosticsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsProvider));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _documentManager = documentManager;
             _diagnosticsProvider = diagnosticsProvider;
             _loggerProvider = loggerProvider;
         }
 
-        public override async Task<InterceptionResult> ApplyChangesAsync(JToken token!!, string containedLanguageName, CancellationToken cancellationToken)
+        public override async Task<InterceptionResult> ApplyChangesAsync(JToken token, string containedLanguageName, CancellationToken cancellationToken)
         {
+            if (token is null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // The diagnostics interceptor isn't a part of the HTMLCSharpLanguageServer stack as it's lifecycle is a bit different.
@@ -69,7 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return CreateDefaultResponse(token);
             }
 
-            _logger?.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
+            _logger?.LogInformation("Received HTML Publish diagnostic request for {diagnosticParamsUri} with {diagnosticsLength} diagnostics.",
+                diagnosticParams.Uri, diagnosticParams.Diagnostics.Length);
 
             var htmlDocumentUri = diagnosticParams.Uri;
             var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(htmlDocumentUri);
@@ -82,14 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (!_documentManager.TryGetDocument(razorDocumentUri, out var razorDocumentSnapshot))
             {
-                _logger?.LogInformation($"Failed to find document {razorDocumentUri}.");
+                _logger?.LogInformation("Failed to find document {razorDocumentUri}.", razorDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
             if (!razorDocumentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocumentSnapshot) ||
                 !htmlDocumentSnapshot.Uri.Equals(htmlDocumentUri))
             {
-                _logger?.LogInformation($"Failed to find virtual HTML document {htmlDocumentUri}.");
+                _logger?.LogInformation("Failed to find virtual HTML document {htmlDocumentUri}.", htmlDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
@@ -109,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (processedDiagnostics is null)
             {
-                _logger?.LogWarning($"Failed to semnd request to diagnostic translation server for {htmlDocumentUri}.");
+                _logger?.LogWarning("Failed to send request to diagnostic translation server for {htmlDocumentUri}.", htmlDocumentUri);
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
@@ -119,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             //
             // This'll need to be revisited based on preferences with flickering vs lingering.
 
-            _logger?.LogInformation($"Returning {processedDiagnostics.Diagnostics.Length} diagnostics.");
+            _logger?.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics.Length);
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);

@@ -13,8 +13,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
     {
         private readonly ProjectSnapshotManagerTaskScheduler _dispatcherScheduler;
 
-        public ProjectSnapshotManagerDispatcherBase(string threadName!!)
+        public ProjectSnapshotManagerDispatcherBase(string threadName)
         {
+            if (threadName is null)
+            {
+                throw new ArgumentNullException(nameof(threadName));
+            }
+
             _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName, LogException);
         }
 

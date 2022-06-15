@@ -3,21 +3,51 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
-using OSharp = OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RangeExtensions
     {
-        public static readonly OSharp.Range UndefinedRange = new()
+        public static readonly Range UndefinedRange = new()
         {
-            Start = new OSharp.Position(-1, -1),
-            End = new OSharp.Position(-1, -1)
+            Start = new Position(-1, -1),
+            End = new Position(-1, -1)
         };
 
-        public static bool OverlapsWith(this OSharp.Range range!!, OSharp.Range other!!)
+        public static bool IntersectsOrTouches(this Range range, Range other)
         {
+            if (range.IsBefore(other))
+            {
+                return false;
+            }
+
+            if (range.IsAfter(other))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsBefore(this Range range, Range other) =>
+            range.End.Line < other.Start.Line || range.End.Line == other.Start.Line && range.End.Character < other.Start.Character;
+
+        private static bool IsAfter(this Range range, Range other) =>
+            other.End.Line < range.Start.Line || other.End.Line == range.Start.Line && other.End.Character < range.Start.Character;
+
+        public static bool OverlapsWith(this Range range, Range other)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             var overlapStart = range.Start;
             if (range.Start.CompareTo(other.Start) < 0)
             {
@@ -34,8 +64,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
-        public static bool LineOverlapsWith(this OSharp.Range range!!, OSharp.Range other!!)
+        public static bool LineOverlapsWith(this Range range, Range other)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
             var overlapStart = range.Start.Line;
             if (range.Start.Line.CompareTo(other.Start.Line) < 0)
             {
@@ -51,36 +91,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return overlapStart.CompareTo(overlapEnd) <= 0;
         }
 
-        public static OSharp.Range? Overlap(this OSharp.Range range!!, OSharp.Range other!!)
+        public static bool Contains(this Range range, Range other)
         {
-            var overlapStart = range.Start;
-            if (range.Start.CompareTo(other.Start) < 0)
+            if (range is null)
             {
-                overlapStart = other.Start;
+                throw new ArgumentNullException(nameof(range));
             }
 
-            var overlapEnd = range.End;
-            if (range.End.CompareTo(other.End) > 0)
+            if (other is null)
             {
-                overlapEnd = other.End;
+                throw new ArgumentNullException(nameof(other));
             }
 
-            // Empty ranges do not overlap with any range.
-            if (overlapStart.CompareTo(overlapEnd) < 0)
-            {
-                return new OSharp.Range(overlapStart, overlapEnd);
-            }
-
-            return null;
-        }
-
-        public static bool Contains(this OSharp.Range range!!, OSharp.Range other!!)
-        {
             return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
-        public static TextSpan AsTextSpan(this OSharp.Range range!!, SourceText sourceText!!)
+        public static bool SpansMultipleLines(this Range range)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            return range.Start.Line != range.End.Line;
+        }
+
+        public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             if (range.Start.Line >= sourceText.Lines.Count)
             {
                 throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
@@ -103,8 +150,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new TextSpan(start, length);
         }
 
-        public static Language.Syntax.TextSpan AsRazorTextSpan(this OSharp.Range range!!, SourceText sourceText!!)
+        public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
         {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             if (range.Start.Line >= sourceText.Lines.Count)
             {
                 throw new ArgumentOutOfRangeException($"Range start line {range.Start.Line} matches or exceeds SourceText boundary {sourceText.Lines.Count}.");
@@ -127,26 +184,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return new Language.Syntax.TextSpan(start, length);
         }
 
-        public static bool IsUndefined(this OSharp.Range range!!)
+        public static bool IsUndefined(this Range range)
         {
-            return range == UndefinedRange;
-        }
-
-        public static VS.Range AsVSRange(this OSharp.Range range!!)
-        {
-            return new VS.Range
+            if (range is null)
             {
-                Start = new VS.Position
-                {
-                    Line = range.Start.Line,
-                    Character = range.Start.Character
-                },
-                End = new VS.Position
-                {
-                    Line = range.End.Line,
-                    Character = range.End.Character
-                }
-            };
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            return range == UndefinedRange;
         }
     }
 }

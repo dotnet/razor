@@ -11,10 +11,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorSemanticTokensLegendEndpoint = "_vs_/textDocument/semanticTokensLegend";
 
-        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/full/delta";
-
-        public const string RazorSemanticTokensEndpoint = "textDocument/semanticTokens/full";
-
         public const string SemanticTokensProviderName = "semanticTokensProvider";
 
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
@@ -37,6 +33,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorDocumentOnTypeFormattingEndpoint = "textDocument/onTypeFormatting";
 
+        public const string RazorCompletionEndpointName = "razor/completion";
+
+        public const string RazorCompletionResolveEndpointName = "razor/completionItem/resolve";
+
         // RZLS Custom Message Targets
         public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
 
@@ -57,6 +57,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
 
         public const string RazorFoldingRangeEndpoint = "razor/foldingRange";
+
+        public const string RazorSemanticTokensRefreshEndpoint = "razor/semanticTokensRefresh";
+
+        public const string RazorTextPresentationEndpoint = "razor/textPresentation";
+
+        public const string RazorUriPresentationEndpoint = "razor/uriPresentation";
 
         // This needs to be the same as in Web Tools, that is used by the HTML editor, because
         // we actually respond to the Web Tools "Wrap With Div" command handler, which sends this message

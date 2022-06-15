@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 
@@ -21,13 +20,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         private readonly TagHelperFactsService _tagHelperFactsService;
 
         [ImportingConstructor]
-        public DirectiveAttributeParameterCompletionItemProvider(TagHelperFactsService tagHelperFactsService!!)
+        public DirectiveAttributeParameterCompletionItemProvider(TagHelperFactsService tagHelperFactsService)
         {
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (context.TagHelperDocumentContext is null)
             {
                 throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
@@ -39,9 +48,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return Array.Empty<RazorCompletionItem>();
             }
 
-            var change = new SourceChange(location, string.Empty);
-            var owner = context.SyntaxTree.Root.LocateOwner(change);
-
+            var owner = context.Owner;
             if (owner is null)
             {
                 return Array.Empty<RazorCompletionItem>();
@@ -53,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return Array.Empty<RazorCompletionItem>();
             }
 
-            if (!parameterNameLocation.IntersectsWith(location.AbsoluteIndex))
+            if (!parameterNameLocation.IntersectsWith(context.AbsoluteIndex))
             {
                 // We're trying to retrieve completions on a portion of the name that is not supported (such as the name, i.e., |@bind|:format).
                 return Array.Empty<RazorCompletionItem>();

@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var filePathNormalizer = new FilePathNormalizer();
 
             // Act
-            var normalized = filePathNormalizer.Normalize(null);
+            var normalized = filePathNormalizer.Normalize((string)null);
 
             // Assert
             Assert.Equal("/", normalized);
@@ -148,7 +148,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             // Assert
             Assert.Equal("/", normalized);
         }
-
 
         [OSSkipConditionFact(new[] { "Windows" })]
         public void Normalize_NonWindows_AddsLeadingForwardSlash()

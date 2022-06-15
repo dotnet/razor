@@ -16,8 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
         public static ITextChange ToVisualStudioTextChange(this TextChange roslynTextChange) =>
             new VisualStudioTextChange(roslynTextChange.Span.Start, roslynTextChange.Span.Length, roslynTextChange.NewText);
 
-        public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText!!)
+        public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText)
         {
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
             var range = textChange.Span.AsRange(sourceText);
 
             return new TextEdit()

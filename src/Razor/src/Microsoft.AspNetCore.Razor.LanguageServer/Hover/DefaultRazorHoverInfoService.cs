@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -15,10 +13,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
-using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
+using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.MarkupKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
@@ -31,19 +28,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         [ImportingConstructor]
         public DefaultRazorHoverInfoService(
-            TagHelperFactsService tagHelperFactsService!!,
-            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory!!,
-            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory!!,
-            HtmlFactsService htmlFactsService!!)
+            TagHelperFactsService tagHelperFactsService,
+            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
+            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
+            HtmlFactsService htmlFactsService)
         {
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
+            if (lspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
+            }
+
+            if (vsLspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
+            }
+
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
             _tagHelperFactsService = tagHelperFactsService;
             _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
             _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
             _htmlFactsService = htmlFactsService;
         }
 
-        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument!!, SourceLocation location, ClientCapabilities clientCapabilities)
+        public override VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var syntaxTree = codeDocument.GetSyntaxTree();
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
@@ -141,12 +163,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     switch (attribute.Parent.Kind)
                     {
                         case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                            var directiveAttribute = attribute.Parent as MarkupTagHelperDirectiveAttributeSyntax;
+                            var directiveAttribute = (MarkupTagHelperDirectiveAttributeSyntax)attribute.Parent;
                             range.Start.Character -= directiveAttribute.Transition.FullWidth;
                             attributeName = "@" + attributeName;
                             break;
                         case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                            var minimizedAttribute = containingTagNameToken.Parent as MarkupMinimizedTagHelperDirectiveAttributeSyntax;
+                            var minimizedAttribute = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)containingTagNameToken.Parent;
                             range.Start.Character -= minimizedAttribute.Transition.FullWidth;
                             attributeName = "@" + attributeName;
                             break;
@@ -161,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return null;
         }
 
-        private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, RangeModel range, string attributeName, ClientCapabilities clientCapabilities)
+        private VSInternalHover? AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
         {
             var descriptionInfos = descriptors.Select(boundAttribute =>
             {
@@ -171,13 +193,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }).ToList().AsReadOnly();
             var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
-            var isVSClient = clientCapabilities is PlatformAgnosticClientCapabilities platformAgnosticClientCapabilities &&
-                platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
-            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out VSContainerElement classifiedTextElement))
+            var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
+            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
             {
-                var vsHover = new OmniSharpVSHover
+                var vsHover = new VSInternalHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(),
+                    Contents = Array.Empty<SumType<string, MarkedString>>(),
                     Range = range,
                     RawContent = classifiedTextElement,
                 };
@@ -186,14 +207,66 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
             else
             {
-                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out var markupContent))
+                var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
+
+                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
                 {
                     return null;
                 }
 
-                var hover = new HoverModel
+                var markupContent = new MarkupContent()
                 {
-                    Contents = new MarkedStringsOrMarkupContent(markupContent),
+                    Value = vsMarkupContent.Value,
+                    Kind = vsMarkupContent.Kind,
+                };
+
+                var hover = new VSInternalHover
+                {
+                    Contents = markupContent,
+                    Range = range,
+                };
+
+                return hover;
+            }
+        }
+
+        private VSInternalHover? ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
+        {
+            var descriptionInfos = descriptors.Select(descriptor => BoundElementDescriptionInfo.From(descriptor))
+                .ToList()
+                .AsReadOnly();
+            var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
+
+            var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
+            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out ContainerElement? classifiedTextElement))
+            {
+                var vsHover = new VSInternalHover
+                {
+                    Contents = Array.Empty<SumType<string, MarkedString>>(),
+                    Range = range,
+                    RawContent = classifiedTextElement,
+                };
+
+                return vsHover;
+            }
+            else
+            {
+                var hoverContentFormat = GetHoverContentFormat(clientCapabilities);
+
+                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, hoverContentFormat, out var vsMarkupContent))
+                {
+                    return null;
+                }
+
+                var markupContent = new MarkupContent()
+                {
+                    Value = vsMarkupContent.Value,
+                    Kind = vsMarkupContent.Kind,
+                };
+
+                var hover = new VSInternalHover
+                {
+                    Contents = markupContent,
                     Range = range
                 };
 
@@ -201,41 +274,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
         }
 
-        private HoverModel ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, RangeModel range, ClientCapabilities clientCapabilities)
+        private static VisualStudioMarkupKind GetHoverContentFormat(ClientCapabilities clientCapabilities)
         {
-            var descriptionInfos = descriptors.Select(descriptor => BoundElementDescriptionInfo.From(descriptor))
-                .ToList()
-                .AsReadOnly();
-            var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
-
-            var isVSClient = clientCapabilities is PlatformAgnosticClientCapabilities platformAgnosticClientCapabilities &&
-                platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
-            if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out VSContainerElement classifiedTextElement))
-            {
-                var vsHover = new OmniSharpVSHover
-                {
-                    Contents = new MarkedStringsOrMarkupContent(),
-                    Range = range,
-                    RawContent = classifiedTextElement,
-                };
-
-                return vsHover;
-            }
-            else
-            {
-                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out var markupContent))
-                {
-                    return null;
-                }
-
-                var hover = new HoverModel
-                {
-                    Contents = new MarkedStringsOrMarkupContent(markupContent),
-                    Range = range
-                };
-
-                return hover;
-            }
+            var hoverContentFormat = clientCapabilities.TextDocument?.Hover?.ContentFormat;
+            var hoverKind = hoverContentFormat?.Contains(VisualStudioMarkupKind.Markdown) == true ? VisualStudioMarkupKind.Markdown : VisualStudioMarkupKind.PlainText;
+            return hoverKind;
         }
     }
 }

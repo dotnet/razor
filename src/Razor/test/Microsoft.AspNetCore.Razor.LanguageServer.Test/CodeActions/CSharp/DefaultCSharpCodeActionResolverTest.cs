@@ -11,15 +11,15 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -32,18 +32,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Data = JToken.FromObject(new object()),
             Edit = new WorkspaceEdit()
             {
-                DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                    new WorkspaceEditDocumentChange(
-                        new TextDocumentEdit()
-                        {
-                            Edits = new TextEditContainer(
-                                new TextEdit()
-                                {
-                                    NewText = "Generated C# Based Edit"
-                                }
-                            )
+                DocumentChanges = new TextDocumentEdit[] {
+                    new TextDocumentEdit()
+                    {
+                        Edits = new TextEdit[]{
+                            new TextEdit()
+                            {
+                                NewText = "Generated C# Based Edit"
+                            }
                         }
-                    ))
+                    }
+                }
             }
         };
 
@@ -72,9 +71,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.Equal(s_defaultResolvedCodeAction.Title, returnedCodeAction.Title);
             Assert.Equal(s_defaultResolvedCodeAction.Data, returnedCodeAction.Data);
-            var returnedEdits = Assert.Single(returnedCodeAction.Edit.DocumentChanges);
-            Assert.True(returnedEdits.IsTextDocumentEdit);
-            var returnedTextDocumentEdit = Assert.Single(returnedEdits.TextDocumentEdit.Edits);
+            Assert.Equal(1, returnedCodeAction.Edit.DocumentChanges.Value.Count());
+            var returnedEdits = returnedCodeAction.Edit.DocumentChanges.Value;
+            Assert.True(returnedEdits.TryGetFirst(out var textDocumentEdits));
+            var returnedTextDocumentEdit = Assert.Single(textDocumentEdits[0].Edits);
             Assert.Equal(s_defaultFormattedEdits.First(), returnedTextDocumentEdit);
         }
 
@@ -113,29 +113,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = JToken.FromObject(new object()),
                 Edit = new WorkspaceEdit()
                 {
-                    DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                        new WorkspaceEditDocumentChange(
-                            new TextDocumentEdit()
-                            {
-                                Edits = new TextEditContainer(
-                                    new TextEdit()
-                                    {
-                                        NewText = "1. Generated C# Based Edit"
-                                    }
-                                )
+                    DocumentChanges = new TextDocumentEdit[] {
+                        new TextDocumentEdit()
+                        {
+                            Edits = new TextEdit[] {
+                                new TextEdit()
+                                {
+                                    NewText = "1. Generated C# Based Edit"
+                                }
                             }
-                        ),
-                        new WorkspaceEditDocumentChange(
-                            new TextDocumentEdit()
-                            {
-                                Edits = new TextEditContainer(
-                                    new TextEdit()
-                                    {
-                                        NewText = "2. Generated C# Based Edit"
-                                    }
-                                )
+                        },
+                        new TextDocumentEdit()
+                        {
+                            Edits = new TextEdit[] {
+                                new TextEdit()
+                                {
+                                    NewText = "2. Generated C# Based Edit"
+                                }
                             }
-                        ))
+                        }
+                    }
                 }
             };
 
@@ -160,13 +157,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = JToken.FromObject(new object()),
                 Edit = new WorkspaceEdit()
                 {
-                    DocumentChanges = new Container<WorkspaceEditDocumentChange>(
-                        new WorkspaceEditDocumentChange(
-                            new CreateFile()
-                            {
-                                Uri = new Uri("c:/some/uri.razor")
-                            }
-                        ))
+                    DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] {
+                        new CreateFile()
+                        {
+                            Uri = new Uri("c:/some/uri.razor")
+                        }
+                    }
                 }
             };
 
@@ -185,7 +181,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             out CSharpCodeActionParams codeActionParams,
             out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
             ClientNotifierServiceBase languageServer = null,
-            DocumentVersionCache documentVersionCache = null,
             RazorFormattingService razorFormattingService = null)
         {
             var documentPath = "c:/Test.razor";
@@ -200,15 +195,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             languageServer ??= CreateLanguageServer();
-            documentVersionCache ??= CreateDocumentVersionCache();
             razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
             csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
-                Dispatcher,
-                CreateDocumentResolver(documentPath, codeDocument),
+                CreateDocumentContextFactory(documentUri, codeDocument),
                 languageServer,
-                razorFormattingService,
-                documentVersionCache);
+                razorFormattingService);
         }
 
         private static RazorFormattingService CreateRazorFormattingService(Uri documentUri)
@@ -224,13 +216,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return razorFormattingService;
         }
 
-        private static DocumentVersionCache CreateDocumentVersionCache()
-        {
-            int? documentVersion = 2;
-            var documentVersionCache = Mock.Of<DocumentVersionCache>(dvc => dvc.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out documentVersion) == true, MockBehavior.Strict);
-            return documentVersionCache;
-        }
-
         private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction = null)
         {
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
@@ -244,21 +229,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             return languageServer.Object;
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver
-                .Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocument(string text, string documentPath)

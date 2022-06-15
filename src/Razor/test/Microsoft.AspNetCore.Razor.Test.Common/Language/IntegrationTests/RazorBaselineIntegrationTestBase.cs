@@ -225,8 +225,18 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             }
         }
 
-        private string GetBaselineFilePath(RazorCodeDocument codeDocument!!, string extension!!)
+        private string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (extension is null)
+            {
+                throw new ArgumentNullException(nameof(extension));
+            }
+
             var lastSlash = codeDocument.Source.FilePath.LastIndexOfAny(new []{ '/', '\\' });
             var fileName = lastSlash == -1 ? null : codeDocument.Source.FilePath.Substring(lastSlash + 1);
             if (string.IsNullOrEmpty(fileName))

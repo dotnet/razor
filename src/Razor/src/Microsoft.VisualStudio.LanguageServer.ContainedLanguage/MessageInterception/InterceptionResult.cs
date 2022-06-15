@@ -10,6 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
     /// </summary>
     public struct InterceptionResult
     {
+        public static readonly InterceptionResult NoChange = new(null, false);
+
         public InterceptionResult(JToken? newToken, bool changedDocumentUri)
         {
             UpdatedToken = newToken;

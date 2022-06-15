@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -28,357 +27,367 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task FormatsSimpleHtmlTag()
         {
             await RunFormattingTestAsync(
-input: @"
-   <html>
-<head>
-   <title>Hello</title></head>
-<body><div>
-</div>
-        </body>
- </html>
-",
-expected: @"
-<html>
-<head>
-    <title>Hello</title>
-</head>
-<body>
-    <div>
-    </div>
-</body>
-</html>
-");
+                input: """
+                       <html>
+                    <head>
+                       <title>Hello</title></head>
+                    <body><div>
+                    </div>
+                            </body>
+                     </html>
+                    """,
+                expected: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                    </head>
+                    <body>
+                        <div>
+                        </div>
+                    </body>
+                    </html>
+                    """);
         }
 
         [Fact]
         public async Task FormatsSimpleHtmlTag_Range()
         {
             await RunFormattingTestAsync(
-input: @"
-<html>
-<head>
-    <title>Hello</title>
-</head>
-<body>
-        [|<div>
-        </div>|]
-</body>
-</html>
-",
-expected: @"
-<html>
-<head>
-    <title>Hello</title>
-</head>
-<body>
-    <div>
-    </div>
-</body>
-</html>
-");
+                input: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                    </head>
+                    <body>
+                            [|<div>
+                            </div>|]
+                    </body>
+                    </html>
+                    """,
+                expected: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                    </head>
+                    <body>
+                        <div>
+                        </div>
+                    </body>
+                    </html>
+                    """);
         }
 
         [Fact]
         public async Task FormatsRazorHtmlBlock()
         {
             await RunFormattingTestAsync(
-input: @"@page ""/error""
+                input: """
+                    @page "/error"
 
-        <h1 class=
-""text-danger"">Error.</h1>
-    <h2 class=""text-danger"">An error occurred while processing your request.</h2>
+                            <h1 class=
+                    "text-danger">Error.</h1>
+                        <h2 class="text-danger">An error occurred while processing your request.</h2>
 
-            <h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.
-</strong>
-            <div>
- <div>
-    <div>
-<div>
-        This is heavily nested
-</div>
- </div>
-    </div>
-        </div>
-</p>
-",
-expected: @"@page ""/error""
+                                <h3>Development Mode</h3>
+                    <p>
+                        Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
+                    <p>
+                        <strong>The Development environment shouldn't be enabled for deployed applications.
+                    </strong>
+                                <div>
+                     <div>
+                        <div>
+                    <div>
+                            This is heavily nested
+                    </div>
+                     </div>
+                        </div>
+                            </div>
+                    </p>
+                    """,
+                expected: """
+                    @page "/error"
 
-<h1 class=""text-danger"">
-    Error.
-</h1>
-<h2 class=""text-danger"">An error occurred while processing your request.</h2>
+                    <h1 class="text-danger">
+                        Error.
+                    </h1>
+                    <h2 class="text-danger">An error occurred while processing your request.</h2>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>
-        The Development environment shouldn't be enabled for deployed applications.
-    </strong>
-    <div>
-        <div>
-            <div>
-                <div>
-                    This is heavily nested
-                </div>
-            </div>
-        </div>
-    </div>
-</p>
-");
+                    <h3>Development Mode</h3>
+                    <p>
+                        Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+                    </p>
+                    <p>
+                        <strong>
+                            The Development environment shouldn't be enabled for deployed applications.
+                        </strong>
+                        <div>
+                            <div>
+                                <div>
+                                    <div>
+                                        This is heavily nested
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p>
+                    """);
         }
 
         [Fact]
         public async Task FormatsMixedHtmlBlock()
         {
             await RunFormattingTestAsync(
-input: @"@page ""/test""
-@{
-<p>
-        @{
-                var t = 1;
-if (true)
-{
+                input: """
+                    @page "/test"
+                    @{
+                    <p>
+                            @{
+                                    var t = 1;
+                    if (true)
+                    {
 
-            }
-        }
-        </p>
-<div>
- @{
-    <div>
-<div>
-        This is heavily nested
-</div>
- </div>
-    }
-        </div>
-}
-",
-expected: @"@page ""/test""
-@{
-    <p>
-        @{
-            var t = 1;
-            if (true)
-            {
+                                }
+                            }
+                            </p>
+                    <div>
+                     @{
+                        <div>
+                    <div>
+                            This is heavily nested
+                    </div>
+                     </div>
+                        }
+                            </div>
+                    }
+                    """,
+                expected: """
+                    @page "/test"
+                    @{
+                        <p>
+                            @{
+                                var t = 1;
+                                if (true)
+                                {
 
-            }
-        }
-    </p>
-    <div>
-        @{
-            <div>
-                <div>
-                    This is heavily nested
-                </div>
-            </div>
-        }
-    </div>
-}
-");
+                                }
+                            }
+                        </p>
+                        <div>
+                            @{
+                                <div>
+                                    <div>
+                                        This is heavily nested
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    """);
         }
 
         [Fact]
         public async Task FormatsMixedRazorBlock()
         {
             await RunFormattingTestAsync(
-input: @"@page ""/test""
+                input: """
+                    @page "/test"
 
-<div class=@className>Some Text</div>
+                    <div class=@className>Some Text</div>
 
-@{
-@: Hi!
-var x = 123;
-<p>
-        @if (true) {
-                var t = 1;
-if (true)
-{
-<div>@DateTime.Now</div>
-            }
+                    @{
+                    @: Hi!
+                    var x = 123;
+                    <p>
+                            @if (true) {
+                                    var t = 1;
+                    if (true)
+                    {
+                    <div>@DateTime.Now</div>
+                                }
 
-            @while(true){
- }
-        }
-        </p>
-}
-",
-expected: @"@page ""/test""
+                                @while(true){
+                     }
+                            }
+                            </p>
+                    }
+                    """,
+                expected: """
+                    @page "/test"
 
-<div class=@className>Some Text</div>
+                    <div class=@className>Some Text</div>
 
-@{
-    @: Hi!
-    var x = 123;
-    <p>
-        @if (true)
-        {
-            var t = 1;
-            if (true)
-            {
-                <div>@DateTime.Now</div>
-            }
+                    @{
+                        @: Hi!
+                        var x = 123;
+                        <p>
+                            @if (true)
+                            {
+                                var t = 1;
+                                if (true)
+                                {
+                                    <div>@DateTime.Now</div>
+                                }
 
-            @while (true)
-            {
-            }
-        }
-    </p>
-}
-");
+                                @while (true)
+                                {
+                                }
+                            }
+                        </p>
+                    }
+                    """);
         }
 
         [Fact]
         public async Task FormatsMixedContentWithMultilineExpressions()
         {
             await RunFormattingTestAsync(
-input: @"@page ""/test""
+                input: """
+                    @page "/test"
 
-<div
-attr='val'
-class=@className>Some Text</div>
+                    <div
+                    attr='val'
+                    class=@className>Some Text</div>
 
-@{
-@: Hi!
-var x = DateTime
-    .Now.ToString();
-<p>
-        @if (true) {
-                var t = 1;
-        }
-        </p>
-}
+                    @{
+                    @: Hi!
+                    var x = DateTime
+                        .Now.ToString();
+                    <p>
+                            @if (true) {
+                                    var t = 1;
+                            }
+                            </p>
+                    }
 
-@(DateTime
-    .Now
-.ToString())
+                    @(DateTime
+                        .Now
+                    .ToString())
 
-@(
-    Foo.Values.Select(f =>
-    {
-        return f.ToString();
-    })
-)
-",
-expected: @"@page ""/test""
+                    @(
+                        Foo.Values.Select(f =>
+                        {
+                            return f.ToString();
+                        })
+                    )
+                    """,
+                expected: """
+                    @page "/test"
 
-<div attr='val'
-     class=@className>
-    Some Text
-</div>
+                    <div attr='val'
+                         class=@className>
+                        Some Text
+                    </div>
 
-@{
-    @: Hi!
-    var x = DateTime
-        .Now.ToString();
-    <p>
-        @if (true)
-        {
-            var t = 1;
-        }
-    </p>
-}
+                    @{
+                        @: Hi!
+                        var x = DateTime
+                            .Now.ToString();
+                        <p>
+                            @if (true)
+                            {
+                                var t = 1;
+                            }
+                        </p>
+                    }
 
-@(DateTime
-    .Now
-.ToString())
+                    @(DateTime
+                        .Now
+                    .ToString())
 
-@(
-    Foo.Values.Select(f =>
-    {
-        return f.ToString();
-    })
-)
-");
+                    @(
+                        Foo.Values.Select(f =>
+                        {
+                            return f.ToString();
+                        })
+                    )
+                    """);
         }
 
         [Fact]
         public async Task FormatsComplexBlock()
         {
             await RunFormattingTestAsync(
-input: @"@page ""/""
+                input: """
+                    @page "/"
 
-<h1>Hello, world!</h1>
+                    <h1>Hello, world!</h1>
 
-        Welcome to your new app.
+                            Welcome to your new app.
 
-<SurveyPrompt Title=""How is Blazor working for you?"" />
+                    <SurveyPrompt Title="How is Blazor working for you?" />
 
-<div class=""FF""
-     id=""ERT"">
-     asdf
-    <div class=""3""
-         id=""3"">
-             @if(true){<p></p>}
-         </div>
-</div>
+                    <div class="FF"
+                         id="ERT">
+                         asdf
+                        <div class="3"
+                             id="3">
+                                 @if(true){<p></p>}
+                             </div>
+                    </div>
 
-@{
-<div class=""FF""
-    id=""ERT"">
-    asdf
-    <div class=""3""
-        id=""3"">
-            @if(true){<p></p>}
-        </div>
-</div>
-}
+                    @{
+                    <div class="FF"
+                        id="ERT">
+                        asdf
+                        <div class="3"
+                            id="3">
+                                @if(true){<p></p>}
+                            </div>
+                    </div>
+                    }
 
-@functions {
-        public class Foo
-    {
-        @* This is a Razor Comment *@
-        void Method() { }
-    }
-}
-",
-expected: @"@page ""/""
+                    @functions {
+                            public class Foo
+                        {
+                            @* This is a Razor Comment *@
+                            void Method() { }
+                        }
+                    }
+                    """,
+                expected: """
+                    @page "/"
 
-<h1>Hello, world!</h1>
+                    <h1>Hello, world!</h1>
 
-        Welcome to your new app.
+                            Welcome to your new app.
 
-<SurveyPrompt Title=""How is Blazor working for you?"" />
+                    <SurveyPrompt Title="How is Blazor working for you?" />
 
-<div class=""FF""
-     id=""ERT"">
-    asdf
-    <div class=""3""
-         id=""3"">
-        @if (true)
-        {
-            <p></p>
-        }
-    </div>
-</div>
+                    <div class="FF"
+                         id="ERT">
+                        asdf
+                        <div class="3"
+                             id="3">
+                            @if (true)
+                            {
+                                <p></p>
+                            }
+                        </div>
+                    </div>
 
-@{
-    <div class=""FF""
-         id=""ERT"">
-        asdf
-        <div class=""3""
-             id=""3"">
-            @if (true)
-            {
-                <p></p>
-            }
-        </div>
-    </div>
-}
+                    @{
+                        <div class="FF"
+                             id="ERT">
+                            asdf
+                            <div class="3"
+                                 id="3">
+                                @if (true)
+                                {
+                                    <p></p>
+                                }
+                            </div>
+                        </div>
+                    }
 
-@functions {
-    public class Foo
-    {
-        @* This is a Razor Comment *@
-        void Method() { }
-    }
-}
-", tagHelpers: GetSurveyPrompt());
+                    @functions {
+                        public class Foo
+                        {
+                            @* This is a Razor Comment *@
+                            void Method() { }
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -386,52 +395,56 @@ expected: @"@page ""/""
         {
             var tagHelpers = GetComponents();
             await RunFormattingTestAsync(
-input: @"
-   <Counter>
-    @if(true){
-        <p>@DateTime.Now</p>
-}
-</Counter>
+                input: """
+                       <Counter>
+                        @if(true){
+                            <p>@DateTime.Now</p>
+                    }
+                    </Counter>
 
-    <GridTable>
-    @foreach (var row in rows){
-        <GridRow @onclick=""SelectRow(row)"">
-        @foreach (var cell in row){
-    <GridCell>@cell</GridCell>}</GridRow>
-    }
-</GridTable>
-",
-expected: @"
-<Counter>
-    @if (true)
-    {
-        <p>@DateTime.Now</p>
-    }
-</Counter>
+                        <GridTable>
+                        @foreach (var row in rows){
+                            <GridRow @onclick="SelectRow(row)">
+                            @foreach (var cell in row){
+                        <GridCell>@cell</GridCell>}</GridRow>
+                        }
+                    </GridTable>
+                    """,
+                expected: """
+                    <Counter>
+                        @if (true)
+                        {
+                            <p>@DateTime.Now</p>
+                        }
+                    </Counter>
 
-<GridTable>
-    @foreach (var row in rows)
-    {
-        <GridRow @onclick=""SelectRow(row)"">
-            @foreach (var cell in row)
-            {
-                <GridCell>@cell</GridCell>
-            }
-        </GridRow>
-    }
-</GridTable>
-",
-tagHelpers: tagHelpers);
+                    <GridTable>
+                        @foreach (var row in rows)
+                        {
+                            <GridRow @onclick="SelectRow(row)">
+                                @foreach (var cell in row)
+                                {
+                                    <GridCell>@cell</GridCell>
+                                }
+                            </GridRow>
+                        }
+                    </GridTable>
+                    """,
+                tagHelpers: tagHelpers);
         }
 
         [Fact]
         public async Task FormatsShortBlock()
         {
             await RunFormattingTestAsync(
-                input: @"@{<p></p>}",
-                expected: @"@{
-    <p></p>
-}");
+                input: """
+                    @{<p></p>}
+                    """,
+                expected: """
+                    @{
+                        <p></p>
+                    }
+                    """);
         }
 
         [Fact]
@@ -439,28 +452,30 @@ tagHelpers: tagHelpers);
         public async Task FormatNestedBlock()
         {
             await RunFormattingTestAsync(
-input: @"@code {
-    public string DoSomething()
-    {
-        <strong>
-            @DateTime.Now.ToString()
-        </strong>
+                input: """
+                    @code {
+                        public string DoSomething()
+                        {
+                            <strong>
+                                @DateTime.Now.ToString()
+                            </strong>
 
-        return String.Empty;
-    }
-}
-",
-expected: @"@code {
-    public string DoSomething()
-    {
-        <strong>
-            @DateTime.Now.ToString()
-        </strong>
+                            return String.Empty;
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        public string DoSomething()
+                        {
+                            <strong>
+                                @DateTime.Now.ToString()
+                            </strong>
 
-        return String.Empty;
-    }
-}
-");
+                            return String.Empty;
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -468,30 +483,32 @@ expected: @"@code {
         public async Task FormatNestedBlock_Tabs()
         {
             await RunFormattingTestAsync(
-input: @"@code {
-    public string DoSomething()
-    {
-        <strong>
-            @DateTime.Now.ToString()
-        </strong>
+                input: """
+                    @code {
+                        public string DoSomething()
+                        {
+                            <strong>
+                                @DateTime.Now.ToString()
+                            </strong>
 
-        return String.Empty;
-    }
-}
-",
-expected: @"@code {
-	public string DoSomething()
-	{
-		<strong>
-			@DateTime.Now.ToString()
-		</strong>
+                            return String.Empty;
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                    	public string DoSomething()
+                    	{
+                    		<strong>
+                    			@DateTime.Now.ToString()
+                    		</strong>
 
-		return String.Empty;
-	}
-}
-",
-tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
-insertSpaces: false);
+                    		return String.Empty;
+                    	}
+                    }
+                    """,
+                tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                insertSpaces: false);
         }
 
         [Fact]
@@ -499,44 +516,45 @@ insertSpaces: false);
         public async Task FormatHtmlWithTabs1()
         {
             await RunFormattingTestAsync(
-input: @"
-@page ""/""
-@{
- ViewData[""Title""] = ""Create"";
- <hr />
- <div class=""row"">
-  <div class=""col-md-4"">
-   <form method=""post"">
-    <div class=""form-group"">
-     <label asp-for=""Movie.Title"" class=""control-label""></label>
-     <input asp-for=""Movie.Title"" class=""form-control"" />
-     <span asp-validation-for=""Movie.Title"" class=""text-danger""></span>
-    </div>
-   </form>
-  </div>
- </div>
-}
-",
-expected: @"@page ""/""
-@{
-	ViewData[""Title""] = ""Create"";
-	<hr />
-	<div class=""row"">
-		<div class=""col-md-4"">
-			<form method=""post"">
-				<div class=""form-group"">
-					<label asp-for=""Movie.Title"" class=""control-label""></label>
-					<input asp-for=""Movie.Title"" class=""form-control"" />
-					<span asp-validation-for=""Movie.Title"" class=""text-danger""></span>
-				</div>
-			</form>
-		</div>
-	</div>
-}
-",
-tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
-insertSpaces: false,
-fileKind: FileKinds.Legacy);
+                input: """
+                    @page "/"
+                    @{
+                     ViewData["Title"] = "Create";
+                     <hr />
+                     <div class="row">
+                      <div class="col-md-4">
+                       <form method="post">
+                        <div class="form-group">
+                         <label asp-for="Movie.Title" class="control-label"></label>
+                         <input asp-for="Movie.Title" class="form-control" />
+                         <span asp-validation-for="Movie.Title" class="text-danger"></span>
+                        </div>
+                       </form>
+                      </div>
+                     </div>
+                    }
+                    """,
+                expected: """
+                    @page "/"
+                    @{
+                    	ViewData["Title"] = "Create";
+                    	<hr />
+                    	<div class="row">
+                    		<div class="col-md-4">
+                    			<form method="post">
+                    				<div class="form-group">
+                    					<label asp-for="Movie.Title" class="control-label"></label>
+                    					<input asp-for="Movie.Title" class="form-control" />
+                    					<span asp-validation-for="Movie.Title" class="text-danger"></span>
+                    				</div>
+                    			</form>
+                    		</div>
+                    	</div>
+                    }
+                    """,
+                tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                insertSpaces: false,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
@@ -544,40 +562,41 @@ fileKind: FileKinds.Legacy);
         public async Task FormatHtmlWithTabs2()
         {
             await RunFormattingTestAsync(
-input: @"
-@page ""/""
+                input: """
+                    @page "/"
 
- <hr />
- <div class=""row"">
-  <div class=""col-md-4"">
-   <form method=""post"">
-    <div class=""form-group"">
-     <label asp-for=""Movie.Title"" class=""control-label""></label>
-     <input asp-for=""Movie.Title"" class=""form-control"" />
-     <span asp-validation-for=""Movie.Title"" class=""text-danger""></span>
-    </div>
-   </form>
-  </div>
- </div>
-",
-expected: @"@page ""/""
+                     <hr />
+                     <div class="row">
+                      <div class="col-md-4">
+                       <form method="post">
+                        <div class="form-group">
+                         <label asp-for="Movie.Title" class="control-label"></label>
+                         <input asp-for="Movie.Title" class="form-control" />
+                         <span asp-validation-for="Movie.Title" class="text-danger"></span>
+                        </div>
+                       </form>
+                      </div>
+                     </div>
+                    """,
+                expected: """
+                    @page "/"
 
-<hr />
-<div class=""row"">
-	<div class=""col-md-4"">
-		<form method=""post"">
-			<div class=""form-group"">
-				<label asp-for=""Movie.Title"" class=""control-label""></label>
-				<input asp-for=""Movie.Title"" class=""form-control"" />
-				<span asp-validation-for=""Movie.Title"" class=""text-danger""></span>
-			</div>
-		</form>
-	</div>
-</div>
-",
-tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
-insertSpaces: false,
-fileKind: FileKinds.Legacy);
+                    <hr />
+                    <div class="row">
+                    	<div class="col-md-4">
+                    		<form method="post">
+                    			<div class="form-group">
+                    				<label asp-for="Movie.Title" class="control-label"></label>
+                    				<input asp-for="Movie.Title" class="form-control" />
+                    				<span asp-validation-for="Movie.Title" class="text-danger"></span>
+                    			</div>
+                    		</form>
+                    	</div>
+                    </div>
+                    """,
+                tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                insertSpaces: false,
+                fileKind: FileKinds.Legacy);
         }
 
         [Fact]
@@ -585,44 +604,44 @@ fileKind: FileKinds.Legacy);
         public async Task FormatNestedComponents()
         {
             await RunFormattingTestAsync(
-input: @"
-<CascadingAuthenticationState>
-<Router AppAssembly=""@typeof(Program).Assembly"">
-    <Found Context=""routeData"">
-        <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout=""@typeof(MainLayout)"">
-            <p>Sorry, there's nothing at this address.</p>
+                input: """
+                    <CascadingAuthenticationState>
+                    <Router AppAssembly="@typeof(Program).Assembly">
+                        <Found Context="routeData">
+                            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                        </Found>
+                        <NotFound>
+                            <LayoutView Layout="@typeof(MainLayout)">
+                                <p>Sorry, there's nothing at this address.</p>
 
-            @if (true)
-                    {
-                        <strong></strong>
-                }
-        </LayoutView>
-    </NotFound>
-</Router>
-</CascadingAuthenticationState>
-",
-expected: @"
-<CascadingAuthenticationState>
-    <Router AppAssembly=""@typeof(Program).Assembly"">
-        <Found Context=""routeData"">
-            <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
-        </Found>
-        <NotFound>
-            <LayoutView Layout=""@typeof(MainLayout)"">
-                <p>Sorry, there's nothing at this address.</p>
+                                @if (true)
+                                        {
+                                            <strong></strong>
+                                    }
+                            </LayoutView>
+                        </NotFound>
+                    </Router>
+                    </CascadingAuthenticationState>
+                    """,
+                expected: """
+                    <CascadingAuthenticationState>
+                        <Router AppAssembly="@typeof(Program).Assembly">
+                            <Found Context="routeData">
+                                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                            </Found>
+                            <NotFound>
+                                <LayoutView Layout="@typeof(MainLayout)">
+                                    <p>Sorry, there's nothing at this address.</p>
 
-                @if (true)
-                {
-                    <strong></strong>
-                }
-            </LayoutView>
-        </NotFound>
-    </Router>
-</CascadingAuthenticationState>
-");
+                                    @if (true)
+                                    {
+                                        <strong></strong>
+                                    }
+                                </LayoutView>
+                            </NotFound>
+                        </Router>
+                    </CascadingAuthenticationState>
+                    """);
         }
 
         [Fact]
@@ -630,46 +649,47 @@ expected: @"
         public async Task FormatNestedComponents2()
         {
             await RunFormattingTestAsync(
-input: @"
-<GridTable>
-<ChildContent>
-<GridRow>
-<ChildContent>
-<GridCell>
-<ChildContent>
-<strong></strong>
-@if (true)
-{
-<strong></strong>
-}
-<strong></strong>
-</ChildContent>
-</GridCell>
-</ChildContent>
-</GridRow>
-</ChildContent>
-</GridTable>
-",
-expected: @"
-<GridTable>
-    <ChildContent>
-        <GridRow>
-            <ChildContent>
-                <GridCell>
+                input: """
+                    <GridTable>
                     <ChildContent>
-                        <strong></strong>
-                        @if (true)
-                        {
-                            <strong></strong>
-                        }
-                        <strong></strong>
+                    <GridRow>
+                    <ChildContent>
+                    <GridCell>
+                    <ChildContent>
+                    <strong></strong>
+                    @if (true)
+                    {
+                    <strong></strong>
+                    }
+                    <strong></strong>
                     </ChildContent>
-                </GridCell>
-            </ChildContent>
-        </GridRow>
-    </ChildContent>
-</GridTable>
-", tagHelpers: GetComponents());
+                    </GridCell>
+                    </ChildContent>
+                    </GridRow>
+                    </ChildContent>
+                    </GridTable>
+                    """,
+                expected: """
+                    <GridTable>
+                        <ChildContent>
+                            <GridRow>
+                                <ChildContent>
+                                    <GridCell>
+                                        <ChildContent>
+                                            <strong></strong>
+                                            @if (true)
+                                            {
+                                                <strong></strong>
+                                            }
+                                            <strong></strong>
+                                        </ChildContent>
+                                    </GridCell>
+                                </ChildContent>
+                            </GridRow>
+                        </ChildContent>
+                    </GridTable>
+                    """,
+                tagHelpers: GetComponents());
         }
 
         [Fact]
@@ -677,46 +697,47 @@ expected: @"
         public async Task FormatNestedComponents2_Range()
         {
             await RunFormattingTestAsync(
-input: @"
-<GridTable>
-<ChildContent>
-<GridRow>
-<ChildContent>
-<GridCell>
-<ChildContent>
-<strong></strong>
-@if (true)
-{
-[|<strong></strong>|]
-}
-<strong></strong>
-</ChildContent>
-</GridCell>
-</ChildContent>
-</GridRow>
-</ChildContent>
-</GridTable>
-",
-expected: @"
-<GridTable>
-<ChildContent>
-<GridRow>
-<ChildContent>
-<GridCell>
-<ChildContent>
-<strong></strong>
-@if (true)
-{
-                            <strong></strong>
-}
-<strong></strong>
-</ChildContent>
-</GridCell>
-</ChildContent>
-</GridRow>
-</ChildContent>
-</GridTable>
-", tagHelpers: GetComponents());
+                input: """
+                    <GridTable>
+                    <ChildContent>
+                    <GridRow>
+                    <ChildContent>
+                    <GridCell>
+                    <ChildContent>
+                    <strong></strong>
+                    @if (true)
+                    {
+                    [|<strong></strong>|]
+                    }
+                    <strong></strong>
+                    </ChildContent>
+                    </GridCell>
+                    </ChildContent>
+                    </GridRow>
+                    </ChildContent>
+                    </GridTable>
+                    """,
+                expected: """
+                    <GridTable>
+                    <ChildContent>
+                    <GridRow>
+                    <ChildContent>
+                    <GridCell>
+                    <ChildContent>
+                    <strong></strong>
+                    @if (true)
+                    {
+                                                <strong></strong>
+                    }
+                    <strong></strong>
+                    </ChildContent>
+                    </GridCell>
+                    </ChildContent>
+                    </GridRow>
+                    </ChildContent>
+                    </GridTable>
+                    """,
+                tagHelpers: GetComponents());
         }
 
         [Fact]
@@ -724,43 +745,44 @@ expected: @"
         public async Task FormatHtmlInIf()
         {
             await RunFormattingTestAsync(
-input: @"
-@if (true)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class=""table"">
-        <thead>
-            <tr>
-        <th>Date</th>
-        <th>Temp. (C)</th>
-        <th>Temp. (F)</th>
-        <th>Summary</th>
-            </tr>
-        </thead>
-    </table>
-}
-",
-expected: @"@if (true)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class=""table"">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-    </table>
-}
-");
+                input: """
+                    @if (true)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                            <th>Date</th>
+                            <th>Temp. (C)</th>
+                            <th>Temp. (F)</th>
+                            <th>Summary</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    }
+                    """,
+                expected: """
+                    @if (true)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Temp. (C)</th>
+                                    <th>Temp. (F)</th>
+                                    <th>Summary</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    }
+                    """);
         }
 
         [Fact]
@@ -768,44 +790,44 @@ else
         public async Task FormatHtmlInIf_Range()
         {
             await RunFormattingTestAsync(
-input: @"
-@if (true)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class=""table"">
-        <thead>
-            <tr>
-[|      <th>Date</th>
-        <th>Temp. (C)</th>
-        <th>Temp. (F)</th>
-        <th>Summary</th>|]
-            </tr>
-        </thead>
-    </table>
-}
-",
-expected: @"
-@if (true)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class=""table"">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-    </table>
-}
-");
+                input: """
+                    @if (true)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                    [|      <th>Date</th>
+                            <th>Temp. (C)</th>
+                            <th>Temp. (F)</th>
+                            <th>Summary</th>|]
+                                </tr>
+                            </thead>
+                        </table>
+                    }
+                    """,
+                expected: """
+                    @if (true)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Temp. (C)</th>
+                                    <th>Temp. (F)</th>
+                                    <th>Summary</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    }
+                    """);
         }
 
         [Fact]
@@ -819,35 +841,35 @@ else
             FormattingContext.SkipValidateComponents = true;
 
             await RunFormattingTestAsync(
-input: @"
-@code
-{
-    public void DoStuff(RenderFragment renderFragment)
-    {
-        renderFragment(@<SurveyPrompt Title=""Foo"" />);
+                input: """
+                    @code
+                    {
+                        public void DoStuff(RenderFragment renderFragment)
+                        {
+                            renderFragment(@<SurveyPrompt Title="Foo" />);
 
-        @* comment *@
-<div></div>
+                            @* comment *@
+                    <div></div>
 
-        @* comment *@<div></div>
-    }
-}
-",
-expected: @"@code
-{
-    public void DoStuff(RenderFragment renderFragment)
-    {
-        renderFragment(@<SurveyPrompt Title=""Foo"" />);
+                            @* comment *@<div></div>
+                        }
+                    }
+                    """,
+                expected: """
+                    @code
+                    {
+                        public void DoStuff(RenderFragment renderFragment)
+                        {
+                            renderFragment(@<SurveyPrompt Title="Foo" />);
 
-        @* comment *@
-        <div></div>
+                            @* comment *@
+                            <div></div>
 
-        @* comment *@
-        <div></div>
-    }
-}
-",
-tagHelpers: GetSurveyPrompt());
+                            @* comment *@
+                            <div></div>
+                        }
+                    }
+                    """);
         }
 
         [Fact]
@@ -855,33 +877,34 @@ tagHelpers: GetSurveyPrompt());
         public async Task FormatHtmlCommentsInsideCSharp1()
         {
             await RunFormattingTestAsync(
-input: @"
-@foreach (var num in Enumerable.Range(1, 10))
-{
-    <span class=""skill_result btn"">
-        <!--asdfasd-->
-        <span style=""margin-left:0px"">
-            <svg>
-                <rect width=""1"" height=""1"" />
-            </svg>
-        </span>
-        <!--adfasfd-->
-    </span>
-}
-",
-expected: @"@foreach (var num in Enumerable.Range(1, 10))
-{
-    <span class=""skill_result btn"">
-        <!--asdfasd-->
-        <span style=""margin-left:0px"">
-            <svg>
-                <rect width=""1"" height=""1"" />
-            </svg>
-        </span>
-        <!--adfasfd-->
-    </span>
-}
-");
+                input: """
+                    @foreach (var num in Enumerable.Range(1, 10))
+                    {
+                        <span class="skill_result btn">
+                            <!--asdfasd-->
+                            <span style="margin-left:0px">
+                                <svg>
+                                    <rect width="1" height="1" />
+                                </svg>
+                            </span>
+                            <!--adfasfd-->
+                        </span>
+                    }
+                    """,
+                expected: """
+                    @foreach (var num in Enumerable.Range(1, 10))
+                    {
+                        <span class="skill_result btn">
+                            <!--asdfasd-->
+                            <span style="margin-left:0px">
+                                <svg>
+                                    <rect width="1" height="1" />
+                                </svg>
+                            </span>
+                            <!--adfasfd-->
+                        </span>
+                    }
+                    """);
         }
 
         [Fact]
@@ -889,25 +912,492 @@ expected: @"@foreach (var num in Enumerable.Range(1, 10))
         public async Task FormatHtmlCommentsInsideCSharp2()
         {
             await RunFormattingTestAsync(
-input: @"
-@foreach (var num in Enumerable.Range(1, 10))
-{
-    <span class=""skill_result btn"">
-        <!--asdfasd-->
-        <input type=""text"" />
-        <!--adfasfd-->
-    </span>
-}
-",
-expected: @"@foreach (var num in Enumerable.Range(1, 10))
-{
-    <span class=""skill_result btn"">
-        <!--asdfasd-->
-        <input type=""text"" />
-        <!--adfasfd-->
-    </span>
-}
-");
+                input: """
+                    @foreach (var num in Enumerable.Range(1, 10))
+                    {
+                        <span class="skill_result btn">
+                            <!--asdfasd-->
+                            <input type="text" />
+                            <!--adfasfd-->
+                        </span>
+                    }
+                    """,
+                expected: """
+                    @foreach (var num in Enumerable.Range(1, 10))
+                    {
+                        <span class="skill_result btn">
+                            <!--asdfasd-->
+                            <input type="text" />
+                            <!--adfasfd-->
+                        </span>
+                    }
+                    """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <CascadingValue Value="Variable2">
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                        </CascadingValue>
+                    </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <CascadingValue Value="Variable2">
+                                <SurveyPrompt />
+                                @if (VarBool)
+                                {
+                                    <div class="mb-16">
+                                        <SurveyPrompt />
+                                        <SurveyPrompt />
+                                    </div>
+                                }
+                            </CascadingValue>
+                        </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <CascadingValue Value="Variable1">
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <CascadingValue Value="Variable1">
+                            <SurveyPrompt />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt />
+                                    <SurveyPrompt />
+                                </div>
+                            }
+                        </CascadingValue>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue3()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        @if (VarBool)
+                        {
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    }
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        @if (VarBool)
+                        {
+                            <SurveyPrompt />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt />
+                                    <SurveyPrompt />
+                                </div>
+                            }
+                        }
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue4()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                        <CascadingValue Value="Variable1">
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    </CascadingValue>
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    <CascadingValue Value="Variable1">
+                        <SurveyPrompt />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <SurveyPrompt />
+                                <SurveyPrompt />
+                            </div>
+                        }
+                    </CascadingValue>
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+        public async Task FormatNestedCascadingValue5()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1!= null)
+                    {
+                        <PageTitle>
+                                <SurveyPrompt  />
+                                @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt  />
+                                    <SurveyPrompt  />
+                                </div>
+                            }
+                    </PageTitle>
+                    }
+
+                    @code
+                    {
+                        public object Object1 {get;set;}
+                        public object Variable1 {get;set;}
+                    public object Variable2 {get;set;}
+                    public bool VarBool {get;set;}
+                    }
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @if (Object1 != null)
+                    {
+                        <PageTitle>
+                            <SurveyPrompt />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <SurveyPrompt />
+                                    <SurveyPrompt />
+                                </div>
+                            }
+                        </PageTitle>
+                    }
+
+                    @code
+                    {
+                        public object Object1 { get; set; }
+                        public object Variable1 { get; set; }
+                        public object Variable2 { get; set; }
+                        public bool VarBool { get; set; }
+                    }
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    @if (true)
+                                    {
+                                        <option>goo</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    @if (true)
+                                    {
+                                        <option>goo</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    @if (true)
+                                    {
+                                        <option>goo</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        <div>
+                            <InputSelect @bind-Value="_id">
+                                @if (true)
+                                {
+                                    <option>goo</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect3()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                        <option>goo</option>
+                                </InputSelect>
+                            </div>
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        <div>
+                            <InputSelect @bind-Value="_id">
+                                <option>goo</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+        public async Task FormatInputSelect4()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                        <option>goo</option>
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect @bind-Value="_id">
+                                    <option>goo</option>
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+                fileKind: FileKinds.Component);
         }
 
         [Fact]
@@ -915,63 +1405,66 @@ expected: @"@foreach (var num in Enumerable.Range(1, 10))
         public async Task FormatCascadingValueWithCascadingTypeParameter()
         {
             await RunFormattingTestAsync(
-input: @"
-<div>
-    @foreach ( var i in new int[] { 1, 23 } )
-    {
-        <div></div>
-    }
-</div>
-<Select TValue=""string"">
-    @foreach ( var i in new int[] { 1, 23 } )
-    {
-        <SelectItem Value=""@i"">@i</SelectItem>
-    }
-</Select>
-",
-expected: @"
-<div>
-    @foreach (var i in new int[] { 1, 23 })
-    {
-        <div></div>
-    }
-</div>
-<Select TValue=""string"">
-    @foreach (var i in new int[] { 1, 23 })
-    {
-        <SelectItem Value=""@i"">@i</SelectItem>
-    }
-</Select>
-", tagHelpers: CreateTagHelpers());
+                input: """
+
+                    <div>
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                            <div></div>
+                        }
+                    </div>
+                    <Select TValue="string">
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                            <SelectItem Value="@i">@i</SelectItem>
+                        }
+                    </Select>
+                    """,
+                expected: """
+
+                    <div>
+                        @foreach (var i in new int[] { 1, 23 })
+                        {
+                            <div></div>
+                        }
+                    </div>
+                    <Select TValue="string">
+                        @foreach (var i in new int[] { 1, 23 })
+                        {
+                            <SelectItem Value="@i">@i</SelectItem>
+                        }
+                    </Select>
+                    """,
+                tagHelpers: CreateTagHelpers());
 
             IReadOnlyList<TagHelperDescriptor> CreateTagHelpers()
             {
-                var select = @"
-@typeparam TValue
-@attribute [CascadingTypeParameter(nameof(TValue))]
-<CascadingValue Value=""@this"" IsFixed>
-    <select>
-        @ChildContent
-    </select>
-</CascadingValue>
+                var select = """
+                    @typeparam TValue
+                    @attribute [CascadingTypeParameter(nameof(TValue))]
+                    <CascadingValue Value="@this" IsFixed>
+                        <select>
+                            @ChildContent
+                        </select>
+                    </CascadingValue>
 
-@code
-{
-    [Parameter] public TValue SelectedValue { get; set; }
-}
-";
-                var selectItem = @"
-@typeparam TValue
-<option value=""@StringValue"">@ChildContent</option>
+                    @code
+                    {
+                        [Parameter] public TValue SelectedValue { get; set; }
+                    }
+                    """;
+                var selectItem = """
+                    @typeparam TValue
+                    <option value="@StringValue">@ChildContent</option>
 
-@code
-{
-    [Parameter] public TValue Value { get; set; }
-    [Parameter] public RenderFragment ChildContent { get; set; }
+                    @code
+                    {
+                        [Parameter] public TValue Value { get; set; }
+                        [Parameter] public RenderFragment ChildContent { get; set; }
 
-    protected string StringValue => Value?.ToString();
-}
-";
+                        protected string StringValue => Value?.ToString();
+                    }
+                    """;
 
                 var selectComponent = CompileToCSharp("Select.razor", select, throwOnFailure: true, fileKind: FileKinds.Component);
                 var selectItemComponent = CompileToCSharp("SelectItem.razor", selectItem, throwOnFailure: true, fileKind: FileKinds.Component);
@@ -983,50 +1476,218 @@ expected: @"
             }
         }
 
-        private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6110")]
+        public async Task FormatExplicitCSharpInsideHtml()
         {
-            AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Components;
-namespace Test
-{
-    public class SurveyPrompt : ComponentBase
-    {
-        [Parameter]
-        public string Title { get; set; }
-    }
-}
-"));
+            await RunFormattingTestAsync(
+                input: """
+                    @using System.Text;
 
-            var generated = CompileToCSharp("SurveyPrompt.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
-            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
-            return tagHelpers;
+                    <div>
+                        @(new C()
+                                .M("Hello")
+                            .M("World")
+                            .M(source =>
+                            {
+                            if (source.Length > 0)
+                            {
+                            source.ToString();
+                            }
+                            }))
+
+                        @(DateTime.Now)
+
+                        @(DateTime
+                    .Now
+                    .ToString())
+
+                                    @(   Html.DisplayNameFor (@<text>
+                            <p >
+                            <h2 ></h2>
+                            </p>
+                            </text>)
+                            .ToString())
+
+                    @{
+                    var x = @<p>Hi there!</p>
+                    }
+                    @x()
+                    @(@x())
+                    </div>
+
+                    @functions {
+                        class C
+                        {
+                            C M(string a) => this;
+                            C M(Func<string, C> a) => this;
+                        }
+                    }
+                    """,
+                expected: """
+                    @using System.Text;
+
+                    <div>
+                        @(new C()
+                            .M("Hello")
+                            .M("World")
+                            .M(source =>
+                            {
+                                if (source.Length > 0)
+                                {
+                                    source.ToString();
+                                }
+                            }))
+
+                        @(DateTime.Now)
+
+                        @(DateTime
+                            .Now
+                            .ToString())
+
+                        @(Html.DisplayNameFor(@<text>
+                            <p>
+                                <h2></h2>
+                            </p>
+                        </text>)
+                            .ToString())
+
+                        @{
+                            var x = @<p>Hi there!</p>
+                        }
+                        @x()
+                        @(@x())
+                    </div>
+
+                    @functions {
+                        class C
+                        {
+                            C M(string a) => this;
+                            C M(Func<string, C> a) => this;
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_SkipRangeFormatting()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @page "Goo"
+
+                    <div></div>
+
+                    [|<button|]
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                expected: """
+                    @page "Goo"
+                    
+                    <div></div>
+                    
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_DontSkipDocumentFormatting()
+        {
+            // Yes this format result looks wrong, but this is only done in direct response
+            // to user action, and they can always undo it.
+            await RunFormattingTestAsync(
+                input: """
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                expected: """
+                    <button @functions {
+                            void M() { }
+                            }
+                    """,
+                allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_SkipRangeFormatting_WholeDocumentRange()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    [|<button
+                    @functions {
+                     void M() { }
+                    }|]
+                    """,
+                expected: """
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task RazorDiagnostics_DontSkipWhenOutsideOfRange()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @page "Goo"
+                    
+                    [|      <div></div>|]
+                    
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                expected: """
+                    @page "Goo"
+                    
+                    <div></div>
+                    
+                    <button
+                    @functions {
+                     void M() { }
+                    }
+                    """,
+                allowDiagnostics: true);
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
         {
-            AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Components;
-namespace Test
-{
-    public class GridTable : ComponentBase
-    {
-        [Parameter]
-        public RenderFragment ChildContent { get; set; }
-    }
+            AdditionalSyntaxTrees.Add(Parse("""
+                using Microsoft.AspNetCore.Components;
+                namespace Test
+                {
+                    public class GridTable : ComponentBase
+                    {
+                        [Parameter]
+                        public RenderFragment ChildContent { get; set; }
+                    }
 
-    public class GridRow : ComponentBase
-    {
-        [Parameter]
-        public RenderFragment ChildContent { get; set; }
-    }
+                    public class GridRow : ComponentBase
+                    {
+                        [Parameter]
+                        public RenderFragment ChildContent { get; set; }
+                    }
 
-    public class GridCell : ComponentBase
-    {
-        [Parameter]
-        public RenderFragment ChildContent { get; set; }
-    }
-}
-"));
+                    public class GridCell : ComponentBase
+                    {
+                        [Parameter]
+                        public RenderFragment ChildContent { get; set; }
+                    }
+                }
+                """));
 
             var generated = CompileToCSharp("Test.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
             var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;

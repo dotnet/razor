@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
@@ -13,8 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         internal readonly ILogger Logger;
 
-        public RazorOnAutoInsertProvider(ILoggerFactory loggerFactory!!)
+        public RazorOnAutoInsertProvider(ILoggerFactory loggerFactory)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             Logger = loggerFactory.CreateLogger<RazorOnAutoInsertProvider>();
         }
 

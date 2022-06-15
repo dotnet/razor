@@ -1,24 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorDocumentSynchronizationEndpointTest : LanguageServerTestBase
     {
-        private static DocumentResolver DocumentResolver => Mock.Of<DocumentResolver>(MockBehavior.Strict);
+        private static DocumentContextFactory DocumentContextFactory => Mock.Of<DocumentContextFactory>(MockBehavior.Strict);
 
         private static RazorProjectService ProjectService => Mock.Of<RazorProjectService>(MockBehavior.Strict);
 
@@ -26,11 +24,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ApplyContentChanges_SingleChange()
         {
             // Arrange
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, ProjectService, LoggerFactory);
+            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, ProjectService, LoggerFactory);
             var sourceText = SourceText.From("Hello World");
             var change = new TextDocumentContentChangeEvent()
             {
-                Range = new Range(new Position(0, 5), new Position(0, 5)),
+                Range = new Range
+                {
+                    Start = new Position(0, 5),
+                    End = new Position(0, 5),
+                },
                 RangeLength = 0,
                 Text = "!"
             };
@@ -47,12 +49,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ApplyContentChanges_MultipleChanges()
         {
             // Arrange
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, ProjectService, LoggerFactory);
+            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, ProjectService, LoggerFactory);
             var sourceText = SourceText.From("Hello World");
             var changes = new[] {
                 new TextDocumentContentChangeEvent()
                 {
-                    Range = new Range(new Position(0, 5), new Position(0, 5)),
+                    Range = new Range{
+                        Start = new Position(0, 5),
+                        End = new Position(0, 5)
+                    },
                     RangeLength = 0,
                     Text = Environment.NewLine
                 },
@@ -61,7 +66,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 new TextDocumentContentChangeEvent()
                 {
-                    Range = new Range(new Position(1, 0), new Position(1, 0)),
+                    Range = new Range{
+                        Start = new Position(1, 0),
+                        End = new Position(1, 0),
+                    },
                     RangeLength = 0,
                     Text = "!"
                 },
@@ -70,7 +78,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 new TextDocumentContentChangeEvent()
                 {
-                    Range = new Range(new Position(0, 1), new Position(0, 1)),
+                    Range = new Range{
+                        Start = new Position(0, 1),
+                        End = new Position(0, 1)
+                    },
                     RangeLength = 4,
                     Text = "i!" + Environment.NewLine
                 },
@@ -94,31 +105,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_DidChangeTextDocument_UpdatesDocument()
         {
             // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var sourceText = SourceText.From("<p>");
-            var documentResolver = CreateDocumentResolver(documentPath, sourceText);
+            var documentPath = new Uri("C:/path/to/document.cshtml");
+            var sourceText = "<p>";
+            var documentContextFactory = CreateDocumentContextFactory(documentPath, sourceText);
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
                 .Callback<string, SourceText, int>((path, text, version) =>
                 {
                     var resultString = GetString(text);
                     Assert.Equal("<p></p>", resultString);
-                    Assert.Equal(documentPath, path);
+                    Assert.Equal(documentPath.OriginalString, path);
                     Assert.Equal(1337, version);
                 });
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, documentResolver, projectService.Object, LoggerFactory);
+            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, documentContextFactory, projectService.Object, LoggerFactory);
             var change = new TextDocumentContentChangeEvent()
             {
-                Range = new Range(new Position(0, 3), new Position(0, 3)),
+                Range = new Range
+                {
+                    Start = new Position(0, 3),
+                    End = new Position(0, 3),
+                },
                 RangeLength = 0,
                 Text = "</p>"
             };
-            var request = new DidChangeTextDocumentParams()
+            var request = new DidChangeTextDocumentParamsBridge()
             {
-                ContentChanges = new Container<TextDocumentContentChangeEvent>(change),
-                TextDocument = new OptionalVersionedTextDocumentIdentifier()
+                ContentChanges = new TextDocumentContentChangeEvent[] { change },
+                TextDocument = new VersionedTextDocumentIdentifier()
                 {
-                    Uri = new Uri(documentPath),
+                    Uri = documentPath,
                     Version = 1337,
                 }
             };
@@ -145,8 +160,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Assert.Equal(documentPath, path);
                     Assert.Equal(1337, version);
                 });
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, projectService.Object, LoggerFactory);
-            var request = new DidOpenTextDocumentParams()
+            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, projectService.Object, LoggerFactory);
+            var request = new DidOpenTextDocumentParamsBridge()
             {
                 TextDocument = new TextDocumentItem()
                 {
@@ -172,8 +187,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
                 .Callback<string>((path) => Assert.Equal(documentPath, path));
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, projectService.Object, LoggerFactory);
-            var request = new DidCloseTextDocumentParams()
+            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, projectService.Object, LoggerFactory);
+            var request = new DidCloseTextDocumentParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -195,15 +210,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceString = new string(sourceChars);
 
             return sourceString;
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, SourceText sourceText)
-        {
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document => document.GetTextAsync() == Task.FromResult(sourceText) && document.FilePath == documentPath, MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
     }
 }

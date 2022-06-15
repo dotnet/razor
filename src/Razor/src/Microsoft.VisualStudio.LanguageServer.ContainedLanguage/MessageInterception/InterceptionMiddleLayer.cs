@@ -22,9 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
         /// </summary>
         /// <param name="interceptorManager">Interception manager</param>
         /// <param name="contentType">The content type name of the language for the ILanguageClient using this middle layer</param>
-        public InterceptionMiddleLayer(InterceptorManager interceptorManager!!, string contentType)
+        public InterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
         {
-            _interceptorManager = interceptorManager;
+            _interceptorManager = interceptorManager ?? throw new ArgumentNullException(nameof(interceptorManager));
             _contentType = !string.IsNullOrEmpty(contentType) ? contentType : throw new ArgumentException("Cannot be empty", nameof(contentType));
         }
 

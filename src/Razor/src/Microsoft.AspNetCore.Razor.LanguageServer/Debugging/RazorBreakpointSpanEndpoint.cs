@@ -1,52 +1,64 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
-    internal class RazorBreakpointSpanEndpoint : IRazorBreakpointSpanHandler
+    internal class RazorBreakpointSpanEndpoint : IRazorBreakpointSpanEndpoint
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorBreakpointSpanEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorDocumentMappingService documentMappingService!!,
-            ILoggerFactory loggerFactory!!)
+            DocumentContextFactory documentContextFactory,
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            if (documentContextFactory is null)
+            {
+                throw new ArgumentNullException(nameof(documentContextFactory));
+            }
+
+            if (documentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingService));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _documentContextFactory = documentContextFactory;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParams request, CancellationToken cancellationToken)
+        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            var sourceText = await documentSnapshot.GetTextAsync();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
             var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
@@ -56,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             }
 
             var projectedIndex = hostDocumentIndex;
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // If we're in C#, then map to the right position in the generated document
             if (languageKind == RazorLanguageKind.CSharp &&
                 !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
@@ -94,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             };
 
             // Now map that new C# location back to the host document
-            var mappingBehavior = GetMappingBehavior(documentSnapshot);
+            var mappingBehavior = GetMappingBehavior(documentContext);
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, mappingBehavior, out var hostDocumentRange))
             {
                 return null;
@@ -102,7 +114,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogTrace($"Breakpoint span request for ({request.Position.Line}, {request.Position.Character}) = ({hostDocumentRange.Start.Line}, {hostDocumentRange.Start.Character}");
+            _logger.LogTrace("Breakpoint span request for ({requestLine}, {requestCharacter}) = ({hostDocumentStartLine}, {hostDocumentStartCharacter}",
+                request.Position.Line, request.Position.Character, hostDocumentRange.Start.Line, hostDocumentRange.Start.Character);
 
             return new RazorBreakpointSpanResponse()
             {
@@ -111,9 +124,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
         }
 
         // Internal for testing
-        internal static MappingBehavior GetMappingBehavior(DocumentSnapshot snapshot)
+        internal static MappingBehavior GetMappingBehavior(DocumentContext documentContext)
         {
-            if (snapshot.FileKind == FileKinds.Legacy)
+            if (documentContext.FileKind == FileKinds.Legacy)
             {
                 // Razor files generate code in a "loosely" debuggable way. For instance if you were to do the following in a cshtml file:
                 //
@@ -145,19 +158,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             }
 
             return MappingBehavior.Strict;
-        }
-
-        private Task<DocumentSnapshot?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<DocumentSnapshot?>(() =>
-            {
-                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    return documentSnapshot;
-                }
-
-                return null;
-            }, cancellationToken);
         }
     }
 }

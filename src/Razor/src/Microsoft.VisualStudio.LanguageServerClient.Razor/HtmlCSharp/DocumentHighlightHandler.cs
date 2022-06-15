@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -27,12 +28,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public DocumentHighlightHandler(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPProjectionProvider projectionProvider!!,
-            LSPDocumentMappingProvider documentMappingProvider!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPProjectionProvider projectionProvider,
+            LSPDocumentMappingProvider documentMappingProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (projectionProvider is null)
+            {
+                throw new ArgumentNullException(nameof(projectionProvider));
+            }
+
+            if (documentMappingProvider is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingProvider));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
@@ -41,13 +67,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(DocumentHighlightHandler));
         }
 
-        public async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request!!, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
+        public async Task<DocumentHighlight[]?> HandleRequestAsync(DocumentHighlightParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -73,7 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            _logger.LogInformation($"Requesting highlights for {projectionResult.Uri} at ({projectionResult.Position?.Line}, {projectionResult.Position?.Character}).");
+            _logger.LogInformation("Requesting highlights for {projectionUri} at ({projectionLine}, {projectionCharacter}).",
+                projectionResult.Uri, projectionResult.Position?.Line, projectionResult.Position?.Character);
 
             var languageServerName = serverKind.ToLanguageServerName();
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
@@ -95,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return highlights;
             }
 
-            _logger.LogInformation($"Received {highlights.Length} results, remapping.");
+            _logger.LogInformation("Received {length} results, remapping.", highlights.Length);
 
             var remappedHighlights = new List<DocumentHighlight>();
 
@@ -109,7 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (mappingResult?.HostDocumentVersion != documentSnapshot.Version)
             {
                 // Couldn't remap the range or the document changed in the meantime. Discard this highlight.
-                _logger.LogInformation($"Mapping failed. Versions: {documentSnapshot.Version} -> {mappingResult?.HostDocumentVersion}.");
+                _logger.LogInformation("Mapping failed. Versions: {documentVersion} -> {hostDocumentVersion}.",
+                    documentSnapshot.Version, mappingResult?.HostDocumentVersion);
                 return Array.Empty<DocumentHighlight>();
             }
 
@@ -132,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 remappedHighlights.Add(remappedHighlight);
             }
 
-            _logger.LogInformation($"Returning {remappedHighlights.Count} highlights.");
+            _logger.LogInformation("Returning {remappedHighlightsCount} highlights.", remappedHighlights.Count);
             return remappedHighlights.ToArray();
         }
     }

@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -17,7 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private const string HtmlTagName = "html";
 
-        private readonly RazorSourceDocument _source;
         private readonly List<FormattingSpan> _spans;
         private FormattingBlockKind _currentBlockKind;
         private SyntaxNode? _currentBlock;
@@ -26,9 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private int _currentComponentIndentationLevel = 0;
         private bool _isInClassBody = false;
 
-        public FormattingVisitor(RazorSourceDocument source!!)
+        public FormattingVisitor()
         {
-            _source = source;
             _spans = new List<FormattingSpan>();
             _currentBlockKind = FormattingBlockKind.Markup;
         }
@@ -51,7 +50,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override void VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
         {
             if (node.Parent is CSharpStatementBodySyntax ||
-                node.Parent is CSharpExplicitExpressionBodySyntax ||
                 node.Parent is CSharpImplicitExpressionBodySyntax ||
                 node.Parent is RazorDirectiveBodySyntax ||
                 (_currentBlockKind == FormattingBlockKind.Directive &&

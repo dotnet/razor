@@ -25,10 +25,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         // Internal for testing
         internal ProjectConfigurationFileChangeEventArgs(
-            string configurationFilePath!!,
+            string configurationFilePath,
             RazorFileChangeKind kind,
-            JsonFileDeserializer jsonFileDeserializer!!)
+            JsonFileDeserializer jsonFileDeserializer)
         {
+            if (configurationFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(configurationFilePath));
+            }
+
+            if (jsonFileDeserializer is null)
+            {
+                throw new ArgumentNullException(nameof(jsonFileDeserializer));
+            }
+
             ConfigurationFilePath = configurationFilePath;
             Kind = kind;
             _jsonFileDeserializer = jsonFileDeserializer;

@@ -5,10 +5,9 @@
       It ensures that a single F5 command will build and deploy the independent MS.VS.RazorExtension vsix and MS.VS.RazorExtension.Dependencies vsix.
       We rely on launch settings to run devenv with the appropriate hive that the vsixes have been deployed to.
     -->
-    
+
     <TargetFramework>net472</TargetFramework>
 
-    <!-- Use the RoslynDev Experimental instance so we can mingle with local builds of Roslyn -->
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>

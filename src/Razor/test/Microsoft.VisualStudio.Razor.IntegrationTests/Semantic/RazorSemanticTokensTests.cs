@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), useCurrentDirectory: true);
 
-        protected bool GenerateBaselines { get; set; } = false;
+        protected bool GenerateBaselines { get; set; } = true;
 
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
@@ -36,54 +36,57 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Classification, ControlledHangMitigatingCancellationToken);
         }
-
-        private static readonly Version ColorationFixedVSVersion = new(17, 2, 32209, 0);
 
         [IdeFact]
         public async Task Components_AreColored()
         {
-            if (await IsVSVersionOrNewerAsync(ColorationFixedVSVersion))
-            {
-                // Arrange
-                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, MainLayoutFile, HangMitigatingCancellationToken);
-                await TestServices.Editor.SetTextAsync(MainLayoutContent, HangMitigatingCancellationToken);
+            // Arrange
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
 
-                // Act
-                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken, "RazorComponentElement", 3);
+            // Act
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", count: 3);
 
-                // Assert
-                var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), HangMitigatingCancellationToken);
-                await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
-            }
+            // Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
+        }
+
+        [IdeFact]
+        public async Task Edits_UpdateColors()
+        {
+            // Arrange
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
+
+            // Act
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", count: 3);
+
+            await TestServices.Editor.SetTextAsync(RazorProjectConstants.IndexPageContent, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", count: 3);
+
+            // Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Edits_UpdateColors), ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task Directives_AreColored()
         {
-            if (await IsVSVersionOrNewerAsync(ColorationFixedVSVersion))
-            {
-                // Arrange
-                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
-                await TestServices.Editor.WaitForClassificationAsync(HangMitigatingCancellationToken);
+            // Arrange
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
 
-                // Act and Assert
-                var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), HangMitigatingCancellationToken);
-                await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, HangMitigatingCancellationToken);
-            }
-        }
-
-        private async Task<bool> IsVSVersionOrNewerAsync(Version referenceVersion)
-        {
-            var vsVersion = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
-
-            return vsVersion >= referenceVersion;
+            // Act and Assert
+            var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
         }
 
         private async Task<IEnumerable<ClassificationSpan>> GetExpectedClassificationSpansAsync(string testName, CancellationToken cancellationToken)
         {
-            var snapshot = await TestServices.Editor.GetActiveSnapshotAsync(HangMitigatingCancellationToken);
+            var snapshot = await TestServices.Editor.GetActiveSnapshotAsync(ControlledHangMitigatingCancellationToken);
 
             if (GenerateBaselines)
             {

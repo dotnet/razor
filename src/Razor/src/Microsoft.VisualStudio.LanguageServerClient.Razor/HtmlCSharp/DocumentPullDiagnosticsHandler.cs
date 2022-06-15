@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -27,12 +28,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPDocumentSynchronizer documentSynchronizer!!,
-            LSPDiagnosticsTranslator diagnosticsProvider!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPDocumentSynchronizer documentSynchronizer,
+            LSPDiagnosticsTranslator diagnosticsProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (documentSynchronizer is null)
+            {
+                throw new ArgumentNullException(nameof(documentSynchronizer));
+            }
+
+            if (diagnosticsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsProvider));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _documentSynchronizer = documentSynchronizer;
@@ -42,18 +68,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        public async Task<IReadOnlyList<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request.TextDocument is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogInformation($"Document {request.TextDocument.Uri} closed or deleted, clearing diagnostics.");
+                _logger.LogInformation("Document {textDocumentUri} closed or deleted, clearing diagnostics.", request.TextDocument.Uri);
 
                 var clearedDiagnosticReport = new VSInternalDiagnosticReport[]
                 {
@@ -68,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
             {
-                _logger.LogWarning($"Failed to find virtual C# document for {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find virtual C# document for {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -78,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (!synchronized)
             {
-                _logger.LogInformation($"Failed to synchronize document {csharpDoc.Uri}.");
+                _logger.LogInformation("Failed to synchronize document {csharpDocUri}.", csharpDoc.Uri);
 
                 // Could not synchronize, report nothing changed
                 return new VSInternalDiagnosticReport[]
@@ -100,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 PreviousResultId = request.PreviousResultId
             };
 
-            _logger.LogInformation($"Requesting diagnostics for {csharpDoc.Uri} with previous result Id of {request.PreviousResultId}.");
+            _logger.LogInformation("Requesting diagnostics for {csharpDocUri} with previous result Id of {previousResultId}.", csharpDoc.Uri, request.PreviousResultId);
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
@@ -118,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             }
 
-            _logger.LogInformation($"Received {resultsFromAllLanguageServers.Count} diagnostic reports.");
+            _logger.LogInformation("Received {resultsFromAllLanguageServersCount} diagnostic reports.", resultsFromAllLanguageServers.Count);
 
             var processedResults = await RemapDocumentDiagnosticsAsync(
                 resultsFromAllLanguageServers,
@@ -163,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                _logger.LogInformation($"Requesting processing of {diagnosticReport.Diagnostics.Length} diagnostics.");
+                _logger.LogInformation("Requesting processing of {diagnosticsLength} diagnostics.", diagnosticReport.Diagnostics.Length);
 
                 var processedDiagnostics = await _diagnosticsProvider.TranslateAsync(
                     RazorLanguageKind.CSharp,
@@ -175,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 if (processedDiagnostics is null || !_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot) ||
                     documentSnapshot.Version != processedDiagnostics.HostDocumentVersion)
                 {
-                    _logger.LogInformation($"Document version mismatch, discarding {diagnosticReport.Diagnostics.Length} diagnostics.");
+                    _logger.LogInformation("Document version mismatch, discarding {diagnosticsLength} diagnostics.", diagnosticReport.Diagnostics.Length);
 
                     // We choose to discard diagnostics in this case & report nothing changed.
                     diagnosticReport.Diagnostics = null;
@@ -183,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                _logger.LogInformation($"Returning {processedDiagnostics.Diagnostics.Length} diagnostics.");
+                _logger.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics.Length);
                 diagnosticReport.Diagnostics = processedDiagnostics.Diagnostics;
 
                 mappedDiagnosticReports.Add(diagnosticReport);

@@ -13,10 +13,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer.RazorSemanticTokensBenchmark;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
@@ -28,9 +27,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentVersionCache VersionCache { get; set; }
 
-        private DocumentUri DocumentUri { get; set; }
+        private DocumentContext DocumentContext { get; set; }
 
-        private DocumentSnapshot DocumentSnapshot { get; set; }
+        private Uri DocumentUri => DocumentContext.Uri;
+
+        private DocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
         private Range Range { get; set; }
 
@@ -53,8 +54,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var filePath = Path.Combine(PagesDirectory, $"FormattingTest.razor");
             TargetPath = "/Components/Pages/FormattingTest.razor";
 
-            DocumentUri = DocumentUri.File(filePath);
-            DocumentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+            var documentUri = new Uri(filePath);
+            var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
+            DocumentContext = new DocumentContext(documentUri, documentSnapshot, version: 1);
 
             var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
             Range = new Range
@@ -77,7 +79,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [Benchmark(Description = "Razor Semantic Tokens Range Scrolling")]
         public async Task RazorSemanticTokensRangeScrollingAsync()
         {
-            var textDocumentIdentifier = new TextDocumentIdentifier(DocumentUri);
+            var textDocumentIdentifier = new TextDocumentIdentifier()
+            {
+                Uri = DocumentUri
+            };
             var cancellationToken = CancellationToken.None;
             var documentVersion = 1;
 
@@ -89,12 +94,15 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             while (lineCount != documentLineCount)
             {
                 var newLineCount = Math.Min(lineCount + WindowSize, documentLineCount);
-                var range = new Range(lineCount, 0, newLineCount, 0);
+                var range = new Range
+                {
+                    Start = new Position(lineCount, 0),
+                    End = new Position(newLineCount, 0)
+                };
                 await RazorSemanticTokenService!.GetSemanticTokensAsync(
                     textDocumentIdentifier,
                     range,
-                    DocumentSnapshot,
-                    documentVersion,
+                    DocumentContext,
                     cancellationToken);
 
                 lineCount = newLineCount;

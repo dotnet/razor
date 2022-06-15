@@ -1,14 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -27,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return namespaceName.Value;
         }
 
-        internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, DocumentUri uri, out string @namespace, out RazorCodeActionResolutionParams resolutionParams)
+        internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, Uri uri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
         {
             @namespace = GetNamespaceFromFQN(fullyQualifiedName);
             if (string.IsNullOrEmpty(@namespace))

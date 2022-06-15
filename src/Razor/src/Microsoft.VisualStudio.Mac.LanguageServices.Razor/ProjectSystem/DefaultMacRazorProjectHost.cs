@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using MonoDevelop.Projects;
 using MonoDevelop.Projects.MSBuild;
 
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private const string RazorConfigurationItemTypeExtensionsProperty = "Extensions";
         private const string RootNamespaceProperty = "RootNamespace";
         private const string ContentItemType = "Content";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private IReadOnlyList<string> _currentRazorFilePaths = Array.Empty<string>();
 
         public DefaultMacRazorProjectHost(
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;
@@ -109,8 +109,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal static bool IsRazorDocumentItem(IMSBuildItemEvaluated item!!)
+        internal static bool IsRazorDocumentItem(IMSBuildItemEvaluated item)
         {
+            if (item is null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
             if (item.Name != ContentItemType)
             {
                 // We only inspect content items for Razor documents.

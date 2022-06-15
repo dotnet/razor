@@ -18,8 +18,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> _outputTask;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        public async Task SetOutputAndCaptureReferenceAsync(DefaultDocumentSnapshot document!!)
+        public async Task SetOutputAndCaptureReferenceAsync(DefaultDocumentSnapshot document)
         {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var generatedOutputTask = document.State.GetGeneratedOutputAndVersionAsync(document.ProjectInternal, document);
             var (codeDocument, inputVersion, outputCSharpVersion, outputHtmlVersion) = await generatedOutputTask;
 

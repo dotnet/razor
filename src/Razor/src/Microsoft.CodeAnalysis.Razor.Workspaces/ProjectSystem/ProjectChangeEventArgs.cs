@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
         }
 
-        public ProjectChangeEventArgs(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing)
+        public ProjectChangeEventArgs(ProjectSnapshot? older, ProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind, bool solutionIsClosing)
         {
             if (older is null && newer is null)
             {
@@ -26,22 +24,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             DocumentFilePath = documentFilePath;
             Kind = kind;
             SolutionIsClosing = solutionIsClosing;
-            ProjectFilePath = older?.FilePath ?? newer.FilePath;
+            ProjectFilePath = older?.FilePath ?? newer?.FilePath;
         }
 
-        public ProjectSnapshot Older { get; }
+        public ProjectSnapshot? Older { get; }
 
-        public ProjectSnapshot Newer { get; }
+        public ProjectSnapshot? Newer { get; }
 
-        public string ProjectFilePath { get; }
+        public string? ProjectFilePath { get; }
 
-        public string DocumentFilePath { get; }
+        public string? DocumentFilePath { get; }
 
         public ProjectChangeKind Kind { get; }
 
         public bool SolutionIsClosing { get; }
 
         public static ProjectChangeEventArgs CreateTestInstance(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing = false) =>
-            new ProjectChangeEventArgs(older, newer, documentFilePath, kind, solutionIsClosing);
+            new(older, newer, documentFilePath, kind, solutionIsClosing);
     }
 }

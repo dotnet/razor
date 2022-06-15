@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -49,6 +47,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
 
             return normalized;
+        }
+
+        public Uri Normalize(Uri uri)
+        {
+            var normalized = Normalize(uri.OriginalString);
+            return new Uri(normalized);
         }
 
         public string GetDirectory(string filePath)

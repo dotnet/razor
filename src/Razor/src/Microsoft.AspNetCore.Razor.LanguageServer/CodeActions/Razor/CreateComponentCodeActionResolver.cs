@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,30 +12,23 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
 
-        public CreateComponentCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!)
+        public CreateComponentCodeActionResolver(DocumentContextFactory documentContextFactory)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
-        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             if (data is null)
             {
@@ -50,25 +41,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var path = actionParams.Uri.GetAbsoluteOrUNCPath();
-
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(path, out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-            if (document is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync().ConfigureAwait(false);
-            if (text is null)
-            {
-                return null;
-            }
-
-            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
@@ -86,20 +65,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Host = string.Empty,
             }.Uri;
 
-            var documentChanges = new List<WorkspaceEditDocumentChange>
+            var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
             {
-                new WorkspaceEditDocumentChange(new CreateFile() { Uri = newComponentUri.ToString() })
+                new CreateFile() { Uri = newComponentUri },
             };
 
             TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
 
             return new WorkspaceEdit()
             {
-                DocumentChanges = documentChanges
+                DocumentChanges = documentChanges.ToArray(),
             };
         }
 
-        private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<WorkspaceEditDocumentChange> documentChanges)
+        private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
             var namespaceDirective = syntaxTree.Root.DescendantNodes()
@@ -111,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (namespaceDirective != null)
             {
                 var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
-                documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
+                documentChanges.Add(new TextDocumentEdit
                 {
                     TextDocument = documentIdentifier,
                     Edits = new[]
@@ -119,10 +98,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextEdit()
                         {
                             NewText = namespaceDirective.GetContent(),
-                            Range = new Range(new Position(0, 0), new Position(0, 0)),
+                            Range = new Range{ Start = new Position(0, 0), End = new Position(0, 0) },
                         }
                     }
-                }));
+                });
             }
         }
     }

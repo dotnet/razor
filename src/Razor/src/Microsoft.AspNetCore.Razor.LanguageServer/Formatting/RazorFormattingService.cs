@@ -3,24 +3,24 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using System;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal abstract class RazorFormattingService
     {
         public abstract Task<TextEdit[]> FormatAsync(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot documentSnapshot,
-            Range range,
+            Range? range,
             FormattingOptions options,
             CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatOnTypeAsync(
-           DocumentUri uri,
+           Uri uri,
            DocumentSnapshot documentSnapshot,
            RazorLanguageKind kind,
            TextEdit[] formattedEdits,
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
            CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatCodeActionAsync(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatSnippetAsync(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,

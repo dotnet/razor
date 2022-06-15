@@ -16,10 +16,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         private readonly FilePathNormalizer _filePathNormalizer;
 
         public DefaultDocumentResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ProjectResolver projectResolver!!,
-            FilePathNormalizer filePathNormalizer!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ProjectResolver projectResolver,
+            FilePathNormalizer filePathNormalizer)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (projectResolver is null)
+            {
+                throw new ArgumentNullException(nameof(projectResolver));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectResolver = projectResolver;
             _filePathNormalizer = filePathNormalizer;

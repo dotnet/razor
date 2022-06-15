@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +11,8 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
@@ -36,14 +34,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var srcText = SourceText.From(txt);
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var documentSnapshot = Mock.Of<DocumentSnapshot>(d => d.GetTextAsync() == Task.FromResult(srcText), MockBehavior.Strict);
+            Mock.Get(documentSnapshot).Setup(s => s.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
+
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 2);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Test1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Test1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -51,15 +53,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         public async Task GetOriginTagHelperBindingAsync_TagHelper_StartTag_WithAttribute()
         {
             // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
+            SetupDocument(out var _, out var documentSnapshot);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 2);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -67,15 +71,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         public async Task GetOriginTagHelperBindingAsync_TagHelper_EndTag_WithAttribute()
         {
             // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
+            SetupDocument(out var _, out var documentSnapshot);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 35);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -83,12 +89,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         public async Task GetOriginTagHelperBindingAsync_TagHelper_Attribute_ReturnsNull()
         {
             // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
+            SetupDocument(out var _, out var documentSnapshot);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 14);
 
             // Act
             var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -99,12 +106,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeValue_ReturnsNull()
         {
             // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
+            SetupDocument(out var _, out var documentSnapshot);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 24);
 
             // Act
             var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -115,12 +123,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         public async Task GetOriginTagHelperBindingAsync_TagHelper_AfterAttributeEquals_ReturnsNull()
         {
             // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
+            SetupDocument(out var _, out var documentSnapshot);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 18);
 
             // Act
             var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -131,12 +140,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeEnd_ReturnsNull()
         {
             // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
+            SetupDocument(out var _, out var documentSnapshot);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 29);
 
             // Act
             var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -154,15 +164,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
     {
     }
 }";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 2);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -177,15 +189,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
     {
     }
 }";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 2);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -201,15 +215,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
     {
     }
 }";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 2);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.Null(attributeDescriptor);
         }
 
@@ -218,12 +234,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         {
             // Arrange
             var content = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong></strong></p>";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 6);
 
             // Act
             var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -242,15 +259,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
     {
     }
 }";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 14);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.NotNull(attributeDescriptor);
             Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
         }
@@ -267,15 +286,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
     {
     }
 }";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri("C:\\file.razor"), documentSnapshot);
             var position = new Position(1, 14);
 
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
             Assert.NotNull(attributeDescriptor);
             Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
         }
@@ -399,7 +420,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         {
             var sourceText = SourceText.From(content);
             codeDocument = CreateCodeDocument(content, "text.razor", DefaultTagHelpers);
+            var outDoc = codeDocument;
             documentSnapshot = Mock.Of<DocumentSnapshot>(d => d.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
+            Mock.Get(documentSnapshot).Setup( s => s.GetGeneratedOutputAsync()).Returns(Task.FromResult(outDoc));
         }
     }
 }

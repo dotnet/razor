@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,9 +10,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -26,45 +24,62 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             TabSize = 4,
             InsertSpaces = true,
-            TrimTrailingWhitespace = true,
-            InsertFinalNewline = true,
-            TrimFinalNewlines = true
+            OtherOptions = new Dictionary<string, object>
+            {
+                { "trimTrailingWhitespace", true },
+                { "insertFinalNewline", true },
+                { "trimFinalNewlines", true },
+            },
         };
 
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorFormattingService _razorFormattingService;
-        private readonly DocumentVersionCache _documentVersionCache;
 
         public DefaultCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
+            DocumentContextFactory documentContextFactory,
             ClientNotifierServiceBase languageServer,
-            RazorFormattingService razorFormattingService!!,
-            DocumentVersionCache documentVersionCache!!)
+            RazorFormattingService razorFormattingService)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
+            if (documentContextFactory is null)
+            {
+                throw new ArgumentNullException(nameof(documentContextFactory));
+            }
+
+            if (razorFormattingService is null)
+            {
+                throw new ArgumentNullException(nameof(razorFormattingService));
+            }
+
+            _documentContextFactory = documentContextFactory;
             _razorFormattingService = razorFormattingService;
-            _documentVersionCache = documentVersionCache;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.Default;
 
         public async override Task<CodeAction> ResolveAsync(
-            CSharpCodeActionParams csharpParams!!,
-            CodeAction codeAction!!,
+            CSharpCodeActionParams csharpParams,
+            CodeAction codeAction,
             CancellationToken cancellationToken)
         {
+            if (csharpParams is null)
+            {
+                throw new ArgumentNullException(nameof(csharpParams));
+            }
+
+            if (codeAction is null)
+            {
+                throw new ArgumentNullException(nameof(codeAction));
+            }
+
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction.Edit?.DocumentChanges is null)
+            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
                 return codeAction;
             }
 
-            if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
+            if (resolvedCodeAction.Edit.DocumentChanges.Value.Count() != 1)
             {
                 // We don't yet support multi-document code actions, return original code action
                 return codeAction;
@@ -72,19 +87,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if( documentContext is null)
             {
                 return codeAction;
             }
 
-            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
-            if (!documentChanged.IsTextDocumentEdit)
+            var documentSnapshot = documentContext.Snapshot;
+
+            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
+            if (!documentChanged.TryGetFirst(out var textDocumentEdit))
             {
                 // Only Text Document Edit changes are supported currently, return original code action
                 return codeAction;
@@ -92,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var csharpTextEdits = documentChanged.TextDocumentEdit.Edits.ToArray();
+            var csharpTextEdits = textDocumentEdit.Edits;
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
@@ -106,28 +118,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
-                return version;
-            }, cancellationToken).ConfigureAwait(false);
+            var documentVersion = documentContext.Version;
 
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion.Value
+                Version = documentVersion,
             };
-            resolvedCodeAction = resolvedCodeAction with
+            resolvedCodeAction.Edit = new WorkspaceEdit()
             {
-                Edit = new WorkspaceEdit()
-                {
-                    DocumentChanges = new[] {
-                        new WorkspaceEditDocumentChange(
-                            new TextDocumentEdit()
-                            {
-                                TextDocument = codeDocumentIdentifier,
-                                Edits = formattedEdits,
-                            })
+                DocumentChanges = new TextDocumentEdit[] {
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = codeDocumentIdentifier,
+                        Edits = formattedEdits,
                     }
                 }
             };

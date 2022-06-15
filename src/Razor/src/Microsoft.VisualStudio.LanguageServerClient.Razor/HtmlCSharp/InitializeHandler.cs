@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -21,35 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.InitializeName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
-        private static readonly InitializeResult s_initializeResult = new()
-        {
-            Capabilities = new VSInternalServerCapabilities
-            {
-                CompletionProvider = new CompletionOptions()
-                {
-                    AllCommitCharacters = new[] { " ", "{", "}", "[", "]", "(", ")", ".", ",", ":", ";", "+", "-", "*", "/", "%", "&", "|", "^", "!", "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\" },
-                    ResolveProvider = true,
-                    TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray()
-                },
-                OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
-                {
-                    TriggerCharacters = new[] { "'", "/", "\n" }
-                },
-                HoverProvider = true,
-                DefinitionProvider = true,
-                DocumentHighlightProvider = true,
-                RenameProvider = true,
-                ReferencesProvider = true,
-                SignatureHelpProvider = new SignatureHelpOptions()
-                {
-                    TriggerCharacters = new[] { "(", ",", "<" },
-                    RetriggerCharacters = new[] { ">", ")" }
-                },
-                ImplementationProvider = true,
-                SupportsDiagnosticRequests = true,
-            }
-        };
+        private InitializeResult? _initializeResult;
         private readonly JoinableTaskFactory _joinableTaskFactory;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ILanguageClientBroker _languageClientBroker;
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly List<(ILanguageClient Client, VSInternalServerCapabilities Capabilities)> _serverCapabilities;
@@ -58,11 +33,38 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public InitializeHandler(
-            JoinableTaskContext joinableTaskContext!!,
-            ILanguageClientBroker languageClientBroker!!,
-            ILanguageServiceBroker2 languageServiceBroker!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            JoinableTaskContext joinableTaskContext,
+            ILanguageClientBroker languageClientBroker,
+            ILanguageServiceBroker2 languageServiceBroker,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (languageClientBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageClientBroker));
+            }
+
+            if (languageServiceBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageServiceBroker));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _joinableTaskFactory = joinableTaskContext.Factory;
             _languageClientBroker = languageClientBroker;
             _languageServiceBroker = languageServiceBroker;
@@ -77,11 +79,46 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public Task<InitializeResult?> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            VerifyMergedLanguageServerCapabilities();
-
             _logger.LogInformation("Providing initialization configuration.");
 
-            return Task.FromResult<InitializeResult?>(s_initializeResult);
+            _initializeResult = new()
+            {
+                Capabilities = new VSInternalServerCapabilities
+                {
+                    OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
+                    {
+                        TriggerCharacters = new[] { "'", "/", "\n", "=" }
+                    },
+                    HoverProvider = true,
+                    DefinitionProvider = true,
+                    DocumentHighlightProvider = true,
+                    RenameProvider = true,
+                    ReferencesProvider = true,
+                    SignatureHelpProvider = new SignatureHelpOptions()
+                    {
+                        TriggerCharacters = new[] { "(", ",", "<" },
+                        RetriggerCharacters = new[] { ">", ")" }
+                    },
+                    ImplementationProvider = true,
+                    SupportsDiagnosticRequests = true,
+                }
+            };
+
+            if (!_languageServerFeatureOptions.SingleServerCompletionSupport)
+            {
+                // Feature flag is not on, fallback to utilizing completion handler
+
+                _initializeResult.Capabilities.CompletionProvider = new CompletionOptions()
+                {
+                    AllCommitCharacters = new[] { " ", "{", "}", "[", "]", "(", ")", ".", ",", ":", ";", "+", "-", "*", "/", "%", "&", "|", "^", "!", "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\" },
+                    ResolveProvider = true,
+                    TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray()
+                };
+            }
+
+            VerifyMergedLanguageServerCapabilities();
+
+            return Task.FromResult<InitializeResult?>(_initializeResult);
         }
 
         [Conditional("DEBUG")]
@@ -124,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         throw new JsonSerializationException($"Failed to serialize to {nameof(InitializeResult)}");
                     }
 
-                    _serverCapabilities.Add((languageClientInstance.Client, (initializeResult.Capabilities as VSInternalServerCapabilities)!));
+                    _serverCapabilities.Add((languageClientInstance.Client, (VSInternalServerCapabilities)initializeResult.Capabilities));
                 }
             }
 
@@ -299,7 +336,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var purposefullyRemovedTriggerCharacters = new[]
             {
                 ">", // https://github.com/dotnet/aspnetcore-tooling/pull/3797
-                "=", // https://github.com/dotnet/aspnetcore/issues/33677
                 "-", // Typically used to auto-insert HTML comments, now provided by language-configuration.json
             };
             triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
@@ -314,7 +350,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedHoverAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.HoverProvider != s_initializeResult.Capabilities.HoverProvider)
+            if (_initializeResult is null)
+            {
+                throw new InvalidOperationException("Initialize was not called prior to validating sub-language options.");
+            }
+
+            if (mergedCapabilities.HoverProvider != _initializeResult.Capabilities.HoverProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -324,6 +365,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedCompletionOptionsAsync(VSServerCapabilities mergedCapabilities)
         {
+            if (_initializeResult is null)
+            {
+                throw new InvalidOperationException("Initialize was not called prior to validating sub-language options.");
+            }
+
             var mergedAllCommitCharEnumeration = mergedCapabilities.CompletionProvider?.AllCommitCharacters ?? Enumerable.Empty<string>();
             var mergedTriggerCharEnumeration = mergedCapabilities.CompletionProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
             var mergedCommitChars = new HashSet<string>(mergedAllCommitCharEnumeration);
@@ -338,8 +384,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             mergedTriggerCharEnumeration = mergedTriggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var mergedTriggerChars = new HashSet<string>(mergedTriggerCharEnumeration);
 
-            if (!mergedCommitChars.SetEquals(s_initializeResult.Capabilities.CompletionProvider?.AllCommitCharacters!) ||
-                !mergedTriggerChars.SetEquals(s_initializeResult.Capabilities.CompletionProvider?.TriggerCharacters!))
+            if (!mergedCommitChars.SetEquals(_initializeResult.Capabilities.CompletionProvider?.AllCommitCharacters!) ||
+                !mergedTriggerChars.SetEquals(_initializeResult.Capabilities.CompletionProvider?.TriggerCharacters!))
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -349,15 +395,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedSignatureHelpOptionsAsync(VSServerCapabilities mergedCapabilities)
         {
+            if (_initializeResult is null)
+            {
+                throw new InvalidOperationException("Initialize was not called prior to validating sub-language options.");
+            }
+
             var mergedTriggerCharEnumeration = mergedCapabilities.SignatureHelpProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
             var mergedTriggerChars = new HashSet<string>(mergedTriggerCharEnumeration);
             var mergedRetriggerCharEnumeration = mergedCapabilities.SignatureHelpProvider?.RetriggerCharacters ?? Enumerable.Empty<string>();
             var mergedRetriggerChars = new HashSet<string>(mergedRetriggerCharEnumeration);
             var mergedWorkDoneProgress = mergedCapabilities.SignatureHelpProvider?.WorkDoneProgress;
 
-            if (!mergedTriggerChars.SetEquals(s_initializeResult.Capabilities.SignatureHelpProvider?.TriggerCharacters!) ||
-                !mergedRetriggerChars.SetEquals(s_initializeResult.Capabilities.SignatureHelpProvider?.RetriggerCharacters!) ||
-                mergedWorkDoneProgress != s_initializeResult.Capabilities.SignatureHelpProvider?.WorkDoneProgress)
+            if (!mergedTriggerChars.SetEquals(_initializeResult.Capabilities.SignatureHelpProvider?.TriggerCharacters!) ||
+                !mergedRetriggerChars.SetEquals(_initializeResult.Capabilities.SignatureHelpProvider?.RetriggerCharacters!) ||
+                mergedWorkDoneProgress != _initializeResult.Capabilities.SignatureHelpProvider?.WorkDoneProgress)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -367,7 +418,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedDefinitionProviderAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.DefinitionProvider != s_initializeResult.Capabilities.DefinitionProvider)
+            if (_initializeResult is null)
+            {
+                throw new InvalidOperationException("Initialize was not called prior to validating sub-language options.");
+            }
+
+            if (mergedCapabilities.DefinitionProvider != _initializeResult.Capabilities.DefinitionProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -377,7 +433,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedReferencesProviderAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.ReferencesProvider != s_initializeResult.Capabilities.ReferencesProvider)
+            if (_initializeResult is null)
+            {
+                throw new InvalidOperationException("Initialize was not called prior to validating sub-language options.");
+            }
+
+            if (mergedCapabilities.ReferencesProvider != _initializeResult.Capabilities.ReferencesProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -387,7 +448,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedRenameProviderAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.RenameProvider != s_initializeResult.Capabilities.RenameProvider)
+            if (_initializeResult is null)
+            {
+                throw new InvalidOperationException("Initialize was not called prior to validating sub-language options.");
+            }
+
+            if (mergedCapabilities.RenameProvider != _initializeResult.Capabilities.RenameProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 

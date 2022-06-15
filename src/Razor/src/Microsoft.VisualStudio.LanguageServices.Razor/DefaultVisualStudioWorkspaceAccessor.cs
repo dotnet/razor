@@ -24,17 +24,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         [ImportingConstructor]
         public DefaultVisualStudioWorkspaceAccessor(
-            IBufferGraphFactoryService bufferGraphService!!,
-            TextBufferProjectService projectService!!,
-            [Import(typeof(VisualStudioWorkspace))] Workspace defaultWorkspace!!)
+            IBufferGraphFactoryService bufferGraphService,
+            TextBufferProjectService projectService,
+            [Import(typeof(VisualStudioWorkspace))] Workspace defaultWorkspace)
         {
+            if (bufferGraphService is null)
+            {
+                throw new ArgumentNullException(nameof(bufferGraphService));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (defaultWorkspace is null)
+            {
+                throw new ArgumentNullException(nameof(defaultWorkspace));
+            }
+
             _bufferGraphService = bufferGraphService;
             _projectService = projectService;
             _defaultWorkspace = defaultWorkspace;
         }
 
-        public override bool TryGetWorkspace(ITextBuffer textBuffer!!, out Workspace workspace)
+        public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
         {
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
 
             // We do a best effort approach in this method to get the workspace that belongs to the TextBuffer.
             // The approaches we take to find the workspace are:

@@ -65,8 +65,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private SourceText SourceText { get; }
 
-        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services!!)
+        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             services.Add(TagHelperResolver);
         }
 
@@ -633,10 +638,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectManager.ProjectAdded(HostProject);
             ProjectManager.Reset();
 
-            ProjectManager.Changed += (sender, args) =>
-            {
-                Assert.True(args.SolutionIsClosing);
-            };
+            ProjectManager.Changed += (sender, args) => Assert.True(args.SolutionIsClosing);
             ProjectManager.NotifyChangedEvents = true;
 
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);

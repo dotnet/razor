@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
@@ -33,7 +32,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         [IdeTheory]
         [InlineData("BadlyFormattedCounter.razor")]
-        [InlineData("FormatAndUndo.cshtml")]
         [InlineData("FormatCommentWithKeyword.cshtml")]
         [InlineData("FormatDocument.cshtml")]
         [InlineData("FormatDocumentAfterEdit.cshtml")]
@@ -58,20 +56,23 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Open the file
             if (testFileName.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
             {
-                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, CounterRazorFile, HangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
             }
             else
             {
-                await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ErrorCshtmlFile, HangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
             }
 
-            await TestServices.Editor.SetTextAsync(input, HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(input, ControlledHangMitigatingCancellationToken);
+
+            // Wait for the document to settle
+            await TestServices.Editor.WaitForOutlineRegionsAsync(ControlledHangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Editor.InvokeFormatDocumentAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeFormatDocumentAsync(ControlledHangMitigatingCancellationToken);
 
             // Assert
-            var actual = await TestServices.Editor.WaitForTextChangeAsync(input, HangMitigatingCancellationToken);
+            var actual = await TestServices.Editor.WaitForTextChangeAsync(input, ControlledHangMitigatingCancellationToken);
 
             if (!TryGetResource(expectedResourceName, out var expected))
             {

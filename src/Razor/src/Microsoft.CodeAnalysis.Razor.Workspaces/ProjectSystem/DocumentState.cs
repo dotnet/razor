@@ -33,10 +33,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private VersionStamp? _version;
 
         public static DocumentState Create(
-            HostWorkspaceServices services!!,
-            HostDocument hostDocument!!,
+            HostWorkspaceServices services,
+            HostDocument hostDocument,
             Func<Task<TextAndVersion>> loader)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (hostDocument is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocument));
+            }
+
             loader ??= EmptyLoader;
             return new DocumentState(services, hostDocument, null, null, loader);
         }
@@ -211,16 +221,24 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return state;
         }
 
-        public virtual DocumentState WithText(SourceText sourceText!!, VersionStamp version)
+        public virtual DocumentState WithText(SourceText sourceText, VersionStamp version)
         {
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
 
             // Do not cache the computed state
 
             return new DocumentState(Services, HostDocument, sourceText, version, null);
         }
 
-        public virtual DocumentState WithTextLoader(Func<Task<TextAndVersion>> loader!!)
+        public virtual DocumentState WithTextLoader(Func<Task<TextAndVersion>> loader)
         {
+            if (loader is null)
+            {
+                throw new ArgumentNullException(nameof(loader));
+            }
 
             // Do not cache the computed state
 
@@ -298,8 +316,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
             }
 
-            public Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project!!, DocumentSnapshot document!!)
+            public Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
             {
+                if (project is null)
+                {
+                    throw new ArgumentNullException(nameof(project));
+                }
+
+                if (document is null)
+                {
+                    throw new ArgumentNullException(nameof(document));
+                }
+
                 if (_taskUnsafeReference is null ||
                     !_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {

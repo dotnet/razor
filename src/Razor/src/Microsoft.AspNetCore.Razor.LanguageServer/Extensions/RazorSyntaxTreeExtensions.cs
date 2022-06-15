@@ -5,27 +5,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class RazorSyntaxTreeExtensions
     {
-        public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree!!)
+        public static IReadOnlyList<FormattingSpan> GetFormattingSpans(this RazorSyntaxTree syntaxTree)
         {
-            var visitor = new FormattingVisitor(syntaxTree.Source);
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            var visitor = new FormattingVisitor();
             visitor.Visit(syntaxTree.Root);
 
             return visitor.FormattingSpans;
         }
 
-        public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree!!)
+        public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
 
             // We want all nodes of type RazorDirectiveSyntax which will contain code.
             // Since code block directives occur at the top-level, we don't need to dive deeper into unrelated nodes.
@@ -38,23 +47,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return codeBlockDirectives;
         }
 
-        public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree!!)
+        public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
 
             // We want all nodes that represent Razor C# statements, @{ ... }.
             var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToList();
             return statements;
         }
 
-        public static SyntaxNode? GetOwner(
-            this RazorSyntaxTree syntaxTree!!,
-            SourceText sourceText!!,
-            Position position!!,
-            ILogger logger!!)
+        public static SyntaxNode? GetOwner(this RazorSyntaxTree syntaxTree, int absoluteIndex)
         {
-            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+            if (syntaxTree is null)
             {
-                return default;
+                throw new ArgumentNullException(nameof(syntaxTree));
             }
 
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
@@ -63,11 +72,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         }
 
         public static SyntaxNode? GetOwner(
-            this RazorSyntaxTree syntaxTree!!,
-            SourceText sourceText!!,
-            Range range!!,
+            this RazorSyntaxTree syntaxTree,
+            SourceText sourceText,
+            Position position,
+            ILogger logger) 
+        {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+            {
+                return default;
+            }
+
+            return GetOwner(syntaxTree, absoluteIndex);
+        }
+
+        public static SyntaxNode? GetOwner(
+            this RazorSyntaxTree syntaxTree,
+            SourceText sourceText,
+            Range range,
             ILogger logger)
         {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
             var startInSync = range.Start.TryGetAbsoluteIndex(sourceText, logger, out var absoluteStartIndex);
             var endInSync = range.End.TryGetAbsoluteIndex(sourceText, logger, out var absoluteEndIndex);
             if (startInSync is false || endInSync is false)

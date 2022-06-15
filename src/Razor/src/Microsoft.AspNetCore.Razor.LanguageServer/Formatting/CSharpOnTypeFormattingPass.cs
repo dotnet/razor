@@ -9,18 +9,22 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -32,9 +36,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
-            ILoggerFactory loggerFactory!!)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<CSharpOnTypeFormattingPass>();
         }
 
@@ -55,15 +64,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument, context.HostDocumentIndex, out _, out var projectedIndex))
                 {
-                    _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
+                    _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
                     return result;
                 }
 
-                var documentOptions = await GetDocumentOptionsAsync(context).ConfigureAwait(false);
-
                 // Ask C# for formatting changes.
+                var indentationOptions = new RazorIndentationOptions(
+                    UseTabs: !context.Options.InsertSpaces,
+                    TabSize: context.Options.TabSize,
+                    IndentationSize: context.Options.TabSize);
+                var autoFormattingOptions = new RazorAutoFormattingOptions(
+                    formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
+
                 var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                    context.CSharpWorkspaceDocument, typedChar: context.TriggerCharacter, projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
+                    context.CSharpWorkspaceDocument,
+                    typedChar: context.TriggerCharacter,
+                    projectedIndex,
+                    indentationOptions,
+                    autoFormattingOptions,
+                    indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (formattingChanges.IsEmpty)
                 {
@@ -72,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
-                _logger.LogInformation($"Received {textEdits.Length} results from C#.");
+                _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
             }
 
             var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
@@ -145,18 +165,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // we calculate these positions in the LineDelta method called above.
             // This is essentially: rangeToAdjust = new Range(Math.Min(firstFormattingEdit, userEdit), Math.Max(lastFormattingEdit, userEdit))
             var start = rangeAfterFormatting.Start;
-            if (firstPosition is not null && firstPosition < start)
+            if (firstPosition is not null && firstPosition.CompareTo(start) < 0)
             {
                 start = firstPosition;
             }
 
             var end = new Position(rangeAfterFormatting.End.Line + lineDelta, 0);
-            if (lastPosition is not null && lastPosition < start)
+            if (lastPosition is not null && lastPosition.CompareTo(start) < 0)
             {
                 end = lastPosition;
             }
 
-            var rangeToAdjust = new Range(start, end);
+            var rangeToAdjust = new Range { Start = start, End = end };
 
             Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
 
@@ -211,8 +231,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var edits = new List<TextEdit>();
             foreach (var usingStatement in newUsings.Except(oldUsings))
             {
-                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, null);
-                edits.AddRange(workspaceEdit.DocumentChanges.First().TextDocumentEdit!.Edits);
+                // This identifier will be eventually thrown away.
+                var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
+                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, codeDocumentIdentifier: identifier);
+                edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
             }
 
             edits.AddRange(finalEdits);
@@ -259,12 +281,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 // For convenience, since we're already iterating through things, we also find the extremes
                 // of the range of edits that were made.
-                if (firstPosition is null || firstPosition > range.Start)
+                if (firstPosition is null || firstPosition.CompareTo(range.Start) > 0)
                 {
                     firstPosition = range.Start;
                 }
 
-                if (lastPosition is null || lastPosition < range.End)
+                if (lastPosition is null || lastPosition.CompareTo(range.End) < 0)
                 {
                     lastPosition = range.End;
                 }
@@ -324,9 +346,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var text = context.SourceText;
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
-            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.PreviousSpan() is { } prevNode &&
+                prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                owner.SpanStart == template.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break after a single line template
                 return;
             }
 
@@ -457,9 +489,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var endSpan = TextSpan.FromBounds(sourceMappingSpan.End, sourceMappingSpan.End);
-            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.NextSpan() is { } nextNode &&
+                nextNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                template.SpanStart == owner.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break in front of a single line template
                 return;
             }
 
@@ -491,6 +533,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             changes.Add(change);
         }
 
+        private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
+        {
+            text.GetLineAndOffset(node.Span.Start, out var startLine, out _);
+            text.GetLineAndOffset(node.Span.End, out var endLine, out _);
+
+            return startLine == endLine;
+        }
+
         private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)
         {
             var changes = edits.Select(e => e.AsTextChange(originalText));
@@ -498,12 +548,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
             var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
             return cleanEdits;
-        }
-
-        private static async Task<DocumentOptionSet> GetDocumentOptionsAsync(FormattingContext context)
-        {
-            var documentOptions = await context.CSharpWorkspaceDocument.GetOptionsAsync().ConfigureAwait(false);
-            return (DocumentOptionSet)context.GetChangedOptionSet(documentOptions);
         }
     }
 }

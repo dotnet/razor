@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -23,23 +24,74 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly AdhocWorkspaceFactory _workspaceFactory;
 
         public DefaultRazorFormattingService(
-            IEnumerable<IFormattingPass> formattingPasses!!,
-            ILoggerFactory loggerFactory!!,
-            AdhocWorkspaceFactory workspaceFactory!!)
+            IEnumerable<IFormattingPass> formattingPasses,
+            ILoggerFactory loggerFactory,
+            AdhocWorkspaceFactory workspaceFactory)
         {
+            if (formattingPasses is null)
+            {
+                throw new ArgumentNullException(nameof(formattingPasses));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
             _logger = loggerFactory.CreateLogger<DefaultRazorFormattingService>();
             _workspaceFactory = workspaceFactory;
         }
 
         public override async Task<TextEdit[]> FormatAsync(
-            DocumentUri uri!!,
-            DocumentSnapshot documentSnapshot!!,
-            Range range!!,
-            FormattingOptions options!!,
+            Uri uri,
+            DocumentSnapshot documentSnapshot,
+            Range? range,
+            FormattingOptions options,
             CancellationToken cancellationToken)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+
+            // Range formatting happens on every paste, and if there are Razor diagnostics in the file
+            // that can make some very bad results. eg, given:
+            //
+            // |
+            // @code {
+            // }
+            //
+            // When pasting "<button" at the | the HTML formatter will bring the "@code" onto the same
+            // line as "<button" because as far as it's concerned, its an attribute.
+            //
+            // To defeat that, we simply don't do range formatting if there are diagnostics.
+
+            // Despite what it looks like, codeDocument.GetCSharpDocument().Diagnostics is actually the
+            // Razor diagnostics, not the C# diagnostics 🤦‍
+            if (range is not null &&
+                codeDocument.GetCSharpDocument().Diagnostics.Any(d => range.OverlapsWith(d.Span.AsRange(codeDocument.GetSourceText()))))
+            {
+                return Array.Empty<TextEdit>();
+            }
+
             using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
             var originalText = context.SourceText;
 
@@ -50,7 +102,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 result = await pass.ExecuteAsync(context, result, cancellationToken);
             }
 
-            var filteredEdits = result.Edits.Where(e => range.LineOverlapsWith(e.Range));
+            var filteredEdits = range is null
+                ? result.Edits
+                : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
 
             // Make sure the edits actually change something, or its not worth responding
             var textChanges = filteredEdits.Select(e => e.AsTextChange(originalText));
@@ -67,17 +121,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return finalEdits;
         }
 
-        public override Task<TextEdit[]> FormatOnTypeAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+        public override Task<TextEdit[]> FormatOnTypeAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
             => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, hostDocumentIndex, triggerCharacter, bypassValidationPasses: false, collapseEdits: false, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
-        public override Task<TextEdit[]> FormatCodeActionAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public override Task<TextEdit[]> FormatCodeActionAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
             => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: false, automaticallyAddUsings: true, cancellationToken: cancellationToken);
 
-        public override Task<TextEdit[]> FormatSnippetAsync(DocumentUri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
+        public override Task<TextEdit[]> FormatSnippetAsync(Uri uri, DocumentSnapshot documentSnapshot, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
             => ApplyFormattedEditsAsync(uri, documentSnapshot, kind, formattedEdits, options, hostDocumentIndex: 0, triggerCharacter: '\0', bypassValidationPasses: true, collapseEdits: true, automaticallyAddUsings: false, cancellationToken: cancellationToken);
 
         private async Task<TextEdit[]> ApplyFormattedEditsAsync(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,

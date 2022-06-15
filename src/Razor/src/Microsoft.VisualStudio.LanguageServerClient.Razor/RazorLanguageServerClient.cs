@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-        private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer? _server;
@@ -48,20 +48,50 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [ImportingConstructor]
         public RazorLanguageServerClient(
-            RazorLanguageServerCustomMessageTarget customTarget!!,
-            RazorLanguageClientMiddleLayer middleLayer!!,
-            LSPRequestInvoker requestInvoker!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory!!,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions!!,
+            RazorLanguageServerCustomMessageTarget customTarget,
+            RazorLanguageClientMiddleLayer middleLayer,
+            LSPRequestInvoker requestInvoker,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
         {
+            if (customTarget is null)
+            {
+                throw new ArgumentNullException(nameof(customTarget));
+            }
+
+            if (middleLayer is null)
+            {
+                throw new ArgumentNullException(nameof(middleLayer));
+            }
+
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
+            if (logHubLoggerProviderFactory is null)
+            {
+                throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
-            _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
             _shutdownLock = new object();
         }
@@ -106,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
+            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, _languageServerFeatureOptions, ConfigureLanguageServer).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
             _ = _server.InitializedAsync(token);
@@ -115,15 +145,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return connection;
         }
 
-        private void ConfigureLanguageServer(RazorLanguageServerBuilder builder!!)
+        private void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             var services = builder.Services;
             services.AddLogging(logging =>
             {
                 logging.AddFilter<LogHubLoggerProvider>(level => true);
                 logging.AddProvider(_loggerProvider);
             });
-            services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
 
             if (_vsHostWorkspaceServicesProvider != null)
             {
@@ -212,23 +246,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void ProjectConfigurationFilePathStore_Changed(object sender, ProjectConfigurationFilePathChangedEventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void ProjectConfigurationFilePathStore_Changed(object sender, ProjectConfigurationFilePathChangedEventArgs args)
+        {
+            _ = ProjectConfigurationFilePathStore_ChangedAsync(args, CancellationToken.None);
+        }
+
+        private async Task ProjectConfigurationFilePathStore_ChangedAsync(ProjectConfigurationFilePathChangedEventArgs args, CancellationToken cancellationToken)
         {
             try
             {
-                var parameter = new MonitorProjectConfigurationFilePathParams()
-                {
-                    ProjectFilePath = args.ProjectFilePath,
-                    ConfigurationFilePath = args.ConfigurationFilePath,
-                };
+                    var parameter = new MonitorProjectConfigurationFilePathParams()
+                    {
+                        ProjectFilePath = args.ProjectFilePath,
+                        ConfigurationFilePath = args.ConfigurationFilePath,
+                    };
 
-                await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
-                    LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
-                    RazorLSPConstants.RazorLanguageServerName,
-                    parameter,
-                    CancellationToken.None);
+                    await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
+                        LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
+                        RazorLSPConstants.RazorLanguageServerName,
+                        parameter,
+                        cancellationToken);
             }
             catch (Exception)
             {

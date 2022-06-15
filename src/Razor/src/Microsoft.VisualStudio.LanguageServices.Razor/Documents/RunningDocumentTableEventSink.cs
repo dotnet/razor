@@ -12,8 +12,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     {
         private readonly VisualStudioEditorDocumentManager _documentManager;
 
-        public RunningDocumentTableEventSink(VisualStudioEditorDocumentManager documentManager!!)
+        public RunningDocumentTableEventSink(VisualStudioEditorDocumentManager documentManager)
         {
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
             _documentManager = documentManager;
         }
 

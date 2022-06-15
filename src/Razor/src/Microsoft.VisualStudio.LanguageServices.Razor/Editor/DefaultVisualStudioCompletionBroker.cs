@@ -14,13 +14,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
     {
         private readonly ICompletionBroker _completionBroker;
 
-        public DefaultVisualStudioCompletionBroker(ICompletionBroker completionBroker!!)
+        public DefaultVisualStudioCompletionBroker(ICompletionBroker completionBroker)
         {
+            if (completionBroker is null)
+            {
+                throw new ArgumentNullException(nameof(completionBroker));
+            }
+
             _completionBroker = completionBroker;
         }
 
-        public override bool IsCompletionActive(ITextView textView!!)
+        public override bool IsCompletionActive(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             var completionIsActive = _completionBroker.IsCompletionActive(textView);
             return completionIsActive;
         }

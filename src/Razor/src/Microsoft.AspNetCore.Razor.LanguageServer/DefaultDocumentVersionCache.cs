@@ -33,14 +33,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!)
+        public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             DocumentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot!!, int version)
+        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version)
         {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!DocumentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
@@ -62,8 +72,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentEntries.Add(entry);
         }
 
-        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot!!, [NotNullWhen(true)] out int? version)
+        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version)
         {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!DocumentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
@@ -94,8 +109,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return true;
         }
 
-        public override async Task<int?> TryGetDocumentVersionAsync(DocumentSnapshot documentSnapshot!!, CancellationToken cancellationToken)
+        public override async Task<int?> TryGetDocumentVersionAsync(DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
         {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
             var resolvedVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 TryGetDocumentVersion(documentSnapshot, out var version);
@@ -124,11 +144,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
-                    if (DocumentLookup.ContainsKey(args.DocumentFilePath) &&
-                        !ProjectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
+                    var documentFilePath = args.DocumentFilePath!;
+                    if (DocumentLookup.ContainsKey(documentFilePath) &&
+                        !ProjectSnapshotManager.IsDocumentOpen(documentFilePath))
                     {
                         // Document closed, evict entry.
-                        DocumentLookup.Remove(args.DocumentFilePath);
+                        DocumentLookup.Remove(documentFilePath);
                     }
 
                     break;

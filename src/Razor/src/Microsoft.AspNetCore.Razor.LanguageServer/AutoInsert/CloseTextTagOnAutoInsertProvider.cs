@@ -11,8 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
@@ -21,17 +20,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
         public CloseTextTagOnAutoInsertProvider(
-            IOptionsMonitor<RazorLSPOptions> optionsMonitor!!,
+            IOptionsMonitor<RazorLSPOptions> optionsMonitor,
             ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
+            if (optionsMonitor is null)
+            {
+                throw new ArgumentNullException(nameof(optionsMonitor));
+            }
+
             _optionsMonitor = optionsMonitor;
         }
 
         public override string TriggerCharacter => ">";
 
-        public override bool TryResolveInsertion(Position position!!, FormattingContext context!!, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+        public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (!_optionsMonitor.CurrentValue.AutoClosingTags)
             {
                 // We currently only support auto-closing tags our onType formatter.
@@ -52,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             edit = new TextEdit()
             {
                 NewText = $"$0</{SyntaxConstants.TextTagName}>",
-                Range = new Range(position, position)
+                Range = new Range { Start = position, End = position },
             };
 
             return true;

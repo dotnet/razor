@@ -24,11 +24,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [ImportingConstructor]
         public SignatureHelpHandler(
-            LSPRequestInvoker requestInvoker!!,
-            LSPDocumentManager documentManager!!,
-            LSPProjectionProvider projectionProvider!!,
+            LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
+            LSPProjectionProvider projectionProvider,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (projectionProvider is null)
+            {
+                throw new ArgumentNullException(nameof(projectionProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
@@ -36,13 +51,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(SignatureHelpHandler));
         }
 
-        public async Task<SignatureHelp?> HandleRequestAsync(TextDocumentPositionParams request!!, ClientCapabilities clientCapabilities!!, CancellationToken cancellationToken)
+        public async Task<SignatureHelp?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -66,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
             };
 
-            _logger.LogInformation($"Requesting signature help for {projectionResult.Uri}.");
+            _logger.LogInformation("Requesting signature help for {projectionResultUri}.", projectionResult.Uri);
 
             var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
             var languageServerName = serverKind.ToLanguageServerName();

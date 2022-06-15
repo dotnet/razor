@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -23,9 +24,9 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -78,10 +79,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             fileKind ??= FileKinds.Component;
 
             TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> spans);
-            var span = spans.IsEmpty ? new TextSpan(0, input.Length) : spans.Single();
 
             var source = SourceText.From(input);
-            var range = span.AsRange(source);
+            var range = spans.IsEmpty
+                ? null
+                : spans.Single().AsRange(source);
 
             var path = "file:///path/to/Document." + fileKind;
             var uri = new Uri(path);
@@ -128,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
-            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
             var formattingService = CreateFormattingService(codeDocument);
             var options = new FormattingOptions()
@@ -178,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 #pragma warning disable CS0618 // Type or member is obsolete
             var mappingService = new DefaultRazorDocumentMappingService();
 #pragma warning restore CS0618 // Type or member is obsolete
-            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
             if (languageKind == RazorLanguageKind.Html)
             {
                 throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
@@ -209,8 +211,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
             => new TextEdit()
             {
-                Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(startLine, startChar, endLine, endChar),
-                NewText = newText
+                Range = new VisualStudio.LanguageServer.Protocol.Range
+                {
+                    Start = new Position(startLine, startChar),
+                    End = new Position(endLine, endChar),
+                },
+                NewText = newText,
             };
 
         private RazorFormattingService CreateFormattingService(RazorCodeDocument codeDocument)
@@ -253,15 +259,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 
             // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
-            const string DefaultImports = @"
-@using BlazorServer_31
-@using BlazorServer_31.Pages
-@using BlazorServer_31.Shared
-@using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.AspNetCore.Components.Web
-";
+            const string DefaultImports = """
+                @using BlazorServer_31
+                @using BlazorServer_31.Pages
+                @using BlazorServer_31.Shared
+                @using Microsoft.AspNetCore.Components
+                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Routing
+                @using Microsoft.AspNetCore.Components.Web
+                """;
 
             var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
             var importsSourceText = SourceText.From(DefaultImports);

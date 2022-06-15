@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,9 +11,10 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -26,9 +28,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             DocumentVersionCache documentVersionCache,
-            ILoggerFactory loggerFactory!!)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
             HtmlFormatter = new HtmlFormatter(server, documentVersionCache);
@@ -64,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var changedText = originalText;
             var changedContext = context;
 
-            _logger.LogTestOnly($"Before HTML formatter:\r\n{changedText}");
+            _logger.LogTestOnly("Before HTML formatter:\r\n{changedText}", changedText);
 
             if (htmlEdits.Length > 0)
             {
@@ -73,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Create a new formatting context for the changed razor document.
                 changedContext = await context.WithTextAsync(changedText);
 
-                _logger.LogTestOnly($"After normalizedEdits:\r\n{changedText}");
+                _logger.LogTestOnly("After normalizedEdits:\r\n{changedText}", changedText);
             }
 
             var indentationChanges = AdjustRazorIndentation(changedContext);
@@ -81,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 // Apply the edits that adjust indentation.
                 changedText = changedText.WithChanges(indentationChanges);
-                _logger.LogTestOnly($"After AdjustRazorIndentation:\r\n{changedText}");
+                _logger.LogTestOnly("After AdjustRazorIndentation:\r\n{changedText}", changedText);
             }
 
             var finalChanges = changedText.GetTextChanges(originalText);

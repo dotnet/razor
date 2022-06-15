@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -28,21 +29,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly ClientNotifierServiceBase _server;
 
         public CSharpFormatter(
-            RazorDocumentMappingService documentMappingService!!,
-            ClientNotifierServiceBase languageServer!!,
-            FilePathNormalizer filePathNormalizer!!)
+            RazorDocumentMappingService documentMappingService,
+            ClientNotifierServiceBase languageServer,
+            FilePathNormalizer filePathNormalizer)
         {
+            if (documentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingService));
+            }
+
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
             _documentMappingService = documentMappingService;
             _server = languageServer;
             _filePathNormalizer = filePathNormalizer;
         }
 
         public async Task<TextEdit[]> FormatAsync(
-            FormattingContext context!!,
-            Range rangeToFormat!!,
+            FormattingContext context,
+            Range rangeToFormat,
             CancellationToken cancellationToken,
             bool formatOnClient = false)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (rangeToFormat is null)
+            {
+                throw new ArgumentNullException(nameof(rangeToFormat));
+            }
+
             if (!_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument, rangeToFormat, out var projectedRange))
             {
                 return Array.Empty<TextEdit>();
@@ -56,10 +82,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public static async Task<IReadOnlyDictionary<int, int>> GetCSharpIndentationAsync(
-            FormattingContext context!!,
-            IReadOnlyCollection<int> projectedDocumentLocations!!,
+            FormattingContext context,
+            IReadOnlyCollection<int> projectedDocumentLocations,
             CancellationToken cancellationToken)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (projectedDocumentLocations is null)
+            {
+                throw new ArgumentNullException(nameof(projectedDocumentLocations));
+            }
 
             // Sorting ensures we count the marker offsets correctly.
             // We also want to ensure there are no duplicates to avoid duplicate markers.
@@ -116,6 +151,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, List<int> projectedDocumentLocations, CancellationToken cancellationToken)
         {
+            // No point calling the C# formatting if we won't be interested in any of its work anyway
+            if (projectedDocumentLocations.Count == 0)
+            {
+                return new Dictionary<int, int>();
+            }
+
             var (indentationMap, syntaxTree) = InitializeIndentationData(context, projectedDocumentLocations, cancellationToken);
 
             var root = await syntaxTree.GetRootAsync(cancellationToken);

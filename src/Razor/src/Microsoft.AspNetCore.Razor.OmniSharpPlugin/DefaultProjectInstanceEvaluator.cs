@@ -44,8 +44,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
         }
 
-        public override ProjectInstance Evaluate(ProjectInstance projectInstance!!)
+        public override ProjectInstance Evaluate(ProjectInstance projectInstance)
         {
+            if (projectInstance is null)
+            {
+                throw new ArgumentNullException(nameof(projectInstance));
+            }
+
             lock (_evaluationLock)
             {
                 var refreshTargets = new List<string>()

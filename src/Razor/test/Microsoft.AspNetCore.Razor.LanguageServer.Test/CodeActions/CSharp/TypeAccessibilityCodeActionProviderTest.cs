@@ -13,11 +13,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Newtonsoft.Json.Linq;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -31,12 +32,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
                     Diagnostics = null
-                }
+                },
             };
 
             var location = new SourceLocation(0, -1, -1);
@@ -45,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.Net.Dns"
                 }
@@ -66,30 +67,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             // Invalid as Error is expected
                             Severity = DiagnosticSeverity.Warning,
-                            Code = new DiagnosticCode("CS0246")
+                            Code = "CS0246"
                         },
                         new Diagnostic()
                         {
                             // Invalid as CS error code is expected
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode(0246)
+                            Code = 0246
                         },
                         new Diagnostic()
                         {
                             // Invalid as CS0246 or CS0103 is expected
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
+                            Code = "CS0183"
                         }
-                    )
+                    }
                 }
             };
 
@@ -99,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.Net.Dns"
                 }
@@ -120,17 +121,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0246")
+                            Code = "CS0246"
                         }
-                    )
+                    }
                 }
             };
 
@@ -139,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new TypeAccessibilityCodeActionProvider();
-            var csharpCodeActions = Array.Empty<RazorCodeAction>();
+            var csharpCodeActions = Array.Empty<RazorVSInternalCodeAction>();
 
             // Act
             var results = await provider.ProvideAsync(context, csharpCodeActions, default);
@@ -159,31 +160,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
+                            Code = "CS0132"
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode(errorCode),
-                            Range = new Range(
-                                new Position(0, 8),
-                                new Position(0, 12)
-                            )
+                            Code = errorCode,
+                            Range = new Range{
+                                Start = new Position(0, 8),
+                                End = new Position(0, 12),
+                            }
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
+                            Code = "CS0183"
                         }
-                    )
+                    }
                 }
             };
 
@@ -193,12 +194,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.Path",
                     Name = "CodeActionFromVSCode"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.SomethingElse",
                     Name = "CodeActionFromVSCode"
@@ -228,6 +229,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6015")]
+        public async Task Handle_CodeActionInSingleLineDirective_VS_ReturnsOnlyUsingCodeAction()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = "@inject Path";
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
+                Range = new Range(),
+                Context = new CodeActionContext()
+                {
+                    Diagnostics = Array.Empty<Diagnostic>()
+                }
+            };
+
+            var location = new SourceLocation(8, 0, 8);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
+            context.CodeDocument.SetFileKind(FileKinds.Legacy);
+
+            var provider = new TypeAccessibilityCodeActionProvider();
+            var csharpCodeActions = new[] {
+                new RazorVSInternalCodeAction()
+                {
+                    Title = "System.IO.Path",
+                    Name = "FullyQualify"
+                },
+                new RazorVSInternalCodeAction()
+                {
+                    Title = "using System.IO;",
+                    Name = "AddImport"
+                }
+            };
+
+            // Act
+            var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+
+            // Assert
+            Assert.Collection(results,
+                r =>
+                {
+                    Assert.Equal("@using System.IO", r.Title);
+                    Assert.Null(r.Edit);
+                    Assert.NotNull(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                    Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
+                }
+            );
+        }
+
+        [Fact]
         public async Task Handle_ValidCodeAction_VS_ReturnsCodeActions()
         {
             // Arrange
@@ -235,11 +287,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>()
+                    Diagnostics = Array.Empty<Diagnostic>()
                 }
             };
 
@@ -249,12 +301,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "System.IO.Path",
                     Name = "FullyQualify"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "using System.IO;",
                     Name = "AddImport"
@@ -291,31 +343,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "@code { Path; }";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
+                    Diagnostics = new Diagnostic[] {
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
+                            Code = "CS0132"
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0246"),
-                            Range = new Range(
-                                new Position(0, 8),
-                                new Position(0, 12)
-                            )
+                            Code = "CS0246",
+                            Range = new Range{
+                                Start = new Position(0, 8),
+                                End = new Position(0, 12)
+                            }
                         },
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
+                            Code = "CS0183"
                         }
-                    )
+                    }
                 }
             };
 
@@ -325,12 +377,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "Fully qualify 'Path' -> System.IO.Path",
                     Name = "CodeActionFromVSCode"
                 },
-                new RazorCodeAction()
+                new RazorVSInternalCodeAction()
                 {
                     Title = "Fully qualify 'Path' -> SuperSpecialNamespace.Path",
                     Name = "CodeActionFromVSCode"
@@ -390,7 +442,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var tagHelpers = new[] { shortComponent.Build(), fullyQualifiedComponent.Build() };
 
             var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
-            var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));
+            var projectEngine = RazorProjectEngine.Create(builder =>
+            {
+                builder.AddTagHelpers(tagHelpers);
+                builder.AddDirective(InjectDirective.Directive);
+            });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
             var cSharpDocument = codeDocument.GetCSharpDocument();

@@ -21,8 +21,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     [ContentType(RazorConstants.LegacyCoreContentType)]
     internal class RazorDirectiveAttributeCommitManagerProvider : IAsyncCompletionCommitManagerProvider
     {
-        public IAsyncCompletionCommitManager GetOrCreate(ITextView textView!!)
+        public IAsyncCompletionCommitManager GetOrCreate(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
             if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveAttributeCommitManager), out IAsyncCompletionCommitManager completionSource) ||
                 completionSource is null)

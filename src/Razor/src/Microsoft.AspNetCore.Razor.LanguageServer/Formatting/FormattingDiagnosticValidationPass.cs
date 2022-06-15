@@ -10,8 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -23,9 +24,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
-            ILoggerFactory loggerFactory!!)
+            ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<FormattingDiagnosticValidationPass>();
         }
 

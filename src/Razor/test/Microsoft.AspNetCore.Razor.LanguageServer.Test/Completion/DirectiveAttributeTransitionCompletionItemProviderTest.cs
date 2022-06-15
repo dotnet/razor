@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Xunit;
@@ -31,12 +32,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // <p| class=""></p>
-            var location = new SourceSpan(2, 0);
+            var absoluteIndex = 2;
             var prefixLocation = new TextSpan(2, 1);
             var attributeNameLocation = new TextSpan(3, 5);
 
             // Act
-            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(location, prefixLocation, attributeNameLocation);
+            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(absoluteIndex, prefixLocation, attributeNameLocation);
 
             // Assert
             Assert.False(result);
@@ -48,12 +49,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // <p | class=""></p>
-            var location = new SourceSpan(3, 0);
+            var absoluteIndex = 3;
             var prefixLocation = new TextSpan(2, 2);
             var attributeNameLocation = new TextSpan(4, 5);
 
             // Act
-            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(location, prefixLocation, attributeNameLocation);
+            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(absoluteIndex, prefixLocation, attributeNameLocation);
 
             // Assert
             Assert.True(result);
@@ -65,12 +66,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // <svg xml:base="abc"xm| ></svg>
-            var location = new SourceSpan(21, 0);
+            var absoluteIndex = 21;
             TextSpan? prefixLocation = null;
             var attributeNameLocation = new TextSpan(4, 5);
 
             // Act
-            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(location, prefixLocation, attributeNameLocation);
+            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(absoluteIndex, prefixLocation, attributeNameLocation);
 
             // Assert
             Assert.False(result);
@@ -82,12 +83,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // <p |class=""></p>
-            var location = new SourceSpan(3, 0);
+            var absoluteIndex = 3;
             var prefixLocation = new TextSpan(2, 1);
             var attributeNameLocation = new TextSpan(3, 5);
 
             // Act
-            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(location, prefixLocation, attributeNameLocation);
+            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(absoluteIndex, prefixLocation, attributeNameLocation);
 
             // Assert
             Assert.False(result);
@@ -99,12 +100,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // <p cl|ass=""></p>
-            var location = new SourceSpan(5, 0);
+            var absoluteIndex = 5;
             var prefixLocation = new TextSpan(2, 1);
             var attributeNameLocation = new TextSpan(3, 5);
 
             // Act
-            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(location, prefixLocation, attributeNameLocation);
+            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(absoluteIndex, prefixLocation, attributeNameLocation);
 
             // Assert
             Assert.False(result);
@@ -116,12 +117,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // <p class=|""></p>
-            var location = new SourceSpan(9, 0);
+            var absoluteIndex = 9;
             var prefixLocation = new TextSpan(2, 1);
             var attributeNameLocation = new TextSpan(3, 5);
 
             // Act
-            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(location, prefixLocation, attributeNameLocation);
+            var result = DirectiveAttributeTransitionCompletionItemProvider.IsValidCompletionPoint(absoluteIndex, prefixLocation, attributeNameLocation);
 
             // Assert
             Assert.False(result);
@@ -131,12 +132,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_AttributeAreaInNonComponentFile_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input  />", FileKinds.Legacy);
-            var location = new SourceSpan(7, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 7, "<input  />", FileKinds.Legacy);
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -146,12 +145,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_OutsideOfFile_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input  />");
-            var location = new SourceSpan(50, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 50, "<input  />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -161,12 +158,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_NonAttribute_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input  />");
-            var location = new SourceSpan(2, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 2, "<input  />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -176,12 +171,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_ExistingAttribute_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input @ />");
-            var location = new SourceSpan(8, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 8, "<input @ />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -191,13 +184,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_InbetweenSelfClosingEnd_ReturnsEmptyList()
         {
             // Arrange
-
-            var syntaxTree = GetSyntaxTree("<input /" + Environment.NewLine);
-            var location = new SourceSpan(8, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 8, "<input /" + Environment.NewLine);
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -207,12 +197,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_AttributeAreaInComponentFile_ReturnsTransitionCompletionItem()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input  />");
-            var location = new SourceSpan(7, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 7, "<input  />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
@@ -223,12 +211,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_AttributeAreaEndOfSelfClosingTag_ReturnsTransitionCompletionItem()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input />");
-            var location = new SourceSpan(7, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 7, "<input />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
@@ -239,12 +225,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_AttributeAreaEndOfOpeningTag_ReturnsTransitionCompletionItem()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input ></input>");
-            var location = new SourceSpan(7, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 7, "<input ></input>");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
@@ -255,12 +239,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_ExistingAttribute_LeadingEdge_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input src=\"xyz\" />");
-            var location = new SourceSpan(7, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 7, "<input src=\"xyz\" />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -270,12 +252,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_ExistingAttribute_TrailingEdge_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input src=\"xyz\" />");
-            var location = new SourceSpan(16, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 16, "<input src=\"xyz\" />");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -285,12 +265,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_ExistingAttribute_Partial_ReturnsEmptyList()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<svg xml: ></svg>");
-            var location = new SourceSpan(9, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 9, "<svg xml: ></svg>");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -300,12 +278,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_AttributeAreaInIncompleteAttributeTransition_ReturnsTransitionCompletionItem()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<input   @{");
-            var location = new SourceSpan(7, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 7, "<input   @{");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
@@ -316,12 +292,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionItems_AttributeAreaInIncompleteComponent_ReturnsTransitionCompletionItem()
         {
             // Arrange
-            var syntaxTree = GetSyntaxTree("<svg  xml:base=\"d\"></svg>");
-            var location = new SourceSpan(5, 0);
-            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+            var context = CreateContext(absoluteIndex: 5, "<svg  xml:base=\"d\"></svg>");
 
             // Act
-            var result = Provider.GetCompletionItems(context, location);
+            var result = Provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
@@ -337,6 +311,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
 
             return syntaxTree;
+        }
+
+        private RazorCompletionContext CreateContext(int absoluteIndex, string documentContent, string fileKind = null)
+        {
+            var syntaxTree = GetSyntaxTree(documentContent, fileKind);
+            var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(queryableChange);
+            var context = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, TagHelperDocumentContext);
+            return context;
         }
     }
 }

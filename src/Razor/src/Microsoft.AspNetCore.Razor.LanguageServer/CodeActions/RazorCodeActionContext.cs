@@ -7,26 +7,26 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal sealed class RazorCodeActionContext
     {
         public RazorCodeActionContext(
-            CodeActionParams request!!,
-            DocumentSnapshot documentSnapshot!!,
-            RazorCodeDocument codeDocument!!,
+            CodeActionParams request,
+            DocumentSnapshot documentSnapshot,
+            RazorCodeDocument codeDocument,
             SourceLocation location,
-            SourceText sourceText!!,
+            SourceText sourceText,
             bool supportsFileCreation,
             bool supportsCodeActionResolve)
         {
-            Request = request;
-            DocumentSnapshot = documentSnapshot;
-            CodeDocument = codeDocument;
+            Request = request ?? throw new ArgumentNullException(nameof(request));
+            DocumentSnapshot = documentSnapshot ?? throw new ArgumentNullException(nameof(documentSnapshot));
+            CodeDocument = codeDocument ?? throw new ArgumentNullException(nameof(codeDocument));
             Location = location;
-            SourceText = sourceText;
+            SourceText = sourceText ?? throw new ArgumentNullException(nameof(sourceText));
             SupportsFileCreation = supportsFileCreation;
             SupportsCodeActionResolve = supportsCodeActionResolve;
         }

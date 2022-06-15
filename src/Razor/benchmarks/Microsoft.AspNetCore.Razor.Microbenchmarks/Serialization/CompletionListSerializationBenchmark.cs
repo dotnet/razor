@@ -6,14 +6,15 @@
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using System.IO;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 {
@@ -35,6 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
 
             Serializer = new LspSerializer();
             Serializer.RegisterRazorConverters();
+            Serializer.RegisterVSInternalExtensionConverters();
         }
 
         private LspSerializer Serializer { get; }
@@ -85,20 +87,29 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization
             var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
             var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, DefaultTagHelpers);
 
-            var completionQueryLocation = new SourceSpan(queryIndex, length: 0);
-            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
+            var queryableChange = new SourceChange(queryIndex, length: 0, newText: string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(queryableChange);
+            var context = new RazorCompletionContext(queryIndex, owner, syntaxTree, tagHelperDocumentContext);
 
-            var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context, completionQueryLocation);
-            var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(
+            var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);
+            var completionList = RazorCompletionListProvider.CreateLSPCompletionList(
                 razorCompletionItems,
-                new CompletionListCache(),
-                new[] { ExtendedCompletionItemKinds.TagHelper },
-                new PlatformAgnosticCompletionCapability()
+                new VSInternalClientCapabilities()
                 {
-                    VSCompletionList = new VSCompletionListCapability()
+                    TextDocument = new TextDocumentClientCapabilities()
                     {
-                        CommitCharacters = true,
-                        Data = true,
+                        Completion = new VSInternalCompletionSetting()
+                        {
+                            CompletionItemKind = new CompletionItemKindSetting()
+                            {
+                                ValueSet = new[] { CompletionItemKind.TagHelper }
+                            },
+                            CompletionList = new VSInternalCompletionListSetting()
+                            {
+                                CommitCharacters = true,
+                                Data = true,
+                            }
+                        }
                     }
                 });
             return completionList;

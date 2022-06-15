@@ -7,6 +7,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Projects;
 
@@ -21,17 +22,47 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private MacRazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
-            DotNetProject project!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
+            DotNetProject project,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor,
+            TextBufferProjectService projectService,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            if (project is null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspaceAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceAccessor));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _project = project;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
@@ -42,12 +73,37 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         // Internal for testing
         internal DefaultDotNetProjectHost(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor!!,
-            TextBufferProjectService projectService!!,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore!!,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions!!)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            VisualStudioMacWorkspaceAccessor workspaceAccessor,
+            TextBufferProjectService projectService,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (workspaceAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceAccessor));
+            }
+
+            if (projectService is null)
+            {
+                throw new ArgumentNullException(nameof(projectService));
+            }
+
+            if (projectConfigurationFilePathStore is null)
+            {
+                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+            }
+
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;

@@ -14,11 +14,14 @@ using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -29,13 +32,10 @@ using Microsoft.WebTools.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Progress;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server.WorkDone;
 using Xunit;
-using FormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
+using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -44,13 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
 
-        public IProgressManager ProgressManager => throw new NotImplementedException();
-
-        public IServerWorkDoneManager WorkDoneManager => throw new NotImplementedException();
-
-        public ILanguageServerConfiguration Configuration => throw new NotImplementedException();
-
-        public override InitializeParams ClientSettings
+        public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings
         {
             get
             {
@@ -70,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _documents.TryAdd("/" + path, codeDocument);
         }
 
-        private RazorDocumentFormattingResponse Format(DocumentOnTypeFormattingParams @params)
+        private RazorDocumentFormattingResponse Format(DocumentOnTypeFormattingParams _)
         {
             var response = new RazorDocumentFormattingResponse();
 
@@ -97,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
             var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
 
-            var exportProvider = TestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
             var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
             if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))
@@ -113,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var applyFormatEditsHandler = Activator.CreateInstance(editHandlerType, new object[] { bufferManager, threadSwitcher, textBufferFactoryService });
 
             // Make sure the buffer manager knows about the source document
-            var documentUri = DocumentUri.From($"file:///{@params.TextDocument.Uri}");
+            var documentUri = OmniSharp.Extensions.LanguageServer.Protocol.DocumentUri.From($"file:///{@params.TextDocument.Uri}");
             var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
             var initialContent = generatedHtml;
             var snapshotVersionFromLSP = 0;
@@ -193,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 return new TextEdit
                 {
-                    Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range()
+                    Range = new Range()
                     {
                         Start = new Position(startLinePosition.Line, startLinePosition.Character),
                         End = new Position(endLinePosition.Line, endLinePosition.Character),

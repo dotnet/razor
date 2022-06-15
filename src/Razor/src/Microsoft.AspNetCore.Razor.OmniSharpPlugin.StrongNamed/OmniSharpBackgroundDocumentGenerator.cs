@@ -17,10 +17,25 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
         private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
         public OmniSharpBackgroundDocumentGenerator(
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            RemoteTextLoaderFactory remoteTextLoaderFactory!!,
-            IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners!!)
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            RemoteTextLoaderFactory remoteTextLoaderFactory,
+            IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (remoteTextLoaderFactory is null)
+            {
+                throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
+            }
+
+            if (documentProcessedListeners is null)
+            {
+                throw new ArgumentNullException(nameof(documentProcessedListeners));
+            }
+
             var wrappedListeners = documentProcessedListeners.Select(listener => new WrappedDocumentProcessedListener(remoteTextLoaderFactory, listener));
             _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
         }
@@ -36,9 +51,19 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             private readonly OmniSharpDocumentProcessedListener _innerDocumentProcessedListener;
 
             public WrappedDocumentProcessedListener(
-                RemoteTextLoaderFactory remoteTextLoaderFactory!!,
-                OmniSharpDocumentProcessedListener innerDocumentProcessedListener!!)
+                RemoteTextLoaderFactory remoteTextLoaderFactory,
+                OmniSharpDocumentProcessedListener innerDocumentProcessedListener)
             {
+                if (remoteTextLoaderFactory is null)
+                {
+                    throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
+                }
+
+                if (innerDocumentProcessedListener is null)
+                {
+                    throw new ArgumentNullException(nameof(innerDocumentProcessedListener));
+                }
+
                 _remoteTextLoaderFactory = remoteTextLoaderFactory;
                 _innerDocumentProcessedListener = innerDocumentProcessedListener;
             }

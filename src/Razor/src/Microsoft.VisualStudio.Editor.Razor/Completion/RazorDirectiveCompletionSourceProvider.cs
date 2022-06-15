@@ -25,13 +25,23 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly RazorCompletionFactsService _completionFactsService;
 
         [ImportingConstructor]
-        public RazorDirectiveCompletionSourceProvider(RazorCompletionFactsService completionFactsService!!)
+        public RazorDirectiveCompletionSourceProvider(RazorCompletionFactsService completionFactsService)
         {
+            if (completionFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(completionFactsService));
+            }
+
             _completionFactsService = completionFactsService;
         }
 
-        public IAsyncCompletionSource GetOrCreate(ITextView textView!!)
+        public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
+            if (textView is null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
             if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveCompletionSource), out IAsyncCompletionSource completionSource) ||
                 completionSource is null)

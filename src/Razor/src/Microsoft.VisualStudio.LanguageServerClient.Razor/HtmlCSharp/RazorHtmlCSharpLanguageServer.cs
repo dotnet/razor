@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
@@ -55,12 +55,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         public static async Task<RazorHtmlCSharpLanguageServer> CreateAsync(
-            Stream inputStream!!,
-            Stream outputStream!!,
+            Stream inputStream,
+            Stream outputStream,
             IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider,
             CancellationToken cancellationToken)
         {
+            if (inputStream is null)
+            {
+                throw new ArgumentNullException(nameof(inputStream));
+            }
+
+            if (outputStream is null)
+            {
+                throw new ArgumentNullException(nameof(outputStream));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
 
             // Wait for logging infrastructure to initialize. This must be completed
             // before we can start listening via Json RPC (as we must link the log hub
@@ -72,15 +86,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         // Test constructor
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal RazorHtmlCSharpLanguageServer(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers!!)
+        internal RazorHtmlCSharpLanguageServer(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
+            if (requestHandlers is null)
+            {
+                throw new ArgumentNullException(nameof(requestHandlers));
+            }
+
             _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult?> InitializeAsync(JToken input!!, CancellationToken cancellationToken)
+        public Task<InitializeResult?> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
+            if (input is null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
 
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSInternalClientCapabilities
@@ -117,80 +140,145 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<CompletionItem[], CompletionList>?> ProvideCompletionsAsync(CompletionParams completionParams!!, CancellationToken cancellationToken)
+        public Task<SumType<CompletionItem[], CompletionList>?> ProvideCompletionsAsync(CompletionParams completionParams, CancellationToken cancellationToken)
         {
+            if (completionParams is null)
+            {
+                throw new ArgumentNullException(nameof(completionParams));
+            }
+
             return ExecuteRequestAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(Methods.TextDocumentCompletionName, completionParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentHoverName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Hover?> ProvideHoverAsync(TextDocumentPositionParams positionParams!!, CancellationToken cancellationToken)
+        public Task<Hover?> ProvideHoverAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
+            if (positionParams is null)
+            {
+                throw new ArgumentNullException(nameof(positionParams));
+            }
+
             return ExecuteRequestAsync<TextDocumentPositionParams, Hover>(Methods.TextDocumentHoverName, positionParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<CompletionItem?> ResolveCompletionAsync(CompletionItem request!!, CancellationToken cancellationToken)
+        public Task<CompletionItem?> ResolveCompletionAsync(CompletionItem request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             return ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName, request, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request!!, CancellationToken cancellationToken)
+        public Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             return ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(VSInternalMethods.OnAutoInsertName, request, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
-        public Task<TextEdit[]?> OnTypeFormattingAsync(DocumentOnTypeFormattingParams request!!, CancellationToken cancellationToken)
+        public Task<TextEdit[]?> OnTypeFormattingAsync(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             return ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName, request, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<LinkedEditingRanges?> OnLinkedEditingRangeAsync(LinkedEditingRangeParams request!!, CancellationToken cancellationToken)
+        public Task<LinkedEditingRanges?> OnLinkedEditingRangeAsync(LinkedEditingRangeParams request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             return ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges>(Methods.TextDocumentLinkedEditingRangeName, request, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Location[]?> GoToDefinitionAsync(TextDocumentPositionParams positionParams!!, CancellationToken cancellationToken)
+        public Task<Location[]?> GoToDefinitionAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
+            if (positionParams is null)
+            {
+                throw new ArgumentNullException(nameof(positionParams));
+            }
+
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentDefinitionName, positionParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalReferenceItem[]?> FindAllReferencesAsync(VSInternalReferenceParams referenceParams!!, CancellationToken cancellationToken)
+        public Task<VSInternalReferenceItem[]?> FindAllReferencesAsync(VSInternalReferenceParams referenceParams, CancellationToken cancellationToken)
         {
+            if (referenceParams is null)
+            {
+                throw new ArgumentNullException(nameof(referenceParams));
+            }
+
             return ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]>(Methods.TextDocumentReferencesName, referenceParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SignatureHelp?> SignatureHelpAsync(TextDocumentPositionParams positionParams!!, CancellationToken cancellationToken)
+        public Task<SignatureHelp?> SignatureHelpAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
+            if (positionParams is null)
+            {
+                throw new ArgumentNullException(nameof(positionParams));
+            }
+
             return ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(Methods.TextDocumentSignatureHelpName, positionParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentHighlight[]?> HighlightDocumentAsync(DocumentHighlightParams documentHighlightParams!!, CancellationToken cancellationToken)
+        public Task<DocumentHighlight[]?> HighlightDocumentAsync(DocumentHighlightParams documentHighlightParams, CancellationToken cancellationToken)
         {
+            if (documentHighlightParams is null)
+            {
+                throw new ArgumentNullException(nameof(documentHighlightParams));
+            }
+
             return ExecuteRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(Methods.TextDocumentDocumentHighlightName, documentHighlightParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceEdit?> RenameAsync(RenameParams renameParams!!, CancellationToken cancellationToken)
+        public Task<WorkspaceEdit?> RenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
         {
+            if (renameParams is null)
+            {
+                throw new ArgumentNullException(nameof(renameParams));
+            }
+
             return ExecuteRequestAsync<RenameParams, WorkspaceEdit?>(Methods.TextDocumentRenameName, renameParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<Location[]?, VSInternalReferenceItem[]?>> GoToImplementationAsync(TextDocumentPositionParams positionParams!!, CancellationToken cancellationToken)
+        public Task<SumType<Location[]?, VSInternalReferenceItem[]?>> GoToImplementationAsync(TextDocumentPositionParams positionParams, CancellationToken cancellationToken)
         {
+            if (positionParams is null)
+            {
+                throw new ArgumentNullException(nameof(positionParams));
+            }
+
             return ExecuteRequestAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(Methods.TextDocumentImplementationName, positionParams, ClientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<IReadOnlyList<VSInternalDiagnosticReport>?> DocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams documentDiagnosticsParams!!, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<VSInternalDiagnosticReport>?> DocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
         {
+            if (documentDiagnosticsParams is null)
+            {
+                throw new ArgumentNullException(nameof(documentDiagnosticsParams));
+            }
+
             return ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, IReadOnlyList<VSInternalDiagnosticReport>>(VSInternalMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, ClientCapabilities, cancellationToken);
         }
 
@@ -219,13 +307,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // Internal for testing
         internal Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
-            RequestType request!!,
+            RequestType request,
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken) where RequestType : class
         {
             if (string.IsNullOrEmpty(methodName))
             {
                 throw new ArgumentException("Invalid method name", nameof(methodName));
+            }
+
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
             }
 
             if (!_requestHandlers.TryGetValue(methodName, out var lazyHandler))

@@ -5,22 +5,70 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {
-        public static bool TryGetAbsoluteIndex(this Position position!!, SourceText sourceText!!, ILogger logger, out int absoluteIndex)
+        public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
         {
-            var linePosition = new LinePosition(position.Line, position.Character);
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            return TryGetAbsoluteIndex(position.Character, position.Line, sourceText, logger, out absoluteIndex);
+        }
+
+        public static int CompareTo(this Position position, Position other)
+        {
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            var result = position.Line.CompareTo(other.Line);
+            return result != 0 ? result : position.Character.CompareTo(other.Character);
+        }
+
+        public static bool IsValid(this Position position, SourceText sourceText)
+        {
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            return position.Line >= 0 &&
+                position.Character >= 0 &&
+                position.Line < sourceText.Lines.Count &&
+                sourceText.Lines[position.Line].Start + position.Character <= sourceText.Length;
+        }
+
+        private static bool TryGetAbsoluteIndex(int character, int line, SourceText sourceText, ILogger logger, out int absoluteIndex)
+        {
+            var linePosition = new LinePosition(line, character);
             if (linePosition.Line >= sourceText.Lines.Count)
             {
-                var errorMessage = Resources.FormatPositionIndex_Outside_Range(
-                    position.Line,
-                    nameof(sourceText),
-                    sourceText.Lines.Count);
-                logger?.LogError(errorMessage);
+#pragma warning disable CA2254 // Template should be a static expression.
+// This is actually static, the compiler just doesn't know it.
+                logger?.LogError(Resources.GetResourceString("FormatPositionIndex_Outside_Range"), line, nameof(sourceText), sourceText.Lines.Count);
+#pragma warning restore CA2254 // Template should be a static expression
                 absoluteIndex = -1;
                 return false;
             }
@@ -28,20 +76,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var index = sourceText.Lines.GetPosition(linePosition);
             absoluteIndex = index;
             return true;
-        }
-
-        public static int CompareTo(this Position position!!, Position other!!)
-        {
-            var result = position.Line.CompareTo(other.Line);
-            return result != 0 ? result : position.Character.CompareTo(other.Character);
-        }
-
-        public static bool IsValid(this Position position!!, SourceText sourceText!!)
-        {
-            return position.Line >= 0 &&
-                position.Character >= 0 &&
-                position.Line < sourceText.Lines.Count &&
-                sourceText.Lines[position.Line].Start + position.Character <= sourceText.Length;
         }
     }
 }

@@ -65,6 +65,11 @@ namespace Microsoft.AspNetCore.BenchmarkDotNet.Runner
         private static IConfig GetConfig()
         {
 #if DEBUG
+            // So that the using statements, above, don't appear as a warning for being unused
+            _ = Job.Default;
+            _ = CsProjCoreToolchain.NetCoreApp30;
+            _ = NetCoreAppSettings.NetCoreApp30;
+
             return new DebugInProcessConfig();
 #else
             return ManualConfig.CreateEmpty()

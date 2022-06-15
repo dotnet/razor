@@ -8,59 +8,56 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
-    internal class RazorDefinitionEndpoint : IDefinitionHandler
+    internal class RazorDefinitionEndpoint : IDefinitionEndpoint
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger<RazorDefinitionEndpoint> _logger;
 
         public RazorDefinitionEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            DocumentResolver documentResolver!!,
-            RazorComponentSearchEngine componentSearchEngine!!,
-            RazorDocumentMappingService documentMappingService!!,
-            ILoggerFactory loggerFactory!!)
+            DocumentContextFactory documentContextFactory,
+            RazorComponentSearchEngine componentSearchEngine,
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _componentSearchEngine = componentSearchEngine;
-            _documentMappingService = documentMappingService;
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
+            _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
         }
 
-        public DefinitionRegistrationOptions GetRegistrationOptions(DefinitionCapability capability, ClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new DefinitionRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
+            const string ServerCapability = "definitionProvider";
+            var option = new DefinitionOptions();
+
+            return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
-        // The return type of the handler should be nullable. O# tracking issue:
-        // https://github.com/OmniSharp/csharp-language-server-protocol/issues/644
-        public async Task<LocationOrLocationLinks?> Handle(DefinitionParams request, CancellationToken cancellationToken)
-#pragma warning restore CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
+        public async Task<DefinitionResult?> Handle(DefinitionParamsBridge request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting go-to-def endpoint request.");
 
@@ -70,33 +67,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-                _documentResolver.TryResolveDocument(path, out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
-            if (documentSnapshot is null)
+            if (documentContext is null)
             {
                 _logger.LogWarning("Document snapshot is null for document.");
                 return null;
             }
 
-            if (!FileKinds.IsComponent(documentSnapshot.FileKind))
+            if (!FileKinds.IsComponent(documentContext.FileKind))
             {
-                _logger.LogInformation($"FileKind '{documentSnapshot.FileKind}' is not a component type.");
+                _logger.LogInformation("FileKind '{fileKind}' is not a component type.", documentContext.FileKind);
                 return null;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
-            {
-                _logger.LogInformation("Generated document is unsupported.");
-                return null;
-            }
-
-            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, request.Position, _logger).ConfigureAwait(false);
+            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, request.Position, _logger, cancellationToken).ConfigureAwait(false);
             if (originTagDescriptor is null)
             {
                 _logger.LogInformation("Origin TagHelper descriptor is null.");
@@ -110,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            _logger.LogInformation($"Definition found at file path: {originComponentDocumentSnapshot.FilePath}");
+            _logger.LogInformation("Definition found at file path: {filePath}", originComponentDocumentSnapshot.FilePath);
 
             var range = await GetNavigateRangeAsync(originComponentDocumentSnapshot, attributeDescriptor, cancellationToken);
 
@@ -121,14 +106,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 Host = string.Empty,
             }.Uri;
 
-            return new LocationOrLocationLinks(new[]
+            return new[]
             {
-                new LocationOrLocationLink(new Location
+                new VSInternalLocation
                 {
                     Uri = originComponentUri,
                     Range = range,
-                }),
-            });
+                },
+            };
         }
 
         private async Task<Range> GetNavigateRangeAsync(DocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
@@ -150,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             // If we were trying to navigate to a property, and we couldn't find it, we can at least take
             // them to the file for the component. If the property was defined in a partial class they can
             // at least then press F7 to go there.
-            return new Range(new Position(0, 0), new Position(0, 0));
+            return new Range { Start = new Position(0, 0), End = new Position(0, 0) };
         }
 
         internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, RazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
@@ -205,19 +190,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         }
 
         internal static async Task<(TagHelperDescriptor?, BoundAttributeDescriptor?)> GetOriginTagHelperBindingAsync(
-            DocumentSnapshot documentSnapshot,
-            RazorCodeDocument codeDocument,
+            DocumentContext documentContext,
             Position position,
-            ILogger logger)
+            ILogger logger,
+            CancellationToken cancellationToken)
         {
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var linePosition = new LinePosition(position.Line, position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, position.Line, position.Character);
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree?.Root is null)
+            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
+            if (syntaxTree.Root is null)
             {
                 logger.LogInformation("Could not retrieve syntax tree.");
                 return (null, null);
@@ -264,7 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             if (!name.Span.Contains(location.AbsoluteIndex))
             {
-                logger.LogInformation($"Tag name or attributes's span does not contain location's absolute index ({location.AbsoluteIndex}).");
+                logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", location.AbsoluteIndex);
                 return (null, null);
             }
 

@@ -3,7 +3,7 @@
 
 #nullable disable
 
-using OmniSharp.Extensions.LanguageServer.Protocol;
+using System;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Arrange
             var fqn = "Abc.Xyz";
-            var docUri = DocumentUri.From("c:/path");
+            var docUri = new Uri("c:/path");
 
             // Act
             var result = AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fqn, docUri, out var @namespace, out var resolutionParams);

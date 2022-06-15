@@ -1,23 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -38,11 +37,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             "IDE1007"
         };
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
-            RazorCodeActionContext context!!,
-            IEnumerable<RazorCodeAction> codeActions!!,
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+            RazorCodeActionContext context,
+            IEnumerable<RazorVSInternalCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (codeActions is null)
+            {
+                throw new ArgumentNullException(nameof(codeActions));
+            }
+
             if (context.Request?.Context?.Diagnostics is null)
             {
                 return EmptyResult;
@@ -58,24 +67,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ProcessCodeActionsVSCode(context, codeActions);
 
             var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToArray();
-            return Task.FromResult(orderedResults as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(orderedResults);
         }
 
-        private static IEnumerable<RazorCodeAction> ProcessCodeActionsVSCode(
+        private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions)
+            IEnumerable<RazorVSInternalCodeAction> codeActions)
         {
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
-                diagnostic.Severity == DiagnosticSeverity.Error &&
-                diagnostic.Code?.IsString == true &&
-                s_supportedDiagnostics.Any(d => diagnostic.Code.Value.String.Equals(d, StringComparison.OrdinalIgnoreCase)));
+                diagnostic is { Severity: DiagnosticSeverity.Error, Code: { } code } &&
+                code.TryGetSecond(out var str) &&
+                s_supportedDiagnostics.Any(d => str.Equals(d, StringComparison.OrdinalIgnoreCase)));
 
             if (diagnostics is null || !diagnostics.Any())
             {
-                return Array.Empty<RazorCodeAction>();
+                return Array.Empty<RazorVSInternalCodeAction>();
             }
 
-            var typeAccessibilityCodeActions = new List<RazorCodeAction>();
+            var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -100,7 +109,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 foreach (var codeAction in codeActions)
                 {
-                    if (!codeAction.Name.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
+                    var name = codeAction.Name;
+                    if (name is null || !name.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
                     {
                         continue;
                     }
@@ -146,47 +156,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return typeAccessibilityCodeActions;
         }
 
-        private static IEnumerable<RazorCodeAction> ProcessCodeActionsVS(
+        private static IEnumerable<RazorVSInternalCodeAction> ProcessCodeActionsVS(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions)
+            IEnumerable<RazorVSInternalCodeAction> codeActions)
         {
-            var typeAccessibilityCodeActions = new List<RazorCodeAction>(1);
+            var typeAccessibilityCodeActions = new List<RazorVSInternalCodeAction>(1);
 
             foreach (var codeAction in codeActions)
             {
-                if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
+                if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
                 {
-                    var node = FindImplicitOrExplicitExpressionNode(context);
                     string action;
 
-                    // The formatting pass of our Default code action resolver rejects
-                    // implicit/explicit expressions. So if we're in an implicit expression,
-                    // we run the remapping resolver responsible for simply remapping
-                    // (without formatting) the resolved code action. We do not support
-                    // explicit expressions due to issues with the remapping methodology
-                    // risking document corruption.
-                    if (node is null)
+                    if (!TryGetOwner(context, out var owner))
                     {
-                        action = LanguageServerConstants.CodeActions.Default;
+                        // Failed to locate a valid owner for the light bulb
+                        continue;
                     }
-                    else if (node is CSharpImplicitExpressionSyntax)
+                    else if (IsSingleLineDirectiveNode(owner))
+                    {
+                        // Don't support single line directives
+                        continue;
+                    }
+                    else if (IsExplicitExpressionNode(owner))
+                    {
+                        // Don't support explicit expressions
+                        continue;
+                    }
+                    else if (IsImplicitExpressionNode(owner))
                     {
                         action = LanguageServerConstants.CodeActions.UnformattedRemap;
                     }
                     else
                     {
-                        continue;
+                        // All other scenarios we support default formatted code action behavior
+                        action = LanguageServerConstants.CodeActions.Default;
                     }
 
                     typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, action));
                 }
                 // For add using suggestions, the code action title is of the form:
                 // `using System.Net;`
-                else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
+                else if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                     AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
-                    var newCodeAction = codeAction with { Title = $"@using {@namespace}" };
-                    typeAccessibilityCodeActions.Add(newCodeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
+                    codeAction.Title = $"@using {@namespace}";
+                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
                 }
                 // Not a type accessibility code action
                 else
@@ -197,35 +212,59 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return typeAccessibilityCodeActions;
 
-            static SyntaxNode FindImplicitOrExplicitExpressionNode(RazorCodeActionContext context)
+            static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
             {
                 var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
                 var syntaxTree = context.CodeDocument.GetSyntaxTree();
                 if (syntaxTree?.Root is null)
                 {
-                    return null;
+                    owner = null;
+                    return false;
                 }
 
-                var owner = syntaxTree.Root.LocateOwner(change);
+                owner = syntaxTree.Root.LocateOwner(change);
                 if (owner is null)
                 {
                     Debug.Fail("Owner should never be null.");
-                    return null;
+                    return false;
                 }
 
+                return true;
+            }
+
+            static bool IsImplicitExpressionNode(SyntaxNode owner)
+            {
                 // E.g, (| is position)
                 //
                 // `@|foo` - true
+                //
+                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
+            }
+
+            static bool IsExplicitExpressionNode(SyntaxNode owner)
+            {
+                // E.g, (| is position)
+                //
                 // `@(|foo)` - true
                 //
-                return owner.AncestorsAndSelf().FirstOrDefault(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
+                return owner.AncestorsAndSelf().Any(n => n is CSharpExplicitExpressionBodySyntax);
+            }
+
+            static bool IsSingleLineDirectiveNode(SyntaxNode owner)
+            {
+                // E.g, (| is position)
+                //
+                // `@inject |SomeType SomeName` - true
+                //
+                return owner.AncestorsAndSelf().Any(
+                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
             }
         }
 
-        private static RazorCodeAction CreateFQNCodeAction(
+        private static RazorVSInternalCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            RazorCodeAction nonFQNCodeAction,
+            RazorVSInternalCodeAction nonFQNCodeAction,
             string fullyQualifiedName)
         {
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
@@ -236,11 +275,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Range = fqnDiagnostic.Range
             };
 
-            var fqnWorkspaceEditDocumentChange = new WorkspaceEditDocumentChange(new TextDocumentEdit()
+            var fqnWorkspaceEditDocumentChange = new TextDocumentEdit()
             {
                 TextDocument = codeDocumentIdentifier,
                 Edits = new[] { fqnTextEdit },
-            });
+            };
 
             var fqnWorkspaceEdit = new WorkspaceEdit()
             {

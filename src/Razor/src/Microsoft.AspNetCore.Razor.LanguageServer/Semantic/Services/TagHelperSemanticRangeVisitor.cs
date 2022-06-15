@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -409,8 +409,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // We don't want to classify TagNames of well-known HTML
         // elements as TagHelpers (even if they are). So the 'input' in`<input @onclick='...' />`
         // needs to not be marked as a TagHelper, but `<Input @onclick='...' />` should be.
-        private static bool ClassifyTagName(MarkupTagHelperElementSyntax node!!)
+        private static bool ClassifyTagName(MarkupTagHelperElementSyntax node)
         {
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             if (node.StartTag != null && node.StartTag.Name != null)
             {
                 var binding = node.TagHelperInfo.BindingResult;
@@ -451,7 +456,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     {
                         var startPosition = new Position(range.Start.Line + i, charPosition);
                         var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
-                        var lineRange = new Range(startPosition, endPosition);
+                        var lineRange = new Range
+                        {
+                            Start = startPosition,
+                            End = endPosition
+                        };
                         var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
                         AddRange(semantic);
                         charPosition = 0;

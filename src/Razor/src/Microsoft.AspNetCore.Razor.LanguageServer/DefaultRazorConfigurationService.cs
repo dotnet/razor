@@ -19,8 +19,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ClientNotifierServiceBase _server;
         private readonly ILogger _logger;
 
-        public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer!!, ILoggerFactory loggerFactory!!)
+        public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer, ILoggerFactory loggerFactory)
         {
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _server = languageServer;
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
@@ -46,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to sync client configuration on the server: {ex}");
+                _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
                 return null;
             }
         }
@@ -159,7 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
+                _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
                 return defaultValue;
             }
         }

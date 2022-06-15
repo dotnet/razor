@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -33,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var badEdit = new TextEdit()
             {
                 NewText = "@ ",
-                Range = new Range(new Position(0, 0), new Position(0, 0))
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) }
             };
             var input = new FormattingResult(new[] { badEdit }, RazorLanguageKind.CSharp);
             var pass = GetPass();
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var badEdit = new TextEdit()
             {
                 NewText = "@ ",
-                Range = new Range(new Position(0, 0), new Position(0, 0))
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) }
             };
             var input = new FormattingResult(new[] { badEdit }, RazorLanguageKind.Html);
             var pass = GetPass();
@@ -85,7 +86,7 @@ public class Foo { }
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(2, 0))
+                    Range = new Range{ Start = new Position(2, 0), End = new Position(2, 0) }
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
@@ -111,7 +112,7 @@ public class Foo { }
             var badEdit = new TextEdit()
             {
                 NewText = "@ ", // Creates a diagnostic
-                Range = new Range(new Position(0, 0), new Position(0, 0))
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
             var input = new FormattingResult(new[] { badEdit }, RazorLanguageKind.Razor);
             var pass = GetPass();

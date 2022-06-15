@@ -14,6 +14,7 @@
     <Import assembly="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
+    <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
     <Import assembly="MediatR.dll" />
     <Import assembly="OmniSharp.Extensions.JsonRpc.dll" />
     <Import assembly="OmniSharp.Extensions.LanguageProtocol.dll" />
@@ -27,12 +28,17 @@
     <Import assembly="Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
     <Import assembly="Microsoft.Extensions.Configuration.dll" />
     <Import assembly="Microsoft.Extensions.Configuration.Abstractions.dll" />
-    <Import assembly="Microsoft.Extensions.Logging.dll" />
-    <Import assembly="Microsoft.Extensions.Logging.Abstractions.dll" />
-    <Import assembly="System.IO.Pipelines.dll" />
-    <Import assembly="System.Reactive.dll" />
-    <Import assembly="System.Runtime.CompilerServices.Unsafe.dll" />
-    <Import assembly="System.Threading.Channels.dll" />
+
+    <!--
+        Purposefully not including these actual dependencies because VS4Mac ships them for us on our behalf. This differs from VisualStudio windows.
+
+        <Import assembly="Microsoft.Extensions.Logging.dll" />
+        <Import assembly="Microsoft.Extensions.Logging.Abstractions.dll" />
+        <Import assembly="System.IO.Pipelines.dll" />
+        <Import assembly="System.Reactive.dll" />
+        <Import assembly="System.Runtime.CompilerServices.Unsafe.dll" />
+        <Import assembly="System.Threading.Channels.dll" />
+    -->
   </Runtime>
   <Dependencies>
     <Addin id="::MonoDevelop.Core" version="17.0" />

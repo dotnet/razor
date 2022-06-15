@@ -27,15 +27,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
         [ImportingConstructor]
         public DefaultLSPProximityExpressionsProvider(
-            LSPRequestInvoker requestInvoker!!,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider!!)
+            LSPRequestInvoker requestInvoker,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _loggerProvider = loggerProvider;
         }
 
-        public async override Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot!!, Position position!!, CancellationToken cancellationToken)
+        public async override Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            if (position is null)
+            {
+                throw new ArgumentNullException(nameof(position));
+            }
 
             // We initialize the logger here instead of the constructor as the breakpoint span provider is constructed
             // *before* the language server. Thus, the log hub has yet to be initialized, thus we would be unable to
@@ -59,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var languageResponse = response?.Response;
             if (languageResponse is null)
             {
-                _logHubLogger.LogInformation("The proximity expressions could not be resolved.");
+                _logHubLogger?.LogInformation("The proximity expressions could not be resolved.");
                 return null;
             }
 

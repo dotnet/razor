@@ -4,49 +4,13 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     public class DefaultLSPTagHelperTooltipFactoryTest
     {
-        internal static ClientNotifierServiceBase LanguageServer
-        {
-            get
-            {
-                var initializeParams = new InitializeParams
-                {
-                    Capabilities = new ClientCapabilities
-                    {
-                        TextDocument = new TextDocumentClientCapabilities
-                        {
-                            Completion = new Supports<CompletionCapability>
-                            {
-                                Value = new CompletionCapability
-                                {
-                                    CompletionItem = new CompletionItemCapabilityOptions
-                                    {
-                                        SnippetSupport = true,
-                                        DocumentationFormat = new Container<MarkupKind>(MarkupKind.Markdown)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-                languageServer.SetupGet(server => server.ClientSettings)
-                    .Returns(initializeParams);
-
-                return languageServer.Object;
-            }
-        }
-
         [Fact]
         public void CleanSummaryContent_Markup_ReplacesSeeCrefs()
         {
@@ -97,11 +61,11 @@ World", cleanedSummary);
         public void TryCreateTooltip_Markup_NoAssociatedTagHelperDescriptions_ReturnsFalse()
         {
             // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(LanguageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var elementDescription = AggregateBoundElementDescription.Default;
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.Markdown,  out var markdown);
 
             // Assert
             Assert.False(result);
@@ -112,14 +76,14 @@ World", cleanedSummary);
         public void TryCreateTooltip_Markup_Element_SingleAssociatedTagHelper_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(LanguageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
                 new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
             };
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.Markdown, out var markdown);
 
             // Assert
             Assert.True(result);
@@ -133,9 +97,7 @@ Uses `List<System.String>`s", markdown.Value);
         public void TryCreateTooltip_Markup_Element_PlainText_NoBold()
         {
             // Arrange
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Completion.Value.CompletionItem.DocumentationFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
                 new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
@@ -143,7 +105,7 @@ Uses `List<System.String>`s", markdown.Value);
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.PlainText, out var markdown);
 
             // Assert
             Assert.True(result, "TryCreateTooltip should have succeeded");
@@ -157,9 +119,7 @@ Uses `List<System.String>`s", markdown.Value);
         public void TryCreateTooltip_Markup_Attribute_PlainText_NoBold()
         {
             // Arrange
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Completion.Value.CompletionItem.DocumentationFormat = new Container<MarkupKind>(MarkupKind.PlainText);
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var associatedAttributeDescriptions = new[]
             {
                 new BoundAttributeDescriptionInfo(
@@ -171,7 +131,7 @@ Uses `List<System.String>`s", markdown.Value);
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.PlainText, out var markdown);
 
             // Assert
             Assert.True(result);
@@ -180,35 +140,12 @@ Uses `List<System.String>`s", markdown.Value);
 Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.PlainText, markdown.Kind);
         }
-        [Fact]
-        public void TryCreateTooltip_Markup_Element_BothPlainTextAndMarkdown_IsBold()
-        {
-            // Arrange
-            var languageServer = LanguageServer;
-            languageServer.ClientSettings.Capabilities.TextDocument.Completion.Value.CompletionItem.DocumentationFormat = new Container<MarkupKind>(MarkupKind.PlainText, MarkupKind.Markdown);
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
-            var associatedTagHelperInfos = new[]
-            {
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
-            };
-            var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
-
-            // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(@"**SomeTagHelper**
-
-Uses `List<System.String>`s", markdown.Value);
-            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
-        }
 
         [Fact]
         public void TryCreateTooltip_Markup_Element_MultipleAssociatedTagHelpers_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(LanguageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
                 new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
@@ -217,7 +154,7 @@ Uses `List<System.String>`s", markdown.Value);
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, MarkupKind.Markdown, out var markdown);
 
             // Assert
             Assert.True(result);
@@ -235,7 +172,7 @@ Also uses `List<System.String>`s", markdown.Value);
         public void TryCreateTooltip_Markup_Attribute_SingleAssociatedAttribute_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(LanguageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var associatedAttributeDescriptions = new[]
             {
                 new BoundAttributeDescriptionInfo(
@@ -247,7 +184,7 @@ Also uses `List<System.String>`s", markdown.Value);
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
 
             // Assert
             Assert.True(result);
@@ -261,7 +198,7 @@ Uses `List<System.String>`s", markdown.Value);
         public void TryCreateTooltip_Markup_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory(LanguageServer);
+            var descriptionFactory = new DefaultLSPTagHelperTooltipFactory();
             var associatedAttributeDescriptions = new[]
             {
                 new BoundAttributeDescriptionInfo(
@@ -278,7 +215,7 @@ Uses `List<System.String>`s", markdown.Value);
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, MarkupKind.Markdown, out var markdown);
 
             // Assert
             Assert.True(result);

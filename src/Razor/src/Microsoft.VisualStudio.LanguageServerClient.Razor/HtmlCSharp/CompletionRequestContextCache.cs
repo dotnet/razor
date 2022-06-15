@@ -25,8 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _completionRequests = new List<CompletionRequestCacheItem>();
         }
 
-        public long Set(CompletionRequestContext requestContext!!)
+        public long Set(CompletionRequestContext requestContext)
         {
+            if (requestContext is null)
+            {
+                throw new ArgumentNullException(nameof(requestContext));
+            }
+
             lock (_accessLock)
             {
                 // If cache exceeds maximum size, remove the oldest list in the cache

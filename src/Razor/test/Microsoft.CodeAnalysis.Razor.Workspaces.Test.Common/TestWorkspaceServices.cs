@@ -20,11 +20,31 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Workspace _workspace;
 
         public TestWorkspaceServices(
-            HostServices hostServices!!,
-            IEnumerable<IWorkspaceService> workspaceServices!!,
-            IEnumerable<ILanguageService> languageServices!!,
-            Workspace workspace!!)
+            HostServices hostServices,
+            IEnumerable<IWorkspaceService> workspaceServices,
+            IEnumerable<ILanguageService> languageServices,
+            Workspace workspace)
         {
+            if (hostServices is null)
+            {
+                throw new ArgumentNullException(nameof(hostServices));
+            }
+
+            if (workspaceServices is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceServices));
+            }
+
+            if (languageServices is null)
+            {
+                throw new ArgumentNullException(nameof(languageServices));
+            }
+
+            if (workspace is null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             _hostServices = hostServices;
             _workspaceServices = workspaceServices;
             _workspace = workspace;

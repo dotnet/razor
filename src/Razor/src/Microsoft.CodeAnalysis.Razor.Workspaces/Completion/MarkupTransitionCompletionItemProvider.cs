@@ -4,19 +4,18 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Language;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.VisualStudio.Editor.Razor;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
     {
-        private static readonly IReadOnlyCollection<string> s_elementCommitCharacters = new HashSet<string>{ ">" };
+        private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { ">" });
 
         private readonly HtmlFactsService _htmlFactsService;
 
@@ -41,16 +40,24 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
         }
 
-        public MarkupTransitionCompletionItemProvider(HtmlFactsService htmlFactsService!!)
+        public MarkupTransitionCompletionItemProvider(HtmlFactsService htmlFactsService)
         {
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
             _htmlFactsService = htmlFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
-            var change = new SourceChange(location, string.Empty);
-            var owner = context.SyntaxTree.Root.LocateOwner(change);
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
+            var owner = context.Owner;
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
@@ -67,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Also helps filter out edge cases like `< te` and `< te=""`
             // (see comment in AtMarkupTransitionCompletionPoint)
             if (!_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out _) ||
-                !containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
+                !containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
             {
                 return Array.Empty<RazorCompletionItem>();
             }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -31,11 +29,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
         };
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
-            RazorCodeActionContext context!!,
-            IEnumerable<RazorCodeAction> codeActions!!,
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+            RazorCodeActionContext context,
+            IEnumerable<RazorVSInternalCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (codeActions is null)
+            {
+                throw new ArgumentNullException(nameof(codeActions));
+            }
 
             // Used to identify if this is VSCode which doesn't support
             // code action resolve.
@@ -44,17 +51,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            var results = new List<RazorCodeAction>();
+            var results = new List<RazorVSInternalCodeAction>();
 
             foreach (var codeAction in codeActions)
             {
-                if (SupportedDefaultCodeActionNames.Contains(codeAction.Name))
+                if (codeAction.Name is not null && SupportedDefaultCodeActionNames.Contains(codeAction.Name))
                 {
                     results.Add(codeAction.WrapResolvableCSharpCodeAction(context));
                 }
             }
 
-            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(results);
         }
     }
 }

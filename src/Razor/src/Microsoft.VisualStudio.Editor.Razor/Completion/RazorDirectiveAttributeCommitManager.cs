@@ -17,8 +17,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     {
         public IEnumerable<char> PotentialCommitCharacters => new[] { '=', ':' };
 
-        public bool ShouldCommitCompletion(IAsyncCompletionSession session!!, SnapshotPoint location, char typedChar, CancellationToken token)
+        public bool ShouldCommitCompletion(IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken token)
         {
+            if (session is null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
             if (!session.Properties.TryGetCompletionItemKinds(out var completionItemKinds))
             {
                 // There were no completions provided from our directive attribute completion provider(s).

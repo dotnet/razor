@@ -18,13 +18,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         private readonly IReadOnlyList<RazorCompletionItemProvider> _completionItemProviders;
 
         [ImportingConstructor]
-        public DefaultRazorCompletionFactsService([ImportMany] IEnumerable<RazorCompletionItemProvider> completionItemProviders!!)
+        public DefaultRazorCompletionFactsService([ImportMany] IEnumerable<RazorCompletionItemProvider> completionItemProviders)
         {
+            if (completionItemProviders is null)
+            {
+                throw new ArgumentNullException(nameof(completionItemProviders));
+            }
+
             _completionItemProviders = completionItemProviders.ToArray();
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context!!, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (context.TagHelperDocumentContext is null)
             {
                 throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
@@ -34,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             for (var i = 0; i < _completionItemProviders.Count; i++)
             {
                 var completionItemProvider = _completionItemProviders[i];
-                var items = completionItemProvider.GetCompletionItems(context, location);
+                var items = completionItemProvider.GetCompletionItems(context);
                 completions.AddRange(items);
             }
 

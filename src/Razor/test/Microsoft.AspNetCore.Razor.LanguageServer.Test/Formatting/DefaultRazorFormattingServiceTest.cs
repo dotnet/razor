@@ -6,7 +6,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -28,12 +28,12 @@ public class Foo{}
                 new TextEdit()
                 {
                     NewText = "Bar",
-                    Range = new Range(new Position(2, 13), new Position(2, 16))
+                    Range = new Range{ Start = new Position(2, 13), End = new Position(2, 16) }
                 },
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(2, 0))
+                    Range = new Range{Start = new Position(2, 0),End = new Position(2, 0)}
                 },
             };
 

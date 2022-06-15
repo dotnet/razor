@@ -7,11 +7,12 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -335,6 +336,132 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_DirectlyMaps_ReturnsTrue()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "<p>@DateTime.Now</p>",
+                "__o = DateTime.Now;",
+                new[] { new SourceMapping(new SourceSpan(4, 12), new SourceSpan(6, 12)) });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 6),
+                End = new Position(0, 18),
+            };
+            var expectedOriginalRange = new Range()
+            {
+                Start = new Position(0, 4),
+                End = new Position(0, 16)
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(expectedOriginalRange, originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_BeginningOfDocAndProjection_ReturnsFalse()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "@<unclosed></unclosed><p>@DateTime.Now</p>",
+                "(__builder) => { };__o = DateTime.Now;",
+                new[] { new SourceMapping(new SourceSpan(26, 12), new SourceSpan(25, 12)) });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 0),
+                End = new Position(0, 19),
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.False(result);
+            Assert.Null(originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjections_ReturnsTrue()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "@{ var abc = @<unclosed></unclosed> }",
+                " var abc =  (__builder) => { } ",
+                new[] {
+                    new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)),
+                    new SourceMapping(new SourceSpan(35, 1), new SourceSpan(30, 1)),
+                });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 12),
+                End = new Position(0, 29),
+            };
+            var expectedOriginalRange = new Range()
+            {
+                Start = new Position(0, 13),
+                End = new Position(0, 35)
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(expectedOriginalRange, originalRange);
+        }
+
+        [Fact]
+        public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjectionAndEndOfDoc_ReturnsTrue()
+        {
+            // Arrange
+            var service = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var codeDoc = CreateCodeDocumentWithCSharpProjection(
+                "@{ var abc = @<unclosed></unclosed>",
+                " var abc =  (__builder) => { }",
+                new[] { new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)), });
+            var projectedRange = new Range()
+            {
+                Start = new Position(0, 12),
+                End = new Position(0, 29),
+            };
+            var expectedOriginalRange = new Range()
+            {
+                Start = new Position(0, 13),
+                End = new Position(0, 35)
+            };
+
+            // Act
+            var result = service.TryMapFromProjectedDocumentRange(
+                codeDoc,
+                projectedRange,
+                MappingBehavior.Inferred,
+                out var originalRange);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(expectedOriginalRange, originalRange);
+        }
+
+        [Fact]
         public void TryMapToProjectedDocumentPosition_NotMatchingAnyMapping()
         {
             // Arrange
@@ -572,7 +699,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 1)),
                     new SourceMapping(new SourceSpan(16, 19), new SourceSpan(11, 19))
                 });
-            var range = new Range(new Position(1, 10), new Position(1, 13));
+            var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
             // Act & Assert
             if (service.TryMapToProjectedDocumentRange(
@@ -602,7 +729,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 new[] {
                     new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 1)),
                 });
-            var range = new Range(new Position(1, 10), new Position(1, 13));
+            var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
             // Act
             var result = service.TryMapToProjectedDocumentRange(
@@ -628,7 +755,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     new SourceMapping(new SourceSpan(16, 3), new SourceSpan(11, 3)),
                     new SourceMapping(new SourceSpan(19, 10), new SourceSpan(5, 10))
                 });
-            var range = new Range(new Position(1, 10), new Position(1, 13));
+            var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
             // Act
             var result = service.TryMapToProjectedDocumentRange(
@@ -652,7 +779,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 32 + Environment.NewLine.Length, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 32 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -669,7 +796,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 42 + Environment.NewLine.Length, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 42 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Razor, languageKind);
@@ -692,7 +819,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 46 + Environment.NewLine.Length, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 46 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -706,7 +833,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -720,7 +847,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -734,7 +861,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length + 1, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length + 1, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Razor, languageKind);
@@ -763,7 +890,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var tagHelperSpans = Array.Empty<TagHelperSpanInternal>();
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -777,7 +904,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -791,7 +918,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -805,7 +932,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -819,7 +946,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 12, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 12, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -833,7 +960,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -847,7 +974,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 4, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 4, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -861,7 +988,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 1, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 1, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -875,7 +1002,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 3, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 3, text.Length, rightAssociative: false);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -889,7 +1016,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
             // Act
-            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length);
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+
+            // Assert
+            Assert.Equal(RazorLanguageKind.Html, languageKind);
+        }
+
+        [Fact]
+        public void GetLanguageKindCore_HtmlInCSharpLeftAssociative()
+        {
+            // Arrange
+            var text = "@if (true) { <br /> }";
+            var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
+
+            // Act
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: false);
+
+            // Assert
+            Assert.Equal(RazorLanguageKind.CSharp, languageKind);
+        }
+
+        [Fact]
+        public void GetLanguageKindCore_HtmlInCSharpRightAssociative()
+        {
+            // Arrange
+            var text = "@if (true) { <br /> }";
+            var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
+
+            // Act\
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: true);
+
+            // Assert
+            Assert.Equal(RazorLanguageKind.Html, languageKind);
+        }
+
+        [Fact]
+        public void GetLanguageKindCore_TagHelperInCSharpRightAssociative()
+        {
+            // Arrange
+            var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+            descriptor.TagMatchingRule(rule => rule.TagName = "test");
+            descriptor.SetTypeName("TestTagHelper");
+            var text = """
+                       @addTagHelper *, TestAssembly
+                       @if {
+                         <test>@Name</test>
+                       }
+                       """;
+            var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
+
+            // Act\
+            var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 40, text.Length, rightAssociative: true);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, languageKind);

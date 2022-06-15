@@ -28,11 +28,31 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         internal JoinableTask _processingChangedEventTestTask;
 
         public DefaultProjectSnapshotManagerProxy(
-            CollaborationSession session!!,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher!!,
-            ProjectSnapshotManager projectSnapshotManager!!,
-            JoinableTaskFactory joinableTaskFactory!!)
+            CollaborationSession session,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ProjectSnapshotManager projectSnapshotManager,
+            JoinableTaskFactory joinableTaskFactory)
         {
+            if (session is null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (projectSnapshotManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManager));
+            }
+
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
             _session = session;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManager;

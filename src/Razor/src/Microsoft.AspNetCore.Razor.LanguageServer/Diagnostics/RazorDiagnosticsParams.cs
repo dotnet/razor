@@ -5,6 +5,8 @@
 
 using System;
 using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
@@ -15,6 +17,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
         public Uri RazorDocumentUri { get; set; }
 
-        public OmniSharpVSDiagnostic[] Diagnostics { get; set; }
+        public VSDiagnostic[] Diagnostics { get; set; }
     }
 }

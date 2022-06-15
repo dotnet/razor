@@ -1,25 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
@@ -32,10 +28,12 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 #pragma warning restore CS0618 // Type or member is obsolete
             FilePathNormalizer = new FilePathNormalizer();
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
-            Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            Serializer = new LspSerializer();
+            Serializer.RegisterRazorConverters();
+            Serializer.RegisterVSInternalExtensionConverters();
         }
 
         // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
@@ -45,90 +43,43 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         // the opportunity to re-write our tests correctly.
         internal ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
 
-        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+        internal readonly ProjectSnapshotManagerDispatcher Dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
 
         internal FilePathNormalizer FilePathNormalizer { get; }
 
+        protected LspSerializer Serializer { get; }
+
         protected ILoggerFactory LoggerFactory { get; }
 
-        protected static AdhocWorkspace CreateTestWorkspace(IEnumerable<(Uri documentUri, SourceText csharpSourceText)> files, ExportProvider exportProvider)
+        protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
-            var workspace = TestWorkspace.Create() as AdhocWorkspace;
-
-            // Add project and solution to workspace
-            var projectInfo = ProjectInfo.Create(
-                id: ProjectId.CreateNewId("TestProject"),
-                version: VersionStamp.Default,
-                name: "TestProject",
-                assemblyName: "TestProject",
-                language: LanguageNames.CSharp,
-                filePath: "C:\\TestSolution\\TestProject.csproj");
-
-            var solutionInfo = SolutionInfo.Create(
-                id: SolutionId.CreateNewId("TestSolution"),
-                version: VersionStamp.Default,
-                projects: new ProjectInfo[] { projectInfo });
-
-            workspace.AddSolution(solutionInfo);
-
-            // Add document to workspace. We use an IVT method to create the DocumentInfo variable because there's a special constructor in Roslyn that will
-            // help identify the document as belonging to Razor.
-            var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
-
-            var documentCount = 0;
-            foreach (var (documentUri, csharpSourceText) in files)
-            {
-                var documentFilePath = documentUri.AbsolutePath;
-                var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
-                var documentInfo = languageServerFactory.CreateDocumentInfo(
-                    id: DocumentId.CreateNewId(projectInfo.Id),
-                    name: "TestDocument" + documentCount,
-                    filePath: documentFilePath,
-                    loader: TextLoader.From(textAndVersion),
-                    razorDocumentServiceProvider: new TestRazorDocumentServiceProvider());
-
-                workspace.AddDocument(documentInfo);
-                documentCount++;
-            }
-
-            return workspace;
+            tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+            var sourceDocument = TestRazorSourceDocument.Create(text);
+            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("/"), builder => { });
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
+            return codeDocument;
         }
 
-        protected static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(AdhocWorkspace workspace, ExportProvider exportProvider, ServerCapabilities serverCapabilities)
+        internal static DocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)
         {
-            var clientCapabilities = new ClientCapabilities();
-            var testLspServer = await CSharpTestLspServer.CreateAsync(workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
-            return testLspServer;
+            var codeDocument = CreateCodeDocument(sourceText);
+            return CreateDocumentContextFactory(documentPath, codeDocument);
         }
 
-        private class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
+        internal static DocumentContextFactory CreateDocumentContextFactory(
+            Uri documentPath,
+            RazorCodeDocument codeDocument,
+            bool documentFound = true)
         {
-            public bool CanApplyChange => throw new NotImplementedException();
+            var documentContextFactory = documentFound
+                ? new TestDocumentContextFactory(documentPath.GetAbsoluteOrUNCPath(), codeDocument, version: 1337)
+                : new TestDocumentContextFactory();
+            return documentContextFactory;
+        }
 
-            public bool SupportDiagnostics => throw new NotImplementedException();
-
-            TService IRazorDocumentServiceProvider.GetService<TService>()
-            {
-                var serviceType = typeof(TService);
-
-                if (serviceType == typeof(IRazorSpanMappingService))
-                {
-                    return (TService)(IRazorSpanMappingService)new TestRazorSpanMappingService();
-                }
-
-                return this as TService;
-            }
-
-            private class TestRazorSpanMappingService : IRazorSpanMappingService
-            {
-                public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-                    Document document,
-                    IEnumerable<TextSpan> spans,
-                    CancellationToken cancellationToken)
-                {
-                    throw new NotImplementedException();
-                }
-            }
+        internal static DocumentContext CreateDocumentContext(Uri uri, DocumentSnapshot snapshot)
+        {
+            return new DocumentContext(uri, snapshot, version: 0);
         }
 
         [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]
