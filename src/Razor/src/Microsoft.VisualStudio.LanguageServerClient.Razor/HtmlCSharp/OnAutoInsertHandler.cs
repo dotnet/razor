@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}, with trigger character {request.Character}.");
+            _logger.LogInformation("Starting request for {textDocumentUri}, with trigger character {character}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
             if (projectionResult is null)
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
             else if (projectionResult.LanguageKind == RazorLanguageKind.Razor)
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
             };
 
-            _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
+            _logger.LogInformation("Requesting auto-insert for {projectionResultUri}.", projectionResult.Uri);
 
             var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextEditFormat = result.TextEditFormat,
             };
 
-            _logger.LogInformation($"Returning edit.");
+            _logger.LogInformation("Returning edit.");
             return remappedResponse;
         }
     }

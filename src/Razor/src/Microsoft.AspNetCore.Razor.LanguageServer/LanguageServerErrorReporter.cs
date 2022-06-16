@@ -30,12 +30,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void ReportError(Exception exception, ProjectSnapshot? project)
         {
-            _logger.LogError(exception, $"Error thrown from project {project?.FilePath}");
+            _logger.LogError(exception, "Error thrown from project {projectFilePath}", project?.FilePath);
         }
 
         public override void ReportError(Exception exception, Project workspaceProject)
         {
-            _logger.LogError(exception, $"Error thrown from project {workspaceProject.FilePath}");
+            _logger.LogError(exception, "Error thrown from project {workspaceProjectFilePath}", workspaceProject.FilePath);
         }
     }
 }

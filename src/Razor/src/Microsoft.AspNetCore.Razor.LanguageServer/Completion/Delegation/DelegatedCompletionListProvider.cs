@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
@@ -30,15 +31,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         private readonly IReadOnlyList<DelegatedCompletionResponseRewriter> _responseRewriters;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
+        private readonly CompletionListCache _completionListCache;
 
         public DelegatedCompletionListProvider(
             IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
             RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer)
+            ClientNotifierServiceBase languageServer,
+            CompletionListCache completionListCache)
         {
             _responseRewriters = responseRewriters.OrderBy(rewriter => rewriter.Order).ToArray();
             _documentMappingService = documentMappingService;
             _languageServer = languageServer;
+            _completionListCache = completionListCache;
         }
 
         public override ImmutableHashSet<string> TriggerCharacters => s_allTriggerCharacters;
@@ -53,6 +57,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var projection = GetProjection(absoluteIndex, codeDocument, sourceText);
+            var provisionalCompletion = TryGetProvisionalCompletionInfo(completionContext, projection, codeDocument, sourceText);
+            TextEdit? provisionalTextEdit = null;
+            if (provisionalCompletion is not null)
+            {
+                provisionalTextEdit = provisionalCompletion.ProvisionalTextEdit;
+                projection = provisionalCompletion.ProvisionalProjection;
+            }
 
             completionContext = RewriteContext(completionContext, projection.LanguageKind);
 
@@ -60,7 +71,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 documentContext.Identifier,
                 projection.Position,
                 projection.LanguageKind,
-                completionContext);
+                completionContext,
+                provisionalTextEdit);
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorCompletionEndpointName, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<VSInternalCompletionList?>(cancellationToken).ConfigureAwait(false);
 
@@ -78,6 +90,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                                                                       delegatedParams,
                                                                       cancellationToken).ConfigureAwait(false);
             }
+
+            var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
+            var resolutionContext = new DelegatedCompletionResolutionContext(delegatedParams, rewrittenCompletionList.Data);
+            var resultId = _completionListCache.Set(rewrittenCompletionList, resolutionContext);
+            rewrittenCompletionList.SetResultId(resultId, completionCapability);
 
             return rewrittenCompletionList;
         }
@@ -105,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 }
             }
 
-            return new CompletionProjection(languageKind, projectedPosition);
+            return new CompletionProjection(languageKind, projectedPosition, absoluteIndex);
         }
 
         private static VSInternalCompletionContext RewriteContext(VSInternalCompletionContext context, RazorLanguageKind languageKind)
@@ -145,6 +162,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return rewrittenContext;
         }
 
-        private record class CompletionProjection(RazorLanguageKind LanguageKind, Position Position);
+        private ProvisionalCompletionInfo? TryGetProvisionalCompletionInfo(
+            VSInternalCompletionContext completionContext,
+            CompletionProjection projection,
+            RazorCodeDocument codeDocument,
+            SourceText sourceText)
+        {
+            if (projection.LanguageKind != RazorLanguageKind.Html ||
+                completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
+                completionContext.TriggerCharacter != ".")
+            {
+                // Invalid provisional completion context
+                return null;
+            }
+
+            if (projection.Position.Character == 0)
+            {
+                // We're at the start of line. Can't have provisional completions here.
+                return null;
+            }
+
+            var previousCharacterProjection = GetProjection(projection.AbsoluteIndex - 1, codeDocument, sourceText);
+            if (previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp)
+            {
+                return null;
+            }
+
+            // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
+            // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
+            var addProvisionalDot = new TextEdit()
+            {
+                Range = new Range()
+                {
+                    Start = previousCharacterProjection.Position,
+                    End = previousCharacterProjection.Position,
+                },
+                NewText = ".",
+            };
+            var provisionalProjection = new CompletionProjection(
+                RazorLanguageKind.CSharp,
+                new Position(
+                    previousCharacterProjection.Position.Line,
+                    previousCharacterProjection.Position.Character + 1),
+                previousCharacterProjection.AbsoluteIndex + 1);
+            return new ProvisionalCompletionInfo(addProvisionalDot, provisionalProjection);
+        }
+
+        private record class ProvisionalCompletionInfo(TextEdit ProvisionalTextEdit, CompletionProjection ProvisionalProjection);
+
+        private record class CompletionProjection(RazorLanguageKind LanguageKind, Position Position, int AbsoluteIndex);
     }
 }

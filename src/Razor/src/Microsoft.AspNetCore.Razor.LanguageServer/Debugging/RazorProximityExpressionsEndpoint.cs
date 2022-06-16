@@ -93,7 +93,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 return null;
             }
 
-            _logger.LogTrace($"Proximity expressions request for ({request.Position.Line}, {request.Position.Character}) yielded {expressions.Count} results.");
+            _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.", 
+                request.Position.Line, request.Position.Character, expressions.Count);
 
             return new RazorProximityExpressionsResponse
             {

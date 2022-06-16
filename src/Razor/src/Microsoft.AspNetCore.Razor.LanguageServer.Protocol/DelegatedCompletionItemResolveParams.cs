@@ -5,10 +5,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol
 {
-    internal record DelegatedCompletionParams(
-        VersionedTextDocumentIdentifier HostDocument,
-        Position ProjectedPosition,
-        RazorLanguageKind ProjectedKind,
-        VSInternalCompletionContext Context,
-        TextEdit? ProvisionalTextEdit);
+    internal record DelegatedCompletionItemResolveParams(
+        TextDocumentIdentifier HostDocument,
+        VSInternalCompletionItem CompletionItem,
+        RazorLanguageKind OriginatingKind);
 }

@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument, context.HostDocumentIndex, out _, out var projectedIndex))
                 {
-                    _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
+                    _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
                     return result;
                 }
 
@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
-                _logger.LogInformation($"Received {textEdits.Length} results from C#.");
+                _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
             }
 
             var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);

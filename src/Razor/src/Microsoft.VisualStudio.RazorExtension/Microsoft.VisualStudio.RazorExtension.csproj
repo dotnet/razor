@@ -64,10 +64,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Microsoft.VisualStudio.Razor.TagHelperProvider.servicehub.service.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="Microsoft.VisualStudio.Razor.TagHelperProvider64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -230,6 +226,13 @@
 
     <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
+
+    <!--
+      Pinning packages to avoid misaligned reference CI failures.
+      CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
+      Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsPackageVersion)" />
   </ItemGroup>
 
   <!-- Include our Razor package dependency dlls in our extension -->

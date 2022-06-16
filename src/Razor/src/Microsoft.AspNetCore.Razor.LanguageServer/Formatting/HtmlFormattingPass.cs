@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var changedText = originalText;
             var changedContext = context;
 
-            _logger.LogTestOnly($"Before HTML formatter:\r\n{changedText}");
+            _logger.LogTestOnly("Before HTML formatter:\r\n{changedText}", changedText);
 
             if (htmlEdits.Length > 0)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Create a new formatting context for the changed razor document.
                 changedContext = await context.WithTextAsync(changedText);
 
-                _logger.LogTestOnly($"After normalizedEdits:\r\n{changedText}");
+                _logger.LogTestOnly("After normalizedEdits:\r\n{changedText}", changedText);
             }
 
             var indentationChanges = AdjustRazorIndentation(changedContext);
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 // Apply the edits that adjust indentation.
                 changedText = changedText.WithChanges(indentationChanges);
-                _logger.LogTestOnly($"After AdjustRazorIndentation:\r\n{changedText}");
+                _logger.LogTestOnly("After AdjustRazorIndentation:\r\n{changedText}", changedText);
             }
 
             var finalChanges = changedText.GetTextChanges(originalText);
