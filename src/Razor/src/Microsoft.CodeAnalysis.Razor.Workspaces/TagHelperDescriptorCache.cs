@@ -34,22 +34,8 @@ namespace Microsoft.CodeAnalysis.Razor
             CalculateForProperty(ref hash, descriptor.BoundAttributes, CalculateBoundAttributeCacheId);
             CalculateForProperty(ref hash, descriptor.TagMatchingRules, CalculateTagMatchingRuleCacheId);
             CalculateForProperty(ref hash, descriptor.AllowedChildTags, CalculateAllowedChildTagsCacheId);
-
-            if (descriptor.Diagnostics != null)
-            {
-                for (var i = 0; i < descriptor.Diagnostics.Count; i++)
-                {
-                    hash.Add(descriptor.Diagnostics[i]);
-                }
-            }
-
-            if (descriptor.Metadata != null)
-            {
-                foreach (var kvp in descriptor.Metadata)
-                {
-                    hash.Add(kvp.Value, StringComparer.Ordinal);
-                }
-            }
+            ComparerUtilities.AddToHash(ref hash, descriptor.Diagnostics ?? Array.Empty<RazorDiagnostic>(), EqualityComparer<RazorDiagnostic>.Default);
+            ComparerUtilities.AddToHash(ref hash, descriptor.Metadata, StringComparer.Ordinal, StringComparer.Ordinal);
 
             return hash.CombinedHash;
         }
