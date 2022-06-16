@@ -22,9 +22,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion)" />
     <PackageReference Include="Moq" Version="$(MoqPackageVersion)" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="$(SystemRuntimeInteropServicesRuntimePackageVersion)" />
-    <EmbeddedResource Include=".\taghelpers.json">
-      <Link>taghelpers.json</Link>
-    </EmbeddedResource>
+    <EmbeddedResource Include=".\taghelpers.json" />
   </ItemGroup>
 
 </Project>
