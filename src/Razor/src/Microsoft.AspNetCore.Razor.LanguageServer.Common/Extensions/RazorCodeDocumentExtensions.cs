@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
 {
-    public static class RazorCodeDocumentExtensions
+    internal static class RazorCodeDocumentExtensions
     {
         private static readonly object s_unsupportedKey = new();
 
