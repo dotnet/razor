@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
             var workspace = CreateCSharpTestWorkspace(files, exportProvider);
-            var clientCapabilities = new ClientCapabilities();
+            var clientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(
                 workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
