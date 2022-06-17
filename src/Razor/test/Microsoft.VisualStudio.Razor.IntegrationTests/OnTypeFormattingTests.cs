@@ -11,6 +11,12 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         [IdeFact]
         public async Task TypeScript_Semicolon()
         {
+            var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
+            if (version < new System.Version(42, 42, 42, 42))
+            {
+                return;
+            }
+
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
