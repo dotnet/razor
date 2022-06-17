@@ -3,13 +3,20 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Serialization;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test
 {
     public class TagHelperDescriptorCacheTest
     {
+        private static readonly TestFile TagHelpersTestFile = TestFile.Create("taghelpers.json", typeof(TagHelperDescriptorCacheTest));
+
         [Fact]
         public void TagHelperDescriptorCache_TypeNameAffectsHash()
         {
@@ -37,10 +44,65 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test
             var stringTagHelper = stringTagHelperBuilder.Build();
 
             // Act
-            TagHelperDescriptorCache.Set(intTagHelper.GetHashCode(), intTagHelper);
+            TagHelperDescriptorCache.Set(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(intTagHelper), intTagHelper);
 
             // Assert
-            Assert.False(TagHelperDescriptorCache.TryGetDescriptor(stringTagHelper.GetHashCode(), out var descriptor));
+            Assert.False(TagHelperDescriptorCache.TryGetDescriptor(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(stringTagHelper), out var descriptor));
+        }
+
+        [Fact]
+        public void GetHashCode_DuplicateTagHelpers_NoCacheIdCollisions()
+        {
+            // Arrange
+            var tagHelpers = new List<TagHelperDescriptor>();
+            var tagHelpersPerBatch = -1;
+
+            // Reads 5 copies of the TagHelpers (with 5x references)
+            for (var i = 0; i < 5; ++i)
+            {
+                var tagHelpersBatch = ReadTagHelpers(TagHelpersTestFile.OpenRead());
+                tagHelpers.AddRange(tagHelpersBatch);
+                tagHelpersPerBatch = tagHelpersBatch.Count;
+            }
+
+            // Act
+            var hashes = new HashSet<int>(tagHelpers.Select(t => TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(t)));
+
+            // Assert
+            // Only 1 batch of taghelpers should remain after we filter by cache id
+            Assert.Equal(hashes.Count, tagHelpersPerBatch);
+        }
+
+        [Fact]
+        public void GetHashCode_AllTagHelpers_NoCacheIdCollisions()
+        {
+            // Arrange
+            var tagHelpers = ReadTagHelpers(TagHelpersTestFile.OpenRead());
+
+            // Act
+            var hashes = new HashSet<int>(tagHelpers.Select(t => TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(t)));
+
+            // Assert
+            Assert.Equal(hashes.Count, tagHelpers.Count);
+        }
+
+        private IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(Stream stream)
+        {
+            var serializer = new JsonSerializer();
+            serializer.Converters.Add(new RazorDiagnosticJsonConverter());
+            serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+
+            IReadOnlyList<TagHelperDescriptor> result;
+
+            using var streamReader = new StreamReader(stream);
+            using (var reader = new JsonTextReader(streamReader))
+            {
+                result = serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
+            }
+
+            stream.Dispose();
+
+            return result;
         }
     }
 }
