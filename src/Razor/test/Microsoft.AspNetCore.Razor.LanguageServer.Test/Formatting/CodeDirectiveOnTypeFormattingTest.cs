@@ -31,7 +31,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public class Foo { }
                     }
                     """,
-                triggerCharacter: '}');
+                triggerCharacter: '}',
+                expectedChangedLines: 1);
         }
 
         [Fact]
@@ -49,7 +50,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
                     """,
                 triggerCharacter: '}',
-                insertSpaces: false);
+                insertSpaces: false,
+                expectedChangedLines: 1);
         }
 
         [Fact]
@@ -67,7 +69,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
                     """,
                 triggerCharacter: '}',
-                tabSize: 6);
+                tabSize: 6,
+                expectedChangedLines: 1);
         }
 
         [Fact]
@@ -87,7 +90,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
+                triggerCharacter: '}',
+                expectedChangedLines: 3);
         }
 
         [Fact]
@@ -104,7 +108,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public void Foo { }
                     }
                     """,
-                triggerCharacter: '}');
+                triggerCharacter: '}',
+                expectedChangedLines: 1);
         }
 
         [Fact]
@@ -124,7 +129,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
+                triggerCharacter: '}',
+                expectedChangedLines: 3);
         }
 
         [Fact]
@@ -622,6 +628,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 """;
 
             await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
+        public async Task Semicolon_NoDocumentChanges2()
+        {
+            await RunOnTypeFormattingTestAsync(
+                input: """
+                    <div>
+                       <h5><a href="#"></a></h5>
+                       <div class="collapse">
+                          @ChildContent
+                       </div>
+                    </div>
+                    @code {
+                       private string ID { get; } = Guid.NewGuid().ToString();
+
+                       [Parameter]
+                       public string Title { get; set; }
+
+                       public string Test {get;$$}
+                    }
+                    """,
+                expected: """
+                    <div>
+                       <h5><a href="#"></a></h5>
+                       <div class="collapse">
+                          @ChildContent
+                       </div>
+                    </div>
+                    @code {
+                       private string ID { get; } = Guid.NewGuid().ToString();
+
+                       [Parameter]
+                       public string Title { get; set; }
+
+                       public string Test { get; }
+                    }
+                    """,
+                triggerCharacter: ';',
+                tabSize: 3,
+                expectedChangedLines: 1);
         }
 
         [Fact]
