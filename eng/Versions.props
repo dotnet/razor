@@ -36,7 +36,7 @@
   -->
   <PropertyGroup>
     <VsixVersionPrefix>17.0.0</VsixVersionPrefix>
-    <AddinMajorVersion>17.0</AddinMajorVersion>
+    <AddinMajorVersion>17.3</AddinMajorVersion>
     <AddinVersion>$(AddinMajorVersion)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' != ''">$(AddinVersion).$(OfficialBuildId)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' == ''">$(AddinVersion).42424242.42</AddinVersion>
