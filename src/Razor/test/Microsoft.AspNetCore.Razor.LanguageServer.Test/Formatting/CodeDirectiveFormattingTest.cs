@@ -619,14 +619,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             await RunFormattingTestAsync(
                 input: """
-                     @functions {
+                    @functions {
                     public class Foo{}
                          }
                     """,
                 expected: """
                     @functions {
                         public class Foo { }
-                         }
+                    }
                     """);
         }
 
