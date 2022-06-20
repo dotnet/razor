@@ -117,7 +117,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             char triggerCharacter,
             int tabSize = 4,
             bool insertSpaces = true,
-            string? fileKind = null)
+            string? fileKind = null,
+            int? expectedChangedLines = null)
         {
             // Arrange
             fileKind ??= FileKinds.Component;
@@ -151,6 +152,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (input.Equals(expected))
             {
                 Assert.Empty(edits);
+            }
+
+            if (expectedChangedLines is not null)
+            {
+                var firstLine = edits.Min(e => e.Range.Start.Line);
+                var lastLine = edits.Max(e => e.Range.End.Line);
+                var delta = lastLine - firstLine + edits.Count(e => e.NewText.Contains(Environment.NewLine));
+                Assert.Equal(expectedChangedLines.Value, delta + 1);
             }
         }
 
