@@ -20,6 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions
             RazorExtensionJsonConverter.Instance,
             RazorConfigurationJsonConverter.Instance,
             ProjectRazorJsonJsonConverter.Instance,
+            RazorUriJsonConverter.Instance,
         };
 
         public static void RegisterRazorConverters(this IList<JsonConverter> collection)
