@@ -171,10 +171,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, documentSnapshot);
-            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var projectionProvider = TestLSPProjectionProvider.Instance;;
 
-            var documentMappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, new Lazy<LSPDocumentManager>(() => documentManager));
-            var renameHandler = new RenameHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, LoggerProvider);
+            var renameHandler = new RenameHandler(requestInvoker, documentManager, projectionProvider, mappingProvider, LoggerProvider);
             var renameRequest = new RenameParams()
             {
                 Position = cursorPosition,
