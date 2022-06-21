@@ -1,13 +1,15 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public struct IntermediateNodeReference
 {
     public IntermediateNodeReference(IntermediateNode parent, IntermediateNode node)
@@ -206,5 +208,10 @@ public struct IntermediateNodeReference
 
         Parent.Children[index] = node;
         return new IntermediateNodeReference(Parent, node);
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return $"ref: {Parent.DebuggerToString()} - {Node.DebuggerToString()}";
     }
 }

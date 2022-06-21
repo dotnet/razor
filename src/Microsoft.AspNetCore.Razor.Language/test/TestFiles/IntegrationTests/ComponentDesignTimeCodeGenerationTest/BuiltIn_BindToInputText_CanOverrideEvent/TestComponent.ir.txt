@@ -27,7 +27,9 @@ Document -
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (58:1,14 [12] x:\dir\subdir\Test\TestComponent.cshtml) - oninput=" - "
                         CSharpExpressionAttributeValue -  - 
-                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, 
+                            IntermediateToken -  - CSharp - __value => CurrentDate = __value
+                            IntermediateToken -  - CSharp - , 
                             IntermediateToken -  - CSharp - CurrentDate
                             IntermediateToken -  - CSharp - , format: "MM/dd"
                             IntermediateToken -  - CSharp - )

@@ -109,6 +109,8 @@ internal static class ComponentsApi
     {
         public const string TypeCheck = "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck";
         public const string CreateInferredEventCallback = "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback";
+        public const string InvokeSynchronousDelegate = "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate";
+        public const string InvokeAsynchronousDelegate = "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeAsynchronousDelegate";
     }
 
     public static class RouteAttribute

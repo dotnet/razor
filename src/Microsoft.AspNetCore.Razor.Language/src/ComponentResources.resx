@@ -129,6 +129,9 @@
   <data name="BindTagHelper_Component_Documentation" xml:space="preserve">
     <value>Binds the provided expression to the '{0}' property and a change event delegate to the '{1}' property of the component.</value>
   </data>
+  <data name="BindTagHelper_Element_After_Documentation" xml:space="preserve">
+    <value>Specifies an action to run after the new value has been set.</value>
+  </data>
   <data name="BindTagHelper_Element_Culture_Documentation" xml:space="preserve">
     <value>Specifies the culture to use for conversions.</value>
   </data>
@@ -140,6 +143,12 @@
   </data>
   <data name="BindTagHelper_Element_Format_Documentation" xml:space="preserve">
     <value>Specifies a format to convert the value specified by the '{0}' attribute. The format string can currently only be used with expressions of type &lt;code&gt;DateTime&lt;/code&gt;.</value>
+  </data>
+  <data name="BindTagHelper_Element_Get_Documentation" xml:space="preserve">
+    <value>Specifies the expression to use for binding the value to the attribute.</value>
+  </data>
+  <data name="BindTagHelper_Element_Set_Documentation" xml:space="preserve">
+    <value>Specifies the expression to use for updating the bound value when a new value is available.</value>
   </data>
   <data name="BindTagHelper_Fallback_Documentation" xml:space="preserve">
     <value>Binds the provided expression to an attribute and a change event, based on the naming of the bind attribute. For example: &lt;code&gt;@bind-value="..."&lt;/code&gt; and &lt;code&gt;@bind-value:event="onchange"&lt;/code&gt; will assign the current value of the expression to the 'value' attribute, and assign a delegate that attempts to set the value to the 'onchange' attribute.</value>

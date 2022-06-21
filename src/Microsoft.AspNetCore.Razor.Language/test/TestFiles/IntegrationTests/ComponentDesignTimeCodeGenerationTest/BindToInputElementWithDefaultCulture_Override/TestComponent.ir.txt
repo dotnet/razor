@@ -30,7 +30,9 @@ Document -
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (63:1,34 [12] x:\dir\subdir\Test\TestComponent.cshtml) - anotherevent=" - "
                         CSharpExpressionAttributeValue -  - 
-                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => ParentValue = __value, 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, 
+                            IntermediateToken -  - CSharp - __value => ParentValue = __value
+                            IntermediateToken -  - CSharp - , 
                             IntermediateToken -  - CSharp - ParentValue
                             IntermediateToken -  - CSharp - , culture: CultureInfo.CurrentCulture
                             IntermediateToken -  - CSharp - )

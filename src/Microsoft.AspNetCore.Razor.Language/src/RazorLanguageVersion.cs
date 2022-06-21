@@ -26,7 +26,9 @@ public sealed class RazorLanguageVersion : IEquatable<RazorLanguageVersion>, ICo
 
     public static readonly RazorLanguageVersion Version_6_0 = new RazorLanguageVersion(6, 0);
 
-    public static readonly RazorLanguageVersion Latest = Version_6_0;
+    public static readonly RazorLanguageVersion Version_7_0 = new RazorLanguageVersion(7, 0);
+
+    public static readonly RazorLanguageVersion Latest = Version_7_0;
 
     public static readonly RazorLanguageVersion Experimental = new RazorLanguageVersion(1337, 1337);
 
@@ -45,6 +47,11 @@ public sealed class RazorLanguageVersion : IEquatable<RazorLanguageVersion>, ICo
         else if (string.Equals(languageVersion, "experimental", StringComparison.OrdinalIgnoreCase))
         {
             version = Experimental;
+            return true;
+        }
+        else if (languageVersion == "7.0")
+        {
+            version = Version_7_0;
             return true;
         }
         else if (languageVersion == "6.0")

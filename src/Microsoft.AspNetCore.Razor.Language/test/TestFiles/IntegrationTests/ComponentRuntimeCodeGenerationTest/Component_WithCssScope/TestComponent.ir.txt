@@ -49,7 +49,9 @@ Document -
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (589:13,30 [10] x:\dir\subdir\Test\TestComponent.cshtml) - onchange=" - "
                         CSharpExpressionAttributeValue -  - 
-                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => myVariable = __value, 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, 
+                            IntermediateToken -  - CSharp - __value => myVariable = __value
+                            IntermediateToken -  - CSharp - , 
                             IntermediateToken -  - CSharp - myVariable
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute -  - TestCssScope - 

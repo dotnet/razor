@@ -5,10 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
 {
     private IEnumerable<RazorDiagnostic> _allDiagnostics;
@@ -136,5 +138,10 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
         public bool Success { get; }
         public StringSegment Namespace { get; }
         public StringSegment TypeName { get; }
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return $"{DisplayName} - {string.Join(" | ", TagMatchingRules.Select(r => r.GetDebuggerDisplay()))}";
     }
 }

@@ -49,6 +49,8 @@ internal static class ComponentMetadata
 
         public const string TagHelperKind = "Components.Bind";
 
+        public const string BindAttributeGetSet = "Components.Bind.AlternativeNotation";
+
         public const string FallbackKey = "Components.Bind.Fallback";
 
         public const string TypeAttribute = "Components.Bind.TypeAttribute";
@@ -90,6 +92,8 @@ internal static class ComponentMetadata
         public const string ChildContentParameterNameKey = "Components.ChildContentParameterName";
 
         public const string DelegateSignatureKey = "Components.DelegateSignature";
+
+        public const string DelegateWithAwaitableResultKey = "Components.IsDelegateAwaitableResult";
 
         public const string EventCallbackKey = "Components.EventCallback";
 

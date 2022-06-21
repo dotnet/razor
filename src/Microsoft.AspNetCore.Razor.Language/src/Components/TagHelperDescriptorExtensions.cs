@@ -44,7 +44,7 @@ internal static class TagHelperDescriptorExtensions
     {
         return
             tagHelper.IsBindTagHelper() &&
-            tagHelper.TagMatchingRules.Count == 1 &&
+            tagHelper.TagMatchingRules.Count == 2 &&
             string.Equals("input", tagHelper.TagMatchingRules[0].TagName);
     }
 

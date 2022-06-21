@@ -17,6 +17,14 @@ internal static class TagHelperBoundAttributeDescriptorExtensions
             string.Equals(value, bool.TrueString);
     }
 
+    public static bool IsDelegateWithAwaitableResult(this BoundAttributeDescriptor attribute)
+    {
+        var key = ComponentMetadata.Component.DelegateWithAwaitableResultKey;
+        return
+            attribute.Metadata.TryGetValue(key, out var value) &&
+            string.Equals(value, bool.TrueString);
+    }
+
     /// <summary>
     /// Gets a value indicating whether the attribute is of type <c>EventCallback</c> or
     /// <c>EventCallback{T}</c>

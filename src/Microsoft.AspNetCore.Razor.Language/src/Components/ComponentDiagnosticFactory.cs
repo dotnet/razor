@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -454,6 +454,99 @@ internal static class ComponentDiagnosticFactory
             source ?? SourceSpan.Undefined,
             attribute,
             Environment.NewLine + string.Join(Environment.NewLine, attributes.Select(p => p.TagHelper.DisplayName)));
+        return diagnostic;
+    }
+
+    public static readonly RazorDiagnosticDescriptor BindAttributeParameter_UseBindGet =
+        new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10015",
+            () => "Attribute '{0}:get' must be used with attribute '{0}:set'.",
+            RazorDiagnosticSeverity.Error);
+
+
+    public static RazorDiagnostic CreateBindAttributeParameter_UseBindGet(SourceSpan? source, string attribute)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            BindAttributeParameter_UseBindGet,
+            source ?? SourceSpan.Undefined,
+            attribute);
+        return diagnostic;
+    }
+
+    public static readonly RazorDiagnosticDescriptor BindAttributeParameter_MissingBindGet =
+        new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10016",
+            () => "Attribute '{0}:set' was used but no attribute '{0}:get' was found.",
+            RazorDiagnosticSeverity.Error);
+
+
+    public static RazorDiagnostic CreateBindAttributeParameter_MissingBindGet(SourceSpan? source, string attribute)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            BindAttributeParameter_MissingBindGet,
+            source ?? SourceSpan.Undefined,
+            attribute);
+        return diagnostic;
+    }
+
+    public static readonly RazorDiagnosticDescriptor BindAttribute_MissingBindSet =
+    new RazorDiagnosticDescriptor(
+    $"{DiagnosticPrefix}10017",
+    () => "The attribute '{0}' must have a companion '{1}' attribute.",
+    RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateBindAttribute_MissingBindSet(SourceSpan? source, string attributeGet, string attributeSet)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            BindAttribute_MissingBindSet,
+            source ?? SourceSpan.Undefined,
+            attributeGet,
+            attributeSet);
+        return diagnostic;
+    }
+
+    public static readonly RazorDiagnosticDescriptor BindAttributeParameter_InvalidSyntaxBindAndBindGet =
+        new RazorDiagnosticDescriptor(
+        $"{DiagnosticPrefix}10018",
+        () => "Attribute '{0}' can't be used in conjunction with '{0}:get'.",
+        RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateBindAttributeParameter_InvalidSyntaxBindAndBindGet(SourceSpan? source, string attribute)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            BindAttributeParameter_InvalidSyntaxBindAndBindGet,
+            source ?? SourceSpan.Undefined,
+            attribute);
+        return diagnostic;
+    }
+
+    public static readonly RazorDiagnosticDescriptor BindAttributeParameter_InvalidSyntaxBindSetAfter =
+        new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10019",
+            () => "Attribute '{0}:after' can not be used with '{0}:set'. Invoke the code in '{0}:after' inside '{0}:set' instead.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(SourceSpan? source, string attribute)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            BindAttributeParameter_InvalidSyntaxBindSetAfter,
+            source ?? SourceSpan.Undefined,
+            attribute);
+        return diagnostic;
+    }
+
+    public static readonly RazorDiagnosticDescriptor BindAttributeParameter_UnsupportedSyntaxBindGetSet =
+        new RazorDiagnosticDescriptor(
+        $"{DiagnosticPrefix}10020",
+        () => "Attribute '{0}' can only be used with RazorLanguageVersion 7.0 or higher.",
+        RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(SourceSpan? source, string attribute)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            BindAttributeParameter_UnsupportedSyntaxBindGetSet,
+            source ?? SourceSpan.Undefined,
+            attribute);
         return diagnostic;
     }
 }

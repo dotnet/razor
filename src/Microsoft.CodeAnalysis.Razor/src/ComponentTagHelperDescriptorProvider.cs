@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -160,7 +161,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                 continue;
             }
 
-            CreateProperty(builder, property.property, property.kind);
+            CreateProperty(builder, property.property, property.kind, symbols);
         }
 
         if (builder.BoundAttributes.Any(a => a.IsParameterizedChildContentProperty()) &&
@@ -175,7 +176,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         return builder;
     }
 
-    private void CreateProperty(TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind)
+    private void CreateProperty(TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind, ComponentSymbols symbols)
     {
         builder.BindAttribute(pb =>
         {
@@ -202,6 +203,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             if (kind == PropertyKind.Delegate)
             {
                 pb.Metadata.Add(ComponentMetadata.Component.DelegateSignatureKey, bool.TrueString);
+                pb.Metadata.Add(ComponentMetadata.Component.DelegateWithAwaitableResultKey, IsAwaitable(property));
             }
 
             if (HasTypeParameter(property.Type))
@@ -260,6 +262,57 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             }
 
             return false;
+        }
+    }
+
+    private static string IsAwaitable(IPropertySymbol prop)
+    {
+        var methodSymbol = ((INamedTypeSymbol)prop.Type).DelegateInvokeMethod;
+        if (methodSymbol.ReturnsVoid)
+        {
+            return bool.FalseString;
+        }
+        else
+        {
+            var members = methodSymbol.ReturnType.GetMembers();
+            for (var i = 0; i < members.Length; i++)
+            {
+                var candidate = members[i];
+                if (candidate is not IMethodSymbol method || !string.Equals(candidate.Name, "GetAwaiter", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+                if (!VerifyGetAwaiter(method))
+                {
+                    continue;
+                }
+
+                return bool.TrueString;
+            }
+            return methodSymbol.IsAsync ? bool.TrueString : bool.FalseString;
+
+            static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
+            {
+                var returnType = getAwaiter.ReturnType;
+                if (returnType == null)
+                {
+                    return false;
+                }
+
+                if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.IsCompleted && p.Type.SpecialType == SpecialType.System_Boolean && p.GetMethod != null))
+                {
+                    return false;
+                }
+
+                var methods = returnType.GetMembers().OfType<IMethodSymbol>();
+
+                if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters.Length == 1 && x.Parameters.First().Type.TypeKind == TypeKind.Delegate))
+                {
+                    return false;
+                }
+
+                return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
+            }
         }
     }
 

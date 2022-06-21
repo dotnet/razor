@@ -5,10 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDescriptor>
 {
     private int? _hashCode;
@@ -64,5 +66,30 @@ public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDesc
     {
         _hashCode ??= TagMatchingRuleDescriptorComparer.Default.GetHashCode(this);
         return _hashCode.Value;
+    }
+
+    internal string GetDebuggerDisplay()
+    {
+        var tagName = TagName ?? "*";
+        tagName += TagStructure == TagStructure.WithoutEndTag ? "/" : "";
+        return $"{TagName ?? "*"}[{string.Join(", ", Attributes.Select(a => DescribeAttribute(a)))}]";
+        static string DescribeAttribute(RequiredAttributeDescriptor attribute)
+        {
+            var name = attribute.Name switch
+            {
+                null => "*",
+                var prefix when attribute.NameComparison == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch => $"^{prefix}",
+                var full => full,
+            };
+
+            var value = attribute.Value switch
+            {
+                null => "",
+                var prefix when attribute.ValueComparison == RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch => $"^={prefix}",
+                var suffix when attribute.ValueComparison == RequiredAttributeDescriptor.ValueComparisonMode.SuffixMatch => $"$={suffix}",
+                var full => $"={full}",
+            };
+            return name + value;
+        }
     }
 }
