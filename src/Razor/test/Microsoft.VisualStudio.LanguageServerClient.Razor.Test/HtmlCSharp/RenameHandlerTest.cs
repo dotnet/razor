@@ -4,11 +4,17 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -16,6 +22,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
+    [UseExportProvider]
     public class RenameHandlerTest : HandlerTestBase
     {
         public RenameHandlerTest()
@@ -38,14 +45,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private TestDocumentManager DocumentManager { get; }
 
+        private ServerCapabilities RenameServerCapabilities { get; } = new()
+        {
+            RenameProvider = true
+        };
+
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
-            var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            var requestInvoker = new TestLSPRequestInvoker();
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var documentMappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
             var renameHandler = new RenameHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var renameRequest = new RenameParams()
             {
@@ -65,11 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_ProjectionNotFound_ReturnsNull()
         {
             // Arrange
-            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
-            Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
-                .Returns(Task.FromResult<ProjectionResult>(null));
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            var requestInvoker = new TestLSPRequestInvoker();
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var documentMappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
             var renameHandler = new RenameHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var renameRequest = new RenameParams()
             {
@@ -123,40 +133,54 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_CSharpProjection_RemapsWorkspaceEdit()
+        public async Task HandleRequestAsync_CSharpProjection_BasicRename()
         {
             // Arrange
-            var called = false;
-            var expectedEdit = new WorkspaceEdit();
-
-            var requestInvoker = GetRequestInvoker<RenameParams, WorkspaceEdit>(
-                new WorkspaceEdit(),
-                (textBuffer, method, clientName, renameParams, ct) =>
+            var text =
+                """
+                @code
                 {
-                    Assert.Equal(Methods.TextDocumentRenameName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                });
+                    void Method()
+                    {
+                        Method();
+                    }
+                }
+                """;
 
-            var projectionProvider = GetProjectionProvider(new ProjectionResult() { LanguageKind = RazorLanguageKind.CSharp });
-            var documentMappingProvider = GetDocumentMappingProvider(expectedEdit);
+            var cursorPosition = new Position(2, 9);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsoluteUri);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
 
-            var renameHandler = new RenameHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);
+            var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
+            var documentSnapshot = new TestLSPDocumentSnapshot(
+                documentUri,
+                version: 1,
+                snapshotContent: codeDocument.GetSourceText().ToString(),
+                csharpDocumentSnapshot);
+
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, RenameServerCapabilities).ConfigureAwait(false);
+
+            var requestInvoker = new TestLSPRequestInvoker(csharpServer);
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(documentUri, documentSnapshot);
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+
+            var documentMappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, new Lazy<LSPDocumentManager>(() => documentManager));
+            var renameHandler = new RenameHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var renameRequest = new RenameParams()
             {
-                Position = new Position(0, 1),
+                Position = cursorPosition,
                 NewName = "NewName",
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
             };
 
             // Act
             var result = await renameHandler.HandleRequestAsync(renameRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.Equal(expectedEdit, result);
-
-            // Actual remapping behavior is tested in LSPDocumentMappingProvider tests.
         }
 
         private static LSPProjectionProvider GetProjectionProvider(ProjectionResult expectedResult)

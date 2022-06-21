@@ -13,6 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         public static readonly TestComposition Roslyn = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies)
             .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
+            .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll"))
             .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.EditorFeatures.dll"))
             .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll"))
             .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))

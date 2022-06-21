@@ -6,8 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -39,7 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             IEnumerable<CSharpFile> files,
             ExportProvider exportProvider)
         {
-            var workspace = TestWorkspace.Create() as AdhocWorkspace;
+            var hostServices = MefHostServices.Create(exportProvider.AsCompositionContext());
+            var workspace = TestWorkspace.Create(hostServices);
 
             // Add project and solution to workspace
             var projectInfo = ProjectInfo.Create(

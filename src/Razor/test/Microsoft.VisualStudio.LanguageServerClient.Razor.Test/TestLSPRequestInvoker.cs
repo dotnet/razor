@@ -111,6 +111,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             TIn parameters,
             CancellationToken cancellationToken)
         {
+            /*if (method is LanguageServerConstants.RazorMapToDocumentEditsEndpoint)
+            {
+                var mappingParams = new RazorMapToDocumentEditsParams
+                {
+                    
+                };
+
+                var razorLanguageEndpoint = new RazorLanguageEndpoint(
+                    documentContextFactory, new TestLSPDocumentMappingProvider(), razorFormattingService: null, TestLoggerFactory.Instance);
+                var response = await razorLanguageEndpoint.Handle(request, cancellationToken).ConfigureAwait(false);
+            }*/
+
             throw new NotImplementedException();
         }
     }
