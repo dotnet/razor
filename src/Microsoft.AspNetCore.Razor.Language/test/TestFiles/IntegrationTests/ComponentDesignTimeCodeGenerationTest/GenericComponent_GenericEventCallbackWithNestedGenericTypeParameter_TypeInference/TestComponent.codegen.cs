@@ -4,10 +4,23 @@ namespace Test
 {
     #line hidden
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+using Test;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+using System.Collections.Generic;
+
+#line default
+#line hidden
+#nullable disable
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
@@ -22,33 +35,23 @@ namespace Test
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, 
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                     "hi"
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+                   3
 
 #line default
 #line hidden
 #nullable disable
-            , -1, (context) => (__builder2) => {
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-              __o = context.ToLower();
-
-#line default
-#line hidden
-#nullable disable
-            }
-            , -1, (context) => (__builder2) => {
+            , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-          __o = context;
+                               (IEnumerable<int> x) => {}
 
 #line default
 #line hidden
 #nullable disable
-            }
-            );
+            ));
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
 
 #line default
@@ -63,12 +66,11 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment<TItem> __arg1, int __seq2, global::Microsoft.AspNetCore.Components.RenderFragment<global::System.Int32> __arg2)
+        public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback<global::System.Collections.Generic.IEnumerable<TItem>> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
         __builder.AddAttribute(__seq0, "Item", __arg0);
-        __builder.AddAttribute(__seq1, "GenericFragment", __arg1);
-        __builder.AddAttribute(__seq2, "IntFragment", __arg2);
+        __builder.AddAttribute(__seq1, "MyEvent", __arg1);
         __builder.CloseComponent();
         }
     }

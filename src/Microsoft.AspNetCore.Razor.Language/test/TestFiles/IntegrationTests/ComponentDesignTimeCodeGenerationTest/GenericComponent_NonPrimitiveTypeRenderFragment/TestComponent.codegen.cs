@@ -23,24 +23,15 @@ namespace Test
             global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                     "hi"
+                   new CustomType()
 
 #line default
 #line hidden
 #nullable disable
             , -1, (context) => (__builder2) => {
 #nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-              __o = context.ToLower();
-
-#line default
-#line hidden
-#nullable disable
-            }
-            , -1, (context) => (__builder2) => {
-#nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-          __o = context;
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                __o = context.ToString();
 
 #line default
 #line hidden
@@ -63,12 +54,11 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment<TItem> __arg1, int __seq2, global::Microsoft.AspNetCore.Components.RenderFragment<global::System.Int32> __arg2)
+        public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment<global::Test.CustomType> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
         __builder.AddAttribute(__seq0, "Item", __arg0);
-        __builder.AddAttribute(__seq1, "GenericFragment", __arg1);
-        __builder.AddAttribute(__seq2, "IntFragment", __arg2);
+        __builder.AddAttribute(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         }
     }

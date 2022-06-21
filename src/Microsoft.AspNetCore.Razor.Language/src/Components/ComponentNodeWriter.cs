@@ -312,7 +312,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             var typeName = childContent.TypeName;
             if (childContent.BoundAttribute != null && !childContent.BoundAttribute.IsGenericTypedProperty())
             {
-                typeName = "global::" + typeName;
+                typeName = childContent.BoundAttribute.GetGloballyQualifiedTypeName();
             }
             p.Add(new TypeInferenceMethodParameter($"__seq{p.Count}", typeName, $"__arg{p.Count}", usedForTypeInference: false, childContent));
         }

@@ -1516,6 +1516,44 @@ namespace Test
     }
 
     [Fact]
+    public void BindToComponent_EventCallback_SpecifiesValueAndExpression_NestedGeneric()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public IEnumerable<T> SomeParam { get; set; }
+
+        [Parameter]
+        public EventCallback<IEnumerable<T>> SomeParamChanged { get; set; }
+
+        [Parameter]
+        public Expression<Func<IEnumerable<T>>> SomeParamExpression { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent @bind-SomeParam=""ParentValue"" />
+@code {
+    public IEnumerable<DateTime> ParentValue { get; set; } = new [] { DateTime.Now };
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void BindToElement_WritesAttributes()
     {
         // Arrange
@@ -3815,6 +3853,38 @@ namespace Test
     }
 
     [Fact]
+    public void GenericComponent_NonPrimitiveTypeRenderFragment()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter] public TItem Item { get; set; }
+
+        [Parameter] public RenderFragment<CustomType> ChildContent { get; set; }
+    }
+
+    public class CustomType
+    {
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent Item=""new CustomType()"">@context.ToString()</MyComponent>");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ChildComponent_Generic_TypeInference()
     {
         // Arrange
@@ -5323,6 +5393,108 @@ namespace Test
         var generated = CompileToCSharp(@"
 @using Test
 <MyComponent Item=""3"" MyEvent=""(int x) => {}"" />
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void GenericComponent_GenericEventCallbackWithGenericTypeParameter_NestedTypeExplicit()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyEventArgs { }
+
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter] public TItem Item { get; set; }
+        [Parameter] public EventCallback<TItem> MyEvent { get; set; }
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@typeparam TChild
+@using Test
+<MyComponent TItem=""TChild"" MyEvent=""(TChild x) => {}"" />
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void GenericComponent_GenericEventCallbackWithGenericTypeParameter_NestedTypeInference()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyEventArgs { }
+
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter] public TItem Item { get; set; }
+        [Parameter] public EventCallback<TItem> MyEvent { get; set; }
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@typeparam TChild
+@using Test
+<MyComponent Item=""ChildItem"" MyEvent=""MyChildEvent"" />
+@code
+{
+        [Parameter] public TChild ChildItem { get; set; }
+        [Parameter] public EventCallback<TChild> MyChildEvent { get; set; }
+}
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void GenericComponent_GenericEventCallbackWithNestedGenericTypeParameter_TypeInference()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+using System.Collections.Generic;
+
+namespace Test
+{
+    public class MyEventArgs { }
+
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter] public TItem Item { get; set; }
+        [Parameter] public EventCallback<IEnumerable<TItem>> MyEvent { get; set; }
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@using Test
+@using System.Collections.Generic
+<MyComponent Item=""3"" MyEvent=""(IEnumerable<int> x) => {}"" />
 ");
 
         // Assert

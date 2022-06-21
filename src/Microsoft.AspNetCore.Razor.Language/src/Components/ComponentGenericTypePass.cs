@@ -366,10 +366,15 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     }
                     else if(attribute.BoundAttribute?.IsEventCallbackProperty() ?? false)
                     {
-                        var callbackArgument = typeNameFeature.ParseTypeParameters(attribute.TypeName)[0];
-                        if (bindings.ContainsKey(callbackArgument))
+                        var typeParameters = typeNameFeature.ParseTypeParameters(attribute.TypeName);
+                        for (int i = 0; i < typeParameters.Count; i++)
                         {
-                            attribute.Annotations.Add(ComponentMetadata.Component.OpenGenericKey, true);
+                            var parameter = typeParameters[i];
+                            if (bindings.ContainsKey(parameter))
+                            {
+                                attribute.Annotations.Add(ComponentMetadata.Component.OpenGenericKey, true);
+                                break;
+                            }
                         }
                     }
                 }
