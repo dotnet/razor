@@ -4,9 +4,11 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -169,8 +171,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 snapshotContent: codeDocument.GetSourceText().ToString(),
                 csharpDocumentSnapshot);
 
+            var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
+            {
+                { documentUri, (hostDocumentVersion: 1, codeDocument) }
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText: codeDocument.GetSourceText(), csharpSourceText);
+
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, SignatureHelpServerCapabilities).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, SignatureHelpServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
@@ -218,8 +227,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 snapshotContent: codeDocument.GetSourceText().ToString(),
                 csharpDocumentSnapshot);
 
+            var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
+            {
+                { documentUri, (hostDocumentVersion: 1, codeDocument) }
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText: codeDocument.GetSourceText(), csharpSourceText);
+
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, SignatureHelpServerCapabilities).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, SignatureHelpServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();

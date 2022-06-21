@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -19,6 +20,7 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -160,8 +162,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 snapshotContent: codeDocument.GetSourceText().ToString(),
                 csharpDocumentSnapshot);
 
+            var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
+            {
+                { documentUri, (hostDocumentVersion: 1, codeDocument) }
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText: codeDocument.GetSourceText(), csharpSourceText);
+
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, RenameServerCapabilities).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, RenameServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
@@ -177,10 +186,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
             };
 
+            var firstExpectedRange = new Range { Start = new Position { Line = 2, Character = 9 }, End = new Position { Line = 2, Character = 15 } };
+            var secondExpectedRange = new Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 14 } };
+
             // Act
             var result = await renameHandler.HandleRequestAsync(renameRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
+            var textDocumentEdits = Assert.IsType<TextDocumentEdit[]>(result.DocumentChanges.Value.Value);
+            var textDocumentEdit = textDocumentEdits.Single();
+            Assert.Equal(documentUri, textDocumentEdit.TextDocument.Uri);
+            Assert.Equal(2, textDocumentEdit.Edits.Length);
+            Assert.Equal(firstExpectedRange, textDocumentEdit.Edits[0].Range);
+            Assert.Equal(secondExpectedRange, textDocumentEdit.Edits[1].Range);
+            Assert.Equal("NewName", textDocumentEdit.Edits[0].NewText);
+            Assert.Equal("NewName", textDocumentEdit.Edits[1].NewText);
         }
 
         private static LSPProjectionProvider GetProjectionProvider(ProjectionResult expectedResult)
