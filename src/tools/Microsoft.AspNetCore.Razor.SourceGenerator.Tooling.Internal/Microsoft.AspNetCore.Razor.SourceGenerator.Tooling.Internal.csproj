@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Transport package for Razor Source Generator support.</Description>
@@ -11,18 +11,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.AspNetCore.Razor.Language\src\**\*.cs" LinkBase="Language" />
-    <EmbeddedResource Include="..\Microsoft.AspNetCore.Razor.Language\src\Resources.resx"
+    <Compile Include="..\..\Microsoft.AspNetCore.Razor.Language\src\**\*.cs" LinkBase="Language" />
+    <EmbeddedResource Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Resources.resx"
       ClassName="Microsoft.AspNetCore.Razor.Language.Resources" />
-    <EmbeddedResource Include="..\Microsoft.AspNetCore.Razor.Language\src\ComponentResources.resx"
+    <EmbeddedResource Include="..\..\Microsoft.AspNetCore.Razor.Language\src\ComponentResources.resx"
       ClassName="Microsoft.AspNetCore.Razor.Language.ComponentResources" />
 
-    <Compile Include="..\Microsoft.CodeAnalysis.Razor\src\**\*.cs" LinkBase="CodeAnalysis" />
-    <EmbeddedResource Include="..\Microsoft.CodeAnalysis.Razor\src\CodeAnalysisResources.resx"
+    <Compile Include="..\..\Microsoft.CodeAnalysis.Razor\src\**\*.cs" LinkBase="CodeAnalysis" />
+    <EmbeddedResource Include="..\..\Microsoft.CodeAnalysis.Razor\src\CodeAnalysisResources.resx"
        ClassName="Microsoft.CodeAnalysis.Razor.CodeAnalysisResources" />
 
-    <Compile Include="..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\**\*.cs" LinkBase="RazorExtensions" />
-    <EmbeddedResource Include="..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\RazorExtensionsResources.resx"
+    <Compile Include="..\..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\**\*.cs" LinkBase="RazorExtensions" />
+    <EmbeddedResource Include="..\..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\RazorExtensionsResources.resx"
       ClassName="Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensionsResources" />
   </ItemGroup>
 
