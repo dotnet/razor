@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     // This should be kept in-sync with the language server's MappingBehavior enum.
