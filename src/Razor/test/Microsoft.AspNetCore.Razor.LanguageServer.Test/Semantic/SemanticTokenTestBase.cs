@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
 
                 await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities).ConfigureAwait(false);
+                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService).ConfigureAwait(false);
                 var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParamsBridge, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
                     CreateVSSemanticTokensRangeParams(csharpRange, csharpDocumentUri),

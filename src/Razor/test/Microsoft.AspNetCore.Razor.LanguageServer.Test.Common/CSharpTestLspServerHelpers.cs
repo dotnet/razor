@@ -6,8 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,7 +22,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
             SourceText csharpSourceText,
             Uri csharpDocumentUri,
-            ServerCapabilities serverCapabilities)
+            ServerCapabilities serverCapabilities,
+            IRazorSpanMappingService razorSpanMappingService)
         {
             var files = new List<CSharpFile>
             {
@@ -27,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             };
 
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            var workspace = CreateCSharpTestWorkspace(files, exportProvider);
+            var workspace = CreateCSharpTestWorkspace(files, exportProvider, razorSpanMappingService);
             var clientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(
@@ -37,9 +41,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 
         private static AdhocWorkspace CreateCSharpTestWorkspace(
             IEnumerable<CSharpFile> files,
-            ExportProvider exportProvider)
+            ExportProvider exportProvider,
+            IRazorSpanMappingService razorSpanMappingService)
         {
-            var workspace = TestWorkspace.Create() as AdhocWorkspace;
+            var hostServices = MefHostServices.Create(exportProvider.AsCompositionContext());
+            var workspace = TestWorkspace.Create(hostServices);
 
             // Add project and solution to workspace
             var projectInfo = ProjectInfo.Create(
@@ -71,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                     name: "TestDocument" + documentCount,
                     filePath: documentFilePath,
                     loader: TextLoader.From(textAndVersion),
-                    razorDocumentServiceProvider: TestRazorDocumentServiceProvider.Instance);
+                    razorDocumentServiceProvider: new TestRazorDocumentServiceProvider(razorSpanMappingService));
 
                 workspace.AddDocument(documentInfo);
                 documentCount++;

@@ -134,6 +134,7 @@
     <Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>7.0.0-preview1.22116.1</Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
     <Tooling_MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>

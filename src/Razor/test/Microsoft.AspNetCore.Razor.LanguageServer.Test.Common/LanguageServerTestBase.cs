@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,8 +12,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -27,6 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             LegacyDispatcher = new TestProjectSnapshotManagerDispatcher();
 #pragma warning restore CS0618 // Type or member is obsolete
             FilePathNormalizer = new FilePathNormalizer();
+            SpanMappingService = new ThrowingRazorSpanMappingService();
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
@@ -46,6 +51,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         internal readonly ProjectSnapshotManagerDispatcher Dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
 
         internal FilePathNormalizer FilePathNormalizer { get; }
+
+        internal IRazorSpanMappingService SpanMappingService { get; }
 
         protected LspSerializer Serializer { get; }
 
@@ -112,6 +119,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             }
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
+        {
+            public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }
