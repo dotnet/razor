@@ -401,6 +401,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
 
+                    @section Foo {
+                        @{ var test = 1; }
+                    }
+
+                    <p></p>
+
                     @section Scripts {
                     <script></script>
                     }
@@ -414,6 +420,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             void Method() { }
                         }
                     }
+
+                    @section Foo {
+                        @{
+                            var test = 1;
+                        }
+                    }
+
+                    <p></p>
 
                     @section Scripts {
                         <script></script>

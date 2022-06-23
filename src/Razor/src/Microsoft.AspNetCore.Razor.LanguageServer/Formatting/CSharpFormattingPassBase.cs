@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
                         index = (~index) - 1;
 
-                        // If that index comes from within a section directive that does not contain the line we are working with,
+                        // If that index comes from within a directive that does not contain the line we are working with,
                         // we don't want to use its desired C# indentation. In the following example, we would not want the indentation
                         // that applies to line 2 to also be applied to line 4:
                         //
@@ -193,7 +193,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         {
                             var absoluteIndex = sourceMappingIndentationScopes[index];
                             var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(absoluteIndex, 0, string.Empty));
-                            if (scopeOwner.Parent.Parent?.Parent is not RazorDirectiveSyntax containingDirective || lineStart < containingDirective.EndPosition)
+                            var containingDirective = scopeOwner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
+                            if (containingDirective is null || lineStart + 1 < containingDirective.EndPosition)
                             {
                                 break;
                             }
