@@ -391,6 +391,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        public async Task Format_SectionDirectiveBlock5()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @functions {
+                     public class Foo{
+                    void Method() {  }
+                        }
+                    }
+
+                    @section Scripts {
+                    <script></script>
+                    }
+
+                    <p></p>
+                    """,
+                expected: """
+                    @functions {
+                        public class Foo
+                        {
+                            void Method() { }
+                        }
+                    }
+
+                    @section Scripts {
+                        <script></script>
+                    }
+
+                    <p></p>
+                    """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
         public async Task Formats_CodeBlockDirectiveWithRazorComments()
         {
             await RunFormattingTestAsync(

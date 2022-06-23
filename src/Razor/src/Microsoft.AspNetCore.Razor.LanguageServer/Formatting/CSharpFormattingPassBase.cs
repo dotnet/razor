@@ -175,22 +175,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                     var index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart);
 
-                    if (index < 0 && context.SourceText[lineStart] == '@')
-                    {
-                        // Sometimes we are only off by one in finding a source mapping, for example with a simple if statement:
-                        //
-                        // @|if (true)
-                        //
-                        // The sourceMappingIndentationScopes knows about where the pipe is (ie, after the "@") but we're asking
-                        // for indentation at the line start. In these cases we are better off using the real indentation scope,
-                        // than hoping the one before it is correct.
-                        index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart + 1);
-                    }
-
                     if (index < 0)
                     {
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
                         index = (~index) - 1;
+
+                        // If that index comes from within a directive that does not contain the line we are working with,
+                        // we don't want to use its indentation. In the following example, we would not want the indentation
+                        // that applies to line 2 to also be applied to line 4:
+                        //
+                        // 1  @section Foo {
+                        // 2  <div></div>
+                        // 3  }
+                        // 4  <p></p>
+                        for (; index >= 0; index--)
+                        {
+                            var absoluteIndex = sourceMappingIndentationScopes[index];
+                            var scopeOwner = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(new SourceChange(absoluteIndex, 0, string.Empty));
+                            var containingDirective = scopeOwner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
+                            if (containingDirective is null || lineStart < containingDirective.EndPosition)
+                            {
+                                break;
+                            }
+                        }
                     }
 
                     if (index < 0)
