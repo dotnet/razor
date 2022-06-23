@@ -139,6 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Now, let's combine the C# desired indentation with the Razor and HTML indentation for each line.
             var newIndentations = new Dictionary<int, int>();
+            var syntaxTreeRoot = context.CodeDocument.GetSyntaxTree().Root;
             for (var i = range.Start.Line; i <= range.End.Line; i++)
             {
                 if (indentations[i].EmptyOrWhitespaceLine)
@@ -180,8 +181,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
                         index = (~index) - 1;
 
-                        // If that index comes from within a directive that does not contain the line we are working with,
-                        // we don't want to use its indentation. In the following example, we would not want the indentation
+                        // If that index comes from within a section directive that does not contain the line we are working with,
+                        // we don't want to use its desired C# indentation. In the following example, we would not want the indentation
                         // that applies to line 2 to also be applied to line 4:
                         //
                         // 1  @section Foo {
@@ -191,9 +192,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         for (; index >= 0; index--)
                         {
                             var absoluteIndex = sourceMappingIndentationScopes[index];
-                            var scopeOwner = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(new SourceChange(absoluteIndex, 0, string.Empty));
-                            var containingDirective = scopeOwner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
-                            if (containingDirective is null || lineStart < containingDirective.EndPosition)
+                            var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(absoluteIndex, 0, string.Empty));
+                            if (scopeOwner.Parent.Parent?.Parent is not RazorDirectiveSyntax containingDirective || lineStart < containingDirective.EndPosition)
                             {
                                 break;
                             }
