@@ -108,7 +108,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, cancellationToken);
 
             // Build source mapping indentation scopes.
-            var sourceMappingIndentations = new SortedDictionary<int, int>();
+            var sourceMappingIndentations = new SortedDictionary<int, (int cSharpDesiredIndentation, RazorDirectiveSyntax? containingDirective)>();
+            var syntaxTreeRoot = context.CodeDocument.GetSyntaxTree().Root;
             foreach (var originalLocation in sourceMappingMap.Keys)
             {
                 var significantLocation = sourceMappingMap[originalLocation];
@@ -118,7 +119,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                sourceMappingIndentations[originalLocation] = indentation;
+                var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+                var containingDirective = scopeOwner?.FirstAncestorOrSelf<RazorDirectiveSyntax>();
+                sourceMappingIndentations[originalLocation] = (indentation, containingDirective);
             }
 
             var sourceMappingIndentationScopes = sourceMappingIndentations.Keys.ToArray();
@@ -139,7 +142,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Now, let's combine the C# desired indentation with the Razor and HTML indentation for each line.
             var newIndentations = new Dictionary<int, int>();
-            var syntaxTreeRoot = context.CodeDocument.GetSyntaxTree().Root;
             for (var i = range.Start.Line; i <= range.End.Line; i++)
             {
                 if (indentations[i].EmptyOrWhitespaceLine)
@@ -192,8 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         for (; index >= 0; index--)
                         {
                             var absoluteIndex = sourceMappingIndentationScopes[index];
-                            var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(absoluteIndex, 0, string.Empty));
-                            var containingDirective = scopeOwner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
+                            var containingDirective = sourceMappingIndentations[absoluteIndex].containingDirective;
                             if (containingDirective is null || lineStart + 1 < containingDirective.EndPosition)
                             {
                                 break;
@@ -213,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     {
                         // index will now be set to the same value as the end of the closest source mapping.
                         var absoluteIndex = sourceMappingIndentationScopes[index];
-                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex];
+                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex].cSharpDesiredIndentation;
 
                         // This means we didn't find an exact match and so we used the indentation of the end of a previous mapping.
                         // So let's use the MinCSharpIndentation of that same location if possible.
