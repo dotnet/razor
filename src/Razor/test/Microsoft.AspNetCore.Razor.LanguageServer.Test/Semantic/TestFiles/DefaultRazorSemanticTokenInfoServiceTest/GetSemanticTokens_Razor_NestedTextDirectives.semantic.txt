@@ -2,7 +2,6 @@
 0 0 1 razorTransition 0
 0 1 5 keyword 0
 0 6 6 namespace name 0
-0 6 1 punctuation 0
 1 0 1 razorTransition 0
 0 1 9 razorDirective 0
 0 10 1 razorTransition 0

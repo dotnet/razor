@@ -35,12 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 2, Character = 1 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: 1);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
         }
@@ -56,12 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 3, Character = 1 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -75,12 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <!--@{var d = "string";@<a></a>}-->
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 37 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -94,12 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @{ var d = }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 12 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int>(), hostDocumentSyncVersion: null);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
         }
@@ -114,12 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @(DateTime.Now)
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 2, Character = 15 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -134,12 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @d
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 2, Character = 2 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -153,12 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @{ var d = }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 12 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 21);
         }
@@ -172,12 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @{ var d = }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 12 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -193,12 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 3, Character = 1 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -216,12 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 second</p>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 3, Character = 10 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -234,12 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <str class='
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 12 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -252,12 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <p attr />
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 10 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -270,12 +210,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <input/>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 8 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -289,12 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <!-- comment with comma's -->
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 29 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -308,12 +238,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <!-- comment
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 12 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -327,12 +252,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <!input/>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 9 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -348,12 +268,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @* comment
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 10 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -367,12 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 15 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -386,12 +296,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1 bool-val='true'></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 31 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -405,12 +310,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1 bool-val></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 24 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -424,12 +324,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1 notbound></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 24 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -443,12 +338,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1 bool-val='true' class='display:none'></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 52 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -462,12 +352,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1 bool-val='true' class='display:none'></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 52 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -481,12 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <p bool-val='true'></p>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 23 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -503,12 +383,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }<NotATagHelp @minimized:something />
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 37 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -522,12 +397,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <Component1 bool-val=""true""></Component1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 43 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -541,12 +411,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <Component1 @test:something='Function'></Component1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 52 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -560,12 +425,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <test1 bool-val='true'></test1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 31 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -579,12 +439,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <Component1 @test='Function'></Component1>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 42 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -597,12 +452,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @@text
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 6 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -615,12 +465,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <p @test='Function'></p>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 24 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -633,12 +478,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 <p></p>
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 7 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -653,12 +493,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @code {}
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 8 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -676,12 +511,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 6, Character = 1 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -694,12 +524,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @using System.Threading
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 23 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -712,12 +537,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @functions {}
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 13 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -744,12 +564,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 14, Character = 1 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -765,12 +580,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 3, Character = 1 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -783,12 +593,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 @* A comment *@
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 0, Character = 15 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
             await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
         }
@@ -803,12 +608,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 slf*@
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 2, Character = 5 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -822,12 +622,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 things *@
                 """;
 
-            var razorRange = new Range
-            {
-                Start = new Position { Line = 0, Character = 0 },
-                End = new Position { Line = 1, Character = 9 }
-            };
-
+            var razorRange = GetRange(documentText);
             var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
             await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
         }
@@ -909,6 +704,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 documentMappingService,
                 documentContextFactory,
                 loggingFactory);
+        }
+
+        private static Range GetRange(string text)
+        {
+            var lines = text.Split(Environment.NewLine);
+            var lastLineIndex = lines.Length - 1;
+            var lastLineCharacterIndex = lines[lastLineIndex].Length;
+
+            var range = new Range
+            {
+                Start = new Position { Line = 0, Character = 0 },
+                End = new Position { Line = lastLineIndex, Character = lastLineCharacterIndex }
+            };
+
+            return range;
         }
 
         private class TestDocumentContextFactory : DocumentContextFactory
