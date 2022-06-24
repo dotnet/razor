@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -148,8 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.Equal(2, result.Length);
-            Assert.Equal(firstExpectedRange, result[0].Range);
-            Assert.Equal(secondExpectedRange, result[1].Range);
+
+            var actualRanges = result.Select(r => r.Range);
+            Assert.Contains(firstExpectedRange, actualRanges);
+            Assert.Contains(secondExpectedRange, actualRanges);
         }
 
         [Fact]
