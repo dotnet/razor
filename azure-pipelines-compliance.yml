@@ -21,27 +21,18 @@ variables:
 steps:
 - template: eng/pipelines/checkout-windows-task.yml
 
-- powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
-  displayName: Setting SourceBranchName variable
-
-- powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
-  displayName: Setting VisualStudio.DropName variable
-
 - task: PowerShell@2
   displayName: Build
   inputs:
-    filePath: eng/build.ps1
+    filePath: eng/common/build.ps1
     arguments: -ci
                -restore
                -build
                -configuration $(BuildConfiguration)
-               -officialBuildId $(Build.BuildNumber)
-               -officialSkipTests true
-               -officialSkipApplyOptimizationData true
-               -officialSourceBranchName $(SourceBranchName)
-               -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
-               /p:RepositoryName=$(Build.Repository.Name)
-               /p:VisualStudioDropName=$(VisualStudio.DropName)
+               /p:OfficialBuildId=$(Build.BuildNumber)
+               /p:ManifestBuildBranch=$(Build.SourceBranchName)
+               /p:ManifestBuildNumber=$(Build.BuildNumber)
+               /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
 
 - task: CopyFiles@2
   # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
