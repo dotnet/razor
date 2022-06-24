@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -31,7 +33,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             };
 
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            var workspace = CreateCSharpTestWorkspace(files, exportProvider, razorSpanMappingService);
+            var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: "CSharp", CancellationToken.None).ConfigureAwait(false);
+            var workspace = CreateCSharpTestWorkspace(files, exportProvider, metadataReferences, razorSpanMappingService);
             var clientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(
@@ -42,6 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         private static AdhocWorkspace CreateCSharpTestWorkspace(
             IEnumerable<CSharpFile> files,
             ExportProvider exportProvider,
+            ImmutableArray<MetadataReference> metadataReferences,
             IRazorSpanMappingService razorSpanMappingService)
         {
             var hostServices = MefHostServices.Create(exportProvider.AsCompositionContext());
@@ -54,7 +58,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 name: "TestProject",
                 assemblyName: "TestProject",
                 language: LanguageNames.CSharp,
-                filePath: "C:\\TestSolution\\TestProject.csproj");
+                filePath: "C:\\TestSolution\\TestProject.csproj",
+                metadataReferences: metadataReferences);
 
             var solutionInfo = SolutionInfo.Create(
                 id: SolutionId.CreateNewId("TestSolution"),
