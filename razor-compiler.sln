@@ -79,6 +79,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Razo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Sdk.Razor", "src\RazorSdk\Microsoft.NET.Sdk.Razor.csproj", "{CC669C6D-C960-4C33-AB74-BA8F9AAF00AE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal", "src\tools\Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal\Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal.csproj", "{8A0EBF5D-BAD2-47E7-9577-483B19F3DC4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,6 +199,10 @@ Global
 		{CC669C6D-C960-4C33-AB74-BA8F9AAF00AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC669C6D-C960-4C33-AB74-BA8F9AAF00AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC669C6D-C960-4C33-AB74-BA8F9AAF00AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A0EBF5D-BAD2-47E7-9577-483B19F3DC4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A0EBF5D-BAD2-47E7-9577-483B19F3DC4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A0EBF5D-BAD2-47E7-9577-483B19F3DC4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A0EBF5D-BAD2-47E7-9577-483B19F3DC4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -239,6 +245,7 @@ Global
 		{8069D412-88D7-458D-9F65-A4CFC4F271E9} = {82951915-80D6-4F7B-A1DE-A5EE7D828C76}
 		{58B12344-2CA9-40F3-9E4B-0C9BAF46DFF3} = {82951915-80D6-4F7B-A1DE-A5EE7D828C76}
 		{CC669C6D-C960-4C33-AB74-BA8F9AAF00AE} = {C37BC7ED-2A86-43EB-A8AD-A26B447BFAE1}
+		{8A0EBF5D-BAD2-47E7-9577-483B19F3DC4E} = {82951915-80D6-4F7B-A1DE-A5EE7D828C76}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {43C51B30-6391-46BF-BD33-EC07D2023997}
