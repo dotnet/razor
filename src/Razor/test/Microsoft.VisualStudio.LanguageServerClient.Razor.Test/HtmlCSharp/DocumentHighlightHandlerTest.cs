@@ -109,14 +109,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var cursorPosition = new Position(2, 9);
             var documentUri = new Uri("C:/path/to/file.razor");
             var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var codeDocument = CreateCodeDocument(text, documentUri.AbsoluteUri);
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsolutePath);
+            var razorSourceText = codeDocument.GetSourceText();
             var csharpSourceText = codeDocument.GetCSharpSourceText();
 
             var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
             var documentSnapshot = new TestLSPDocumentSnapshot(
                 documentUri,
                 version: 1,
-                snapshotContent: codeDocument.GetSourceText().ToString(),
+                snapshotContent: razorSourceText.ToString(),
                 csharpDocumentSnapshot);
 
             var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
@@ -124,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 { documentUri, (hostDocumentVersion: 1, codeDocument) }
             };
             var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText: codeDocument.GetSourceText(), csharpSourceText);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
                 csharpSourceText, csharpDocumentUri, DocumentHighlightServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
@@ -214,14 +215,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var cursorPosition = new Position(2, 9);
             var documentUri = new Uri("C:/path/to/file.razor");
             var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var codeDocument = CreateCodeDocument(text, documentUri.AbsoluteUri);
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsolutePath);
+            var razorSourceText = codeDocument.GetSourceText();
             var csharpSourceText = codeDocument.GetCSharpSourceText();
 
             var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
             var documentSnapshot = new TestLSPDocumentSnapshot(
                 documentUri,
                 version: 1,
-                snapshotContent: codeDocument.GetSourceText().ToString(),
+                snapshotContent: razorSourceText.ToString(),
                 csharpDocumentSnapshot);
 
             var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
@@ -229,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 { documentUri, (hostDocumentVersion: 2, codeDocument) }
             };
             var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText: codeDocument.GetSourceText(), csharpSourceText);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
                 csharpSourceText, csharpDocumentUri, DocumentHighlightServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
@@ -271,18 +273,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var cursorPosition = new Position(2, 9);
             var documentUri = new Uri("C:/path/to/file.razor");
             var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var codeDocument = CreateCodeDocument(text, documentUri.AbsoluteUri);
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsolutePath);
+            var razorSourceText = codeDocument.GetSourceText();
             var csharpSourceText = codeDocument.GetCSharpSourceText();
 
             var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
             var documentSnapshot = new TestLSPDocumentSnapshot(
                 documentUri,
                 version: 1,
-                snapshotContent: codeDocument.GetSourceText().ToString(),
+                snapshotContent: razorSourceText.ToString(),
                 csharpDocumentSnapshot);
 
             var mappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText: codeDocument.GetSourceText(), csharpSourceText);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
                 csharpSourceText, csharpDocumentUri, DocumentHighlightServerCapabilities, razorSpanMappingService).ConfigureAwait(false);

@@ -4,23 +4,36 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using CompletionContext = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionContext;
+using CompletionItem = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionItem;
+using CompletionList = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionList;
+using CompletionOptions = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionOptions;
+using CompletionTriggerKind = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionTriggerKind;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
+    [UseExportProvider]
     public class CompletionHandlerTest : HandlerTestBase
     {
         public CompletionHandlerTest()
@@ -58,6 +71,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private Uri Uri { get; }
 
+        private ServerCapabilities CompletionServerCapabilities { get; } = new()
+        {
+            CompletionProvider = new CompletionOptions
+            {
+                ResolveProvider = true,
+                AllCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray(),
+                TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray(),
+            }
+        };
+
         private readonly string _languageClient = "languageClient";
 
         [Fact]
@@ -65,9 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
-            var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+            var requestInvoker = new TestLSPRequestInvoker();
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var completionHandler = new CompletionHandler(
+                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -88,11 +112,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
-            Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
-                .Returns(Task.FromResult<ProjectionResult>(null));
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+            var requestInvoker = new TestLSPRequestInvoker();
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var completionHandler = new CompletionHandler(
+                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -195,107 +218,69 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_InvokesCSharpLanguageServer()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @using System
+                @DateT
+                """;
+
+            var cursorPosition = new Position(1, 6);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked, InvokeKind = VSInternalCompletionInvokeKind.Explicit },
-                Position = new Position(0, 1)
-            };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    var vsCompletionContext = Assert.IsType<VSInternalCompletionContext>(completionParams.Context);
-                    Assert.Equal(VSInternalCompletionInvokeKind.Explicit, vsCompletionContext.InvokeKind);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new[] { expectedItem })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
+                },
+                Position = cursorPosition
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+            var expectedTextEditRange = new Range
+            {
+                Start = new Position { Line = 1, Character = 1 },
+                End = new Position { Line = 1, Character = 6 }
+            };
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            var item = ((CompletionList)result.Value).Items.First();
-            Assert.Equal(expectedItem.InsertText, item.InsertText);
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
+            var item = vsCompletionList.Items.First();
+            Assert.Equal("DateTime", item.Label);
+            Assert.Equal(expectedTextEditRange, item.TextEdit.Range);
         }
 
         [Fact]
-        public async Task HandleRequestAsync_CSharpProjection_DoNotReturnKeywordsWithoutAtAsync()
+        public async Task HandleRequestAsync_CSharpProjection_DoNotReturnCSharpCompletionsInNonCSharpContextAsync()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @using System
+
+                """;
+
+            var cursorPosition = new Position(1, 0);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
-                Position = new Position(0, 1)
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
+                },
+                Position = cursorPosition
             };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
-                    TextBuffer,
-                    Methods.TextDocumentCompletionName,
-                    RazorLSPConstants.RazorCSharpLanguageServerName,
-                    It.IsAny<CompletionParams>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, _, completionParams, ct) => called = true)
-                .Returns(Task.FromResult(
-                    new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(
-                        _languageClient,
-                    new CompletionList
-                    {
-                        Items = new[] { expectedItem }
-                    })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
-            };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    Assert.Collection(list.Items,
-                        item => Assert.Equal("DateTime", item.Label)
-                    );
-
-                    return list;
-                });
+            Assert.Null(result);
         }
 
         [Fact]
@@ -321,118 +306,63 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_DoNotPreselectAfterAt()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "AccessViolationException", Label = "AccessViolationException", Preselect = true };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @using System
+                @
+                """;
+
+            var cursorPosition = new Position(1, 1);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext()
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
-                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
-                    TriggerCharacter = "@",
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
                 },
-                Position = new Position(0, 1),
+                Position = cursorPosition
             };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
-                    TextBuffer,
-                    Methods.TextDocumentCompletionName,
-                    RazorLSPConstants.RazorCSharpLanguageServerName,
-                    It.IsAny<CompletionParams>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) => called = true)
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new CompletionList
-                {
-                    Items = new[] { expectedItem }
-                })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
-            };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    var violationException = list.Items.FirstOrDefault(item => item.Label == "AccessViolationException");
-                    Assert.NotNull(violationException);
-                    Assert.False(violationException.Preselect);
-
-                    return list;
-                });
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
+            Assert.DoesNotContain(true, vsCompletionList.Items.Select(c => c.Preselect));
         }
 
         [Fact]
-        public async Task HandleRequestAsync_CSharpProjection_ReturnsKeywordsFromRazor()
+        public async Task HandleRequestAsync_CSharpProjection_ReturnsCSharpSnippets()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @
+                """;
+
+            var cursorPosition = new Position(0, 1);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
-                Position = new Position(0, 1)
-            };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new CompletionList
-                {
-                    Items = new[] { expectedItem }
-                })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = "@",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    Assert.Collection(list.Items,
-                        item => Assert.Equal("DateTime", item.Label)
-                    );
-
-                    return list;
-                });
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
+            var itemLabels = vsCompletionList.Items.Select(c => c.Label);
+            Assert.Contains("for (...)", itemLabels);
         }
 
         [Fact]
@@ -471,29 +401,30 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_IncompatibleTriggerCharacter_ReturnsNull()
         {
             // Arrange
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @code
+                {
+                    ;
+                }
+                """;
+
+            var cursorPosition = new Position(2, 5);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "&" },
-                Position = new Position(0, 1)
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = ";",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
-            };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result);
@@ -503,292 +434,179 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_IdentifierTriggerCharacter_InvokesCSharpLanguageServerNull()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @using System;
+                @Da
+                """;
+
+            var cursorPosition = new Position(1, 3);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "a" },
-                Position = new Position(0, 1)
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = "a",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
-                    TextBuffer,
-                    Methods.TextDocumentCompletionName,
-                    RazorLSPConstants.RazorCSharpLanguageServerName,
-                    It.IsAny<CompletionParams>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) => called = true)
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new[] { expectedItem })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
-            };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.NotEmpty(((CompletionList)result.Value).Items);
-            var item = ((CompletionList)result.Value).Items.First();
-            Assert.Equal(expectedItem.InsertText, item.InsertText);
+            Assert.Null(result);
         }
 
         [Fact]
         public async Task HandleRequestAsync_CSharpProjection_TransitionTriggerCharacter_InvokesCSharpLanguageServerWithInvoke()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @using System;
+                @Da
+                """;
+
+            var cursorPosition = new Position(1, 3);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "a" },
-                Position = new Position(0, 1)
-            };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(CompletionTriggerKind.Invoked, completionParams.Context.TriggerKind);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new[] { expectedItem })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
+                },
+                Position = cursorPosition
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.NotEmpty(((CompletionList)result.Value).Items);
-            var item = ((CompletionList)result.Value).Items.First();
-            Assert.Equal(expectedItem.InsertText, item.InsertText);
+            Assert.NotNull(result);
         }
 
         [Fact]
         public async Task HandleRequestAsync_CSharpProjection_ReturnOnlyPropertiesIfInsideInitializer()
         {
             // Arrange
-            var called = false;
-            var expectedItems = new CompletionItem[] {
-                 new CompletionItem() { Kind = CompletionItemKind.Property, Label = "DayOfWeek" },
-                 new CompletionItem() { Kind = CompletionItemKind.Property, Label = "Kind" },
-            };
+            var text =
+                """
+                @using System
+                @{
+                    var date = new DateTime()
+                    {
+                        
+                    };
+                }
+                """;
 
-            var completionRequest = new CompletionParams()
+            var cursorPosition = new Position(4, 8);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
-                Position = new Position(4, 9)
-            };
-
-            var documentManager = new TestDocumentManager();
-            var content = @"@using System
-@{
-    var date = new DateTime()
-    {
-        
-    };
-}";
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, snapshotContent: content, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, expectedItems)));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
+                },
+                Position = cursorPosition
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, BuildNavigatorSelector(new TextExtent(new SnapshotSpan(new StringTextSnapshot(content), new Span(57, 9)), isSignificant: false)), CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    Assert.Collection(list.Items,
-                        item => Assert.Equal("DayOfWeek", item.Label),
-                        item => Assert.Equal("Kind", item.Label)
-                    );
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
+            Assert.Equal(2, vsCompletionList.Items.Length);
 
-                    return list;
-                });
+            var itemLabels = vsCompletionList.Items.Select(c => c.Label);
+            Assert.Contains("DayOfWeek", itemLabels);
+            Assert.Contains("Kind", itemLabels);
         }
 
         [Fact]
         public async Task HandleRequestAsync_CSharpProjection_RemoveAllDesignTimeHelpers()
         {
             // Arrange
-            var called = false;
-            var expectedItems = new CompletionItem[]
-            {
-                new CompletionItem() { InsertText = "BuildRenderTree", Label = "BuildRenderTree" },
-                new CompletionItem() { InsertText = "DateTime", Label = "DateTime" },
-                new CompletionItem() { InsertText = "__o", Label = "__o" },
-                new CompletionItem() { InsertText = "__RazorDirectiveTokenHelpers__", Label = "__RazorDirectiveTokenHelpers__" },
-                new CompletionItem() { InsertText = "_Imports", Label = "_Imports" },
-            };
-
-            var completionRequest = new CompletionParams()
-            {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "@" },
-                Position = new Position(0, 1)
-            };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+            var text =
+                """
+                @using System
+                @code
                 {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, expectedItems)));
+                    
+                }
+                """;
 
-            var projectionResult = new ProjectionResult()
+            var cursorPosition = new Position(3, 4);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                LanguageKind = RazorLanguageKind.CSharp,
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
+                },
+                Position = cursorPosition
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    Assert.Collection(list.Items,
-                        item => Assert.Equal("DateTime", item.InsertText),
-                        item => Assert.Equal("for (...)", item.Label),
-                        item => Assert.Equal("foreach (...)", item.Label),
-                        item => Assert.Equal("if (...)", item.Label),
-                        item => Assert.Equal("prop", item.Label)
-                    );
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
 
-                    return list;
-                });
+            var itemLabels = vsCompletionList.Items.Select(c => c.Label);
+            Assert.DoesNotContain("BuildRenderTree", itemLabels);
+            Assert.DoesNotContain("__o", itemLabels);
+            Assert.DoesNotContain("__RazorDirectiveTokenHelpers__", itemLabels);
+            Assert.DoesNotContain("_Imports", itemLabels);
+            Assert.Contains("DateTime", itemLabels);
         }
 
         [Fact]
         public async Task HandleRequestAsync_CSharpProjection_OnlyRemoveCommonDesignTimeHelpers()
         {
             // Arrange
-            var called = false;
-            var expectedItems = new CompletionItem[] {
-                new CompletionItem() { InsertText = "__RazorDirectiveTokenHelpers__", Label = "__RazorDirectiveTokenHelpers__" },
-                new CompletionItem() { InsertText = "__o", Label = "__o" },
-                new CompletionItem() { InsertText = "__x", Label = "__x" },
-                new CompletionItem() { InsertText = "_Imports", Label = "_Imports" },
-            };
+            var text =
+                """
+                @using System
+                @{ void M() { var foo = 1; f } }
+                """;
 
-            // Requesting completion at:
-            //     @{ void M() { var __x = 1; __[||] } }
-            var completionRequest = new CompletionParams()
+            var cursorPosition = new Position(1, 28);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
-                Position = new Position(0, 29)
-            };
-
-            var documentSnapshot = new TestLSPDocumentSnapshot(
-                new Uri("C:/path/file.razor"),
-                version: 0,
-                snapshotContent: "@{ void M() { var __x = 1; __ } }",
-                CSharpVirtualDocumentSnapshot);
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, documentSnapshot);
-
-            var wordSnapshotSpan = new SnapshotSpan(documentSnapshot.Snapshot, new Span(27, 2));
-            var wordRange = new TextExtent(wordSnapshotSpan, isSignificant: true);
-            var navigatorSelector = BuildNavigatorSelector(wordRange);
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, expectedItems)));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = "f",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, navigatorSelector, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            Assert.True(result.HasValue);
-            _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => throw new NotImplementedException(),
-                list =>
-                {
-                    Assert.Collection(list.Items, item => Assert.Equal("__x", item.Label));
-                    return list;
-                });
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
+
+            var itemLabels = vsCompletionList.Items.Select(c => c.Label);
+            Assert.DoesNotContain("BuildRenderTree", itemLabels);
+            Assert.DoesNotContain("__o", itemLabels);
+            Assert.DoesNotContain("__RazorDirectiveTokenHelpers__", itemLabels);
+            Assert.DoesNotContain("_Imports", itemLabels);
+            Assert.Contains("foo", itemLabels);
         }
 
         [Fact]
@@ -849,9 +667,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 Items = items,
             };
-            _ = new TestDocumentManager();
-            _ = new Mock<LSPRequestInvoker>(MockBehavior.Strict).Object;
-            _ = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
 
             // Act
             CompletionHandler.SetResolveData(123, completionList);
@@ -875,9 +690,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 Data = originalData
             };
-            _ = new TestDocumentManager();
-            _ = new Mock<LSPRequestInvoker>(MockBehavior.Strict).Object;
-            _ = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
 
             // Act
             CompletionHandler.SetResolveData(123, completionList);
@@ -891,60 +703,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_ProvisionalCompletion()
         {
             // Arrange
-            var called = false;
-            var expectedItem = new CompletionItem() { Label = "Sample", InsertText = "Sample" };
-            var completionRequest = new CompletionParams()
+            var text =
+                """
+                @using System
+                @DateTime.
+                """;
+
+            var cursorPosition = new Position(1, 10);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext()
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
                 {
                     TriggerKind = CompletionTriggerKind.TriggerCharacter,
-                    TriggerCharacter = "."
+                    TriggerCharacter = ".",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
                 },
-                Position = new Position(0, 1)
+                Position = cursorPosition
             };
-
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, HtmlVirtualDocumentSnapshot, CSharpVirtualDocumentSnapshot));
-
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<ITextBuffer, string, string, CompletionParams, CancellationToken>((textBuffer, method, clientName, completionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentCompletionName, method);
-                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new[] { expectedItem })));
-
-            var projectionResult = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.Html,
-                Position = new Position(1, 7)
-            };
-            var virtualDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var previousCharacterProjection = new ProjectionResult()
-            {
-                LanguageKind = RazorLanguageKind.CSharp,
-                Position = new Position(100, 10),
-                PositionIndex = 1000,
-                Uri = virtualDocumentUri,
-                HostDocumentVersion = 1,
-            };
-            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), new Position(1, 6), It.IsAny<CancellationToken>())).Returns(Task.FromResult(previousCharacterProjection));
-            projectionProvider.Setup(p => p.GetProjectionForCompletionAsync(It.IsAny<LSPDocumentSnapshot>(), completionRequest.Position, It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
-
-            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
 
             // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await ExecuteCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
-            var item = Assert.Single(((CompletionList)result.Value).Items);
-            Assert.Equal(expectedItem.InsertText, item.InsertText);
+            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
+
+            var itemLabels = vsCompletionList.Items.Select(c => c.Label);
+            Assert.Contains("Now", itemLabels);
         }
 
         [Fact]
@@ -1663,6 +1449,44 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             navigatorSelector.Setup(selector => selector.GetTextStructureNavigator(It.IsAny<ITextBuffer>()))
                 .Returns(navigator.Object);
             return navigatorSelector.Object;
+        }
+
+        private async Task<SumType<CompletionItem[], CompletionList>?> ExecuteCompletionRequestAsync(Uri documentUri, string text, CompletionParams completionParams)
+        {
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsolutePath);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+
+            var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
+            var razorSourceText = codeDocument.GetSourceText();
+            var documentSnapshot = new TestLSPDocumentSnapshot(
+                documentUri,
+                version: 1,
+                snapshotContent: razorSourceText.ToString(),
+                csharpDocumentSnapshot);
+
+            var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
+            {
+                { documentUri, (hostDocumentVersion: 1, codeDocument) }
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
+
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, CompletionServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
+
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+
+            var requestInvoker = new TestLSPRequestInvoker(csharpServer);
+            var documentManager = new TestDocumentManager(csharpServer);
+            documentManager.AddDocument(documentUri, documentSnapshot);
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+
+            var completionHandler = new CompletionHandler(
+                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+
+            var result = await completionHandler.HandleRequestAsync(completionParams, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            return result;
         }
 
         private class TestFormattingOptionsProvider : FormattingOptionsProvider

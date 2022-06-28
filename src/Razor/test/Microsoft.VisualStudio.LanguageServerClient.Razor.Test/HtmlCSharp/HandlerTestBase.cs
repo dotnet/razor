@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 
@@ -48,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             string virtualDocumentPath)
         {
             var textSnapshot = new StringTextSnapshot(codeDocument.GetCSharpDocument().GeneratedCode);
+            textSnapshot.TextBuffer = new TestTextBuffer(textSnapshot);
             var virtualDocumentUri = new Uri(virtualDocumentPath);
             var virtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(virtualDocumentUri, textSnapshot, hostDocumentSyncVersion: 1);
 

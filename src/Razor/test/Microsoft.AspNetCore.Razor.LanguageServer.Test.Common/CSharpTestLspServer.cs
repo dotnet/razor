@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -128,6 +130,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             _serverMessageFormatter.Dispose();
             await _serverMessageHandler.DisposeAsync();
         }
+
+        #region Document Change Methods
+
+        public async Task OpenDocumentAsync(Uri documentUri, string documentText)
+        {
+            var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, documentText);
+            await ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None).ConfigureAwait(false);
+
+            static DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
+                => new()
+                {
+                    TextDocument = new TextDocumentItem
+                    {
+                        Text = source,
+                        Uri = uri
+                    }
+                };
+        }
+
+        public async Task ReplaceTextAsync(Uri documentUri, params (Range Range, string Text)[] changes)
+        {
+            var didChangeParams = CreateDidChangeTextDocumentParams(
+                documentUri,
+                changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
+            await ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None).ConfigureAwait(false);
+
+            static DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(Uri documentUri, ImmutableArray<(Range Range, string Text)> changes)
+            {
+                var changeEvents = changes.Select(change => new TextDocumentContentChangeEvent
+                {
+                    Text = change.Text,
+                    Range = change.Range,
+                }).ToArray();
+
+                return new DidChangeTextDocumentParams()
+                {
+                    TextDocument = new VersionedTextDocumentIdentifier
+                    {
+                        Uri = documentUri
+                    },
+                    ContentChanges = changeEvents
+                };
+            }
+        }
+
+        #endregion
 
         private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider
         {

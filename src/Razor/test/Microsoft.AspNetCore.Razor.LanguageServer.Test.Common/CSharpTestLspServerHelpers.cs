@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 id: ProjectId.CreateNewId("TestProject"),
                 version: VersionStamp.Default,
                 name: "TestProject",
-                assemblyName: "TestProject",
+                assemblyName: "TestProject.dll",
                 language: LanguageNames.CSharp,
                 filePath: "C:\\TestSolution\\TestProject.csproj",
                 metadataReferences: metadataReferences);
