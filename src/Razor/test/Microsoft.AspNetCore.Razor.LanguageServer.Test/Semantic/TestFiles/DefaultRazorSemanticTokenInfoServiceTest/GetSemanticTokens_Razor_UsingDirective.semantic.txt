@@ -1,8 +1,6 @@
 //line,characterPos,length,tokenType,modifier
 0 0 1 razorTransition 0
 0 1 5 keyword 0
-0 6 9 variable 0
-0 9 1 operator 0
-0 1 10 variable 0
-0 10 1 operator 0
-0 1 5 variable 0
+0 6 6 namespace name 0
+0 6 1 operator 0
+0 1 9 namespace name 0

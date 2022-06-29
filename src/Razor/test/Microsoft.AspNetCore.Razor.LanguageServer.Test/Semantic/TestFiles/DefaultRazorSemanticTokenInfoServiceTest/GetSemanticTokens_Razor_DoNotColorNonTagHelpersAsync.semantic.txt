@@ -1,5 +1,5 @@
 //line,characterPos,length,tokenType,modifier
-1 0 1 markupTagDelimiter 0
+0 0 1 markupTagDelimiter 0
 0 1 1 markupElement 0
 0 2 1 razorTransition 0
 0 1 4 razorDirectiveAttribute 0

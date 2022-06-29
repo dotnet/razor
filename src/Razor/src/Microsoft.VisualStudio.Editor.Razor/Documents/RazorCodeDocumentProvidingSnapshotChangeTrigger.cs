@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             else if (e.Kind == ProjectChangeKind.DocumentAdded)
             {
                 var documentFilePath = e.DocumentFilePath!;
-                _documentProjectMap.Add(documentFilePath, e.ProjectFilePath!);
+                _documentProjectMap[documentFilePath] = e.ProjectFilePath!;
                 if (_openDocuments.Contains(documentFilePath))
                 {
                     _openDocuments.Remove(documentFilePath);

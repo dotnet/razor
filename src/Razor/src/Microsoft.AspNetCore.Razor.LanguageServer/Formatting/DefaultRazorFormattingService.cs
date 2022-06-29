@@ -106,6 +106,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 ? result.Edits
                 : result.Edits.Where(e => range.LineOverlapsWith(e.Range));
 
+            return GetMinimalEdits(originalText, filteredEdits);
+        }
+
+        private static TextEdit[] GetMinimalEdits(SourceText originalText, IEnumerable<TextEdit> filteredEdits)
+        {
             // Make sure the edits actually change something, or its not worth responding
             var textChanges = filteredEdits.Select(e => e.AsTextChange(originalText));
             var changedText = originalText.WithChanges(textChanges);
@@ -167,19 +172,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (collapseEdits)
             {
                 var collapsedEdit = MergeEdits(result.Edits, originalText);
-                edits = new[] { collapsedEdit };
+                if (collapsedEdit.NewText.Length == 0)
+                {
+                    return Array.Empty<TextEdit>();
+                }
+
+                return new[] { collapsedEdit };
             }
 
-            // Make sure the edits actually change something, or its not worth responding
-            var textChanges = edits.Select(e => e.AsTextChange(originalText));
-            var changedText = originalText.WithChanges(textChanges);
-
-            if (changedText.ContentEquals(originalText))
-            {
-                return Array.Empty<TextEdit>();
-            }
-
-            return edits;
+            return GetMinimalEdits(originalText, edits);
         }
 
         // Internal for testing

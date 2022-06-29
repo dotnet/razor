@@ -412,3 +412,16 @@ stages:
       publishingInfraVersion: 3
       enableSigningValidation: false
       enableNugetValidation: false
+      SDLValidationParameters:
+        enable: true
+        params: >-
+          -SourceToolsList @("policheck","credscan")
+          -TsaInstanceURL $(_TsaInstanceURL)
+          -TsaProjectName $(_TsaProjectName)
+          -TsaNotificationEmail $(_TsaNotificationEmail)
+          -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+          -TsaBugAreaPath $(_TsaBugAreaPath)
+          -TsaIterationPath $(_TsaIterationPath)
+          -TsaRepositoryName "Razor-Tooling"
+          -TsaCodebaseName "Razor-Tooling"
+          -TsaPublish $True

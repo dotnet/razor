@@ -13,9 +13,8 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
     internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
     {

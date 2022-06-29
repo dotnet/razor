@@ -123,13 +123,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void MapSpans_GetMappedSpanResults_MappingErrorReturnsDefaultMappedSpan()
         {
             // Arrange
-            var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
             var sourceTextRazor = SourceText.From("");
             var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { Extensions.RangeExtensions.UndefinedRange } };
 
             // Act
-            var results = RazorLSPSpanMappingService.GetMappedSpanResults(documentSnapshot.Object, sourceTextRazor, response);
+            var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);
 
             // Assert
             Assert.True(results.Single().IsDefault);

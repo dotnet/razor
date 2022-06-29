@@ -4,19 +4,18 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
-    public class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
+    internal class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
     {
-        public static readonly TestRazorDocumentServiceProvider Instance = new();
+        private readonly IRazorSpanMappingService _razorSpanMappingService;
+
+        public TestRazorDocumentServiceProvider(IRazorSpanMappingService razorSpanMappingService)
+        {
+            _razorSpanMappingService = razorSpanMappingService;
+        }
 
         public bool CanApplyChange => throw new NotImplementedException();
 
@@ -28,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 
             if (serviceType == typeof(IRazorSpanMappingService))
             {
-                return (TService)(IRazorSpanMappingService)new TestRazorSpanMappingService();
+                return (TService)_razorSpanMappingService;
             }
 
             if (serviceType == typeof(IRazorDocumentPropertiesService))
@@ -37,17 +36,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             }
 
             return this as TService;
-        }
-
-        private class TestRazorSpanMappingService : IRazorSpanMappingService
-        {
-            public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-                Document document,
-                IEnumerable<TextSpan> spans,
-                CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         private class TestRazorDocumentPropertiesService : IRazorDocumentPropertiesService

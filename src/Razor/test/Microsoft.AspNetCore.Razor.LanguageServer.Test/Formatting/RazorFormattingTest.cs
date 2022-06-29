@@ -78,6 +78,121 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        public async Task CodeBlock_IndentedBlock_FixCloseBrace()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    <boo>
+                        @code
+                                {
+                            private int currentCount = 0;
+
+                            private void IncrementCount()
+                            {
+                                currentCount++;
+                            }
+                                            }
+                    </boo>
+                    """,
+                expected: """
+                    <boo>
+                        @code
+                        {
+                            private int currentCount = 0;
+
+                            private void IncrementCount()
+                            {
+                                currentCount++;
+                            }
+                        }
+                    </boo>
+                    """);
+        }
+
+        [Fact]
+        public async Task CodeBlock_IndentedBlock_FixCloseBrace2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    <boo>
+                    @code
+                            {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    </boo>
+                    """,
+                expected: """
+                    <boo>
+                        @code
+                        {
+                            private int currentCount = 0;
+
+                            private void IncrementCount()
+                            {
+                                currentCount++;
+                            }
+                        }
+                    </boo>
+                    """);
+        }
+
+        [Fact]
+        public async Task CodeBlock_FixCloseBrace()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @code        {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                        }
+                    """,
+                expected: """
+                    @code {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """);
+        }
+
+        [Fact]
+        public async Task CodeBlock_FixCloseBrace2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @code        {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }                        }
+                    """,
+                expected: """
+                    @code {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """);
+        }
+
+        [Fact]
         public async Task CodeBlock_TooMuchWhitespace()
         {
             await RunFormattingTestAsync(
@@ -208,6 +323,88 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        public async Task FunctionsBlock_FixCloseBrace()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @functions        {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                             }
+                    """,
+                expected: """
+                    @functions {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        public async Task FunctionsBlock_FixCloseBrace2()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @functions        {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }                             }
+                    """,
+                expected: """
+                    @functions {
+                        private int currentCount = 0;
+
+                        private void IncrementCount()
+                        {
+                            currentCount++;
+                        }
+                    }
+                    """,
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        public async Task FunctionsBlock_Tabs_FixCloseBrace()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    @functions        {
+                    	private int currentCount = 0;
+
+                    	private void IncrementCount()
+                    	{
+                    		currentCount++;
+                    	}
+                    				}
+                    """,
+                expected: """
+                    @functions {
+                    	private int currentCount = 0;
+
+                    	private void IncrementCount()
+                    	{
+                    		currentCount++;
+                    	}
+                    }
+                    """,
+                insertSpaces: false,
+                tabSize: 8,
                 fileKind: FileKinds.Legacy);
         }
 
