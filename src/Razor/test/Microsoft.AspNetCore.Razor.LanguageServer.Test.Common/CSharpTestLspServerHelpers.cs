@@ -37,6 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
             var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
             var workspace = CreateCSharpTestWorkspace(files, exportProvider, metadataReferences, razorSpanMappingService);
+<<<<<<< HEAD
             var clientCapabilities = new VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
@@ -51,6 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                     }
                 }
             };
+=======
+            var clientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
+>>>>>>> e1d654e792aa2fe6646a6935bcca80ff0aff4387
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(
                 workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
