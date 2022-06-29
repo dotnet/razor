@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;

@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 return new ReinvocationResponse<TOut>(languageClientName: RazorLSPConstants.RazorCSharpLanguageServerName, result);
             }
 
-            throw new NotImplementedException();
+            return default;
         }
 
         public override Task<ReinvocationResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
