@@ -13,7 +13,6 @@
     <ProjectReference Include="..\Microsoft.NET.Sdk.Razor.SourceGenerators\Microsoft.NET.Sdk.Razor.SourceGenerators.csproj" />
   </ItemGroup>
 
-
   <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
     <ItemGroup>
       <Content Include="$(ArtifactsBinDir)Microsoft.NET.SDK.Razor.SourceGenerators\$(Configuration)\netstandard2.0\*.*" Exclude="$(ArtifactsBinDir)**\*.pdb" PackagePath="\source-generators" />
