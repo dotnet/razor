@@ -172,6 +172,7 @@ stages:
           inputs:
             command: custom
             arguments: 'locals all -clear'
+        - template: /eng/common/restore-internal-tools.yml
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
@@ -185,7 +186,6 @@ stages:
               arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - template: /eng/common/restore-internal-tools.yml
         - script: eng\CIBuild.cmd
             -restore
             -build
