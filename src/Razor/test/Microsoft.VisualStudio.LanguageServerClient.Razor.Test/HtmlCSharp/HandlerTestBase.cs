@@ -46,12 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         internal static CSharpVirtualDocumentSnapshot CreateCSharpVirtualDocumentSnapshot(
             RazorCodeDocument codeDocument,
-            string virtualDocumentPath)
+            string virtualDocumentPath,
+            long? hostDocumentSyncVersion = 1)
         {
             var textSnapshot = new StringTextSnapshot(codeDocument.GetCSharpDocument().GeneratedCode);
             textSnapshot.TextBuffer = new TestTextBuffer(textSnapshot);
             var virtualDocumentUri = new Uri(virtualDocumentPath);
-            var virtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(virtualDocumentUri, textSnapshot, hostDocumentSyncVersion: 1);
+            var virtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(virtualDocumentUri, textSnapshot, hostDocumentSyncVersion);
 
             return virtualDocumentSnapshot;
         }

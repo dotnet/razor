@@ -21,6 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
 {
     internal class CSharpTestLspServerHelpers
     {
+        private const string EditRangeSetting = "editRange";
+
         public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
             SourceText csharpSourceText,
             Uri csharpDocumentUri,
@@ -35,7 +37,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
             var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
             var workspace = CreateCSharpTestWorkspace(files, exportProvider, metadataReferences, razorSpanMappingService);
-            var clientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
+            var clientCapabilities = new VSInternalClientCapabilities
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new TextDocumentClientCapabilities
+                {
+                    Completion = new VSInternalCompletionSetting
+                    {
+                        CompletionListSetting = new CompletionListSetting
+                        {
+                            ItemDefaults = new string[] { EditRangeSetting }
+                        }
+                    }
+                }
+            };
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(
                 workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);

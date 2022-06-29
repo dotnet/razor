@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                         LanguageKind = RazorLanguageKind.CSharp,
                         Position = vsProjectedPosition,
                         PositionIndex = projectedIndex,
-                        HostDocumentVersion = (int)csharpVirtualDocument.HostDocumentSyncVersion,
+                        HostDocumentVersion = (int?)csharpVirtualDocument.HostDocumentSyncVersion,
                         Uri = csharpVirtualDocument.Uri
                     };
 
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 HostDocumentVersion = documentSnapshot.Version
             };
 
-            return Task.FromResult<ProjectionResult>(defaultProjection);
+            return Task.FromResult(defaultProjection);
         }
 
         public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
