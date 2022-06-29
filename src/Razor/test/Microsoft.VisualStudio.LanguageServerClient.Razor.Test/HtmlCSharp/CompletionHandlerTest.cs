@@ -107,30 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_ProjectionNotFound_ReturnsNull()
-        {
-            // Arrange
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot));
-            var requestInvoker = new TestLSPRequestInvoker();
-            var projectionProvider = TestLSPProjectionProvider.Instance;
-            var completionHandler = new CompletionHandler(
-                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
-            var completionRequest = new CompletionParams()
-            {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
-                Position = new Position(0, 1)
-            };
-
-            // Act
-            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
         public async Task HandleRequestAsync_HtmlProjection_InvokesHtmlLanguageServer()
         {
             // Arrange
@@ -237,12 +213,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Position = cursorPosition
             };
 
-            var expectedTextEditRange = new Range
-            {
-                Start = new Position { Line = 1, Character = 1 },
-                End = new Position { Line = 1, Character = 6 }
-            };
-
             // Act
             var result = await ExecuteCSharpCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
 
@@ -250,34 +220,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
             var item = vsCompletionList.Items.First();
             Assert.Equal("DateTime", item.Label);
-            Assert.Equal(expectedTextEditRange, item.TextEdit.Range);
         }
 
         [Fact]
         public async Task HandleRequestAsync_CSharpProjection_DoNotReturnCSharpCompletionsInNonCSharpContextAsync()
         {
             // Arrange
-            var text =
-                """
-                @using System
-
-                """;
-
-            var cursorPosition = new Position(1, 0);
-            var documentUri = new Uri("C:/path/to/file.razor");
-            var completionParams = new CompletionParams()
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(Uri, new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, CSharpVirtualDocumentSnapshot, HtmlVirtualDocumentSnapshot));
+            var requestInvoker = new TestLSPRequestInvoker();
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var completionHandler = new CompletionHandler(
+                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, FormattingOptionsProvider, LoggerProvider);
+            var completionRequest = new CompletionParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
-                Context = new VSInternalCompletionContext()
-                {
-                    TriggerKind = CompletionTriggerKind.Invoked,
-                    InvokeKind = VSInternalCompletionInvokeKind.Explicit
-                },
-                Position = cursorPosition
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
+                Position = new Position(0, 1)
             };
 
             // Act
-            var result = await ExecuteCSharpCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
+            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result);
@@ -731,46 +694,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var itemLabels = vsCompletionList.Items.Select(c => c.Label);
             Assert.Contains("Now", itemLabels);
-        }
-
-        [Fact]
-        public async Task HandleRequestAsync_ProvisionalCompletion_CSharpTextEdits()
-        {
-            // Arrange
-            var text =
-                """
-                @using System
-                @DateTime.
-                """;
-
-            var cursorPosition = new Position(1, 10);
-            var documentUri = new Uri("C:/path/to/file.razor");
-            var completionParams = new CompletionParams()
-            {
-                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
-                Context = new VSInternalCompletionContext()
-                {
-                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
-                    TriggerCharacter = ".",
-                    InvokeKind = VSInternalCompletionInvokeKind.Typing
-                },
-                Position = cursorPosition
-            };
-
-            var expectedRange = new Range
-            {
-                Start = cursorPosition,
-                End = cursorPosition
-            };
-
-            // Act
-            var result = await ExecuteCSharpCompletionRequestAsync(documentUri, text, completionParams).ConfigureAwait(false);
-
-            // Assert
-            var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
-
-            var item = vsCompletionList.Items.Where(c => c.Label == "Now").Single();
-            Assert.Equal(expectedRange, item.TextEdit.Range);
         }
 
         [Fact]
