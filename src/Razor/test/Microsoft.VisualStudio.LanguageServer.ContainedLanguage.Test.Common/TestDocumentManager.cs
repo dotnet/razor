@@ -85,7 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 return (range, c.NewText);
             }).ToArray();
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             _testLspServer.ReplaceTextAsync(virtualDocumentSnapshot.Uri, rangesAndTexts).Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
         }
     }
 }

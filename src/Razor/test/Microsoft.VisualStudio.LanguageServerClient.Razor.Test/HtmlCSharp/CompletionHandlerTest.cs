@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using CompletionContext = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionContext;
@@ -42,8 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             JoinableTaskContext = new JoinableTaskContext();
 #pragma warning restore VSSDK005 // Avoid instantiating JoinableTaskContext
 
-            var navigatorSelector = BuildNavigatorSelector(new TextExtent(new SnapshotSpan(new StringTextSnapshot("@{ }"), new Span(0, 0)), isSignificant: false));
-            TextStructureNavigatorSelectorService = navigatorSelector;
+            TextStructureNavigatorSelectorService = new TestTextStructureNavigatorSelectorService();
 
             Uri = new Uri("C:/path/to/file.razor");
 
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_NoCompletions()
+        public async Task HandleRequestAsync_HtmlProjection_NoCompletions()
         {
             // Arrange
             var completionRequest = new CompletionParams()
@@ -1274,17 +1274,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Equal(expectedRange, vsCompletionList.ItemDefaults.EditRange);
         }
 
-        private static ITextStructureNavigatorSelectorService BuildNavigatorSelector(TextExtent wordRange)
-        {
-            var navigator = new Mock<ITextStructureNavigator>(MockBehavior.Strict);
-            navigator.Setup(n => n.GetExtentOfWord(It.IsAny<SnapshotPoint>()))
-                .Returns(wordRange);
-            var navigatorSelector = new Mock<ITextStructureNavigatorSelectorService>(MockBehavior.Strict);
-            navigatorSelector.Setup(selector => selector.GetTextStructureNavigator(It.IsAny<ITextBuffer>()))
-                .Returns(navigator.Object);
-            return navigatorSelector.Object;
-        }
-
         private async Task<SumType<CompletionItem[], CompletionList>?> ExecuteCSharpCompletionRequestAsync(Uri documentUri, string text, CompletionParams completionParams)
         {
             var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
@@ -1339,6 +1328,31 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot) => _options;
+        }
+
+        private class TestTextStructureNavigatorSelectorService : ITextStructureNavigatorSelectorService
+        {
+            private static readonly ITextStructureNavigator s_textStructureNavigator = new TestTextStructureNavigator();
+
+            public ITextStructureNavigator CreateTextStructureNavigator(ITextBuffer textBuffer, IContentType contentType) => s_textStructureNavigator;
+
+            public ITextStructureNavigator GetTextStructureNavigator(ITextBuffer textBuffer) => s_textStructureNavigator;
+        }
+
+        private class TestTextStructureNavigator : ITextStructureNavigator
+        {
+            public IContentType ContentType => throw new NotImplementedException();
+
+            public TextExtent GetExtentOfWord(SnapshotPoint currentPosition)
+                => new(new SnapshotSpan(new StringTextSnapshot("@{ }"), new Span(0, 0)), isSignificant: false);
+
+            public SnapshotSpan GetSpanOfEnclosing(SnapshotSpan activeSpan) => throw new NotImplementedException();
+
+            public SnapshotSpan GetSpanOfFirstChild(SnapshotSpan activeSpan) => throw new NotImplementedException();
+
+            public SnapshotSpan GetSpanOfNextSibling(SnapshotSpan activeSpan) => throw new NotImplementedException();
+
+            public SnapshotSpan GetSpanOfPreviousSibling(SnapshotSpan activeSpan) => throw new NotImplementedException();
         }
     }
 }
