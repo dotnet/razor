@@ -172,7 +172,8 @@ stages:
           inputs:
             command: custom
             arguments: 'locals all -clear'
-        - template: /eng/common/restore-internal-tools.yml
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - template: /eng/common/restore-internal-tools.yml
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
