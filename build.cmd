@@ -1,3 +1,8 @@
 @echo off
-powershell -ExecutionPolicy ByPass -NoProfile -command "& """%~dp0eng\common\Build.ps1""" -restore -build -pack %*"
-exit /b %ErrorLevel%
+setlocal
+
+set _args=%*
+if "%~1"=="-?" set _args=-help
+
+powershell -ExecutionPolicy ByPass -NoProfile -Command "& '%~dp0eng\common\build.ps1'" %_args%
+exit /b %ERRORLEVEL%

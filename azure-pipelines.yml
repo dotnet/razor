@@ -153,6 +153,7 @@ stages:
               /p:ManifestBuildBranch=$(Build.SourceBranchName)
               /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
+              /p:GenerateSbom=true
 
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - group: DotNet-Blob-Feed
@@ -171,6 +172,8 @@ stages:
           inputs:
             command: custom
             arguments: 'locals all -clear'
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - template: /eng/common/restore-internal-tools.yml
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
