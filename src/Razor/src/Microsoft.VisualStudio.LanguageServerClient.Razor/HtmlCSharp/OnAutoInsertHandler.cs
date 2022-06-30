@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation("Starting request for {textDocumentUri}, with trigger character {character}.", request.TextDocument.Uri);
+            _logger.LogInformation("Starting request for {textDocumentUri}, with trigger character {character}.", request.TextDocument.Uri, request.Character);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
