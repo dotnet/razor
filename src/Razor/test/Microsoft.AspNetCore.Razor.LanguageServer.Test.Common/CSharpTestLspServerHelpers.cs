@@ -44,9 +44,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 {
                     Completion = new VSInternalCompletionSetting
                     {
-                        CompletionListSetting = new CompletionListSetting
+                        CompletionListSetting = new()
                         {
                             ItemDefaults = new string[] { EditRangeSetting }
+                        },
+                        CompletionItem = new()
+                        {
+                            SnippetSupport = true
                         }
                     }
                 }

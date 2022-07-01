@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer.Common\Extensions\RazorCodeDocumentExtensions.cs" LinkBase="Shared" />
+    <Compile Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Test.Common\IsExternalInit.cs" Link="IsExternalInit.cs" />
   </ItemGroup>
 
   <ItemGroup>

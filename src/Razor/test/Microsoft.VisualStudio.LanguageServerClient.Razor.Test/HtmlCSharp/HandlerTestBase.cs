@@ -4,31 +4,16 @@
 #nullable disable
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
-using Moq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public abstract class HandlerTestBase
     {
-        public HandlerTestBase()
-        {
-            var logger = TestLogger.Instance;
-            LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l =>
-                l.CreateLogger(It.IsAny<string>()) == logger &&
-                l.InitializeLoggerAsync(It.IsAny<CancellationToken>()) == Task.CompletedTask &&
-                l.CreateLoggerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()) == Task.FromResult<ILogger>(logger),
-                MockBehavior.Strict);
-        }
-
-        internal HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
+        internal TestLoggerProvider LoggerProvider { get; } = new();
 
         internal static RazorCodeDocument CreateCodeDocument(
             string text,

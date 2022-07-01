@@ -21,6 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
     {
         private readonly Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)> _uriToVersionAndCodeDocumentMap;
         private readonly DefaultRazorDocumentMappingService _documentMappingService;
+        private readonly Dictionary<TextEdit, TextEdit> _mappings = new();
+
+        public TestLSPDocumentMappingProvider()
+        {
+            _uriToVersionAndCodeDocumentMap = new();
+            _documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+        }
+
+        public int TextEditRemapCount { get; set; } = 0;
 
         public TestLSPDocumentMappingProvider(Dictionary<Uri, (int, RazorCodeDocument)> uriToVersionAndCodeDocumentMap)
         {
@@ -77,9 +86,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             return Task.FromResult<RazorMapToDocumentRangesResponse?>(response);
         }
 
-        public override Task<TextEdit[]> RemapFormattedTextEditsAsync(Uri uri, TextEdit[] edits, FormattingOptions options, bool containsSnippet, CancellationToken cancellationToken)
+        public override Task<TextEdit[]> RemapFormattedTextEditsAsync(
+            Uri uri,
+            TextEdit[] edits,
+            FormattingOptions options,
+            bool containsSnippet,
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            TextEditRemapCount++;
+            return Task.FromResult(edits);
         }
 
         public override Task<Location[]> RemapLocationsAsync(Location[] locations, CancellationToken cancellationToken)

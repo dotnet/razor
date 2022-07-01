@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var requestInvoker = new TestLSPRequestInvoker();
             var projectionProvider = TestLSPProjectionProvider.Instance;
-            var documentMappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
+            var documentMappingProvider = new TestLSPDocumentMappingProvider();
             var highlightHandler = new DocumentHighlightHandler(requestInvoker, new TestDocumentManager(), projectionProvider, documentMappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
             {
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var requestInvoker = new TestLSPRequestInvoker();
             var projectionProvider = TestLSPProjectionProvider.Instance;
-            var documentMappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
+            var documentMappingProvider = new TestLSPDocumentMappingProvider();
             var highlightHandler = new DocumentHighlightHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
             {
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 snapshotContent: razorSourceText.ToString(),
                 csharpDocumentSnapshot);
 
-            var mappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
+            var mappingProvider = new TestLSPDocumentMappingProvider();
             var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(

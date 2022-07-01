@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 using CompletionContext = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionContext;
@@ -44,12 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 #pragma warning restore VSSDK005 // Avoid instantiating JoinableTaskContext
 
             TextStructureNavigatorSelectorService = new TestTextStructureNavigatorSelectorService();
-
             Uri = new Uri("C:/path/to/file.razor");
-
             CompletionRequestContextCache = new CompletionRequestContextCache();
             FormattingOptionsProvider = TestFormattingOptionsProvider.Default;
-
             TextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
             CSharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor.g.cs"), TextBuffer.CurrentSnapshot, 0);
             HtmlVirtualDocumentSnapshot = new HtmlVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor__virtual.html"), TextBuffer.CurrentSnapshot, 0);
@@ -1328,31 +1324,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot) => _options;
-        }
-
-        private class TestTextStructureNavigatorSelectorService : ITextStructureNavigatorSelectorService
-        {
-            private static readonly ITextStructureNavigator s_textStructureNavigator = new TestTextStructureNavigator();
-
-            public ITextStructureNavigator CreateTextStructureNavigator(ITextBuffer textBuffer, IContentType contentType) => s_textStructureNavigator;
-
-            public ITextStructureNavigator GetTextStructureNavigator(ITextBuffer textBuffer) => s_textStructureNavigator;
-        }
-
-        private class TestTextStructureNavigator : ITextStructureNavigator
-        {
-            public IContentType ContentType => throw new NotImplementedException();
-
-            public TextExtent GetExtentOfWord(SnapshotPoint currentPosition)
-                => new(new SnapshotSpan(new StringTextSnapshot("@{ }"), new Span(0, 0)), isSignificant: false);
-
-            public SnapshotSpan GetSpanOfEnclosing(SnapshotSpan activeSpan) => throw new NotImplementedException();
-
-            public SnapshotSpan GetSpanOfFirstChild(SnapshotSpan activeSpan) => throw new NotImplementedException();
-
-            public SnapshotSpan GetSpanOfNextSibling(SnapshotSpan activeSpan) => throw new NotImplementedException();
-
-            public SnapshotSpan GetSpanOfPreviousSibling(SnapshotSpan activeSpan) => throw new NotImplementedException();
         }
     }
 }

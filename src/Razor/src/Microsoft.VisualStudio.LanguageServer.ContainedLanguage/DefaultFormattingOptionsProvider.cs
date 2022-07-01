@@ -12,25 +12,16 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     [Export(typeof(FormattingOptionsProvider))]
     internal class DefaultFormattingOptionsProvider : FormattingOptionsProvider
     {
-        private readonly LSPDocumentManager _documentManager;
         private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
-        public DefaultFormattingOptionsProvider(
-            LSPDocumentManager documentManager,
-            IIndentationManagerService indentationManagerService)
+        public DefaultFormattingOptionsProvider(IIndentationManagerService indentationManagerService)
         {
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
             if (indentationManagerService is null)
             {
                 throw new ArgumentNullException(nameof(indentationManagerService));
             }
 
-            _documentManager = documentManager;
             _indentationManagerService = indentationManagerService;
         }
 

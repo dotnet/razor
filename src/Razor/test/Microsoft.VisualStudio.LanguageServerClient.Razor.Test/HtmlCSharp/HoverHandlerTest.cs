@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = new TestDocumentManager();
             var requestInvoker = new TestLSPRequestInvoker();
             var projectionProvider = TestLSPProjectionProvider.Instance;
-            var documentMappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
+            var documentMappingProvider = new TestLSPDocumentMappingProvider();
             var hoverHandler = new HoverHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var hoverRequest = new TextDocumentPositionParams()
             {
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var requestInvoker = new TestLSPRequestInvoker();
             var projectionProvider = TestLSPProjectionProvider.Instance;
-            var documentMappingProvider = new TestLSPDocumentMappingProvider(new Dictionary<Uri, (int, RazorCodeDocument)>());
+            var documentMappingProvider = new TestLSPDocumentMappingProvider();
             var hoverHandler = new HoverHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var hoverRequest = new TextDocumentPositionParams()
             {

@@ -8,11 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common.Extensions;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
     internal class TestDocumentManager : TrackingLSPDocumentManager
     {
@@ -53,12 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 return;
             }
 
-            if (!documentSnapshot.TryGetVirtualDocument<VirtualDocumentSnapshot>(out var virtualDocumentSnapshot))
+            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var virtualDocumentSnapshot))
             {
                 return;
             }
 
-            using var virtualDocument = new TestVirtualDocument(virtualDocumentSnapshot.Uri, virtualDocumentSnapshot.Snapshot.TextBuffer);
+            using var virtualDocument = new CSharpVirtualDocument(virtualDocumentSnapshot.Uri, virtualDocumentSnapshot.Snapshot.TextBuffer);
             virtualDocument.Update(changes, hostDocumentVersion, state);
             _documents[hostDocumentUri] = new TestLSPDocumentSnapshot(hostDocumentUri, documentSnapshot.Version, new[] { virtualDocument.CurrentSnapshot });
 
@@ -76,10 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var rangesAndTexts = changes.Select(c =>
             {
                 virtualSourceText.GetLinesAndOffsets(c.OldSpan, out var startLine, out var startCharacter, out var endLine, out var endCharacter);
-                var range = new Protocol.Range
+                var range = new LanguageServer.Protocol.Range
                 {
-                    Start = new Protocol.Position { Line = startLine, Character = startCharacter },
-                    End = new Protocol.Position { Line = endLine, Character = endCharacter }
+                    Start = new LanguageServer.Protocol.Position { Line = startLine, Character = startCharacter },
+                    End = new LanguageServer.Protocol.Position { Line = endLine, Character = endCharacter }
                 };
 
                 return (range, c.NewText);
