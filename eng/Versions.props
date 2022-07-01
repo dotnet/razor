@@ -36,6 +36,7 @@
   -->
   <PropertyGroup Label="Manual">
     <BenchmarkDotNetVersion>0.13.0</BenchmarkDotNetVersion>
+    <DiffPlexVersion>1.5.0</DiffPlexVersion>
     <FluentAssertionsVersion>4.19.2</FluentAssertionsVersion>
     <MicrosoftBuildVersion>17.2.0-preview-22178-03</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildVersion)</MicrosoftBuildFrameworkVersion>

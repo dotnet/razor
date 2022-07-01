@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -123,8 +124,9 @@ public abstract class ParserTestBase
             throw new XunitException($"The resource {baselineFileName} was not found.");
         }
 
-        var baseline = stFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        SyntaxNodeVerifier.Verify(root, baseline);
+        var syntaxNodeBaseline = stFile.ReadAllText();
+        var actualSyntaxNodes = SyntaxNodeSerializer.Serialize(root);
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(syntaxNodeBaseline, actualSyntaxNodes);
 
         // Verify diagnostics
         var baselineDiagnostics = string.Empty;
@@ -145,18 +147,18 @@ public abstract class ParserTestBase
         }
         else
         {
-            var classifiedSpanBaseline = new string[0];
-            classifiedSpanBaseline = classifiedSpanFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            ClassifiedSpanVerifier.Verify(syntaxTree, classifiedSpanBaseline);
+            var classifiedSpanBaseline = classifiedSpanFile.ReadAllText();
+            var actualClassifiedSpans = ClassifiedSpanSerializer.Serialize(syntaxTree);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(classifiedSpanBaseline, actualClassifiedSpans);
         }
 
         // Verify tag helper spans
         var tagHelperSpanFile = TestFile.Create(baselineTagHelperSpansFileName, GetType().GetTypeInfo().Assembly);
-        var tagHelperSpanBaseline = new string[0];
         if (tagHelperSpanFile.Exists())
         {
-            tagHelperSpanBaseline = tagHelperSpanFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            TagHelperSpanVerifier.Verify(syntaxTree, tagHelperSpanBaseline);
+            var tagHelperSpanBaseline = tagHelperSpanFile.ReadAllText();
+            var actualTagHelperSpans = TagHelperSpanSerializer.Serialize(syntaxTree);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(tagHelperSpanBaseline, actualTagHelperSpans);
         }
     }
 
