@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
     {
         private readonly Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)> _uriToVersionAndCodeDocumentMap;
         private readonly DefaultRazorDocumentMappingService _documentMappingService;
-        private readonly Dictionary<TextEdit, TextEdit> _mappings = new();
 
         public TestLSPDocumentMappingProvider()
         {
