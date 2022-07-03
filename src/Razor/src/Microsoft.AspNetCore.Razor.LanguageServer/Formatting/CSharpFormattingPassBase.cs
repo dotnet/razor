@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, cancellationToken);
 
             // Build source mapping indentation scopes.
-            var sourceMappingIndentations = new SortedDictionary<int, (int cSharpDesiredIndentation, RazorDirectiveSyntax? containingDirective)>();
+            var sourceMappingIndentations = new SortedDictionary<int, int>();
             var syntaxTreeRoot = context.CodeDocument.GetSyntaxTree().Root;
             foreach (var originalLocation in sourceMappingMap.Keys)
             {
@@ -120,8 +120,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
-                var containingDirective = scopeOwner?.FirstAncestorOrSelf<RazorDirectiveSyntax>();
-                sourceMappingIndentations[originalLocation] = (indentation, containingDirective);
+                sourceMappingIndentations[originalLocation] = indentation;
+
+                // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
+                // section, to return the indentation back to before the start of the section block.
+                if (scopeOwner?.Parent?.Parent?.Parent is RazorDirectiveSyntax containingDirective &&
+                    containingDirective.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive &&
+                    !sourceMappingIndentations.ContainsKey(containingDirective.EndPosition - 1))
+                {
+                    // We want the indentation for the end point to be whatever the indentation was before the start point. For
+                    // performance reasons, and because source mappings could be un-ordered, we defer that calculation until
+                    // later, when we have all of the information in place. We use a negative number to indicate that there is
+                    // more processing to do.
+                    // This is saving repeatedly realising the source mapping indentations keys, then converting them to an array,
+                    // and then doing binary search here, before we've processed all of the mappings
+                    sourceMappingIndentations[containingDirective.EndPosition - 1] = (originalLocation - 1) * -1;
+                }
             }
 
             var sourceMappingIndentationScopes = sourceMappingIndentations.Keys.ToArray();
@@ -182,24 +196,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     {
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
                         index = (~index) - 1;
-
-                        // If that index comes from within a directive that does not contain the line we are working with,
-                        // we don't want to use its desired C# indentation. In the following example, we would not want the indentation
-                        // that applies to line 2 to also be applied to line 4:
-                        //
-                        // 1  @section Foo {
-                        // 2  <div></div>
-                        // 3  }
-                        // 4  <p></p>
-                        for (; index >= 0; index--)
-                        {
-                            var absoluteIndex = sourceMappingIndentationScopes[index];
-                            var containingDirective = sourceMappingIndentations[absoluteIndex].containingDirective;
-                            if (containingDirective is null || lineStart + 1 < containingDirective.EndPosition)
-                            {
-                                break;
-                            }
-                        }
                     }
 
                     if (index < 0)
@@ -214,7 +210,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     {
                         // index will now be set to the same value as the end of the closest source mapping.
                         var absoluteIndex = sourceMappingIndentationScopes[index];
-                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex].cSharpDesiredIndentation;
+                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex];
+
+                        // If the indentation is negative, then its out sign that we are at the end of a @section block
+                        // and what we've actually stored in the negative value of the location of the start of the @section
+                        // block. We use this to find the indentation that was present before the @section block and revert
+                        // to it.
+                        if (csharpDesiredIndentation < 0)
+                        {
+                            var originalStart = csharpDesiredIndentation * -1;
+                            index = Array.BinarySearch(sourceMappingIndentationScopes, originalStart);
+                            if (index < 0)
+                            {
+                                index = (~index) - 1;
+                            }
+
+                            // If there is a source mapping to the left of the original start point, then we use its indentation
+                            // otherwise use the minimum
+                            csharpDesiredIndentation = index < 0
+                                ? minCSharpIndentation
+                                : sourceMappingIndentations[sourceMappingIndentationScopes[index]];
+
+                            // Now that we found the right indentation, we can write it back into the map, to save doing this binary
+                            // search every time.
+                            sourceMappingIndentations[absoluteIndex] = csharpDesiredIndentation;
+                        }
 
                         // This means we didn't find an exact match and so we used the indentation of the end of a previous mapping.
                         // So let's use the MinCSharpIndentation of that same location if possible.
