@@ -996,6 +996,51 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6548")]
+        public async Task CodeBlock_ImplicitObjectArrayInitializers()
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(
+                input: """
+                    @code {
+                        private object _x = new()
+                            {
+                                Name = "One",
+                                Goo = new
+                                {
+                                    First = 1,
+                                    Second = 2
+                                },
+                                Bar = new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                },
+                            };
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private object _x = new()
+                            {
+                                Name = "One",
+                                Goo = new
+                                {
+                                    First = 1,
+                                    Second = 2
+                                },
+                                Bar = new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                },
+                            };
+                    }
+                    """);
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
         public async Task CodeBlock_ArrayInitializers()
         {
@@ -1031,6 +1076,128 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6548")]
+        public async Task CodeBlock_ArrayInitializers2()
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(
+                input: """
+                    <p></p>
+
+                    @code {
+                        private void M()
+                        {
+                            var entries = new string[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+
+                            object gridOptions = new()
+                                {
+                                    Columns = new GridColumn<WorkOrderModel>[]
+                                    {
+                                        new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
+                                        new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
+                                        new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
+                                                new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
+                                    },
+                                    Data = Model.WorkOrders,
+                                    Title = "Work Orders"
+                                };
+                        }
+                    }
+                    """,
+                expected: """
+                    <p></p>
+                    
+                    @code {
+                        private void M()
+                        {
+                            var entries = new string[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                    
+                            object gridOptions = new()
+                                {
+                                    Columns = new GridColumn<WorkOrderModel>[]
+                                    {
+                                        new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
+                                        new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
+                                        new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
+                                                new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
+                                    },
+                                    Data = Model.WorkOrders,
+                                    Title = "Work Orders"
+                                };
+                        }
+                    }
+                    """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
+        public async Task CodeBlock_CollectionArrayInitializers()
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(
+                input: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new List<string[]>()
+                            {
+                                new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                },
+                                new string[] {
+                                    "Hello",
+                                    "There"
+                                },
+                                new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                }
+                            };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private void M()
+                        {
+                            var entries = new List<string[]>()
+                            {
+                                new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                },
+                                new string[] {
+                                    "Hello",
+                                    "There"
+                                },
+                                new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                }
+                            };
+                        }
+                    }
+                    """);
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
         public async Task CodeBlock_ObjectInitializers()
         {
@@ -1058,6 +1225,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                                 First = 1,
                                 Second = 2
                             };
+                        }
+                    }
+                    """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
+        public async Task CodeBlock_ImplicitObjectInitializers()
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(
+                input: """
+                    @code {
+                        private void M()
+                        {
+                            object entries = new()
+                                {
+                                    First = 1,
+                                    Second = 2
+                                };
+                        }
+                    }
+                    """,
+                expected: """
+                    @code {
+                        private void M()
+                        {
+                            object entries = new()
+                                {
+                                    First = 1,
+                                    Second = 2
+                                };
                         }
                     }
                     """);

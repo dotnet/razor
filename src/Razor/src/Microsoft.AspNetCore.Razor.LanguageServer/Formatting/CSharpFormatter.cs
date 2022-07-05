@@ -273,6 +273,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return false;
                 }
 
+                // When directly in an implicit object creation expression, it seems the C# formatter
+                // does format the braces of an array initializer, so we need to special case those
+                // node types. Doing it outside the loop is good for perf, but also makes things easier.
+                if (parent is InitializerExpressionSyntax initializer &&
+                    initializer.IsKind(CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression) &&
+                    (token == initializer.OpenBraceToken || token == initializer.CloseBraceToken) &&
+                    initializer.Parent?.Parent?.Parent?.Parent is ImplicitObjectCreationExpressionSyntax)
+                {
+                    return false;
+                }
+
                 return parent.AncestorsAndSelf().Any(node =>
                 {
                     if (node is not InitializerExpressionSyntax initializer)
