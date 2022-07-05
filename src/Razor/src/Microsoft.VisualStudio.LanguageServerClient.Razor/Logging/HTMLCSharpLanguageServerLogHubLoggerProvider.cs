@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private const string LogFileIdentifier = "Razor.HTMLCSharpLanguageServerClient";
 
         private LogHubLoggerProvider? _loggerProvider;
+        private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
+        private readonly SemaphoreSlim _initializationSemaphore;
 
         // Internal for testing / do not remove, used by Moq to construct
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -38,9 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             }
         }
 
-        private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
-        private readonly SemaphoreSlim _initializationSemaphore;
-
         [ImportingConstructor]
         public HTMLCSharpLanguageServerLogHubLoggerProvider(HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory)
         {
@@ -50,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             }
 
             _loggerFactory = loggerFactory;
-
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
