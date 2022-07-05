@@ -16,10 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public void GetOptions_UsesIndentationManagerInformation()
         {
             // Arrange
-            var documentManager = new TestDocumentManager();
             var documentUri = new Uri("C:/path/to/razorfile.razor");
             var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 0);
-            documentManager.AddDocument(documentSnapshot.Uri, documentSnapshot);
             var expectedInsertSpaces = true;
             var expectedTabSize = 1337;
             var unneededIndentSize = 123;
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             indentationManagerService
                 .Setup(service => service.GetIndentation(documentSnapshot.Snapshot.TextBuffer, false, out expectedInsertSpaces, out expectedTabSize, out unneededIndentSize))
                 .Verifiable();
-            var provider = new DefaultFormattingOptionsProvider(documentManager, indentationManagerService.Object);
+            var provider = new DefaultFormattingOptionsProvider(indentationManagerService.Object);
 
             // Act
             var options = provider.GetOptions(documentSnapshot);

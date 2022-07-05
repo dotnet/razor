@@ -5,34 +5,43 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using CompletionItem = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionItem;
+using CompletionOptions = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionOptions;
+using CompletionParams = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionParams;
+using CompletionTriggerKind = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionTriggerKind;
+using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
+using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
+using TextDocumentIdentifier = Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
+    [UseExportProvider]
     public class CompletionResolveHandlerTest : HandlerTestBase
     {
-        private TestDocumentManager DocumentManager { get; } = new TestDocumentManager();
-
-        private TestDocumentMappingProvider DocumentMappingProvider { get; } = new TestDocumentMappingProvider();
-
-        private TestFormattingOptionsProvider FormattingOptionsProvider { get; } = new TestFormattingOptionsProvider();
-
-        private CompletionRequestContextCache CompletionRequestContextCache { get; } = new CompletionRequestContextCache();
-
-        private Uri HostDocumentUri { get; }
-
-        private TestTextBuffer TextBuffer { get; }
-
         public CompletionResolveHandlerTest()
         {
+#pragma warning disable VSSDK005 // Avoid instantiating JoinableTaskContext
+            JoinableTaskContext = new JoinableTaskContext();
+#pragma warning restore VSSDK005 // Avoid instantiating JoinableTaskContext
+
+            TextStructureNavigatorSelectorService = new TestTextStructureNavigatorSelectorService();
             HostDocumentUri = new Uri("C:/path/to/file.razor");
             TextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
             DocumentManager.AddDocument(
@@ -44,163 +53,142 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     new HtmlVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor__virtual.html"), TextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0)));
         }
 
+        private JoinableTaskContext JoinableTaskContext { get; }
+
+        private ITextStructureNavigatorSelectorService TextStructureNavigatorSelectorService { get; }
+
+        private TestDocumentManager DocumentManager { get; } = new();
+
+        private TestLSPDocumentMappingProvider DocumentMappingProvider { get; } = new();
+
+        private TestFormattingOptionsProvider FormattingOptionsProvider { get; } = new();
+
+        private CompletionRequestContextCache CompletionRequestContextCache { get; } = new();
+
+        private Uri HostDocumentUri { get; }
+
+        private TestTextBuffer TextBuffer { get; }
+
+        private ServerCapabilities CompletionResolveServerCapabilities { get; } = new()
+        {
+            CompletionProvider = new CompletionOptions
+            {
+                ResolveProvider = true,
+                AllCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray(),
+                TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray(),
+            }
+        };
+
         [Fact]
-        public async Task HandleRequestAsync_NonNullOriginalInsertText_DoesNotRemapTextEdit()
+        public async Task HandleRequestAsync_CSharpProjection_RemapsComplexTextEdit()
         {
             // Arrange
-            var originalEdit = new TextEdit() { NewText = "original" };
-            var mappedEdit = new TextEdit() { NewText = "mapped" };
-            DocumentMappingProvider.AddMapping(originalEdit, mappedEdit);
+            var text =
+                """
+                @using System
+                @code
+                {
+                    class C
+                    {
+                        override 
+                    }
+                }
+                """;
 
-            var requestedCompletionItem = new CompletionItem()
+            var cursorPosition = new Position(5, 17);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                InsertText = "DateTime",
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = " ",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-            AssociateRequest(LanguageServerKind.CSharp, requestedCompletionItem, CompletionRequestContextCache, LoggerProvider);
-            var resolvedCompletionItem = new CompletionItem()
-            {
-                TextEdit = originalEdit,
-            };
-            var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
-            var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var (unresolvedItem, resolvedItem, textEditRemapCount) = await ExecuteCSharpCompletionResolveRequestAsync(
+                documentUri, text, completionParams, itemLabel: "Equals(object obj)").ConfigureAwait(false);
 
             // Assert
-            Assert.Same(originalEdit, result.TextEdit);
+            Assert.True(unresolvedItem.VsResolveTextEditOnCommit);
+            Assert.Null(unresolvedItem.TextEdit);
+            Assert.NotNull(resolvedItem.TextEdit);
+            Assert.Equal(1, textEditRemapCount);
         }
 
         [Fact]
-        public async Task HandleRequestAsync_NonNullOriginalTextEdit_DoesNotRemapTextEdit()
+        public async Task HandleRequestAsync_CSharpProjection_DoNotRemapNullTextEdit()
         {
             // Arrange
-            var originalEdit = new TextEdit() { NewText = "original" };
-            var mappedEdit = new TextEdit() { NewText = "mapped" };
-            DocumentMappingProvider.AddMapping(originalEdit, mappedEdit);
+            var text =
+                """
+                @using System
+                @DateTime.
+                """;
 
-            var requestedCompletionItem = new CompletionItem()
+            var cursorPosition = new Position(1, 10);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextEdit = originalEdit,
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = ".",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-            AssociateRequest(LanguageServerKind.CSharp, requestedCompletionItem, CompletionRequestContextCache, LoggerProvider);
-            var resolvedCompletionItem = new CompletionItem()
-            {
-                InsertText = "DateTime",
-                TextEdit = originalEdit,
-            };
-            var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
-            var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var (unresolvedItem, resolvedItem, textEditRemapCount) = await ExecuteCSharpCompletionResolveRequestAsync(
+                documentUri, text, completionParams, itemLabel: "Now").ConfigureAwait(false);
 
             // Assert
-            Assert.Same(originalEdit, result.TextEdit);
+            Assert.Null(unresolvedItem.TextEdit);
+            Assert.Null(resolvedItem.TextEdit);
+            Assert.Equal(0, textEditRemapCount);
         }
 
         [Fact]
-        public async Task HandleRequestAsync_ResolvedNullTextEdit_Noops()
+        public async Task HandleRequestAsync_CSharpProjection_PopulatesDescription()
         {
             // Arrange
-            var requestedCompletionItem = new CompletionItem();
-            AssociateRequest(LanguageServerKind.CSharp, requestedCompletionItem, CompletionRequestContextCache, LoggerProvider);
-            var resolvedCompletionItem = new CompletionItem()
-            {
-                InsertText = "DateTime",
-            };
-            var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var text =
+                """
+                @using System
+                @DateTime.
+                """;
 
-            // Act & Assert
-            var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task HandleRequestAsync_NullInsertTextAndTextEdit_RemapsResolvedTextEdit()
-        {
-            // Arrange
-            var originalEdit = new TextEdit() { NewText = "original" };
-            var mappedEdit = new TextEdit() { NewText = "mapped" };
-            DocumentMappingProvider.AddMapping(originalEdit, mappedEdit);
-            var requestedCompletionItem = new CompletionItem();
-            AssociateRequest(LanguageServerKind.CSharp, requestedCompletionItem, CompletionRequestContextCache, LoggerProvider);
-            var resolvedCompletionItem = new CompletionItem()
+            var cursorPosition = new Position(1, 10);
+            var documentUri = new Uri("C:/path/to/file.razor");
+            var completionParams = new CompletionParams()
             {
-                TextEdit = originalEdit,
+                TextDocument = new TextDocumentIdentifier() { Uri = documentUri },
+                Context = new VSInternalCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = ".",
+                    InvokeKind = VSInternalCompletionInvokeKind.Typing
+                },
+                Position = cursorPosition
             };
-            var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
-            var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var (unresolvedItem, resolvedItem, _) = await ExecuteCSharpCompletionResolveRequestAsync(
+                documentUri, text, completionParams, itemLabel: "Now").ConfigureAwait(false);
 
             // Assert
-            Assert.Same(mappedEdit, result.TextEdit);
+            Assert.Null(unresolvedItem.Description);
+            Assert.NotNull(resolvedItem.Description);
         }
 
         [Fact]
-        public async Task HandleRequestAsync_NullInsertTextAndTextEdit_RemapsAdditionalTextEdits()
-        {
-            // Arrange
-            var originalEdit = new TextEdit() { NewText = "original" };
-            var mappedEdit = new TextEdit() { NewText = "mapped" };
-            DocumentMappingProvider.AddMapping(originalEdit, mappedEdit);
-            var requestedCompletionItem = new CompletionItem();
-            AssociateRequest(LanguageServerKind.CSharp, requestedCompletionItem, CompletionRequestContextCache, LoggerProvider);
-            var resolvedCompletionItem = new CompletionItem()
-            {
-                AdditionalTextEdits = new[] { originalEdit },
-            };
-            var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
-
-            // Act
-            var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal(new[] { mappedEdit }, result.AdditionalTextEdits);
-        }
-
-        [Fact]
-        public async Task HandleRequestAsync_InvokesCSharpLanguageServer()
-        {
-            // Arrange
-            var called = false;
-            var originalData = new object();
-            var request = new CompletionItem()
-            {
-                InsertText = "DateTime",
-            };
-            AssociateRequest(LanguageServerKind.CSharp, request, CompletionRequestContextCache, originalData);
-            var expectedResponse = new CompletionItem()
-            {
-                InsertText = "DateTime",
-                Data = originalData,
-                Detail = "Some documentation"
-            };
-            var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) =>
-            {
-                Assert.Equal(Methods.TextDocumentCompletionResolveName, method);
-                Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, languageServerName);
-                Assert.Same(originalData, completionItem.Data);
-                called = true;
-
-                return expectedResponse;
-            });
-
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
-
-            // Act
-            var result = await handler.HandleRequestAsync(request, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-
-            // Assert
-            Assert.True(called);
-            Assert.Same(expectedResponse, result);
-        }
-
-        [Fact]
-        public async Task HandleRequestAsync_InvokesHtmlLanguageServer()
+        public async Task HandleRequestAsync_HtmlProjection_InvokesHtmlLanguageServer()
         {
             // Arrange
             var called = false;
@@ -253,6 +241,68 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return requestInvoker.Object;
         }
 
+        private async Task<CompletionResolveResponse> ExecuteCSharpCompletionResolveRequestAsync(
+            Uri documentUri,
+            string text,
+            CompletionParams completionParams,
+            string itemLabel)
+        {
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
+            var codeDocument = CreateCodeDocument(text, documentUri.AbsolutePath);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+
+            var csharpDocumentSnapshot = CreateCSharpVirtualDocumentSnapshot(codeDocument, csharpDocumentUri.AbsoluteUri);
+            var razorSourceText = codeDocument.GetSourceText();
+            var documentSnapshot = new TestLSPDocumentSnapshot(
+                documentUri,
+                version: 1,
+                snapshotContent: razorSourceText.ToString(),
+                csharpDocumentSnapshot);
+
+            var uriToCodeDocumentMap = new Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)>
+            {
+                { documentUri, (hostDocumentVersion: 1, codeDocument) }
+            };
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
+
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, CompletionResolveServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
+
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+
+            var requestInvoker = new TestLSPRequestInvoker(csharpServer);
+            var documentManager = new TestDocumentManager(csharpServer);
+            documentManager.AddDocument(documentUri, documentSnapshot);
+            var projectionProvider = TestLSPProjectionProvider.Instance;
+
+            // Execute completion request
+            var completionHandler = new CompletionHandler(
+                JoinableTaskContext,
+                requestInvoker,
+                documentManager,
+                projectionProvider,
+                TextStructureNavigatorSelectorService,
+                CompletionRequestContextCache,
+                FormattingOptionsProvider,
+                LoggerProvider);
+            var completionResult = await completionHandler.HandleRequestAsync(
+                completionParams, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            var completionList = Assert.IsType<OptimizedVSCompletionList>(completionResult.Value.Value);
+            var unresolvedCompletionItem = completionList.Items.Where(c => c.Label == itemLabel).Single();
+
+            // Execute resolve request
+            var resolveHandler = new CompletionResolveHandler(
+                requestInvoker, documentManager, mappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var resolvedCompletionItem = await resolveHandler.HandleRequestAsync(
+                unresolvedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            var vsUnresolvedCompletionItem = Assert.IsType<VSInternalCompletionItem>(unresolvedCompletionItem);
+            var vsResolvedCompletionItem = Assert.IsType<VSInternalCompletionItem>(resolvedCompletionItem);
+            return new CompletionResolveResponse(vsUnresolvedCompletionItem, vsResolvedCompletionItem, mappingProvider.TextEditRemapCount);
+        }
+
         private static void AssociateRequest(LanguageServerKind requestKind, CompletionItem item, CompletionRequestContextCache cache, object originalData = null)
         {
             var documentUri = new Uri("C:/path/to/file.razor");
@@ -270,44 +320,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class TestFormattingOptionsProvider : FormattingOptionsProvider
         {
-            public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot)
-            {
-                return new FormattingOptions();
-            }
+            public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot) => new FormattingOptions();
         }
 
-        private class TestDocumentMappingProvider : LSPDocumentMappingProvider
-        {
-            private readonly Dictionary<TextEdit, TextEdit> _mappings = new();
-
-            public void AddMapping(TextEdit original, TextEdit mapping)
-            {
-                _mappings[original] = mapping;
-            }
-
-            public override Task<TextEdit[]> RemapFormattedTextEditsAsync(Uri uri, TextEdit[] edits, FormattingOptions options, bool containsSnippet, CancellationToken cancellationToken)
-            {
-                var newEdits = new List<TextEdit>();
-                for (var i = 0; i < edits.Length; i++)
-                {
-                    if (_mappings.TryGetValue(edits[i], out var mappedEdit))
-                    {
-                        newEdits.Add(mappedEdit);
-                    }
-                }
-
-                return Task.FromResult(newEdits.ToArray());
-            }
-
-            public override Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, LanguageServer.Protocol.Range[] projectedRanges, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-            public override Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, LanguageServer.Protocol.Range[] projectedRanges, LanguageServerMappingBehavior mappingBehavior, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-            public override Task<Location[]> RemapLocationsAsync(Location[] locations, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-            public override Task<TextEdit[]> RemapTextEditsAsync(Uri uri, TextEdit[] edits, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-            public override Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken) => throw new NotImplementedException();
-        }
+        private record CompletionResolveResponse(VSInternalCompletionItem UnresolvedItem, VSInternalCompletionItem ResolvedItem, int TextEditRemapCount);
     }
 }
