@@ -23,8 +23,7 @@
             }
           }
         ]
-      },
-      "id": "wjfkofyOu0a_FcEdbg56Q"
+      }
     },
     {
       "taskType": "trigger",
@@ -82,8 +81,7 @@
             }
           }
         ]
-      },
-      "id": "1STAbPoyWzUNAQIWlqWwe"
+      }
     },
     {
       "taskType": "trigger",
@@ -147,8 +145,7 @@
             }
           }
         ]
-      },
-      "id": "b2T07krGgq5aPYRH6_IIU"
+      }
     },
     {
       "taskType": "trigger",
@@ -235,8 +232,7 @@
             }
           }
         ]
-      },
-      "id": "6UOciGDRWMzGK9F0ETLlL"
+      }
     },
     {
       "taskType": "trigger",
@@ -250,7 +246,7 @@
             {
               "name": "addedToMilestone",
               "parameters": {
-                "milestoneName": "17.3-Preview3 CC:~6/27"
+                "milestoneName": "17.4-Preview1 CC:~7/25"
               }
             }
           ]
@@ -264,14 +260,13 @@
           {
             "name": "addToProject",
             "parameters": {
-              "projectName": "17.3 Current Sprint",
+              "projectName": "17.4 Current Sprint",
               "columnName": "To do"
             }
           }
         ],
         "taskName": "**UPDATE EACH SPRINT**  [Issues] Add current milestone's issues to tracking project"
       },
-      "id": "Srr-cE6_JSKdjy-ggEB2I",
       "disabled": false
     },
     {
@@ -322,15 +317,13 @@
             }
           }
         ]
-      },
-      "id": "s1gXPiHeoQrMkdwo-0DUF"
+      }
     },
     {
       "taskType": "trigger",
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "HJIUpXpJsldITyPxZVnQ4",
       "config": {
         "conditions": {
           "operator": "and",
@@ -338,7 +331,7 @@
             {
               "name": "removedFromMilestone",
               "parameters": {
-                "milestoneName": "17.3-Preview3 CC:~6/27"
+                "milestoneName": "17.4-Preview1 CC:~7/25"
               }
             }
           ]
@@ -353,7 +346,7 @@
           {
             "name": "removeFromProject",
             "parameters": {
-              "projectName": "17.3 Current Sprint"
+              "projectName": "17.4 Current Sprint"
             }
           }
         ]
@@ -365,7 +358,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "QhDd-oESs4VWAnvJZ8svI",
       "config": {
         "conditions": {
           "operator": "or",
@@ -403,7 +395,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "AAi9LxPYbMQ7XL1xrNezb",
       "config": {
         "frequency": [
           {
@@ -653,7 +644,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "Rcwz-K1sjjNjKWnt1XXgN",
       "config": {
         "frequency": [
           {
@@ -857,7 +847,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "mzE-coCPmQYzBP9XI3_Jx",
       "config": {
         "frequency": [
           {
@@ -1053,7 +1042,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssueCommentResponder",
       "version": "1.0",
-      "id": "28ijblQAxe_Ih-BC4VM7q",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1143,7 +1131,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssueCommentResponder",
       "version": "1.0",
-      "id": "Cwbe6yN82mS25xN4R0i0c",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1268,7 +1255,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "4LlGo1Ccyx4sQLF0KgDMC",
       "config": {
         "frequency": [
           {
@@ -1524,7 +1510,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "HuknyRxOxUWKCIwaFPRWP",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1577,7 +1562,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "9IRnmXFNvtYx2WkFwSGZa",
       "config": {
         "conditions": {
           "operator": "and",
