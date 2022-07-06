@@ -1,5 +1,5 @@
 ﻿{
-  "host": "dotnet.x64",
+  "host": "dotnet",
   "hostId": "RoslynCodeAnalysisService",
   "hostGroupAllowed": true,
   "entryPoint": {
