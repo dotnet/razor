@@ -55,6 +55,58 @@ public class CSharpStatementTest : ParserTestBase
     }
 
     [Fact]
+    public void SwitchStatement_RecursivePattern()
+    {
+        ParseDocumentTest(@"
+@switch (DateTimeOffset.UtcNow)
+{
+    case { Year: 2022 }:
+        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>
+        break;
+}
+");
+    }
+
+    [Fact]
+    public void SwitchStatement_TuplePattern()
+    {
+        ParseDocumentTest(@"
+@switch ((1, 2))
+{
+    case ITuple (1, 2):
+        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>
+        break;
+}
+");
+    }
+
+    [Fact]
+    public void SwitchStatement_ListPattern()
+    {
+        ParseDocumentTest(@"
+@switch (new int[0])
+{
+    case [.., 3, 4]:
+        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>
+        break;
+}
+");
+    }
+
+    [Fact]
+    public void SwitchStatement_DoubleColonQualifiedTypeName()
+    {
+        ParseDocumentTest(@"
+@switch (new int[0])
+{
+    case global::Test:
+        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>
+        break;
+}
+");
+    }
+
+    [Fact]
     public void LockStatement()
     {
         ParseDocumentTest("@lock(baz) { foo(); }");

@@ -20,7 +20,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-[IntializeTestFile]
+[InitializeTestFile]
 public abstract class IntegrationTestBase
 {
     private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();

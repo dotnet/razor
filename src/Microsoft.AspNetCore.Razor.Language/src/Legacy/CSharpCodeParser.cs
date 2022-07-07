@@ -1983,7 +1983,22 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         Debug.Assert(result.HasValue &&
                      (result.Value == CSharpKeyword.Case ||
                       result.Value == CSharpKeyword.Default));
-        AcceptUntil(SyntaxKind.Colon);
+        AcceptAndMoveNext();
+        while (EnsureCurrent() && CurrentToken.Kind != SyntaxKind.Colon)
+        {
+            switch (CurrentToken.Kind)
+            {
+                case SyntaxKind.LeftBrace:
+                case SyntaxKind.LeftParenthesis:
+                case SyntaxKind.LeftBracket:
+                    Balance(builder, BalancingModes.None);
+                    break;
+
+                default:
+                    AcceptAndMoveNext();
+                    break;
+            }
+        }
         TryAccept(SyntaxKind.Colon);
     }
 

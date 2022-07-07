@@ -13,7 +13,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-[IntializeTestFile]
+[InitializeTestFile]
 public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBase
 {
     private static readonly AsyncLocal<string> _directoryPath = new AsyncLocal<string>();

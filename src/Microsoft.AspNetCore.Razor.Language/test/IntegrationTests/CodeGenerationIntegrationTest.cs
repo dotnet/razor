@@ -496,6 +496,12 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         RunTimeTest();
     }
 
+    [Fact]
+    public void SwitchExpression_RecursivePattern_Runtime()
+    {
+        RunTimeTest();
+    }
+
     #endregion
 
     #region DesignTime
@@ -977,6 +983,12 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     [Fact]
     public void AttributeDirective_DesignTime()
+    {
+        DesignTimeTest();
+    }
+
+    [Fact]
+    public void SwitchExpression_RecursivePattern_DesignTime()
     {
         DesignTimeTest();
     }
