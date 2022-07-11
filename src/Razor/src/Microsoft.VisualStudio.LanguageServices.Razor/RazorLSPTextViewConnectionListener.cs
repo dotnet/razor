@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var wordWrapStyle = WordWrapStyles.None;
             if (Convert.ToBoolean(langPrefs3[0].fWordWrap))
             {
-                wordWrapStyle |= WordWrapStyles.WordWrap;
+                wordWrapStyle |= WordWrapStyles.WordWrap | WordWrapStyles.AutoIndent;
                 if (Convert.ToBoolean(langPrefs3[0].fWordWrapGlyphs))
                 {
                     wordWrapStyle |= WordWrapStyles.VisibleGlyphs;
