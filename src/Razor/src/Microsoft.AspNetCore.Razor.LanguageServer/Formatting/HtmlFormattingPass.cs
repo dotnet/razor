@@ -82,6 +82,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 _logger.LogTestOnly("After normalizedEdits:\r\n{changedText}", changedText);
             }
+            else if (context.IsFormatOnType)
+            {
+                // There are no HTML edits for us to apply. No op.
+                return new FormattingResult(htmlEdits);
+            }
 
             var indentationChanges = AdjustRazorIndentation(changedContext);
             if (indentationChanges.Count > 0)
