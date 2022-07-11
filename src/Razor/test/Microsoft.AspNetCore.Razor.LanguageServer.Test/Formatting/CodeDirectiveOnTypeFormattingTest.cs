@@ -841,5 +841,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     """,
                 triggerCharacter: '}');
         }
+
+        [Fact]
+        public async Task CloseCurly_UnrelatedEdit_DoesNothing()
+        {
+            await RunOnTypeFormattingTestAsync(
+                input: """
+                    <div>}$$</div>
+
+                    @{
+                    	void Test()
+                    	{
+                    		<span>
+                    			Test
+                    		</span>
+                    	}
+                    }
+                    """,
+                expected: """
+                    <div>}</div>
+                    
+                    @{
+                    	void Test()
+                    	{
+                    		<span>
+                    			Test
+                    		</span>
+                    	}
+                    }
+                    """,
+                triggerCharacter: '}',
+                insertSpaces: false);
+        }
     }
 }
