@@ -141,7 +141,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsNoCompletions()
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6134")]
+        public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -151,11 +152,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            // Both "test1" and "test2" technically should not be here, but in real-world scenarios they will be filtered by the IDE
+            AssertTest1Test2Completions(completions);
         }
 
         [Fact]
-        public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsNoCompletions()
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6134")]
+        public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -165,7 +168,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            // "test2" technically should not be here, but in real-world scenarios it will be filtered by the IDE
+            AssertTest1Test2Completions(completions);
         }
 
         [Fact]
@@ -539,6 +543,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("int-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                }
+            );
+        }
+
+        private static void AssertTest1Test2Completions(IReadOnlyList<RazorCompletionItem> completions)
+        {
+            Assert.Collection(completions,
+                completion =>
+                {
+                    Assert.Equal("test1", completion.InsertText);
+                },
+                completion =>
+                {
+                    Assert.Equal("test2", completion.InsertText);
                 }
             );
         }
