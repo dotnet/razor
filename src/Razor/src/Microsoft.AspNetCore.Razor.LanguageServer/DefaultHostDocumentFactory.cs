@@ -6,23 +6,34 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class DefaultHostDocumentFactory : HostDocumentFactory
+    internal class DefaultHostDocumentFactory : HostDocumentFactory, IDisposable
     {
+        private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(50);
+
+        private readonly BatchingWorkQueue _workQueue;
         private readonly GeneratedDocumentContainerStore _generatedDocumentContainerStore;
 
-        public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore)
+        public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore, ErrorReporter errorReporter)
         {
             if (generatedDocumentContainerStore is null)
             {
                 throw new ArgumentNullException(nameof(generatedDocumentContainerStore));
             }
 
+            if (errorReporter is null)
+            {
+                throw new ArgumentNullException(nameof(errorReporter));
+            }
+
             _generatedDocumentContainerStore = generatedDocumentContainerStore;
+            _workQueue = new BatchingWorkQueue(s_batchingTimeSpan, FilePathComparer.Instance, errorReporter);
         }
 
         public override HostDocument Create(string filePath, string targetFilePath)
@@ -52,11 +63,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var container = (GeneratedDocumentContainer)sender;
                 var latestDocument = (DefaultDocumentSnapshot)container.LatestDocument;
 
-                _ = Task.Factory.StartNew(
-                    () => sharedContainer.SetOutputAndCaptureReferenceAsync(latestDocument),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    TaskScheduler.Default);
+                _workQueue.Enqueue(filePath, new SetOutputWorkItem(sharedContainer, latestDocument));
+            }
+        }
+
+        public void Dispose()
+        {
+            _workQueue.Dispose();
+        }
+
+        private class SetOutputWorkItem : BatchableWorkItem
+        {
+            private readonly ReferenceOutputCapturingContainer _sharedContainer;
+            private readonly DefaultDocumentSnapshot _latestDocument;
+
+            public SetOutputWorkItem(ReferenceOutputCapturingContainer sharedContainer, DefaultDocumentSnapshot latestDocument)
+            {
+                _sharedContainer = sharedContainer;
+                _latestDocument = latestDocument;
+            }
+
+            public override async ValueTask ProcessAsync(CancellationToken cancellationToken)
+            {
+                await _sharedContainer.SetOutputAndCaptureReferenceAsync(_latestDocument).ConfigureAwait(false);
             }
         }
     }
