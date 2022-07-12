@@ -26,11 +26,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var generatedOutputTask = document.State.GetGeneratedOutputAndVersionAsync(document.ProjectInternal, document);
-            var (codeDocument, inputVersion, outputCSharpVersion, outputHtmlVersion) = await generatedOutputTask;
+            var (codeDocument, inputVersion, _, _) = await generatedOutputTask;
 
             lock (_outputTaskLock)
             {
-                if (TrySetOutput(document, codeDocument, inputVersion, outputCSharpVersion, outputHtmlVersion))
+                if (TrySetOutput(document, codeDocument, inputVersion))
                 {
                     _outputTask = generatedOutputTask;
                 }

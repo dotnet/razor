@@ -16,12 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public event EventHandler<TextChangeEventArgs> GeneratedCSharpChanged;
         public event EventHandler<TextChangeEventArgs> GeneratedHtmlChanged;
 
-        private SourceText _source;
         private VersionStamp? _inputVersion;
-        private VersionStamp? _outputCSharpVersion;
-        private VersionStamp? _outputHtmlVersion;
-        private RazorCSharpDocument _outputCSharp;
-        private RazorHtmlDocument _outputHtml;
         private DocumentSnapshot _latestDocument;
 
         private readonly object _setOutputLock = new object();
@@ -35,72 +30,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             _htmlTextContainer = new TextContainer(_setOutputLock);
             _htmlTextContainer.TextChanged += HtmlTextContainer_TextChanged;
-        }
-
-        public SourceText Source
-        {
-            get
-            {
-                lock (_setOutputLock)
-                {
-                    return _source;
-                }
-            }
-        }
-
-        public VersionStamp InputVersion
-        {
-            get
-            {
-                lock (_setOutputLock)
-                {
-                    return _inputVersion.Value;
-                }
-            }
-        }
-
-        public VersionStamp OutputCSharpVersion
-        {
-            get
-            {
-                lock (_setOutputLock)
-                {
-                    return _outputCSharpVersion.Value;
-                }
-            }
-        }
-
-        public VersionStamp OutputHtmlVersion
-        {
-            get
-            {
-                lock (_setOutputLock)
-                {
-                    return _outputHtmlVersion.Value;
-                }
-            }
-        }
-
-        public RazorCSharpDocument OutputCSharp
-        {
-            get
-            {
-                lock (_setOutputLock)
-                {
-                    return _outputCSharp;
-                }
-            }
-        }
-
-        public RazorHtmlDocument OutputHtml
-        {
-            get
-            {
-                lock (_setOutputLock)
-                {
-                    return _outputHtml;
-                }
-            }
         }
 
         public DocumentSnapshot LatestDocument
@@ -139,9 +68,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public bool TrySetOutput(
             DefaultDocumentSnapshot document,
             RazorCodeDocument codeDocument,
-            VersionStamp inputVersion,
-            VersionStamp outputCSharpVersion,
-            VersionStamp outputHtmlVersion)
+            VersionStamp inputVersion)
         {
             lock (_setOutputLock)
             {
@@ -159,12 +86,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     return false;
                 }
 
-                _source = source;
                 _inputVersion = inputVersion;
-                _outputCSharpVersion = outputCSharpVersion;
-                _outputHtmlVersion = outputHtmlVersion;
-                _outputCSharp = codeDocument.GetCSharpDocument();
-                _outputHtml = codeDocument.GetHtmlDocument();
                 _latestDocument = document;
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
                 _csharpTextContainer.SetText(csharpSourceText);

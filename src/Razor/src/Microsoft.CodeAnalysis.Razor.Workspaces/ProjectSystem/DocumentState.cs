@@ -532,9 +532,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     defaultDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(
                         defaultDocument,
                         codeDocument,
-                        inputVersion,
-                        outputCSharpVersion,
-                        outputHtmlVersion);
+                        inputVersion);
                 }
 
                 return (codeDocument, inputVersion, outputCSharpVersion, outputHtmlVersion);

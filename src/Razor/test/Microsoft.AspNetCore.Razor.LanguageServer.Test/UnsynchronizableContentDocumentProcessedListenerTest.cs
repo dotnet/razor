@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             // Force the state to already be up-to-date
-            document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(document, codeDocument, documentVersion.GetNewerVersion(), VersionStamp.Default, VersionStamp.Default);
+            document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(document, codeDocument, documentVersion.GetNewerVersion());
 
             var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             // Force the state to already be up-to-date
-            oldDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion, VersionStamp.Default, VersionStamp.Default);
+            oldDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion);
 
             var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             // Force the state to already be up-to-date
-            document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion, VersionStamp.Default, VersionStamp.Default);
+            document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion);
 
             var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             // Force the state to already be up-to-date
-            document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion, VersionStamp.Default, VersionStamp.Default);
+            document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion);
 
             var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);

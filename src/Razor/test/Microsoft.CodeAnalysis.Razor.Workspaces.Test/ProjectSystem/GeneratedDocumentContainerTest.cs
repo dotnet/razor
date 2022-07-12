@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var version = VersionStamp.Create();
             var container = new GeneratedDocumentContainer();
-            var initialResult = container.TrySetOutput(document, codeDocument, version, version, version);
+            var initialResult = container.TrySetOutput(document, codeDocument, version);
 
             // Act
-            var result = container.TrySetOutput(newDocument, codeDocument, version, version, version);
+            var result = container.TrySetOutput(newDocument, codeDocument, version);
 
             // Assert
             Assert.Same(newDocument, container.LatestDocument);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var container = new GeneratedDocumentContainer();
 
             // Act
-            var result = container.TrySetOutput(document, codeDocument, version, version, version);
+            var result = container.TrySetOutput(document, codeDocument, version);
 
             // Assert
             Assert.NotNull(container.LatestDocument);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             container.GeneratedHtmlChanged += (o, a) => htmlChanged = true;
 
             // Act
-            var result = container.TrySetOutput(document, codeDocument, version, version, version);
+            var result = container.TrySetOutput(document, codeDocument, version);
 
             // Assert
             Assert.NotNull(container.LatestDocument);
