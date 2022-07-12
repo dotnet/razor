@@ -99,10 +99,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     prefixLocation.Value.Length == 1 &&
                     selectedAttributeNameLocation.HasValue &&
                     selectedAttributeNameLocation.Value.Length > 1 &&
-                    selectedAttributeNameLocation.Value.Start != context.AbsoluteIndex)
+                    selectedAttributeNameLocation.Value.Start != context.AbsoluteIndex &&
+                    !IsPossiblePartiallyWrittenAttribute(parent, context.AbsoluteIndex))
                 {
                     // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
-                    // beginning of an HTML attribute name. We do extra checks on prefix locations here in order to rule out malformed cases when the Razor
+                    // beginning of an HTML attribute name or at the end of possible partially written attribute. We do extra checks on prefix locations here in order to rule out malformed cases when the Razor
                     // compiler incorrectly parses multi-line attributes while in the middle of typing out an element. For instance:
                     //
                     // <SurveyPrompt |
@@ -116,6 +117,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, context.TagHelperDocumentContext, context.Options);
                 return attributeCompletions;
+
+                static bool IsPossiblePartiallyWrittenAttribute(SyntaxNode? attributeSyntax, int absoluteIndex)
+                {
+                    // When we are in the middle of writing an attribute it is treated as a minimilized one, e.g.:
+                    // <form asp$$ - 'asp' is parsed as MarkupMinimizedTagHelperAttributeSyntax (tag helper)
+                    // <SurveyPromt Tit$$ - 'Tit' is parsed as MarkupMinimizedTagHelperAttributeSyntax as well (razor component)
+                    if (attributeSyntax is MarkupMinimizedTagHelperAttributeSyntax)
+                    {
+                        return attributeSyntax.Span.End == absoluteIndex;
+                    }
+
+                    return false;
+                }
             }
 
             // Invalid location for TagHelper completions.
