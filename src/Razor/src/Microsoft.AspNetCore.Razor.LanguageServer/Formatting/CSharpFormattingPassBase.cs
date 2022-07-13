@@ -108,7 +108,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, cancellationToken);
 
             // Build source mapping indentation scopes.
-            var sourceMappingIndentations = new SortedDictionary<int, int>();
+            var sourceMappingIndentations = new SortedDictionary<int, IndentationData>();
+            var syntaxTreeRoot = context.CodeDocument.GetSyntaxTree().Root;
             foreach (var originalLocation in sourceMappingMap.Keys)
             {
                 var significantLocation = sourceMappingMap[originalLocation];
@@ -118,7 +119,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                sourceMappingIndentations[originalLocation] = indentation;
+                var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+                sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
+
+                // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
+                // section, to return the indentation back to before the start of the section block.
+                if (scopeOwner?.Parent?.Parent?.Parent is RazorDirectiveSyntax containingDirective &&
+                    containingDirective.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive &&
+                    !sourceMappingIndentations.ContainsKey(containingDirective.EndPosition - 1))
+                {
+                    // We want the indentation for the end point to be whatever the indentation was before the start point. For
+                    // performance reasons, and because source mappings could be un-ordered, we defer that calculation until
+                    // later, when we have all of the information in place. We use a negative number to indicate that there is
+                    // more processing to do.
+                    // This is saving repeatedly realising the source mapping indentations keys, then converting them to an array,
+                    // and then doing binary search here, before we've processed all of the mappings
+                    sourceMappingIndentations[containingDirective.EndPosition - 1] = new IndentationData(lazyLoad: true, offset: originalLocation - 1);
+                }
             }
 
             var sourceMappingIndentationScopes = sourceMappingIndentations.Keys.ToArray();
@@ -175,18 +192,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                     var index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart);
 
-                    if (index < 0 && context.SourceText[lineStart] == '@')
-                    {
-                        // Sometimes we are only off by one in finding a source mapping, for example with a simple if statement:
-                        //
-                        // @|if (true)
-                        //
-                        // The sourceMappingIndentationScopes knows about where the pipe is (ie, after the "@") but we're asking
-                        // for indentation at the line start. In these cases we are better off using the real indentation scope,
-                        // than hoping the one before it is correct.
-                        index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart + 1);
-                    }
-
                     if (index < 0)
                     {
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
@@ -205,7 +210,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     {
                         // index will now be set to the same value as the end of the closest source mapping.
                         var absoluteIndex = sourceMappingIndentationScopes[index];
-                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex];
+                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex].GetIndentation(sourceMappingIndentations, sourceMappingIndentationScopes, minCSharpIndentation);
 
                         // This means we didn't find an exact match and so we used the indentation of the end of a previous mapping.
                         // So let's use the MinCSharpIndentation of that same location if possible.
@@ -453,6 +458,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return owner;
+        }
+
+        private class IndentationData
+        {
+            private readonly int _offset;
+            private int _indentation;
+            private bool _lazyLoad;
+
+            public IndentationData(int indentation)
+            {
+                _indentation = indentation;
+            }
+
+            public IndentationData(bool lazyLoad, int offset)
+            {
+                _lazyLoad = lazyLoad;
+                _offset = offset;
+            }
+
+            public int GetIndentation(SortedDictionary<int, IndentationData> sourceMappingIndentations, int[] indentationScopes, int minCSharpIndentation)
+            {
+                // If we're lazy loading, then we need to find the indentation from the source mappings, at the offset,
+                // which for whatever reason may not have been available when creating this class.
+                if (_lazyLoad)
+                {
+                    _lazyLoad = false;
+
+                    var index = Array.BinarySearch(indentationScopes, _offset);
+                    if (index < 0)
+                    {
+                        index = (~index) - 1;
+                    }
+
+                    // If there is a source mapping to the left of the original start point, then we use its indentation
+                    // otherwise use the minimum
+                    _indentation = index < 0
+                        ? minCSharpIndentation
+                        : sourceMappingIndentations[indentationScopes[index]]._indentation;
+                }
+
+                return _indentation;
+            }
         }
     }
 }
