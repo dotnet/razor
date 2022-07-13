@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
@@ -140,7 +141,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsNoCompletions()
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6134")]
+        public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -150,11 +152,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            // Both "test1" and "test2" technically should not be here, but in real-world scenarios they will be filtered by the IDE
+            AssertTest1Test2Completions(completions);
         }
 
         [Fact]
-        public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsNoCompletions()
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6134")]
+        public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -164,7 +168,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            // "test2" technically should not be here, but in real-world scenarios it will be filtered by the IDE
+            AssertTest1Test2Completions(completions);
         }
 
         [Fact]
@@ -439,7 +444,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_InTagHelperAttribute_ReturnsCompletions()
+        public void GetCompletionAt_InTagHelperAttribute_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -450,6 +455,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             // Assert
             Assert.Empty(completions);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6134")]
+        public void GetCompletionAt_InPossibePartiallyWrittenTagHelper_ReturnsCompletions()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var context = CreateRazorCompletionContext(absoluteIndex: 40 + Environment.NewLine.Length, $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int />", isRazorFile: false, tagHelpers: DefaultTagHelpers);
+
+            // Act
+            var completions = service.GetCompletionItems(context);
+
+            // Assert
+            // "bool-var" technically should not be here, but in real-world scenarios it will be filtered by the IDE
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
@@ -526,7 +547,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             );
         }
 
-        private RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, string documentContent, bool isRazorFile, RazorCompletionOptions options = default, params TagHelperDescriptor[] tagHelpers)
+        private static void AssertTest1Test2Completions(IReadOnlyList<RazorCompletionItem> completions)
+        {
+            Assert.Collection(completions,
+                completion =>
+                {
+                    Assert.Equal("test1", completion.InsertText);
+                },
+                completion =>
+                {
+                    Assert.Equal("test2", completion.InsertText);
+                }
+            );
+        }
+
+        private static RazorCompletionContext CreateRazorCompletionContext(int absoluteIndex, string documentContent, bool isRazorFile, RazorCompletionOptions options = default, params TagHelperDescriptor[] tagHelpers)
         {
             var codeDocument = CreateCodeDocument(documentContent, isRazorFile, tagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
