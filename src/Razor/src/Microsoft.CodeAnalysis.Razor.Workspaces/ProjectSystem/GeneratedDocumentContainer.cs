@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class GeneratedDocumentContainer
     {
+        private static long s_hits;
+        private static long s_misses;
+
         public event EventHandler<TextChangeEventArgs> GeneratedCSharpChanged;
         public event EventHandler<TextChangeEventArgs> GeneratedHtmlChanged;
 
@@ -72,6 +75,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             lock (_setOutputLock)
             {
+                if (_inputVersion.HasValue && _inputVersion.Value == inputVersion)
+                {
+                    s_hits++;
+                }
+                else
+                {
+                    s_misses++;
+                }
+
                 if (_inputVersion.HasValue &&
                     _inputVersion.Value != inputVersion &&
                     _inputVersion == _inputVersion.Value.GetNewerVersion(inputVersion))

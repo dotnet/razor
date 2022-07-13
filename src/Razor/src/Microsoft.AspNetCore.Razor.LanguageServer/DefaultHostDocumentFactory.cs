@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultHostDocumentFactory : HostDocumentFactory, IDisposable
     {
-        private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(50);
+        private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(10);
 
         private readonly BatchingWorkQueue _workQueue;
         private readonly GeneratedDocumentContainerStore _generatedDocumentContainerStore;
