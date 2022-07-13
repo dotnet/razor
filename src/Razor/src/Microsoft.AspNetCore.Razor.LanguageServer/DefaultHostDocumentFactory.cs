@@ -15,6 +15,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultHostDocumentFactory : HostDocumentFactory, IDisposable
     {
+        // Using 10 milliseconds for the delay here because we want document synchronization to be very fast,
+        // so that features like completion are not delayed, but at the same time we don't want to do more work
+        // than necessary when both C# and HTML documents change at the same time, firing our event handler
+        // twice. Through testing 10ms was a good balance towards providing some de-bouncing but having minimal
+        // to no impact on results.
+        // It's worth noting that the queue implementation means that this delay is not restarted with each new
+        // work item, so even in very high speed typing, with changings coming in at sub-10-millisecond speed,
+        // the queue will still process documents even if the user doesn't pause at all, but also will not process
+        // a document for each keystroke.
         private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(10);
 
         private readonly BatchingWorkQueue _workQueue;
