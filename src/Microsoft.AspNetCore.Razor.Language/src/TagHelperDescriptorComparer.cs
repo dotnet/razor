@@ -25,11 +25,7 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
             return true;
         }
 
-        if (descriptorX is null)
-        {
-            return descriptorY is null;
-        }
-        else if (descriptorY is null)
+        if (descriptorX is null || descriptorY is null)
         {
             return false;
         }
@@ -118,14 +114,6 @@ internal sealed class TagHelperDescriptorComparer : IEqualityComparer<TagHelperD
         hash.Add(descriptor.Kind, StringComparer.Ordinal);
         hash.Add(descriptor.AssemblyName, StringComparer.Ordinal);
         hash.Add(descriptor.Name, StringComparer.Ordinal);
-        hash.Add(descriptor.DisplayName, StringComparer.Ordinal);
-        hash.Add(descriptor.CaseSensitive ? 1 : 0);
-
-        ComparerUtilities.AddToHash(ref hash, descriptor.BoundAttributes ?? Array.Empty<BoundAttributeDescriptor>(), BoundAttributeDescriptorComparer.Default);
-        ComparerUtilities.AddToHash(ref hash, descriptor.TagMatchingRules ?? Array.Empty<TagMatchingRuleDescriptor>(), TagMatchingRuleDescriptorComparer.Default);
-        ComparerUtilities.AddToHash(ref hash, descriptor.AllowedChildTags ?? Array.Empty<AllowedChildTagDescriptor>(), AllowedChildTagDescriptorComparer.Default);
-        ComparerUtilities.AddToHash(ref hash, descriptor.Diagnostics ?? Array.Empty<RazorDiagnostic>(), EqualityComparer<RazorDiagnostic>.Default);
-        ComparerUtilities.AddToHash(ref hash, descriptor.Metadata, StringComparer.Ordinal, StringComparer.Ordinal);
 
         return hash.CombinedHash;
     }

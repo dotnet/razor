@@ -45,14 +45,6 @@ internal class DirectiveDescriptorComparer : IEqualityComparer<DirectiveDescript
         hash.Add(descriptor.Directive, StringComparer.Ordinal);
         hash.Add(descriptor.Kind);
 
-        if (descriptor.Tokens != null)
-        {
-            for (var i = 0; i < descriptor.Tokens.Count; i++)
-            {
-                hash.Add(descriptor.Tokens[i]);
-            }
-        }
-
         return hash.CombinedHash;
     }
 }

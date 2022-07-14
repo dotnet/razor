@@ -61,7 +61,6 @@ internal sealed class RequiredAttributeDescriptorComparer : IEqualityComparer<Re
 
         var hash = HashCodeCombiner.Start();
         hash.Add(descriptor.Name, StringComparer.Ordinal);
-        hash.Add(descriptor.Value, StringComparer.Ordinal);
 
         return hash.CombinedHash;
     }

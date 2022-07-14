@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Test;
 public class BoundAttributeDescriptorTest
 {
     [Fact]
-    public void BoundAttributeDescriptor_HashChangesWithType()
+    public void BoundAttributeDescriptor_HashDoesNotChangeWithType()
     {
         var expectedPropertyName = "PropertyName";
 
@@ -32,6 +32,6 @@ public class BoundAttributeDescriptorTest
             .TypeName(typeof(string).FullName);
         var stringDescriptor = stringBuilder.Build();
 
-        Assert.NotEqual(intDescriptor.GetHashCode(), stringDescriptor.GetHashCode());
+        Assert.Equal(intDescriptor.GetHashCode(), stringDescriptor.GetHashCode());
     }
 }

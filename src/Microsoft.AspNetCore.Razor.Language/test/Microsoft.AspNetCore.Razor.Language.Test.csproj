@@ -28,9 +28,6 @@
     <Compile Include="..\..\shared\JsonReaderExtensions.cs" LinkBase="Shared" />
     <Compile Include="..\..\shared\RazorDiagnosticJsonConverter.cs" LinkBase="Shared" />
     <Compile Include="..\..\shared\TagHelperDescriptorJsonConverter.cs" LinkBase="Shared" />
-    <EmbeddedResource Include="..\..\shared\taghelpers.json">
-      <Link>TestFiles\taghelpers.json</Link>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

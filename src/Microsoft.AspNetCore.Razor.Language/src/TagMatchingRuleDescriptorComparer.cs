@@ -51,9 +51,6 @@ internal sealed class TagMatchingRuleDescriptorComparer : IEqualityComparer<TagM
 
         var hash = HashCodeCombiner.Start();
         hash.Add(rule.TagName, StringComparer.Ordinal);
-        hash.Add(rule.ParentTag, StringComparer.Ordinal);
-
-        ComparerUtilities.AddToHash(ref hash, rule.Attributes ?? Array.Empty<RequiredAttributeDescriptor>(), RequiredAttributeDescriptorComparer.Default);
 
         return hash.CombinedHash;
     }

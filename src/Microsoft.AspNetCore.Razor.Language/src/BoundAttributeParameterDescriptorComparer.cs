@@ -54,8 +54,6 @@ internal sealed class BoundAttributeParameterDescriptorComparer : IEqualityCompa
         var hash = HashCodeCombiner.Start();
         hash.Add(descriptor.Kind, StringComparer.Ordinal);
         hash.Add(descriptor.Name, StringComparer.Ordinal);
-        hash.Add(descriptor.TypeName, StringComparer.Ordinal);
-        hash.Add(descriptor.Metadata?.Count);
 
         return hash.CombinedHash;
     }
