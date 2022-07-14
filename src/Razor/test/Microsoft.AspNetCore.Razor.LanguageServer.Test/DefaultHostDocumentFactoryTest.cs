@@ -5,6 +5,7 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Moq;
 using Xunit;
 
@@ -18,7 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 LegacyDispatcher,
                 Mock.Of<DocumentVersionCache>(MockBehavior.Strict),
                 Mock.Of<GeneratedDocumentPublisher>(MockBehavior.Strict));
-            Factory = new DefaultHostDocumentFactory(store);
+            var errorReporter = Mock.Of<ErrorReporter>(MockBehavior.Strict);
+            Factory = new DefaultHostDocumentFactory(store, errorReporter);
         }
 
         private DefaultHostDocumentFactory Factory { get; }
