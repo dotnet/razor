@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Editor.SetTextAsync(input, ControlledHangMitigatingCancellationToken);
 
             // Wait for the document to settle
-            await TestServices.Editor.WaitForOutlineRegionsAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForSemanticClassificationAsync("RazorTransition", ControlledHangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.InvokeFormatDocumentAsync(ControlledHangMitigatingCancellationToken);

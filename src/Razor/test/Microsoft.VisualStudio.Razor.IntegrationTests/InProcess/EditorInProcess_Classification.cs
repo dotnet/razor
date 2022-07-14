@@ -16,6 +16,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     internal partial class EditorInProcess
     {
         /// <summary>
+        /// Waits for the Razor component semantic classifications to be available on the active TextView
+        /// </summary>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="count">The number of the given classification to expect.</param>
+        /// <returns>A <see cref="Task"/> which completes when classification is "ready".</returns>
+        public Task WaitForComponentClassificationAsync(CancellationToken cancellationToken, int count = 1) => WaitForSemanticClassificationAsync("RazorComponentElement", cancellationToken, count);
+
+        /// <summary>
         /// Waits for any semantic classifications to be available on the active TextView, and for at least one of the
         /// <paramref name="expectedClassification"/> if provided.
         /// </summary>
@@ -23,7 +31,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         /// <param name="expectedClassification">The classification to wait for, if any.</param>
         /// <param name="count">The number of the given classification to expect.</param>
         /// <returns>A <see cref="Task"/> which completes when classification is "ready".</returns>
-        public async Task WaitForClassificationAsync(CancellationToken cancellationToken, string expectedClassification = "RazorComponentElement", int count = 1)
+        public async Task WaitForSemanticClassificationAsync(string expectedClassification, CancellationToken cancellationToken, int count = 1)
         {
             var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
             var classifier = await GetClassifierAsync(textView, cancellationToken);
