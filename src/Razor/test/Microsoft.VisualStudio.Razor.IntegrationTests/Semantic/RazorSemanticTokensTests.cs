@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", count: 3);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
             // Assert
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Components_AreColored), ControlledHangMitigatingCancellationToken);
@@ -62,10 +62,10 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
 
             // Act
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", count: 3);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
             await TestServices.Editor.SetTextAsync(RazorProjectConstants.IndexPageContent, ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken, "RazorComponentElement", count: 3);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
             // Assert
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Edits_UpdateColors), ControlledHangMitigatingCancellationToken);
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         {
             // Arrange
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
             // Act and Assert
             var expectedClassifications = await GetExpectedClassificationSpansAsync(nameof(Directives_AreColored), ControlledHangMitigatingCancellationToken);

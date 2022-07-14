@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync("<p>@{ var abc = 123; }</p>", ControlledHangMitigatingCancellationToken);
 
             // Act
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(@"<p>@{
     var abc = 123;
 }</p>", ControlledHangMitigatingCancellationToken);
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
             // Wait for classifications to indicate Razor LSP is up and running
-            await TestServices.Editor.WaitForClassificationAsync(ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(@"<p>@{
     var abc = 123;
 }</p>", ControlledHangMitigatingCancellationToken);
