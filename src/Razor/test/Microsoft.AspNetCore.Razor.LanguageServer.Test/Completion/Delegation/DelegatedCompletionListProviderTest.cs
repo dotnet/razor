@@ -145,6 +145,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         }
 
         [Fact]
+        public async Task RazorDelegation_Noop()
+        {
+            // Arrange
+            var completionContext = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked };
+            var codeDocument = CreateCodeDocument("@functions ");
+            var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
+
+            // Act
+            var completionList = await Provider.GetCompletionListAsync(absoluteIndex: 11, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+
+            // Assert
+            Assert.Null(completionList);
+            var delegatedParameters = Provider.DelegatedParams;
+            Assert.Null(delegatedParameters);
+        }
+
+        [Fact]
         public async Task CSharpDelegation_TriggerCharacterAt_TranslatesToInvoked()
         {
             // Arrange

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
@@ -57,6 +56,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var projection = GetProjection(absoluteIndex, codeDocument, sourceText);
+
+            if (projection.LanguageKind == RazorLanguageKind.Razor)
+            {
+                // Nothing to delegate to.
+                return null;
+            }
+
             var provisionalCompletion = TryGetProvisionalCompletionInfo(completionContext, projection, codeDocument, sourceText);
             TextEdit? provisionalTextEdit = null;
             if (provisionalCompletion is not null)
