@@ -173,13 +173,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public override async ValueTask ProcessAsync(CancellationToken cancellationToken)
             {
-                await _latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
+                var codeDocument = await _latestDocument.GetGeneratedOutputAsync().ConfigureAwait(false);
 
                 await _dispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     foreach (var listener in _documentProcessedListeners)
                     {
-                        listener.DocumentProcessed(_latestDocument);
+                        listener.DocumentProcessed(codeDocument, _latestDocument);
                     }
                 }, cancellationToken).ConfigureAwait(false);
             }

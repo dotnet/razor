@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return _tcs.Task;
             }
 
-            public override void DocumentProcessed(DocumentSnapshot document)
+            public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
             {
                 _tcs.SetResult(document);
             }

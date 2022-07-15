@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -68,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                 _innerDocumentProcessedListener = innerDocumentProcessedListener;
             }
 
-            public override void DocumentProcessed(DocumentSnapshot document)
+            public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
             {
                 var omniSharpDocument = new OmniSharpDocumentSnapshot(document);
                 _innerDocumentProcessedListener.DocumentProcessed(omniSharpDocument);

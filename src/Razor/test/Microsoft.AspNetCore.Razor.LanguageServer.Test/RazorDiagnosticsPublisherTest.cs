@@ -48,6 +48,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private DocumentSnapshot OpenedDocument { get; }
 
+        private RazorCodeDocument TestCodeDocument = TestRazorCodeDocument.CreateEmpty();
+
         private static RazorDiagnostic[] EmptyDiagnostics => Array.Empty<RazorDiagnostic>();
 
         private static RazorDiagnostic[] SingleDiagnosticCollection => new RazorDiagnostic[]
@@ -72,12 +74,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             })
             {
                 publisher.Initialize(ProjectManager);
-                publisher.DocumentProcessed(processedOpenDocument);
+                publisher.DocumentProcessed(TestCodeDocument, processedOpenDocument);
                 Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
                 publisher.NotifyBackgroundWorkCompleting.Reset();
 
                 // Act
-                publisher.DocumentProcessed(processedOpenDocument);
+                publisher.DocumentProcessed(TestCodeDocument, processedOpenDocument);
                 publisher.BlockBackgroundWorkCompleting.Set();
 
                 // Assert
