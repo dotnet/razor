@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectManager = projectManager;
         }
 
-        public override void DocumentProcessed(DocumentSnapshot document)
+        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
         {
             if (document is null)
             {
