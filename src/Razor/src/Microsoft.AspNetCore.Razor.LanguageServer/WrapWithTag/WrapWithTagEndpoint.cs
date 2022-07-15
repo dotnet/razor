@@ -2,14 +2,18 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
@@ -98,7 +102,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, parameter).ConfigureAwait(false);
             var htmlResponse = await response.Returning<WrapWithTagResponse>(cancellationToken).ConfigureAwait(false);
 
+            if (htmlResponse.TextEdits is not null)
+            {
+                htmlResponse.TextEdits = await CleanUpTextEditsAsync(documentContext, htmlResponse.TextEdits, cancellationToken).ConfigureAwait(false);
+            }
+
             return htmlResponse;
+        }
+
+        /// <summary>
+        /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
+        /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
+        /// minimal text edits
+        /// </summary>
+        // Internal for testing
+        internal static async Task<TextEdit[]> CleanUpTextEditsAsync(DocumentContext documentContext, TextEdit[] edits, CancellationToken cancellationToken)
+        {
+            // Avoid computing a minimal diff if we don't need to
+            if (!edits.Any(e => e.NewText.IndexOf('~') != -1))
+                return edits;
+
+            // First we apply the edits that the Html language server wanted, to the Html document
+            var htmlSourceText = await documentContext.GetHtmlSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            var textChanges = edits.Select(e => e.AsTextChange(htmlSourceText));
+            var changedText = htmlSourceText.WithChanges(textChanges);
+
+            // Now we use our minimal text differ algorithm to get the bare minimum of edits
+            var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, lineDiffOnly: false);
+            var minimalEdits = minimalChanges.Select(f => f.AsTextEdit(htmlSourceText)).ToArray();
+
+            return minimalEdits;
         }
     }
 }
