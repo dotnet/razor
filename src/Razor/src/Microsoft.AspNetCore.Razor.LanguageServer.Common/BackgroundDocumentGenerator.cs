@@ -240,7 +240,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 foreach (var documentProcessedTrigger in _documentProcessedListeners)
                 {
                     var document = work[i].Value;
-                    documentProcessedTrigger.DocumentProcessed(document);
+
+                    documentProcessedTrigger.DocumentProcessed(codeDocument: null, document);
                 }
             }
         }
