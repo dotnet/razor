@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 return null;
             }
 
-            var internalDocumentSnapshot = new OmniSharpDocumentSnapshot(documentSnapshot);
+            var internalDocumentSnapshot = new OmniSharpDocumentSnapshot(codeDocument: null, documentSnapshot);
             return internalDocumentSnapshot;
         }
 

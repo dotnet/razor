@@ -71,8 +71,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
 
             public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
             {
-                var omniSharpDocument = new OmniSharpDocumentSnapshot(document);
-                _innerDocumentProcessedListener.DocumentProcessed(omniSharpDocument);
+                var omniSharpDocument = new OmniSharpDocumentSnapshot(codeDocument, document);
+                _innerDocumentProcessedListener.DocumentProcessed(codeDocument, omniSharpDocument);
             }
 
             public override void Initialize(ProjectSnapshotManager projectManager)

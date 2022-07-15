@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -173,6 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 OnStartingBackgroundWork();
 
                 KeyValuePair<string, DocumentSnapshot>[] work;
+                List<(RazorCodeDocument Output, DocumentSnapshot Document)> results = new();
                 lock (_work)
                 {
                     work = _work.ToArray();
@@ -191,7 +193,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     var document = work[i].Value;
                     try
                     {
-                        await document.GetGeneratedOutputAsync();
+                        var codeDocument = await document.GetGeneratedOutputAsync();
+                        results.Add((codeDocument, document));
                     }
                     catch (Exception ex)
                     {
@@ -204,7 +207,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 if (!_solutionIsClosing)
                 {
                     await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                        () => NotifyDocumentsProcessed(work),
+                        () => NotifyDocumentsProcessed(results),
                         cancellationToken).ConfigureAwait(false);
                 }
 
@@ -233,15 +236,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
         }
 
-        private void NotifyDocumentsProcessed(KeyValuePair<string, DocumentSnapshot>[] work)
+        private void NotifyDocumentsProcessed(List<(RazorCodeDocument Output, DocumentSnapshot Document)> results)
         {
-            for (var i = 0; i < work.Length; i++)
+            for (var i = 0; i < results.Count; i++)
             {
                 foreach (var documentProcessedTrigger in _documentProcessedListeners)
                 {
-                    var document = work[i].Value;
+                    var document = results[i].Document;
+                    var codeDocument = results[i].Output;
 
-                    documentProcessedTrigger.DocumentProcessed(codeDocument: null, document);
+                    documentProcessedTrigger.DocumentProcessed(codeDocument, document);
                 }
             }
         }

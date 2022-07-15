@@ -13,6 +13,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class BackgroundDocumentProcessedPublisherTest : OmniSharpWorkspaceTestBase
     {
+        private RazorCodeDocument CodeDocument => TestRazorCodeDocument.CreateEmpty();
+
         [Fact]
         public async Task DocumentProcessed_Import_Noops()
         {
@@ -23,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
             // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(document)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(CodeDocument, document)).ConfigureAwait(false);
 
             // Assert
             Assert.Same(originalSolution, Workspace.CurrentSolution);
@@ -41,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
             // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(document)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(CodeDocument, document)).ConfigureAwait(false);
 
             // Assert
             Assert.Same(originalSolution, Workspace.CurrentSolution);
@@ -57,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
             // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(document)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(CodeDocument, document)).ConfigureAwait(false);
 
             // Assert
             Assert.Same(originalSolution, Workspace.CurrentSolution);
@@ -72,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
             // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(document)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(CodeDocument, document)).ConfigureAwait(false);
 
             // Assert
             var project = Assert.Single(Workspace.CurrentSolution.Projects);
@@ -88,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
             // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(document)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(CodeDocument, document)).ConfigureAwait(false);
 
             // Assert
             var project = Assert.Single(Workspace.CurrentSolution.Projects);
@@ -106,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
             // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(document)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(CodeDocument, document)).ConfigureAwait(false);
 
             // Assert
             var afterProcessedDocument = Workspace.GetDocument(backgroundDocumentFilePath);

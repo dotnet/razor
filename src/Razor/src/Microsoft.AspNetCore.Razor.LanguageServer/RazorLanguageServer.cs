@@ -196,9 +196,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());
 
-                        services.AddSingleton<GeneratedDocumentContainerStore, DefaultGeneratedDocumentContainerStore>();
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentContainerStore>());
-
                         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
                         services.AddSingleton<ProjectResolver, DefaultProjectResolver>();
                         services.AddSingleton<DocumentResolver, DefaultDocumentResolver>();
@@ -230,6 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Document processed listeners
                         services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
+                        services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
 
                         services.AddSingleton<HostDocumentFactory, DefaultHostDocumentFactory>();
                         services.AddSingleton<ProjectSnapshotManagerAccessor, DefaultProjectSnapshotManagerAccessor>();
