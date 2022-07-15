@@ -749,14 +749,14 @@ namespace Test
     {
         [Parameter] public Action NullableAction { get; set; }
     }
-} 
+}
 "));
         var generated = CompileToCSharp(@"
 <ComponentWithNullableAction NullableAction=""@NullableAction"" />
 @code {
 	[Parameter]
 	public Action NullableAction { get; set; }
-}            
+}
 ");
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
@@ -775,13 +775,13 @@ namespace Test
     {
         [Parameter] public RenderFragment Header { get; set; }
     }
-} 
+}
 "));
         var generated = CompileToCSharp(@"
 <ComponentWithNullableRenderFragment Header=""@Header"" />
 @code {
 	[Parameter] public RenderFragment Header { get; set; }
-}            
+}
 ");
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
@@ -1877,7 +1877,7 @@ namespace Test
     }
 
     public class CustomValue
-    {        
+    {
     }
 }"));
 
@@ -1916,7 +1916,7 @@ namespace Test
     }
 
     public class CustomValue
-    {        
+    {
     }
 }"));
 
@@ -4422,6 +4422,85 @@ namespace Test
         // Cannot convert from method group to Action - this isn't a great error message, but it's
         // what the compiler gives us.
         Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS1503", d.Id); });
+    }
+
+    [Fact]
+    public void EventCallbackOfT_GenericComponent_MissingTypeParameterBinding_01()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T, T2> : ComponentBase
+    {
+        [Parameter]
+        public EventCallback<T> OnClick { get; set; }
+    }
+
+    public class MyType
+    {
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent OnClick=""@((MyType arg) => counter++)""/>
+
+@code {
+    private int counter;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS0411", d.Id); });
+    }
+
+    [Fact]
+    public void EventCallbackOfT_GenericComponent_MissingTypeParameterBinding_02()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T, T2> : ComponentBase
+    {
+        [Parameter]
+        public EventCallback<T> OnClick1 { get; set; }
+
+        [Parameter]
+        public EventCallback<T2> OnClick2 { get; set; }
+    }
+
+    public class MyType
+    {
+    }
+}
+"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent OnClick=""@((MyType arg) => counter++)""/>
+
+@code {
+    private int counter;
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS0411", d.Id); });
     }
 
     #endregion

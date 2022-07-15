@@ -20,7 +20,7 @@ Document -
                             LazyIntermediateToken - (46:0,46 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Header
                 HtmlContent - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                HtmlContent - (125:3,1 [14] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (125:3,1 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Html -             \n
+                HtmlContent - (125:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (125:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
                 LazyIntermediateToken - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n	[Parameter] public RenderFragment Header { get; set; }\n

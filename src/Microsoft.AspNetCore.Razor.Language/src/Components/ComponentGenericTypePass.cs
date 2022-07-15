@@ -1,10 +1,10 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 // 3. Rewrites the type names of parameters/child content to substitute generic type arguments
 internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
-    private TypeNameFeature _typeNameFeature;
+    private TypeNameFeature? _typeNameFeature;
 
     // Runs after components/eventhandlers/ref/bind/templates. We want to validate every component
     // and it's usage of ChildContent.
@@ -84,7 +84,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 .ToList();
             foreach (var attribute in componentTypeParameters)
             {
-                bindings.Add(attribute.Name, new Binding() { Attribute = attribute, });
+                bindings.Add(attribute.Name, new Binding(attribute));
             }
 
             // Listing all type arguments that have been specified.
@@ -189,7 +189,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             // For any remaining bindings, scan up the hierarchy of ancestor components and try to match them
             // with a cascaded generic parameter that can cover this one
-            List<CascadingGenericTypeParameter> receivesCascadingGenericTypes = null;
+            List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes = null;
             foreach (var uncoveredBindingKey in bindings.Keys.ToList())
             {
                 var uncoveredBinding = bindings[uncoveredBindingKey];
@@ -257,7 +257,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 // helpful as possible. So let's substitute 'object' for all of those type parameters, and add
                 // an error.
                 var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Content);
-                RewriteTypeNames(_pass.TypeNameFeature.CreateGenericTypeRewriter(mappings), node);
+                RewriteTypeNames(_pass.TypeNameFeature.CreateGenericTypeRewriter(mappings), node, bindings: bindings);
 
                 node.Diagnostics.Add(ComponentDiagnosticFactory.Create_GenericComponentTypeInferenceUnderspecified(node.Source, node, node.Component.GetTypeParameters()));
             }
@@ -269,7 +269,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             CreateTypeInferenceMethod(documentNode, node, receivesCascadingGenericTypes);
         }
 
-        private bool TryFindGenericTypeNames(BoundAttributeDescriptor boundAttribute, out IReadOnlyList<string> typeParameters)
+        private bool TryFindGenericTypeNames(BoundAttributeDescriptor boundAttribute, [NotNullWhen(true)] out IReadOnlyList<string>? typeParameters)
         {
             if (boundAttribute == null)
             {
@@ -330,7 +330,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             return true;
         }
 
-        private void RewriteTypeNames(TypeNameRewriter rewriter, ComponentIntermediateNode node, bool? hasTypeArgumentSpecified = null, IDictionary<string, Binding> bindings = null)
+        private void RewriteTypeNames(TypeNameRewriter rewriter, ComponentIntermediateNode node, bool? hasTypeArgumentSpecified = null, IDictionary<string, Binding>? bindings = null)
         {
             var typeNameFeature = _pass.TypeNameFeature;
 
@@ -360,6 +360,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     // type parameter. In which case, we mark it with an additional annotation to
                     // acount for that during code generation and avoid trying to fully qualify
                     // the type name.
+                    Debug.Assert(bindings != null || hasTypeArgumentSpecified == true);
                     if (hasTypeArgumentSpecified == true)
                     {
                         attribute.Annotations.Add(ComponentMetadata.Component.ExplicitTypeNameKey, true);
@@ -370,7 +371,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                         for (int i = 0; i < typeParameters.Count; i++)
                         {
                             var parameter = typeParameters[i];
-                            if (bindings.ContainsKey(parameter))
+                            if (bindings!.ContainsKey(parameter))
                             {
                                 attribute.Annotations.Add(ComponentMetadata.Component.OpenGenericKey, true);
                                 break;
@@ -427,7 +428,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             }
         }
 
-        private void CreateTypeInferenceMethod(DocumentIntermediateNode documentNode, ComponentIntermediateNode node, List<CascadingGenericTypeParameter> receivesCascadingGenericTypes)
+        private void CreateTypeInferenceMethod(DocumentIntermediateNode documentNode, ComponentIntermediateNode node, List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes)
         {
             var @namespace = documentNode.FindPrimaryNamespace().Content;
             @namespace = string.IsNullOrEmpty(@namespace) ? "__Blazor" : "__Blazor." + @namespace;
@@ -495,11 +496,13 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
     private class Binding
     {
-        public BoundAttributeDescriptor Attribute { get; set; }
+        public Binding(BoundAttributeDescriptor attribute) => Attribute = attribute;
 
-        public string Content { get; set; }
+        public BoundAttributeDescriptor Attribute { get; }
 
-        public ComponentTypeArgumentIntermediateNode Node { get; set; }
+        public string? Content { get; set; }
+
+        public ComponentTypeArgumentIntermediateNode? Node { get; set; }
 
         public bool CoveredByLambda { get; set; }
     }
