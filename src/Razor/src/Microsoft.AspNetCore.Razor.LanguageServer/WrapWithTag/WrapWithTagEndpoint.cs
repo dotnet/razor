@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -119,7 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
         internal static async Task<TextEdit[]> CleanUpTextEditsAsync(DocumentContext documentContext, TextEdit[] edits, CancellationToken cancellationToken)
         {
             // Avoid computing a minimal diff if we don't need to
-            if (!edits.Any(e => e.NewText.IndexOf('~') != -1))
+            if (!edits.Any(e => e.NewText.Contains("~")))
                 return edits;
 
             // First we apply the edits that the Html language server wanted, to the Html document
