@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             FileKind = other.FileKind;
             FilePath = other.FilePath;
             TargetPath = other.TargetPath;
-
-            GeneratedDocumentContainer = new GeneratedDocumentContainer();
         }
 
         public HostDocument(string filePath, string targetPath)
@@ -44,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             FilePath = filePath;
             TargetPath = targetPath;
             FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(filePath);
-            GeneratedDocumentContainer = new GeneratedDocumentContainer();
         }
 
         public string FileKind { get; }
@@ -52,7 +49,5 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public string FilePath { get; }
 
         public string TargetPath { get; }
-
-        public GeneratedDocumentContainer GeneratedDocumentContainer { get; }
     }
 }

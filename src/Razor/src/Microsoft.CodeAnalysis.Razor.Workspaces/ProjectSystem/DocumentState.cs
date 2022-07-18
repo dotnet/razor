@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public HostWorkspaceServices Services { get; }
 
-        public GeneratedDocumentContainer GeneratedDocumentContainer => HostDocument.GeneratedDocumentContainer;
-
         public bool IsGeneratedOutputResultAvailable => ComputedState.IsResultAvailable == true;
 
         private ComputedStateTracker ComputedState
@@ -525,14 +523,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     {
                         outputHtmlVersion = olderHtmlOutputVersion;
                     }
-                }
-
-                if (document is DefaultDocumentSnapshot defaultDocument)
-                {
-                    defaultDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(
-                        defaultDocument,
-                        codeDocument,
-                        inputVersion);
                 }
 
                 return (codeDocument, inputVersion, outputCSharpVersion, outputHtmlVersion);

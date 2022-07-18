@@ -982,11 +982,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Mock.Get(documentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny)).Returns(false);
             }
 
-            var hostDocumentFactory = new TestHostDocumentFactory();
             var remoteTextLoaderFactory = Mock.Of<RemoteTextLoaderFactory>(factory => factory.Create(It.IsAny<string>()) == Mock.Of<TextLoader>(MockBehavior.Strict), MockBehavior.Strict);
             var projectService = new DefaultRazorProjectService(
                 LegacyDispatcher,
-                hostDocumentFactory,
                 remoteTextLoaderFactory,
                 documentResolver,
                 projectResolver,
@@ -1020,16 +1018,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
             {
                 return _projectMappings.TryGetValue(documentFilePath, out projectSnapshot);
-            }
-        }
-
-        private class TestHostDocumentFactory : HostDocumentFactory
-        {
-            public override HostDocument Create(string filePath, string targetFilePath) => Create(filePath, targetFilePath, fileKind: null);
-
-            public override HostDocument Create(string filePath, string targetFilePath, string fileKind)
-            {
-                return new HostDocument(filePath, targetFilePath, fileKind);
             }
         }
     }

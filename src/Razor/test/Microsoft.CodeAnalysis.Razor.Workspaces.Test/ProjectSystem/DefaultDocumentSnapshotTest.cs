@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -118,17 +119,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.True(LegacyDocument.TryGetGeneratedHtmlOutputVersion(out _));
         }
 
-        [Fact]
-        public async Task GetGeneratedOutputAsync_SetsHostDocumentOutput()
-        {
-            // Act
-            await LegacyDocument.GetGeneratedOutputAsync();
-
-            // Assert
-            Assert.NotNull(LegacyHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText);
-            Assert.NotNull(LegacyHostDocument.GeneratedDocumentContainer.HtmlSourceTextContainer.CurrentText);
-        }
-
         // This is a sanity test that we invoke component codegen for components.It's a little fragile but
         // necessary.
 
@@ -136,32 +126,32 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GetGeneratedOutputAsync_CshtmlComponent_ContainsComponentImports()
         {
             // Act
-            await ComponentCshtmlDocument.GetGeneratedOutputAsync();
+            var codeDocument = await ComponentCshtmlDocument.GetGeneratedOutputAsync();
 
             // Assert
-            Assert.Contains("using Microsoft.AspNetCore.Components", ComponentCshtmlHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), StringComparison.Ordinal);
+            Assert.Contains("using Microsoft.AspNetCore.Components", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
         }
 
         [Fact]
         public async Task GetGeneratedOutputAsync_Component()
         {
             // Act
-            await ComponentDocument.GetGeneratedOutputAsync();
+            var codeDocument = await ComponentDocument.GetGeneratedOutputAsync();
 
             // Assert
-            Assert.Contains("ComponentBase", ComponentHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), StringComparison.Ordinal);
+            Assert.Contains("ComponentBase", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
         }
 
         [Fact]
         public async Task GetGeneratedOutputAsync_NestedComponentDocument_SetsCorrectNamespaceAndClassName()
         {
             // Act
-            await NestedComponentDocument.GetGeneratedOutputAsync();
+            var codeDocument = await NestedComponentDocument.GetGeneratedOutputAsync();
 
             // Assert
-            Assert.Contains("ComponentBase", NestedComponentHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), StringComparison.Ordinal);
-            Assert.Contains("namespace SomeProject.Nested", NestedComponentHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), StringComparison.Ordinal);
-            Assert.Contains("class File3", NestedComponentHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), StringComparison.Ordinal);
+            Assert.Contains("ComponentBase", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
+            Assert.Contains("namespace SomeProject.Nested", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
+            Assert.Contains("class File3", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
         }
 
         // This is a sanity test that we invoke legacy codegen for .cshtml files. It's a little fragile but
@@ -170,46 +160,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GetGeneratedOutputAsync_Legacy()
         {
             // Act
-            await LegacyDocument.GetGeneratedOutputAsync();
+            var codeDocument = await LegacyDocument.GetGeneratedOutputAsync();
 
             // Assert
-            Assert.Contains("Template", LegacyHostDocument.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), StringComparison.Ordinal);
-        }
-
-        [Fact]
-        public async Task GetGeneratedOutputAsync_SetsOutputWhenDocumentIsNewer()
-        {
-            // Arrange
-            var newSourceText = SourceText.From("NEW!");
-            var newDocumentState = LegacyDocument.State.WithText(newSourceText, Version.GetNewerVersion());
-            var newDocument = new DefaultDocumentSnapshot(LegacyDocument.ProjectInternal, newDocumentState);
-
-            // Force the output to be the new output
-            await LegacyDocument.GetGeneratedOutputAsync();
-
-            // Act
-            await newDocument.GetGeneratedOutputAsync();
-
-            // Assert
-            Assert.Equal("NEW!", LegacyHostDocument.GeneratedDocumentContainer.HtmlSourceTextContainer.CurrentText.ToString());
-        }
-
-        [Fact]
-        public async Task GetGeneratedOutputAsync_OnlySetsOutputIfDocumentNewer()
-        {
-            // Arrange
-            var newSourceText = SourceText.From("NEW!");
-            var newDocumentState = LegacyDocument.State.WithText(newSourceText, Version.GetNewerVersion());
-            var newDocument = new DefaultDocumentSnapshot(LegacyDocument.ProjectInternal, newDocumentState);
-
-            // Force the output to be the new output
-            await newDocument.GetGeneratedOutputAsync();
-
-            // Act
-            await LegacyDocument.GetGeneratedOutputAsync();
-
-            // Assert
-            Assert.Equal("NEW!", LegacyHostDocument.GeneratedDocumentContainer.HtmlSourceTextContainer.CurrentText.ToString());
+            Assert.Contains("Template", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
         }
     }
 }
