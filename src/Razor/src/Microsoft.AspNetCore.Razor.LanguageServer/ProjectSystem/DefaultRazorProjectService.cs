@@ -23,7 +23,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
     {
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly HostDocumentFactory _hostDocumentFactory;
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly ProjectResolver _projectResolver;
         private readonly DocumentVersionCache _documentVersionCache;
@@ -33,7 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public DefaultRazorProjectService(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            HostDocumentFactory hostDocumentFactory,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             DocumentResolver documentResolver,
             ProjectResolver projectResolver,
@@ -45,11 +43,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (hostDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(hostDocumentFactory));
             }
 
             if (remoteTextLoaderFactory is null)
@@ -88,7 +81,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _hostDocumentFactory = hostDocumentFactory;
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
             _documentResolver = documentResolver;
             _projectResolver = projectResolver;
@@ -126,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
             var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
 
-            var hostDocument = _hostDocumentFactory.Create(textDocumentPath, normalizedTargetFilePath);
+            var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
             var defaultProject = (DefaultProjectSnapshot)projectSnapshot;
             var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
@@ -354,7 +346,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 var documentSnapshot = (DefaultDocumentSnapshot)project.GetDocument(documentFilePath);
                 var currentHostDocument = documentSnapshot.State.HostDocument;
                 var newFilePath = EnsureFullPath(documentHandle.FilePath, projectDirectory);
-                var newHostDocument = _hostDocumentFactory.Create(newFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+                var newHostDocument = new HostDocument(newFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
                 if (HostDocumentComparer.Instance.Equals(currentHostDocument, newHostDocument))
                 {
@@ -392,7 +384,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 {
                     var documentHandle = documentKvp.Value;
                     var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
-                    var newHostDocument = _hostDocumentFactory.Create(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+                    var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
                     _logger.LogInformation("Adding new document '{documentFilePath}' to project '{projectFilePath}'.", documentFilePath, projectFilePath);
                     _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject, newHostDocument, remoteTextLoader);
@@ -409,7 +401,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             var currentHostDocument = documentSnapshot.State.HostDocument;
 
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-            var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
+            var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
             _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.FilePath}' project to '{toProject.FilePath}' project.",
                 documentFilePath, fromProject.FilePath, toProject.FilePath);
@@ -448,7 +440,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
                 var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
                 var defaultToProject = (DefaultProjectSnapshot)toProject;
-                var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
+                var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
                 _logger.LogInformation("Migrating '{documentFilePath}' from the '{project.FilePath}' project to '{toProject.FilePath}' project.",
                     documentFilePath, project.FilePath, toProject.FilePath);
@@ -480,7 +472,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
                 var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
                 var defaultProject = (DefaultProjectSnapshot)projectSnapshot;
-                var newHostDocument = _hostDocumentFactory.Create(documentSnapshot.FilePath, documentSnapshot.TargetPath);
+                var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
                 _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.FilePath}' project to '{projectSnapshot.FilePath}' project.",
                     documentFilePath, miscellaneousProject.FilePath, projectSnapshot.FilePath);
                 _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultProject.HostProject, newHostDocument, textLoader);

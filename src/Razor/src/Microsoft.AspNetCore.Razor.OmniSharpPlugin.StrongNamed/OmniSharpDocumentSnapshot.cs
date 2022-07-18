@@ -4,8 +4,8 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
@@ -62,13 +62,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 return _project;
             }
-        }
-
-        public SourceText GetGeneratedCodeSourceText()
-        {
-            var generatedDocumentContainer = ((DefaultDocumentSnapshot)_documentSnapshot).State.HostDocument.GeneratedDocumentContainer;
-            var sourceText = generatedDocumentContainer.CSharpSourceTextContainer.CurrentText;
-            return sourceText;
         }
     }
 }
