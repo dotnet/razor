@@ -228,6 +228,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Document processed listeners
                         services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
                         services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
+                        services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
                         services.AddSingleton<ProjectSnapshotManagerAccessor, DefaultProjectSnapshotManagerAccessor>();
                         services.AddSingleton<TagHelperFactsService, DefaultTagHelperFactsService>();
