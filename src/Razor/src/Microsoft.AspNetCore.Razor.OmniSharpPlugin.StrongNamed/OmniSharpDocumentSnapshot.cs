@@ -6,27 +6,23 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public sealed class OmniSharpDocumentSnapshot
     {
-        private readonly RazorCodeDocument _codeDocument;
         private readonly DocumentSnapshot _documentSnapshot;
         private readonly object _projectLock;
         private OmniSharpHostDocument _hostDocument;
         private OmniSharpProjectSnapshot _project;
 
-        internal OmniSharpDocumentSnapshot(RazorCodeDocument codeDocument, DocumentSnapshot documentSnapshot)
+        internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
         {
             if (documentSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
 
-            _codeDocument = codeDocument;
             _documentSnapshot = documentSnapshot;
             _projectLock = new object();
         }
@@ -66,12 +62,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 return _project;
             }
-        }
-
-        public SourceText GetGeneratedCodeSourceText()
-        {
-            var sourceText = _codeDocument?.GetCSharpSourceText();
-            return sourceText;
         }
     }
 }

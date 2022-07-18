@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 OnStartingBackgroundWork();
 
                 KeyValuePair<string, DocumentSnapshot>[] work;
-                List<(RazorCodeDocument Output, DocumentSnapshot Document)> results = new();
+                List<WorkResult> results = new();
                 lock (_work)
                 {
                     work = _work.ToArray();
@@ -194,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     try
                     {
                         var codeDocument = await document.GetGeneratedOutputAsync();
-                        results.Add((codeDocument, document));
+                        results.Add(new WorkResult(codeDocument, document));
                     }
                     catch (Exception ex)
                     {
@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
         }
 
-        private void NotifyDocumentsProcessed(List<(RazorCodeDocument Output, DocumentSnapshot Document)> results)
+        private void NotifyDocumentsProcessed(List<WorkResult> results)
         {
             for (var i = 0; i < results.Count; i++)
             {
@@ -351,5 +351,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None).ConfigureAwait(false);
         }
+
+        private record struct WorkResult(RazorCodeDocument Output, DocumentSnapshot Document);
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class BackgroundDocumentProcessedPublisherTest : OmniSharpWorkspaceTestBase
     {
-        private RazorCodeDocument CodeDocument => TestRazorCodeDocument.CreateEmpty();
+        private RazorCodeDocument CodeDocument => CreateCodeDocument("<p>Hello World</p>");
 
         [Fact]
         public async Task DocumentProcessed_Import_Noops()

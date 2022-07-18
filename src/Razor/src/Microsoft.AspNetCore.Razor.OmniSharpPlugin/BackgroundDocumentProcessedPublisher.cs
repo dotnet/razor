@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 // Update document content
 
-                var sourceText = document.GetGeneratedCodeSourceText();
+                var sourceText = codeDocument.GetInternalCSharpSourceText();
                 _workspace.OnDocumentChanged(currentDocument.Id, sourceText);
             }
         }
