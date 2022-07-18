@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         // A Razor file has been processed, this portion is responsible for the decision of whether we need to create or update
         // the Razor documents background C# representation.
-        public override void DocumentProcessed(OmniSharpDocumentSnapshot document)
+        public override void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document)
         {
             if (document is null)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 // Update document content
 
-                var sourceText = document.GetGeneratedCodeSourceText();
+                var sourceText = codeDocument.GetInternalCSharpSourceText();
                 _workspace.OnDocumentChanged(currentDocument.Id, sourceText);
             }
         }
