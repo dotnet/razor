@@ -123,11 +123,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     // When we are in the middle of writing an attribute it is treated as a minimilized one, e.g.:
                     // <form asp$$ - 'asp' is parsed as MarkupMinimizedTagHelperAttributeSyntax (tag helper)
-                    // <SurveyPromt Tit$$ - 'Tit' is parsed as MarkupMinimizedTagHelperAttributeSyntax as well (razor component)
+                    // <SurveyPrompt Tit$$ - 'Tit' is parsed as MarkupMinimizedTagHelperAttributeSyntax as well (razor component)
                     // Need to check for MarkupMinimizedAttributeBlockSyntax in order to handle cases when html tag becomes a tag helper only with certain attributes
+                    // We allow the absoluteIndex to be anywhere in the attribute, so that `<SurveyPrompt T$$it` doesn't return only
+                    // the html completions, because that has the effect of overwriting the casing of the attribute.
                     if (attributeSyntax is MarkupMinimizedTagHelperAttributeSyntax or MarkupMinimizedAttributeBlockSyntax)
                     {
-                        return attributeSyntax.Span.End == absoluteIndex;
+                        return attributeSyntax.Span.Start < absoluteIndex && attributeSyntax.Span.End >= absoluteIndex;
                     }
 
                     return false;

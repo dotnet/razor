@@ -402,7 +402,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_MinimizedAttributeEdge_ReturnsNoCompletions()
+        public void GetCompletionAt_MinimizedAttributeMiddle_ReturnsCompletions()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var context = CreateRazorCompletionContext(absoluteIndex: 38 + Environment.NewLine.Length, $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 boo />", isRazorFile: false, tagHelpers: DefaultTagHelpers);
+
+            // Act
+            var completions = service.GetCompletionItems(context);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("bool-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                },
+                completion =>
+                {
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                });
+        }
+
+        [Fact]
+        public void GetCompletionAt_MinimizedAttributeEdge_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -412,11 +439,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("bool-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                },
+                completion =>
+                {
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                });
         }
 
         [Fact]
-        public void GetCompletionAt_MinimizedTagHelperAttributeEdge_ReturnsNoCompletions()
+        public void GetCompletionAt_MinimizedTagHelperAttributeEdge_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -426,7 +466,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("bool-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                },
+                completion =>
+                {
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                });
         }
 
         [Fact]
