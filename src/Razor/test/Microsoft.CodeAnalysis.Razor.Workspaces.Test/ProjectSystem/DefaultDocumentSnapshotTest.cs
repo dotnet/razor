@@ -82,26 +82,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Assert
             Assert.False(LegacyDocument.TryGetGeneratedOutput(out _));
-            Assert.False(LegacyDocument.TryGetGeneratedCSharpOutputVersion(out _));
-            Assert.False(LegacyDocument.TryGetGeneratedHtmlOutputVersion(out _));
-        }
-
-        [Fact]
-        public async Task GCCollect_OnRegenerationMaintainsOutputVersion()
-        {
-            // Arrange
-            var initialOutputVersion = await LegacyDocument.GetGeneratedCSharpOutputVersionAsync();
-
-            // Forces collection of the cached document output
-            GC.Collect();
-
-            // Act
-            var regeneratedCSharpOutputVersion = await LegacyDocument.GetGeneratedCSharpOutputVersionAsync();
-            var regeneratedHtmlOutputVersion = await LegacyDocument.GetGeneratedHtmlOutputVersionAsync();
-
-            // Assert
-            Assert.Equal(initialOutputVersion, regeneratedCSharpOutputVersion);
-            Assert.Equal(initialOutputVersion, regeneratedHtmlOutputVersion);
         }
 
         [Fact]
@@ -115,8 +95,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act & Assert
             Assert.True(LegacyDocument.TryGetGeneratedOutput(out _));
-            Assert.True(LegacyDocument.TryGetGeneratedCSharpOutputVersion(out _));
-            Assert.True(LegacyDocument.TryGetGeneratedHtmlOutputVersion(out _));
         }
 
         // This is a sanity test that we invoke component codegen for components.It's a little fragile but

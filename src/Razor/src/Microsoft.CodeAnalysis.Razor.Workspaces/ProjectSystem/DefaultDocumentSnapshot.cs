@@ -59,20 +59,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override async Task<RazorCodeDocument> GetGeneratedOutputAsync()
         {
-            var (output, _, _, _) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
+            var (output, _) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
             return output;
-        }
-
-        public override async Task<VersionStamp> GetGeneratedCSharpOutputVersionAsync()
-        {
-            var (_, _, version, _) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
-            return version;
-        }
-
-        public override async Task<VersionStamp> GetGeneratedHtmlOutputVersionAsync()
-        {
-            var (_, _, _, version) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
-            return version;
         }
 
         public override bool TryGetText(out SourceText result)
@@ -96,34 +84,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             result = null;
-            return false;
-        }
-
-        public override bool TryGetGeneratedCSharpOutputVersion(out VersionStamp result)
-        {
-            if (State.IsGeneratedOutputResultAvailable)
-            {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                result = State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).Result.outputCSharpVersion;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-                return true;
-            }
-
-            result = default;
-            return false;
-        }
-
-        public override bool TryGetGeneratedHtmlOutputVersion(out VersionStamp result)
-        {
-            if (State.IsGeneratedOutputResultAvailable)
-            {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                result = State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).Result.outputHtmlVersion;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-                return true;
-            }
-
-            result = default;
             return false;
         }
     }
