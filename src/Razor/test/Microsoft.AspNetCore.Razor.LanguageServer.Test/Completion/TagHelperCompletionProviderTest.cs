@@ -412,20 +412,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Collection(
-                completions,
-                completion =>
-                {
-                    Assert.Equal("bool-val", completion.InsertText);
-                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
-                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
-                },
-                completion =>
-                {
-                    Assert.Equal("int-val", completion.InsertText);
-                    Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
-                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
-                });
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
@@ -439,20 +426,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Collection(
-                completions,
-                completion =>
-                {
-                    Assert.Equal("bool-val", completion.InsertText);
-                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
-                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
-                },
-                completion =>
-                {
-                    Assert.Equal("int-val", completion.InsertText);
-                    Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
-                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
-                });
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
@@ -466,20 +440,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Collection(
-                completions,
-                completion =>
-                {
-                    Assert.Equal("bool-val", completion.InsertText);
-                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
-                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
-                },
-                completion =>
-                {
-                    Assert.Equal("int-val", completion.InsertText);
-                    Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
-                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
-                });
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
@@ -493,7 +454,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
@@ -507,7 +468,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
@@ -538,7 +499,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(context);
 
             // Assert
-            Assert.Empty(completions);
+            AssertBoolIntCompletions(completions);
         }
 
         [Fact]
