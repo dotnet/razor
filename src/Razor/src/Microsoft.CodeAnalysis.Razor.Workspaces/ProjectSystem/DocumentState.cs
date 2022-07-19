@@ -288,6 +288,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // then we will provide the weak referenced task; otherwise we require any state requests to be re-computed.
             private WeakReference<Task<(RazorCodeDocument, VersionStamp)>>? _taskUnsafeReference;
 
+            private ComputedOutput? _computedOutput;
+
             public ComputedStateTracker(DocumentState state, ComputedStateTracker? older = null)
             {
                 _lock = state._lock;
@@ -298,6 +300,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 get
                 {
+                    if (_computedOutput?.TryGetCachedOutput(out _, out _) == true)
+                    {
+                        return true;
+                    }
+
                     if (_taskUnsafeReference is null)
                     {
                         return false;
@@ -312,7 +319,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
             }
 
-            public Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+            public async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+            {
+                if (_computedOutput?.TryGetCachedOutput(out var cachedCodeDocument, out var cachedInputVersion) == true)
+                {
+                    return (cachedCodeDocument, cachedInputVersion);
+                }
+
+                var (codeDocument, inputVersion) = await GetMemoizedGeneratedOutputAndVersionAsync(project, document);
+
+                _computedOutput = new ComputedOutput(codeDocument, inputVersion);
+                return (codeDocument, inputVersion);
+            }
+
+            private Task<(RazorCodeDocument, VersionStamp)> GetMemoizedGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
             {
                 if (project is null)
                 {
@@ -352,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     }
 
                     // Typically in VS scenarios this will run synchronously because all resources are readily available.
-                    var outputTask = GetGeneratedOutputAndVersionCoreAsync(project, document);
+                    var outputTask = ComputeGeneratedOutputAndVersionAsync(project, document);
                     if (outputTask.IsCompleted)
                     {
                         // Compiling ran synchronously, lets just immediately propagate to the TCS
@@ -401,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
             }
 
-            private async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionCoreAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+            private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
             {
                 // We only need to produce the generated code if any of our inputs is newer than the
                 // previously cached output.
@@ -514,6 +534,33 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 public VersionStamp Version { get; }
 
                 public DocumentSnapshot Document { get; }
+            }
+
+            private class ComputedOutput
+            {
+                private readonly VersionStamp _inputVersion;
+                private readonly WeakReference<RazorCodeDocument> _codeDocumentReference;
+
+                public ComputedOutput(RazorCodeDocument codeDocument, VersionStamp inputVersion)
+                {
+                    _codeDocumentReference = new WeakReference<RazorCodeDocument>(codeDocument);
+                    _inputVersion = inputVersion;
+                }
+
+                public bool TryGetCachedOutput(out RazorCodeDocument codeDocument, out VersionStamp inputVersion)
+                {
+                    // The goal here is to capture a weak reference to the code document so if there's ever a sub-system that's still utilizing it
+                    // our computed output maintains its cache.
+
+                    if (_codeDocumentReference.TryGetTarget(out codeDocument))
+                    {
+                        inputVersion = _inputVersion;
+                        return true;
+                    }
+
+                    inputVersion = default;
+                    return false;
+                }
             }
         }
     }

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GCCollect_OutputIsNoLongerCached()
         {
             // Arrange
-            await LegacyDocument.GetGeneratedOutputAsync();
+            await Task.Run(async () => { await LegacyDocument.GetGeneratedOutputAsync(); });
 
             // Act
 
