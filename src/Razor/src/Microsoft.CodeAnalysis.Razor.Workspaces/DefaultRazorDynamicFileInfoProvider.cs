@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // We report diagnostics are supported to Roslyn in this case
             documentContainer.SupportsDiagnostics = true;
 
-            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            var filePath = GetProjectSystemFilePath(documentUri);
             if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
                 return;
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(propertiesService));
             }
 
-            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            var filePath = GetProjectSystemFilePath(documentUri);
             if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
                 return;
@@ -311,6 +312,22 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             var filename = key.FilePath + ".g.cs";
             var textLoader = document.GetTextLoader(filename);
             return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
+        }
+
+        private static string GetProjectSystemFilePath(Uri uri)
+        {
+            // In VS Windows project system file paths always utilize `\`. In VSMac they don't. This is a bit of a hack
+            // however, it's the only way to get the correct file path for a document to map to a corresponding project
+            // system.
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // VSWin
+                return uri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            }
+
+            // VSMac
+            return uri.AbsolutePath;
         }
 
         // Using a separate handle to the 'current' file info so that can allow Roslyn to send
