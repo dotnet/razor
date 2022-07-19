@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     selectedAttributeNameLocation.HasValue &&
                     selectedAttributeNameLocation.Value.Length > 1 &&
                     selectedAttributeNameLocation.Value.Start != context.AbsoluteIndex &&
-                    !IsPossiblePartiallyWrittenAttribute(parent, context.AbsoluteIndex))
+                    !InOrAtEndOfAttribute(parent, context.AbsoluteIndex))
                 {
                     // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
                     // beginning of an HTML attribute name or at the end of possible partially written attribute. We do extra checks on prefix locations here in order to rule out malformed cases when the Razor
@@ -119,18 +119,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, context.TagHelperDocumentContext, context.Options);
                 return attributeCompletions;
 
-                static bool IsPossiblePartiallyWrittenAttribute(SyntaxNode? attributeSyntax, int absoluteIndex)
+                static bool InOrAtEndOfAttribute(SyntaxNode attributeSyntax, int absoluteIndex)
                 {
                     // When we are in the middle of writing an attribute it is treated as a minimilized one, e.g.:
                     // <form asp$$ - 'asp' is parsed as MarkupMinimizedTagHelperAttributeSyntax (tag helper)
-                    // <SurveyPromt Tit$$ - 'Tit' is parsed as MarkupMinimizedTagHelperAttributeSyntax as well (razor component)
+                    // <SurveyPrompt Tit$$ - 'Tit' is parsed as MarkupMinimizedTagHelperAttributeSyntax as well (razor component)
                     // Need to check for MarkupMinimizedAttributeBlockSyntax in order to handle cases when html tag becomes a tag helper only with certain attributes
-                    if (attributeSyntax is MarkupMinimizedTagHelperAttributeSyntax or MarkupMinimizedAttributeBlockSyntax)
-                    {
-                        return attributeSyntax.Span.End == absoluteIndex;
-                    }
-
-                    return false;
+                    // We allow the absoluteIndex to be anywhere in the attribute, and for non minimized attributes,
+                    // so that `<SurveyPrompt Title=""` doesn't return only the html completions, because that has the effect of overwriting the casing of the attribute.
+                    return attributeSyntax is MarkupMinimizedTagHelperAttributeSyntax or MarkupMinimizedAttributeBlockSyntax or MarkupTagHelperAttributeSyntax &&
+                        attributeSyntax.Span.Start < absoluteIndex && attributeSyntax.Span.End >= absoluteIndex;
                 }
             }
 
