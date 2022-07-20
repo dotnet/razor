@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
         }
 
-        public override ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":" }.ToImmutableHashSet();
+        public override ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":", " " }.ToImmutableHashSet();
 
         public override async Task<VSInternalCompletionList?> GetCompletionListAsync(
             int absoluteIndex,
