@@ -97,6 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             }
 
             List<FoldingRange> mappedRanges = new();
+
             foreach (var foldingRange in foldingResponse.CSharpRanges)
             {
                 var range = GetRange(foldingRange);
