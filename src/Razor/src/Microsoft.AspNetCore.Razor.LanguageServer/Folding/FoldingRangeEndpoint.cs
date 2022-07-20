@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 {
                     foldingRanges = await HandleCoreAsync(requestParams, documentContext, cancellationToken);
                 }
-                catch (Exception e) when (retries <= MaxRetries)
+                catch (Exception e)
                 {
                     _logger.LogWarning(e, "Try {retries} to get FoldingRange", retries);
                 }
