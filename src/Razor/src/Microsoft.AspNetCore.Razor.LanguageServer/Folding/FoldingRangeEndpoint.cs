@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 {
                     foldingRanges = await HandleCoreAsync(requestParams, documentContext, cancellationToken);
                 }
-                catch (Exception e) when (retries < MaxRetries)
+                catch (Exception e) when (retries <= MaxRetries)
                 {
                     _logger.LogWarning(e, "Try {retries} to get FoldingRange", retries);
                 }
@@ -127,8 +127,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             var sourceText = codeDocument.GetSourceText();
 
-            // Don't allow ranges to be reported if they aren't spanning at least one line or they exceed document length.
-            var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine && r.EndLine < sourceText.Lines.Count);
+            // Don't allow ranges to be reported if they aren't spanning at least one line
+            var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
 
             // Reduce ranges that have the same start line to be a single instance with the largest
             // range available, since only one button can be shown to collapse per line
