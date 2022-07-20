@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -96,21 +97,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             }
 
             List<FoldingRange> mappedRanges = new();
-
-            foreach (var foldingRange in foldingResponse.CSharpRanges)
-            {
-                var range = GetRange(foldingRange);
-
-                if (_documentMappingService.TryMapFromProjectedDocumentRange(
-                    codeDocument,
-                    range,
-                    out var mappedRange))
-                {
-                    mappedRanges.Add(GetFoldingRange(mappedRange, foldingRange.CollapsedText));
-                }
-            }
-
-            mappedRanges.AddRange(foldingResponse.HtmlRanges);
+            MapFoldingRanges(mappedRanges, foldingResponse.CSharpRanges, codeDocument);
+            MapFoldingRanges(mappedRanges, foldingResponse.HtmlRanges, codeDocument);
 
             foreach (var provider in _foldingRangeProviders)
             {
@@ -155,6 +143,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
             var sourceText = codeDocument.GetSourceText();
             var startLine = range.StartLine;
+
+            Debug.Assert(range.StartLine < sourceText.Lines.Count);
             var lineSpan = sourceText.Lines[startLine].Span;
 
             // Search from the end of the line to the beginning for the first non whitespace character. We want that
@@ -174,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         }
 
         private static Range GetRange(FoldingRange foldingRange)
-            => new Range
+            => new()
             {
                 Start = new Position()
                 {
@@ -189,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             };
 
         private static FoldingRange GetFoldingRange(Range range, string? collapsedText)
-           => new FoldingRange()
+           => new()
            {
                StartLine = range.Start.Line,
                StartCharacter = range.Start.Character,
@@ -197,5 +187,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                EndLine = range.End.Line,
                CollapsedText = collapsedText
            };
+
+        private void MapFoldingRanges(
+            List<FoldingRange> mappedRanges,
+            ImmutableArray<FoldingRange> unmappedRanges,
+            RazorCodeDocument codeDocument)
+        {
+            foreach (var foldingRange in unmappedRanges)
+            {
+                var range = GetRange(foldingRange);
+
+                if (_documentMappingService.TryMapFromProjectedDocumentRange(
+                    codeDocument,
+                    range,
+                    out var mappedRange))
+                {
+                    mappedRanges.Add(GetFoldingRange(mappedRange, foldingRange.CollapsedText));
+                }
+            }
+        }
     }
 }
