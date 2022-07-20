@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -125,8 +124,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
         private static IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
         {
-            var sourceText = codeDocument.GetSourceText();
-
             // Don't allow ranges to be reported if they aren't spanning at least one line
             var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
 
@@ -137,14 +134,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 .Select(ranges => ranges.OrderByDescending(r => r.EndLine).First());
 
             // Fix the starting range so the "..." is shown at the end
-            return reducedRanges.Select(r => FixFoldingRangeStart(r, sourceText));
+            return reducedRanges.Select(r => FixFoldingRangeStart(r, codeDocument));
         }
 
         /// <summary>
         /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
         /// it so collapsing will still show the text instead of just "..."
         /// </summary>
-        private static FoldingRange FixFoldingRangeStart(FoldingRange range, SourceText sourceText)
+        private static FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
         {
             Debug.Assert(range.StartLine < range.EndLine);
 
@@ -156,6 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 return range;
             }
 
+            var sourceText = codeDocument.GetSourceText();
             var startLine = range.StartLine;
 
             Debug.Assert(range.StartLine < sourceText.Lines.Count);
