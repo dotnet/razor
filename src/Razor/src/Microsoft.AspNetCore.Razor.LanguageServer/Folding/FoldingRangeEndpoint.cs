@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -14,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -97,8 +97,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
             }
 
             List<FoldingRange> mappedRanges = new();
-            MapFoldingRanges(mappedRanges, foldingResponse.CSharpRanges, codeDocument);
-            MapFoldingRanges(mappedRanges, foldingResponse.HtmlRanges, codeDocument);
+            foreach (var foldingRange in foldingResponse.CSharpRanges)
+            {
+                var range = GetRange(foldingRange);
+
+                if (_documentMappingService.TryMapFromProjectedDocumentRange(
+                    codeDocument,
+                    range,
+                    out var mappedRange))
+                {
+                    mappedRanges.Add(GetFoldingRange(mappedRange, foldingRange.CollapsedText));
+                }
+            }
+
+            mappedRanges.AddRange(foldingResponse.HtmlRanges);
 
             foreach (var provider in _foldingRangeProviders)
             {
@@ -112,8 +124,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
         private static IEnumerable<FoldingRange> FinalizeFoldingRanges(List<FoldingRange> mappedRanges, RazorCodeDocument codeDocument)
         {
-            // Don't allow ranges to be reported if they aren't spanning at least one line
-            var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
+            var sourceText = codeDocument.GetSourceText();
+
+            // Don't allow ranges to be reported if they aren't spanning at least one line or they exceed document length.
+            var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine && r.EndLine < sourceText.Lines.Count);
 
             // Reduce ranges that have the same start line to be a single instance with the largest
             // range available, since only one button can be shown to collapse per line
@@ -122,14 +136,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 .Select(ranges => ranges.OrderByDescending(r => r.EndLine).First());
 
             // Fix the starting range so the "..." is shown at the end
-            return reducedRanges.Select(r => FixFoldingRangeStart(r, codeDocument));
+            return reducedRanges.Select(r => FixFoldingRangeStart(r, sourceText));
         }
 
         /// <summary>
         /// Fixes the start of a range so that the offset of the first line is the last character on that line. This makes
         /// it so collapsing will still show the text instead of just "..."
         /// </summary>
-        private static FoldingRange FixFoldingRangeStart(FoldingRange range, RazorCodeDocument codeDocument)
+        private static FoldingRange FixFoldingRangeStart(FoldingRange range, SourceText sourceText)
         {
             Debug.Assert(range.StartLine < range.EndLine);
 
@@ -141,7 +155,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 return range;
             }
 
-            var sourceText = codeDocument.GetSourceText();
             var startLine = range.StartLine;
 
             Debug.Assert(range.StartLine < sourceText.Lines.Count);
@@ -187,24 +200,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                EndLine = range.End.Line,
                CollapsedText = collapsedText
            };
-
-        private void MapFoldingRanges(
-            List<FoldingRange> mappedRanges,
-            ImmutableArray<FoldingRange> unmappedRanges,
-            RazorCodeDocument codeDocument)
-        {
-            foreach (var foldingRange in unmappedRanges)
-            {
-                var range = GetRange(foldingRange);
-
-                if (_documentMappingService.TryMapFromProjectedDocumentRange(
-                    codeDocument,
-                    range,
-                    out var mappedRange))
-                {
-                    mappedRanges.Add(GetFoldingRange(mappedRange, foldingRange.CollapsedText));
-                }
-            }
-        }
     }
 }
