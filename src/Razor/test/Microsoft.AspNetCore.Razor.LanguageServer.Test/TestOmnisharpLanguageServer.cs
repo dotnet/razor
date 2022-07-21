@@ -15,9 +15,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     internal class TestOmnisharpLanguageServer : ClientNotifierServiceBase
     {
-        private readonly IReadOnlyDictionary<string, Func<object, object>> _requestResponseFactory;
+        private readonly IReadOnlyDictionary<string, Func<object, Task<object>>> _requestResponseFactory;
 
-        public TestOmnisharpLanguageServer(Dictionary<string, Func<object, object>> requestResponseFactory)
+        public TestOmnisharpLanguageServer(Dictionary<string, Func<object, Task<object>>> requestResponseFactory)
         {
             _requestResponseFactory = requestResponseFactory;
         }
@@ -31,15 +31,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             return SendRequestAsync(method, @params: (object)null);
         }
 
-        public override Task<IResponseRouterReturns> SendRequestAsync<TParams>(string method, TParams @params)
+        public override async Task<IResponseRouterReturns> SendRequestAsync<TParams>(string method, TParams @params)
         {
             if (!_requestResponseFactory.TryGetValue(method, out var factory))
             {
                 throw new InvalidOperationException($"No request factory setup for {method}");
             }
 
-            var result = factory(@params);
-            return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(result));
+            var result = await factory(@params);
+            return new TestResponseRouterReturns(result);
         }
 
         private class TestResponseRouterReturns : IResponseRouterReturns
