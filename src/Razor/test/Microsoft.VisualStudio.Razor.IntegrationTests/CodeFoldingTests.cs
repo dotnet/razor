@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_CodeBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     }");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_IfBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_ForEach()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_CodeBlock_Region()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
