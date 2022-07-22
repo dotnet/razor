@@ -11,13 +11,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class TestRazorFormattingService
     {
-        public static readonly RazorFormattingService Instance = CreateWithHtmlSupport(TestRazorCodeDocument.CreateEmpty());
+        public static readonly RazorFormattingService Instance = CreateWithFullSupport(TestRazorCodeDocument.CreateEmpty());
 
         private TestRazorFormattingService()
         {
         }
 
-        public static RazorFormattingService CreateWithHtmlSupport(RazorCodeDocument codeDocument)
+        public static RazorFormattingService CreateWithFullSupport(RazorCodeDocument codeDocument)
         {
             var mappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
 

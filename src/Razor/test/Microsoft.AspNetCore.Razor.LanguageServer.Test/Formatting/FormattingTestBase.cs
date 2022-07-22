@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 InsertSpaces = insertSpaces,
             };
 
-            var formattingService = TestRazorFormattingService.CreateWithHtmlSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
 
             // Act
             var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-            var formattingService = TestRazorFormattingService.CreateWithHtmlSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new InvalidOperationException("Could not map from Razor document to generated document");
             }
 
-            var formattingService = TestRazorFormattingService.CreateWithHtmlSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
