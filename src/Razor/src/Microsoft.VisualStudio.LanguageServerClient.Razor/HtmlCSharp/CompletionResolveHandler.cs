@@ -148,7 +148,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Start formatting text edit.");
 
-            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            if (formattingOptions is null)
+            {
+                return resolvedCompletionItem;
+            }
+
             if (resolvedCompletionItem.TextEdit != null)
             {
                 var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;

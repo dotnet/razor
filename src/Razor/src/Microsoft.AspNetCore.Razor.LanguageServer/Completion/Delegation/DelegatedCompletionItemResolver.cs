@@ -96,13 +96,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             {
                 return resolvedCompletionItem;
             }
-            
-            // TODO: Pull active formatting options from client.
-            var formattingOptions = new FormattingOptions()
+
+            var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier).ConfigureAwait(false);
+            var formattingOptions = await delegatedRequest.Returning<FormattingOptions?>(cancellationToken).ConfigureAwait(false);
+            if (formattingOptions is null)
             {
-                InsertSpaces = true,
-                TabSize = 4,
-            };
+                return resolvedCompletionItem;
+            }
 
             if (resolvedCompletionItem.TextEdit is not null)
             {
