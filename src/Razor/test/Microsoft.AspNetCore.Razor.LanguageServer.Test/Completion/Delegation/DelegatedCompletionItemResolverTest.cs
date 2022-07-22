@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 
         private DelegatedCompletionParams CSharpCompletionParams { get; }
 
-        internal DelegatedCompletionParams HtmlCompletionParams { get; }
+        private DelegatedCompletionParams HtmlCompletionParams { get; }
 
         [Fact]
         public async Task ResolveAsync_CanNotFindCompletionItem_Noops()
@@ -150,9 +150,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         {
             private readonly DelegatedCompletionResolveRequestHandler _requestHandler;
 
-            private TestItemResolverServer(DelegatedCompletionResolveRequestHandler requestHandler) : base(new Dictionary<string, Func<object, object>>()
+            private TestItemResolverServer(DelegatedCompletionResolveRequestHandler requestHandler) : base(new Dictionary<string, Func<object, Task<object>>>()
             {
-                [LanguageServerConstants.RazorCompletionResolveEndpointName] = requestHandler.OnDelegation,
+                [LanguageServerConstants.RazorCompletionResolveEndpointName] = requestHandler.OnDelegationAsync,
             })
             {
                 _requestHandler = requestHandler;
@@ -179,11 +179,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 
                 public DelegatedCompletionItemResolveParams DelegatedParams { get; private set; }
 
-                public object OnDelegation(object parameters)
+                public Task<object> OnDelegationAsync(object parameters)
                 {
                     DelegatedParams = (DelegatedCompletionItemResolveParams)parameters;
 
-                    return _resolveResponse;
+                    return Task.FromResult<object>(_resolveResponse);
                 }
             }
         }

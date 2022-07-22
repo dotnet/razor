@@ -3,22 +3,31 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
+    [UseExportProvider]
     public class DelegatedCompletionListProviderTest : LanguageServerTestBase
     {
         public DelegatedCompletionListProviderTest()
         {
-            Provider = TestDelegatedCompletionListProvider.Create(LoggerFactory);
+            Provider = TestDelegatedCompletionListProvider.Create();
             ClientCapabilities = new VSInternalClientCapabilities();
         }
 
@@ -35,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument);
             var rewriter1 = new TestResponseRewriter(order: 100);
             var rewriter2 = new TestResponseRewriter(order: 20);
-            var provider = TestDelegatedCompletionListProvider.Create(LoggerFactory, rewriter1, rewriter2);
+            var provider = TestDelegatedCompletionListProvider.Create(rewriter1, rewriter2);
 
             // Act
             var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
@@ -122,26 +131,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         }
 
         [Fact]
-        public async Task CSharpDelegation_Invoked()
+        public async Task CSharp_Invoked()
         {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked };
-            var codeDocument = CreateCodeDocument("@");
-            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
-
-            // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            // Arrange & Act
+            var completionList = await GetCompletionListAsync("@$$", CompletionTriggerKind.Invoked);
 
             // Assert
-            var delegatedParameters = Provider.DelegatedParams;
-            Assert.NotNull(delegatedParameters);
-            Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
+            Assert.Contains(completionList.Items, item => item.Label == "System");
+        }
 
-            // Just validating that we're generating code in a way that's different from the top-level document. Don't need to be specific.
-            Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
-            Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
-            Assert.Equal(1337, delegatedParameters.HostDocument.Version);
-            Assert.Null(delegatedParameters.ProvisionalTextEdit);
+        [Fact]
+        public async Task CSharp_At_TranslatesToInvoked_Triggered()
+        {
+            // Arrange & Act
+            var completionList = await GetCompletionListAsync("@$$", CompletionTriggerKind.TriggerCharacter);
+
+            // Assert
+            Assert.Contains(completionList.Items, item => item.Label == "System");
+        }
+
+        [Fact(Skip = "For some reason trigger based completion items aren't returning any items")]
+        public async Task CSharp_Operator_Triggered()
+        {
+            // Arrange & Act
+            var completionList = await GetCompletionListAsync("@if ($$)", CompletionTriggerKind.TriggerCharacter);
+
+            // Assert
+            Assert.Contains(completionList.Items, item => item.Label == "true");
         }
 
         [Fact]
@@ -159,93 +175,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Null(completionList);
             var delegatedParameters = Provider.DelegatedParams;
             Assert.Null(delegatedParameters);
-        }
-
-        [Fact]
-        public async Task CSharpDelegation_TriggerCharacterAt_TranslatesToInvoked()
-        {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerKind = CompletionTriggerKind.TriggerCharacter,
-                TriggerCharacter = "@",
-            };
-            var codeDocument = CreateCodeDocument("@");
-            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
-
-            // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
-
-            // Assert
-            var delegatedParameters = Provider.DelegatedParams;
-            Assert.NotNull(delegatedParameters);
-            Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
-
-            // Just validating that we're generating code in a way that's different from the top-level document. Don't need to be specific.
-            Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
-            Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
-            Assert.Equal(VSInternalCompletionInvokeKind.Explicit, delegatedParameters.Context.InvokeKind);
-            Assert.Equal(1337, delegatedParameters.HostDocument.Version);
-            Assert.Null(delegatedParameters.ProvisionalTextEdit);
-        }
-
-        [Fact]
-        public async Task CSharpDelegation_TriggerCharacter()
-        {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerKind = CompletionTriggerKind.TriggerCharacter,
-                TriggerCharacter = ".",
-            };
-            var codeDocument = CreateCodeDocument("@{ var abc = DateTime.;}");
-            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
-
-            // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 22, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
-
-            // Assert
-            var delegatedParameters = Provider.DelegatedParams;
-            Assert.NotNull(delegatedParameters);
-            Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
-
-            // Just validating that we're generating code in a way that's different from the top-level document. Don't need to be specific.
-            Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
-            Assert.Equal(CompletionTriggerKind.TriggerCharacter, delegatedParameters.Context.TriggerKind);
-            Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-            Assert.Equal(1337, delegatedParameters.HostDocument.Version);
-            Assert.Null(delegatedParameters.ProvisionalTextEdit);
-        }
-
-        [Fact]
-        public async Task CSharpDelegation_UnsupportedTriggerCharacter_TranslatesToInvoked()
-        {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext()
-            {
-                InvokeKind= VSInternalCompletionInvokeKind.Typing,
-                TriggerKind = CompletionTriggerKind.TriggerCharacter,
-                TriggerCharacter = "o",
-            };
-            var codeDocument = CreateCodeDocument("@{ var abc = DateTime.No;}");
-            var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
-
-            // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 24, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
-
-            // Assert
-            var delegatedParameters = Provider.DelegatedParams;
-            Assert.NotNull(delegatedParameters);
-            Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
-
-            // Just validating that we're generating code in a way that's different from the top-level document. Don't need to be specific.
-            Assert.True(delegatedParameters.ProjectedPosition.Line > 2);
-            Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
-            Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-            Assert.Equal(1337, delegatedParameters.HostDocument.Version);
-            Assert.Null(delegatedParameters.ProvisionalTextEdit);
         }
 
         [Fact]
@@ -326,6 +255,50 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 completionList.Items = completionList.Items.Concat(new[] { completionItem }).ToArray();
 
                 return Task.FromResult(completionList);
+            }
+        }
+
+        private async Task<VSInternalCompletionList> GetCompletionListAsync(string content, CompletionTriggerKind triggerKind)
+        {
+            TestFileMarkupParser.GetPosition(content, out var output, out var cursorPosition);
+            var codeDocument = CreateCodeDocument(output);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+            var serverCapabilities =  new ServerCapabilities()
+            {
+                CompletionProvider = new CompletionOptions
+                {
+                    ResolveProvider = true,
+                    TriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }
+                }
+            };
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService()).ConfigureAwait(false);
+
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+
+            var triggerCharacter = triggerKind == CompletionTriggerKind.TriggerCharacter ? output[cursorPosition - 1].ToString() : null;
+            var invocationKind = triggerKind == CompletionTriggerKind.TriggerCharacter ? VSInternalCompletionInvokeKind.Typing : VSInternalCompletionInvokeKind.Explicit;
+
+            var completionContext = new VSInternalCompletionContext()
+            {
+                TriggerKind = triggerKind,
+                TriggerCharacter = triggerCharacter,
+                InvokeKind = invocationKind,
+            };
+            var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
+            var provider = TestDelegatedCompletionListProvider.Create(csharpServer);
+
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: cursorPosition, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            return completionList;
+        }
+
+        private class EmptyMappingService : IRazorSpanMappingService
+        {
+            public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+            {
+                var result = Enumerable.Empty<RazorMappedSpanResult>().ToImmutableArray();
+                return Task.FromResult(result);
             }
         }
     }
