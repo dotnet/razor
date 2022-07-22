@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
@@ -22,6 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
     internal class CSharpTestLspServerHelpers
     {
         private const string EditRangeSetting = "editRange";
+
+        public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(SourceText csharpSourceText, Uri csharpDocumentUri, ServerCapabilities serverCapabilities) =>
+            CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService());
 
         public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
             SourceText csharpSourceText,
@@ -111,5 +115,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         }
 
         private record CSharpFile(Uri DocumentUri, SourceText CSharpSourceText);
+
+        private class EmptyMappingService : IRazorSpanMappingService
+        {
+            public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+            {
+                var result = Enumerable.Empty<RazorMappedSpanResult>().ToImmutableArray();
+                return Task.FromResult(result);
+            }
+        }
     }
 }

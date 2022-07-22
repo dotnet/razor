@@ -273,7 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 }
             };
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService()).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, serverCapabilities).ConfigureAwait(false);
 
             await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
 
@@ -291,15 +291,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 
             var completionList = await provider.GetCompletionListAsync(absoluteIndex: cursorPosition, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
             return completionList;
-        }
-
-        private class EmptyMappingService : IRazorSpanMappingService
-        {
-            public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
-            {
-                var result = Enumerable.Empty<RazorMappedSpanResult>().ToImmutableArray();
-                return Task.FromResult(result);
-            }
         }
     }
 }
