@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -62,8 +63,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("/"), builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", Array.Empty<RazorSourceDocument>(), tagHelpers);
+            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"), builder => {
+                RazorExtensions.Register(builder);
+            });
+            var defaultImportDocument = TestRazorSourceDocument.Create(
+                """
+                @using System;
+                """,
+                new RazorSourceDocumentProperties("_ViewImports.cshtml", "_ViewImports.cshtml"));
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", new[] { defaultImportDocument }, tagHelpers);
             return codeDocument;
         }
 

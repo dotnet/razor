@@ -150,14 +150,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             Assert.Contains(completionList.Items, item => item.Label == "System");
         }
 
-        [Fact(Skip = "For some reason trigger based completion items aren't returning any items")]
+        [Fact]
         public async Task CSharp_Operator_Triggered()
         {
             // Arrange & Act
-            var completionList = await GetCompletionListAsync("@if ($$)", CompletionTriggerKind.TriggerCharacter);
+            var completionList = await GetCompletionListAsync("@(DateTime.$$)", CompletionTriggerKind.TriggerCharacter);
 
             // Assert
-            Assert.Contains(completionList.Items, item => item.Label == "true");
+            Assert.Contains(completionList.Items, item => item.Label == "Now");
         }
 
         [Fact]
