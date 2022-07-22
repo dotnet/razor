@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
-            TextEdit[] formattedEdits,
+            TextEdit[] edits,
             FormattingOptions options,
             CancellationToken cancellationToken);
     }
