@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId)
         {
-            var filename = Path.ChangeExtension(razorFilePath, ".g.cs");
+            var filename = razorFilePath + ".g.cs";
             var textLoader = new EmptyTextLoader(filename);
             var docId = DocumentId.CreateNewId(projectId, debugName: filename);
             return DocumentInfo.Create(
