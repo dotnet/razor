@@ -400,8 +400,6 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 
             item.Selected += new RoutedEventHandler((sender, e) =>
             {
-                item.IsExpanded = true;
-
                 if (!_isNavigatingFromSourceToTree)
                 {
                     _isNavigatingFromTreeToSource = true;
