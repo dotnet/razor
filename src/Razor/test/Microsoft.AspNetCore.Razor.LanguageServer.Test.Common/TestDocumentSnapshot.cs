@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public override IReadOnlyList<DocumentSnapshot> GetImports()
         {
-            throw new NotImplementedException();
+            return Array.Empty<DocumentSnapshot>();
         }
 
         public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
