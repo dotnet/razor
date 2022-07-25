@@ -26,7 +26,6 @@ using CompletionItem = Microsoft.VisualStudio.LanguageServer.Protocol.Completion
 using CompletionOptions = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionOptions;
 using CompletionParams = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionParams;
 using CompletionTriggerKind = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionTriggerKind;
-using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
 using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using TextDocumentIdentifier = Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier;
 
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private TestLSPDocumentMappingProvider DocumentMappingProvider { get; } = new();
 
-        private TestFormattingOptionsProvider FormattingOptionsProvider { get; } = new();
+        private FormattingOptionsProvider FormattingOptionsProvider { get; } = TestFormattingOptionsProvider.Default;
 
         private CompletionRequestContextCache CompletionRequestContextCache { get; } = new();
 
@@ -316,11 +315,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 OriginalData = originalData,
             };
             item.Data = data;
-        }
-
-        private class TestFormattingOptionsProvider : FormattingOptionsProvider
-        {
-            public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot) => new FormattingOptions();
         }
 
         private record CompletionResolveResponse(VSInternalCompletionItem UnresolvedItem, VSInternalCompletionItem ResolvedItem, int TextEditRemapCount);

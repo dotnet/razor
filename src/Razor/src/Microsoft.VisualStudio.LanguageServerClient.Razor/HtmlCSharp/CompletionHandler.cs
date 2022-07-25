@@ -320,7 +320,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             TextExtent wordExtent,
             CompletionList completionList)
         {
-            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            if (formattingOptions is null)
+            {
+                return completionList;
+            }
 
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {

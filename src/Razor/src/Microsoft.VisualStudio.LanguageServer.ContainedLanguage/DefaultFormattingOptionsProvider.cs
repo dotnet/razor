@@ -12,28 +12,36 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     [Export(typeof(FormattingOptionsProvider))]
     internal class DefaultFormattingOptionsProvider : FormattingOptionsProvider
     {
+        private readonly LSPDocumentManager _documentManager;
         private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
-        public DefaultFormattingOptionsProvider(IIndentationManagerService indentationManagerService)
+        public DefaultFormattingOptionsProvider(
+            LSPDocumentManager documentManager,
+            IIndentationManagerService indentationManagerService)
         {
-            if (indentationManagerService is null)
-            {
-                throw new ArgumentNullException(nameof(indentationManagerService));
-            }
-
+            _documentManager = documentManager;
             _indentationManagerService = indentationManagerService;
         }
 
-        public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot)
+        public override FormattingOptions? GetOptions(Uri uri)
         {
-            _indentationManagerService.GetIndentation(documentSnapshot.Snapshot.TextBuffer, explicitFormat: false, out var insertSpaces, out var tabSize, out _);
+            if (!_documentManager.TryGetDocument(uri, out var documentSnapshot))
+            {
+                return null;
+            }
+            
+            _indentationManagerService.GetIndentation(
+                documentSnapshot.Snapshot.TextBuffer,
+                explicitFormat: false,
+                out var insertSpaces,
+                out var tabSize,
+                out _);
             var formattingOptions = new FormattingOptions()
             {
                 InsertSpaces = insertSpaces,
                 TabSize = tabSize,
             };
-
             return formattingOptions;
         }
     }
