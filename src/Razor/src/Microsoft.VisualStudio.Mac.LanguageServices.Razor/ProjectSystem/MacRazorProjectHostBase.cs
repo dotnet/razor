@@ -236,8 +236,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 return false;
             }
 
-            var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
-            var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
+            var normalizedBaseIntermediateOutputPath = ToPlatformFilePath(baseIntermediateOutputPathValue);
+            var basePath = new DirectoryInfo(normalizedBaseIntermediateOutputPath).Parent;
+            var normalizedIntermediateOutputPathValue = ToPlatformFilePath(intermediateOutputPathValue);
+            var joinedPath = Path.Combine(basePath.FullName, normalizedIntermediateOutputPathValue);
 
             if (!Directory.Exists(joinedPath))
             {
@@ -250,7 +252,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 // quirk means that you don't get any component completions for Razor class libraries because we're unable to capture their project state information.
                 //
                 // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
-                joinedPath = ResolveFallbackIntermediateOutputPath(projectProperties, intermediateOutputPathValue);
+                joinedPath = ResolveFallbackIntermediateOutputPath(projectProperties, normalizedIntermediateOutputPathValue);
                 if (joinedPath is null)
                 {
                     // Still couldn't resolve a valid directory.
@@ -272,7 +274,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
 
             var projectDirectory = projectProperties.GetValue(MSBuildProjectDirectoryPropertyName);
-            var joinedPath = Path.Combine(projectDirectory, intermediateOutputPathValue);
+            var normalizedProjectDirectory = ToPlatformFilePath(projectDirectory);
+            var joinedPath = Path.Combine(normalizedProjectDirectory, intermediateOutputPathValue);
             if (!Directory.Exists(joinedPath))
             {
                 return null;
@@ -280,5 +283,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             return joinedPath;
         }
+
+        /// <summary>
+        /// Project system file paths get returned in windows based foramts. Meaning they typically have `\` as their path separator. Because of this in order to
+        /// interoperate with local file system APIs (all of the Path / Directory etc. APIs) we need to convert the paths to use `/` as the path separator.
+        /// </summary>
+        /// <param name="filePath">A project system based file path.</param>
+        /// <returns>A file path that can be used with File system APIs</returns>
+        private static string ToPlatformFilePath(string filePath) => filePath.Replace('\\', '/');
     }
 }
