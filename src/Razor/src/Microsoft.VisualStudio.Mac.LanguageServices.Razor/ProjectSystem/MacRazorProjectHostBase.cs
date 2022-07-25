@@ -236,9 +236,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 return false;
             }
 
-            var normalizedBaseIntermediateOutputPath = ToPlatformFilePath(baseIntermediateOutputPathValue);
+            var normalizedBaseIntermediateOutputPath = ToMacFilePath(baseIntermediateOutputPathValue);
             var basePath = new DirectoryInfo(normalizedBaseIntermediateOutputPath).Parent;
-            var normalizedIntermediateOutputPathValue = ToPlatformFilePath(intermediateOutputPathValue);
+            var normalizedIntermediateOutputPathValue = ToMacFilePath(intermediateOutputPathValue);
             var joinedPath = Path.Combine(basePath.FullName, normalizedIntermediateOutputPathValue);
 
             if (!Directory.Exists(joinedPath))
@@ -274,7 +274,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
 
             var projectDirectory = projectProperties.GetValue(MSBuildProjectDirectoryPropertyName);
-            var normalizedProjectDirectory = ToPlatformFilePath(projectDirectory);
+            var normalizedProjectDirectory = ToMacFilePath(projectDirectory);
             var joinedPath = Path.Combine(normalizedProjectDirectory, intermediateOutputPathValue);
             if (!Directory.Exists(joinedPath))
             {
@@ -290,6 +290,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         /// </summary>
         /// <param name="filePath">A project system based file path.</param>
         /// <returns>A file path that can be used with File system APIs</returns>
-        private static string ToPlatformFilePath(string filePath) => filePath.Replace('\\', '/');
+        private static string ToMacFilePath(string filePath) => filePath.Replace('\\', Path.DirectorySeparatorChar);
     }
 }
