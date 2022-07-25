@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = TestRazorCodeDocument.CreateEmpty();
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var formattingService = new TestRazorFormattingService();
+            var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
                 documentContextFactory, formattingService, optionsMonitor);
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
             // Arrange
-            var formattingService = new TestRazorFormattingService();
+            var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
                 EmptyDocumentContextFactory, formattingService, optionsMonitor);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var formattingService = new TestRazorFormattingService();
+            var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
                 documentContextFactory, formattingService, optionsMonitor);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task Handle_FormattingDisabled_ReturnsNull()
         {
             // Arrange
-            var formattingService = new TestRazorFormattingService();
+            var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
                 EmptyDocumentContextFactory, formattingService, optionsMonitor);

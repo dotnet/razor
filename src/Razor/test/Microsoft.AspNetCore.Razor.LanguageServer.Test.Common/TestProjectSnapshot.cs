@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public override RazorProjectEngine GetProjectEngine()
         {
-            throw new NotImplementedException();
+            return RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"));
         }
     }
 }

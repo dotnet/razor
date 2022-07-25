@@ -5,7 +5,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -13,10 +15,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
     internal class DelegatedCompletionItemResolver : CompletionItemResolver
     {
+        private readonly DocumentContextFactory _documentContextFactory;
+        private readonly RazorFormattingService _formattingService;
         private readonly ClientNotifierServiceBase _languageServer;
 
-        public DelegatedCompletionItemResolver(ClientNotifierServiceBase languageServer)
+        public DelegatedCompletionItemResolver(
+            DocumentContextFactory documentContextFactory,
+            RazorFormattingService formattingService,
+            ClientNotifierServiceBase languageServer)
         {
+            _documentContextFactory = documentContextFactory;
+            _formattingService = formattingService;
             _languageServer = languageServer;
         }
 
@@ -49,6 +58,78 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 delegatedParams.ProjectedKind);
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams).ConfigureAwait(false);
             var resolvedCompletionItem = await delegatedRequest.Returning<VSInternalCompletionItem?>(cancellationToken).ConfigureAwait(false);
+
+            if (resolvedCompletionItem is not null)
+            {
+                resolvedCompletionItem = await PostProcessCompletionItemAsync(resolutionContext, resolvedCompletionItem, cancellationToken).ConfigureAwait(false);
+            }
+            
+            return resolvedCompletionItem;
+        }
+
+        private async Task<VSInternalCompletionItem> PostProcessCompletionItemAsync(
+            DelegatedCompletionResolutionContext context,
+            VSInternalCompletionItem resolvedCompletionItem,
+            CancellationToken cancellationToken)
+        {
+            if (context.OriginalRequestParams.ProjectedKind != RazorLanguageKind.CSharp)
+            {
+                // We currently don't do any post-processing for non-C# items.
+                return resolvedCompletionItem;
+            }
+
+            if (!resolvedCompletionItem.VsResolveTextEditOnCommit)
+            {
+                // Resolve doesn't typically handle text edit resolution; however, in VS cases it does.
+                return resolvedCompletionItem;
+            }
+
+            if (resolvedCompletionItem.TextEdit is null && resolvedCompletionItem.AdditionalTextEdits is null)
+            {
+                // Only post-processing work we have to do is formatting text edits on resolution.
+                return resolvedCompletionItem;
+            }
+
+            var hostDocumentUri = context.OriginalRequestParams.HostDocument.Uri;
+            var documentContext = await _documentContextFactory.TryCreateAsync(hostDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
+            {
+                return resolvedCompletionItem;
+            }
+            
+            // TODO: Pull active formatting options from client.
+            var formattingOptions = new FormattingOptions()
+            {
+                InsertSpaces = true,
+                TabSize = 4,
+            };
+
+            if (resolvedCompletionItem.TextEdit is not null)
+            {
+                var formattedTextEdit = await _formattingService.FormatSnippetAsync(
+                    hostDocumentUri,
+                    documentContext.Snapshot,
+                    RazorLanguageKind.CSharp,
+                    new[] { resolvedCompletionItem.TextEdit },
+                    formattingOptions,
+                    cancellationToken).ConfigureAwait(false);
+
+                resolvedCompletionItem.TextEdit = formattedTextEdit.FirstOrDefault();
+            }
+
+            if (resolvedCompletionItem.AdditionalTextEdits is not null)
+            {
+                var formattedTextEdits = await _formattingService.FormatSnippetAsync(
+                    hostDocumentUri,
+                    documentContext.Snapshot,
+                    RazorLanguageKind.CSharp,
+                    resolvedCompletionItem.AdditionalTextEdits,
+                    formattingOptions,
+                    cancellationToken).ConfigureAwait(false);
+
+                resolvedCompletionItem.AdditionalTextEdits = formattedTextEdits;
+            }
+
             return resolvedCompletionItem;
         }
     }
