@@ -263,6 +263,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             private TestDelegatedCompletionItemResolverServer(CompletionResolveRequestResponseFactory requestHandler) : base(new Dictionary<string, Func<object, Task<object>>>()
             {
                 [LanguageServerConstants.RazorCompletionResolveEndpointName] = requestHandler.OnCompletionResolveDelegationAsync,
+                [LanguageServerConstants.RazorGetFormattingOptionsEndpointName] = requestHandler.OnGetFormattingOptionsAsync,
             })
             {
                 _requestHandler = requestHandler;
@@ -337,6 +338,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 public abstract DelegatedCompletionItemResolveParams DelegatedParams { get; }
 
                 public abstract Task<object> OnCompletionResolveDelegationAsync(object parameters);
+
+                public Task<object> OnGetFormattingOptionsAsync(object parameters)
+                {
+                    var formattingOptions = new FormattingOptions()
+                    {
+                        InsertSpaces = true,
+                        TabSize = 4,
+                    };
+                    return Task.FromResult<object>(formattingOptions);
+                }
             }
         }
     }
