@@ -14,5 +14,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
         public int ExtractEnd { get; set; }
         public int RemoveStart { get; set; }
         public int RemoveEnd { get; set; }
+        public string Namespace { get; set; }
     }
 }

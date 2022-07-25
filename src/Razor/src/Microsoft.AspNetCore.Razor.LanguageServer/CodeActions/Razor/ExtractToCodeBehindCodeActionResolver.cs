@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var className = Path.GetFileNameWithoutExtension(path);
             var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart));
-            var codeBehindContent = GenerateCodeBehindClass(className, codeBlockContent, codeDocument);
+            var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
 
             var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
             var end = codeDocument.Source.Lines.GetLocation(actionParams.RemoveEnd);
@@ -178,16 +178,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         /// usings from the existing code document.
         /// </summary>
         /// <param name="className">Name of the resultant partial class.</param>
+        /// <param name="namespaceName">Name of the namespace to put the reusltant class in.</param>
         /// <param name="contents">Class body contents.</param>
         /// <param name="razorCodeDocument">Existing code document we're extracting from.</param>
         /// <returns></returns>
-        private static string GenerateCodeBehindClass(string className, string contents, RazorCodeDocument razorCodeDocument)
+        private static string GenerateCodeBehindClass(string className, string namespaceName, string contents, RazorCodeDocument razorCodeDocument)
         {
-            var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
-                .GetDocumentIntermediateNode()
-                .FindDescendantNodes<IntermediateNode>()
-                .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
-
             var mock = (ClassDeclarationSyntax)CSharpSyntaxFactory.ParseMemberDeclaration($"class Class {contents}")!;
             var @class = CSharpSyntaxFactory
                 .ClassDeclaration(className)
@@ -195,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 .AddMembers(mock.Members.ToArray());
 
             var @namespace = CSharpSyntaxFactory
-                .NamespaceDeclaration(CSharpSyntaxFactory.ParseName(namespaceNode.Content))
+                .NamespaceDeclaration(CSharpSyntaxFactory.ParseName(namespaceName))
                 .AddMembers(@class);
 
             var usings = FindUsings(razorCodeDocument)
