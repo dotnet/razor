@@ -11,7 +11,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Default</AnalysisMode>
-    <LangVersion>Latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -46,7 +46,7 @@
     <IsPackable Condition="'$(IsUnitTestProject)' == 'false'">true</IsPackable>
 
     <IncludeSymbols>true</IncludeSymbols>
-    <DefaultNetCoreTargetFramework>net6.0</DefaultNetCoreTargetFramework>
+    <DefaultNetCoreTargetFramework>net7.0</DefaultNetCoreTargetFramework>
     <DefaultNetFxTargetFramework>net462</DefaultNetFxTargetFramework>
   </PropertyGroup>
 
@@ -55,6 +55,10 @@
     <!-- Ensure API docs are available. -->
     <NoWarn>$(NoWarn.Replace('1591', ''))</NoWarn>
     <NoWarn Condition=" '$(BuildingInsideVisualStudio)' == 'true' ">$(NoWarn);0105</NoWarn>
+
+    <!-- Central package management requires that all packages have package source mapping, but we're using all dotnet feeds, and source-build and other downstream rebuilders of our souces
+         would need to support updating that list for their local builds. -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
 
     <!-- For local builds, don't make missing XML docs a fatal build error, but still surface so we have visibility into undocumented APIs. -->
     <WarningsNotAsErrors Condition=" '$(ContinuousIntegrationBuild)' != 'true' ">$(WarningsNotAsErrors);CS1591</WarningsNotAsErrors>
