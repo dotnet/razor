@@ -162,6 +162,31 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
         }
 
+        [Theory]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
+        [InlineData("model")] // Currently "model" is the only cshtml-only single-line directive. "add(remove)TagHelper" and "tagHelperPrefix" are there by default
+        public void GetDirectiveCompletionItems_ReturnsKnownDirectivesAsSnippets_SingleLine_Legacy(string knownDirective)
+        {
+            // Arrange
+            var customDirective = DirectiveDescriptor.CreateRazorBlockDirective(knownDirective, builder =>
+            {
+                builder.DisplayName = knownDirective;
+                builder.Description = string.Empty; // Doesn't matter for this test. Just need to provide something to avoid ArgumentNullException
+            });
+            var syntaxTree = CreateSyntaxTree("@", FileKinds.Legacy, customDirective);
+
+            // Act
+            var completionItems = DirectiveCompletionItemProvider.GetDirectiveCompletionItems(syntaxTree);
+
+            // Assert
+            Assert.Collection(
+                completionItems,
+                item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
+        }
+
         [Fact]
         public void GetDirectiveCompletionItems_ComponentDocument_DoesNotReturnsDefaultDirectivesAsCompletionItems()
         {
