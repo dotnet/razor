@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -73,6 +74,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         // This is more of an integration level test validating the end-to-end completion flow.
         [UIFact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public async Task GetCompletionContextAsync_ProvidesCompletionsWhenAtCompletionPoint()
         {
             // Arrange
@@ -91,9 +93,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             Assert.Collection(
                 completionContext.Items,
                 item => AssertRazorCompletionItem(SectionDirective.Directive, item, completionSource),
-                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, completionSource),
-                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, completionSource),
-                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, completionSource));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, completionSource, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, completionSource, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, completionSource, isSnippet: true));
         }
 
         [Fact]
@@ -128,11 +130,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             Assert.Equal(string.Empty, description);
         }
 
-        private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source)
+        private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source, bool isSnippet = false)
         {
             Assert.Equal(item.DisplayText, completionDisplayText);
             Assert.Equal(item.FilterText, completionDisplayText);
-            Assert.Equal(item.InsertText, directive.Directive);
+            Assert.Equal(item.InsertText, isSnippet ? DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive] : directive.Directive);
             Assert.Same(item.Source, source);
             Assert.True(item.Properties.TryGetProperty<DirectiveCompletionDescription>(RazorDirectiveCompletionSource.DescriptionKey, out var actualDescription));
             Assert.Equal(directive.Description, actualDescription.Description);
@@ -140,8 +142,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             AssertRazorCompletionItemDefaults(item);
         }
 
-        private static void AssertRazorCompletionItem(DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source) =>
-            AssertRazorCompletionItem(directive.Directive, directive, item, source);
+        private static void AssertRazorCompletionItem(DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source, bool isSnippet = false) =>
+            AssertRazorCompletionItem(directive.Directive, directive, item, source, isSnippet: isSnippet);
 
         private static void AssertRazorCompletionItemDefaults(CompletionItem item)
         {
