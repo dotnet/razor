@@ -12,12 +12,12 @@
              Unloaded="SyntaxVisualizerControl_Unloaded">
     <DockPanel>
         <ToolBarTray IsLocked="true" DockPanel.Dock="Top">
-            <ToolBar AutomationProperties.Name="Config">
-                <ToggleButton x:Name="showSourceMappingsButton" Content="Show C# Transitions" Click="ShowSourceMappingsButton_Click" />
-                <Button x:Name="showGeneratedCode" Content="Show Generated C#" Click="ShowGeneratedCode_Click" />
-                <Button x:Name="showGeneratedHtml" Content="Show Generated Html" Click="ShowGeneratedHtml_Click" />
+            <ToolBar AutomationProperties.Name="Config" KeyboardNavigation.TabNavigation="Continue">
+                <ToggleButton x:Name="showSourceMappingsButton" Content="Show C# Transitions" Click="ShowSourceMappingsButton_Click" TabIndex="1" />
+                <Button x:Name="showGeneratedCode" Content="Show Generated C#" Click="ShowGeneratedCode_Click" TabIndex="2" />
+                <Button x:Name="showGeneratedHtml" Content="Show Generated Html" Click="ShowGeneratedHtml_Click" TabIndex="3" />
             </ToolBar>
         </ToolBarTray>
-        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" />
+        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" TabIndex="4" KeyUp="treeView_KeyUp" />
     </DockPanel>
 </UserControl>

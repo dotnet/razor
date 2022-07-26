@@ -400,8 +400,6 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 
             item.Selected += new RoutedEventHandler((sender, e) =>
             {
-                item.IsExpanded = true;
-
                 if (!_isNavigatingFromSourceToTree)
                 {
                     _isNavigatingFromTreeToSource = true;
@@ -477,6 +475,30 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
 
             return wpfTextView;
+        }
+
+        private void treeView_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter)
+                return;
+
+            if (!IsVisible || _activeWpfTextView is null)
+                return;
+
+            if (treeView.SelectedItem is not TreeViewItem item)
+                return;
+
+            if (item.Tag is not RazorSyntaxNode node)
+                return;
+
+            var caretPoint = new SnapshotPoint(_activeWpfTextView.TextBuffer.CurrentSnapshot, node.SpanEnd);
+
+            // When we activate a node, we don't move the caret, because its a bit weird, but its equally weird to move focus
+            // to the editor, and not move the caret.
+            _isNavigatingFromTreeToSource = true;
+            _activeWpfTextView.Caret.MoveTo(caretPoint);
+            _activeWpfTextView.VisualElement.Focus();
+            _isNavigatingFromTreeToSource = false;
         }
     }
 }
