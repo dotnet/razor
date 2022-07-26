@@ -18,6 +18,6 @@
                 <Button x:Name="showGeneratedHtml" Content="Show Generated Html" Click="ShowGeneratedHtml_Click" TabIndex="3" />
             </ToolBar>
         </ToolBarTray>
-        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" TabIndex="4" />
+        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" TabIndex="4" KeyUp="treeView_KeyUp" />
     </DockPanel>
 </UserControl>
