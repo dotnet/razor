@@ -162,15 +162,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
         }
 
-        [Theory]
+        [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
-        [InlineData("model")] // Currently "model" is the only cshtml-only single-line directive. "add(remove)TagHelper" and "tagHelperPrefix" are there by default
-        public void GetDirectiveCompletionItems_ReturnsKnownDirectivesAsSnippets_SingleLine_Legacy(string knownDirective)
+        public void GetDirectiveCompletionItems_ReturnsKnownDirectivesAsSnippets_SingleLine_Legacy()
         {
             // Arrange
-            var customDirective = DirectiveDescriptor.CreateRazorBlockDirective(knownDirective, builder =>
+            var customDirective = DirectiveDescriptor.CreateRazorBlockDirective("model", builder =>
             {
-                builder.DisplayName = knownDirective;
+                builder.DisplayName = "model"; // Currently "model" is the only cshtml-only single-line directive. "add(remove)TagHelper" and "tagHelperPrefix" are there by default
                 builder.Description = string.Empty; // Doesn't matter for this test. Just need to provide something to avoid ArgumentNullException
             });
             var syntaxTree = CreateSyntaxTree("@", FileKinds.Legacy, customDirective);
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Assert
             Assert.Collection(
                 completionItems,
-                item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
+                item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
