@@ -380,6 +380,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         // This is more of an integration test to validate that all the pieces work together
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public async Task Handle_ProvidesDirectiveCompletionItems()
         {
             // Arrange
@@ -405,12 +406,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Assert
 
             // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
-            Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
-            Assert.Contains(completionList.Items, item => item.InsertText == "removeTagHelper");
-            Assert.Contains(completionList.Items, item => item.InsertText == "tagHelperPrefix");
+            Assert.Contains(completionList.Items, item => item.InsertText == DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets["addTagHelper"]);
+            Assert.Contains(completionList.Items, item => item.InsertText == DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets["removeTagHelper"]);
+            Assert.Contains(completionList.Items, item => item.InsertText == DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets["tagHelperPrefix"]);
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public async Task Handle_ProvidesInjectOnIncomplete_KeywordIn()
         {
             // Arrange
@@ -443,7 +445,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
+            Assert.Contains(completionList.Items, item => item.InsertText == DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets["addTagHelper"]);
         }
 
         [Fact]
@@ -483,6 +485,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public async Task Handle_ProvidesInjectOnIncomplete()
         {
             // Arrange
@@ -515,7 +518,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
+            Assert.Contains(completionList.Items, item => item.InsertText == DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets["addTagHelper"]);
         }
 
         // This is more of an integration test to validate that all the pieces work together

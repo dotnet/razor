@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         };
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public void GetDirectiveCompletionItems_ReturnsDefaultDirectivesAsCompletionItems()
         {
             // Arrange
@@ -34,12 +36,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Assert
             Assert.Collection(
                 completionItems,
-                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public void GetDirectiveCompletionItems_ReturnsCustomDirectivesAsCompletionItems()
         {
             // Arrange
@@ -53,12 +56,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem(customDirective, item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public void GetDirectiveCompletionItems_UsesDisplayNamesWhenNotNull()
         {
             // Arrange
@@ -76,12 +80,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("different", customDirective, item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
         public void GetDirectiveCompletionItems_CodeBlockCommitCharacters()
         {
             // Arrange
@@ -99,9 +104,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("code", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters),
-                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
         [Fact]
@@ -122,9 +127,39 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("section", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters),
-                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
-                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
+        [InlineData("attribute")]
+        [InlineData("implements")]
+        [InlineData("inherits")]
+        [InlineData("inject")]
+        [InlineData("layout")]
+        [InlineData("namespace")]
+        [InlineData("page")]
+        [InlineData("preservewhitespace")]
+        [InlineData("typeparam")]
+        public void GetDirectiveCompletionItems_ReturnsKnownDirectivesAsSnippets_SingleLine_Component(string knownDirective)
+        {
+            // Arrange
+            var customDirective = DirectiveDescriptor.CreateRazorBlockDirective(knownDirective, builder =>
+            {
+                builder.DisplayName = knownDirective;
+                builder.Description = string.Empty; // Doesn't matter for this test. Just need to provide something to avoid ArgumentNullException
+            });
+            var syntaxTree = CreateSyntaxTree("@", FileKinds.Component, customDirective);
+
+            // Act
+            var completionItems = DirectiveCompletionItemProvider.GetDirectiveCompletionItems(syntaxTree);
+
+            // Assert
+            Assert.Collection(
+                completionItems,
+                item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
         }
 
         [Fact]
@@ -368,17 +403,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext, reason);
         }
 
-        private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null)
+        private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null, bool isSnippet = false)
         {
             Assert.Equal(item.DisplayText, completionDisplayText);
-            Assert.Equal(item.InsertText, directive.Directive);
+            Assert.Equal(item.InsertText, isSnippet ? DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive] : directive.Directive);
             var completionDescription = item.GetDirectiveCompletionDescription();
             Assert.Equal(directive.Description, completionDescription.Description);
             Assert.Equal(item.CommitCharacters, commitCharacters ?? DirectiveCompletionItemProvider.SingleLineDirectiveCommitCharacters);
         }
 
-        private static void AssertRazorCompletionItem(DirectiveDescriptor directive, RazorCompletionItem item) =>
-            AssertRazorCompletionItem(directive.Directive, directive, item);
+        private static void AssertRazorCompletionItem(DirectiveDescriptor directive, RazorCompletionItem item, bool isSnippet = false) =>
+            AssertRazorCompletionItem(directive.Directive, directive, item, isSnippet: isSnippet);
 
         private static RazorSyntaxTree CreateSyntaxTree(string text, params DirectiveDescriptor[] directives)
         {

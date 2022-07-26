@@ -27,6 +27,24 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
         };
 
+        // internal for testing
+        internal static readonly IReadOnlyDictionary<string, string> s_singleLineDirectiveSnippets = new Dictionary<string, string>()
+        {
+            ["addTagHelper"] = "addTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}",
+            ["attribute"] = "attribute [$0]",
+            ["implements"] = "implements ${1:IDisposable}",
+            ["inherits"] = "inherits ${1:MyRazorPageClass}",
+            ["inject"] = "inject ${1:IService} ${2:MyService}",
+            ["layout"] = "layout ${1:MainLayout}",
+            ["model"] = "model ${1:MyModelClass}",
+            ["namespace"] = "namespace ${1:MyNameSpace}",
+            ["page"] = "page \"$0\"",
+            ["preservewhitespace"] = "preservewhitespace ${1:true}",
+            ["removeTagHelper"] = "removeTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}",
+            ["tagHelperPrefix"] = "tagHelperPrefix ${1:prefix}",
+            ["typeparam"] = "typeparam ${1:T}"
+        };
+
         public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
             if (context is null)
@@ -116,11 +134,20 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             {
                 var completionDisplayText = directive.DisplayName ?? directive.Directive;
                 var commitCharacters = GetDirectiveCommitCharacters(directive.Kind);
+                var insertText = directive.Directive;
+                var isSnippet = false;
+                if (s_singleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetText))
+                {
+                    insertText = snippetText;
+                    isSnippet = true;
+                }
+                
                 var completionItem = new RazorCompletionItem(
                     completionDisplayText,
-                    directive.Directive,
+                    insertText,
                     RazorCompletionItemKind.Directive,
-                    commitCharacters: commitCharacters);
+                    commitCharacters: commitCharacters,
+                    isSnippet: isSnippet);
                 var completionDescription = new DirectiveCompletionDescription(directive.Description);
                 completionItem.SetDirectiveCompletionDescription(completionDescription);
                 completionItems.Add(completionItem);
