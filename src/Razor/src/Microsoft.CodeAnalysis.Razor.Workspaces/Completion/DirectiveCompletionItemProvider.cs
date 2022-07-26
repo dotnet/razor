@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         internal static readonly IReadOnlyDictionary<string, string> s_singleLineDirectiveSnippets = new Dictionary<string, string>()
         {
             ["addTagHelper"] = "addTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}",
-            ["attribute"] = "attribute [$0]",
+            ["attribute"] = "attribute [${1:Attribute}]$0",
             ["implements"] = "implements ${1:IDisposable}",
             ["inherits"] = "inherits ${1:MyRazorPageClass}",
             ["inject"] = "inject ${1:IService} ${2:MyService}",
             ["layout"] = "layout ${1:MainLayout}",
             ["model"] = "model ${1:MyModelClass}",
             ["namespace"] = "namespace ${1:MyNameSpace}",
-            ["page"] = "page \"$0\"",
+            ["page"] = "page \"${1:/page}\"$0",
             ["preservewhitespace"] = "preservewhitespace ${1:true}",
             ["removeTagHelper"] = "removeTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}",
             ["tagHelperPrefix"] = "tagHelperPrefix ${1:prefix}",
