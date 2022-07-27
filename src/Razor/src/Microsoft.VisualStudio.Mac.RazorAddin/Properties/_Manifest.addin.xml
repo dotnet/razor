@@ -63,4 +63,9 @@
   <Extension path="/MonoDevelop/Core/FeatureSwitches">
     <FeatureSwitch id="Razor.LSP.Editor" _description="Enables the Razor LSP editor for ASP.NET Core scenarios" defaultValue="false" />
   </Extension>
+
+  <!-- TextMate -->
+  <Extension path="/MonoDevelop/Ide/Editor/TextMate">
+    <Repository folderPath="Grammars"/>
+  </Extension>
 </ExtensionModel>
