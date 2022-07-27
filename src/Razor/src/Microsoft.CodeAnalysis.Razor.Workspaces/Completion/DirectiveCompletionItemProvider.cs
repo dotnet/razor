@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         };
 
         // internal for testing
-        internal static readonly IReadOnlyDictionary<string, string> s_singleLineDirectiveSnippets = new Dictionary<string, string>()
+        internal static readonly IReadOnlyDictionary<string, string> s_singleLineDirectiveSnippets = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["addTagHelper"] = "addTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}",
             ["attribute"] = "attribute [${1:Attribute}]$0",
