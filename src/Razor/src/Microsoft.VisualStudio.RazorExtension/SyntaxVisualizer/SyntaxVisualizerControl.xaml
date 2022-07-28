@@ -18,6 +18,14 @@
                 <Button x:Name="showGeneratedHtml" Content="Show Generated Html" Click="ShowGeneratedHtml_Click" TabIndex="3" />
             </ToolBar>
         </ToolBarTray>
-        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" TabIndex="4" KeyUp="treeView_KeyUp" />
+        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" TabIndex="4" KeyUp="treeView_KeyUp">
+            <TreeView.Resources>
+                <!-- Style the inactive selection the same as active -->
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                     Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
+            </TreeView.Resources>
+        </TreeView>
     </DockPanel>
 </UserControl>
