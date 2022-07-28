@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
         }
 
-        private void ShowGeneratedCode_Click(object sender, RoutedEventArgs e)
+        public void ShowGeneratedCode()
         {
             if (_activeWpfTextView is null)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
         }
 
-        private void ShowGeneratedHtml_Click(object sender, RoutedEventArgs e)
+        public void ShowGeneratedHtml()
         {
             if (_activeWpfTextView is null)
             {
@@ -173,19 +173,19 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             return tempFileName;
         }
 
-        //private void ShowSourceMappingsButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (_activeWpfTextView is null)
-        //    {
-        //        return;
-        //    }
+        public void ShowSourceMappings()
+        {
+            if (_activeWpfTextView is null)
+            {
+                return;
+            }
 
-        //    SourceMappingTagger.Enabled = showSourceMappingsButton.IsChecked.GetValueOrDefault();
-        //    if (_activeWpfTextView.Properties.TryGetProperty<SourceMappingAdornmentTagger>(typeof(SourceMappingAdornmentTagger), out var tagger))
-        //    {
-        //        tagger.Refresh();
-        //    }
-        //}
+            SourceMappingTagger.Enabled = !SourceMappingTagger.Enabled;
+            if (_activeWpfTextView.Properties.TryGetProperty<SourceMappingAdornmentTagger>(typeof(SourceMappingAdornmentTagger), out var tagger))
+            {
+                tagger.Refresh();
+            }
+        }
 
         private void SyntaxVisualizerControl_Loaded(object sender, RoutedEventArgs e)
         {

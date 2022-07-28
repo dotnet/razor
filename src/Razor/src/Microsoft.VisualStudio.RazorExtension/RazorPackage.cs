@@ -69,6 +69,10 @@ namespace Microsoft.VisualStudio.RazorExtension
                 var toolwndCommandID = new CommandID(GuidSyntaxVisualizerMenuCmdSet, (int)CmdIDRazorSyntaxVisualizer);
                 var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
+
+                // Initialize command handlers in the window
+                var window = (SyntaxVisualizerToolWindow)FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
+                window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
             }
         }
 
