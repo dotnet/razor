@@ -43,5 +43,6 @@
   <Dependencies>
     <Addin id="::MonoDevelop.Core" version="17.3" />
     <Addin id="::MonoDevelop.Ide" version="17.3" />
+    <Addin id="TextEditor" version="17.3" />
   </Dependencies>
 </Addin>
