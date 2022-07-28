@@ -173,19 +173,19 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             return tempFileName;
         }
 
-        private void ShowSourceMappingsButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_activeWpfTextView is null)
-            {
-                return;
-            }
+        //private void ShowSourceMappingsButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (_activeWpfTextView is null)
+        //    {
+        //        return;
+        //    }
 
-            SourceMappingTagger.Enabled = showSourceMappingsButton.IsChecked.GetValueOrDefault();
-            if (_activeWpfTextView.Properties.TryGetProperty<SourceMappingAdornmentTagger>(typeof(SourceMappingAdornmentTagger), out var tagger))
-            {
-                tagger.Refresh();
-            }
-        }
+        //    SourceMappingTagger.Enabled = showSourceMappingsButton.IsChecked.GetValueOrDefault();
+        //    if (_activeWpfTextView.Properties.TryGetProperty<SourceMappingAdornmentTagger>(typeof(SourceMappingAdornmentTagger), out var tagger))
+        //    {
+        //        tagger.Refresh();
+        //    }
+        //}
 
         private void SyntaxVisualizerControl_Loaded(object sender, RoutedEventArgs e)
         {

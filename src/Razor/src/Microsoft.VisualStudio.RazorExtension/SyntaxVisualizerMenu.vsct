@@ -37,6 +37,9 @@
          group as the part of a menu contained between two lines. The parent of a group 
          must be a menu. -->
     <Groups>
+      <Group guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" priority="0x0100">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
+      </Group>
     </Groups>
     
     <!--Buttons section. -->
@@ -59,16 +62,64 @@
           <ButtonText>Razor Syntax Visualizer</ButtonText>
         </Strings>
       </Button>
+
+      <!-- Buttons in the tool window -->
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowSourceMappingsButton" priority="0x201" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+        <CommandFlag>TogglePatternAvailable</CommandFlag>
+        <Strings>
+          <ButtonText>Show C# Transitions</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedCode" priority="0x202" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+        <Strings>
+          <ButtonText>Show Generated C#</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedHtml" priority="0x202" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+        <Strings>
+          <ButtonText>Show Generated HTML</ButtonText>
+        </Strings>
+      </Button>
+      
     </Buttons>
+
+    <Menus>
+      <Menu guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar" priority="0x0001" type="ToolWindowToolbar">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
+        <CommandFlag>AlwaysCreate</CommandFlag>
+        <Strings>
+          <ButtonText>Test Explorer</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
   </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdRunFailedTests" priority="0x0001">
+      <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+    </CommandPlacement>
+  </CommandPlacements>
 
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidSyntaxVisualizerMenuPkg" value="{13b72f58-279e-49e0-a56d-296be02f0805}" />
-    
+
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidSyntaxVisualizerMenuCmdSet" value="{a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec}">
       <IDSymbol name="cmdidRazorSyntaxVisualizer" value="0x0101" />
+      <IDSymbol name="menuidToolWindowToolbar" Value="0x0102" />
+
+      <IDSymbol name="grpidRazorSyntaxVisualizer" Value="0x1000" />
+
+      <!-- Top level commands in the tool window -->
+      <IDSymbol name="cmdidShowSourceMappingsButton" Value="0x0110" />
+      <IDSymbol name="cmdidShowGeneratedCode" Value="0x0111" />
+      <IDSymbol name="cmdidShowGeneratedHtml" Value="0x0112" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
