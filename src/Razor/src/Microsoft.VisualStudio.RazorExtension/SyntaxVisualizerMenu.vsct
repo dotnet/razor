@@ -46,8 +46,8 @@
     <Menus>
       <!-- Toolbar -->
       <Menu guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar" priority="0x0001" type="ToolWindowToolbar">
-        <Parent guid="guidTestWindowCmdSet" id="menuidToolWindowToolbar"/>
-        <CommandFlag>AlwaysCreate</CommandFlag>
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
+        <CommandFlag>DefaultDocked</CommandFlag>
         <Strings>
           <ButtonText>Razor Syntax Visualizer</ButtonText>
         </Strings>
@@ -100,20 +100,6 @@
       
     </Buttons>
   </Commands>
-
-  <CommandPlacements>
-    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowSourceMappingsButton" priority="0x0001">
-      <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
-    </CommandPlacement>
-
-    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedCode" priority="0x0002">
-      <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
-    </CommandPlacement>
-
-    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedHtml" priority="0x0002">
-      <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
-    </CommandPlacement>
-  </CommandPlacements>
 
   <Symbols>
     <!-- This is the package guid. -->
