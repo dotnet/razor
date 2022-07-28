@@ -27,11 +27,6 @@
         <target state="new">Show C# Transitions</target>
         <note />
       </trans-unit>
-      <trans-unit id="menuidToolWindowToolbar|ButtonText">
-        <source>Test Explorer</source>
-        <target state="new">Test Explorer</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

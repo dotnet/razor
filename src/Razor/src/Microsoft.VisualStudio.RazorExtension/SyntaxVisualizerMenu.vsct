@@ -41,6 +41,18 @@
         <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
       </Group>
     </Groups>
+
+    <!-- Menus Section -->
+    <Menus>
+      <!-- Toolbar -->
+      <Menu guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar" priority="0x0001" type="ToolWindowToolbar">
+        <Parent guid="guidTestWindowCmdSet" id="menuidToolWindowToolbar"/>
+        <CommandFlag>AlwaysCreate</CommandFlag>
+        <Strings>
+          <ButtonText>Razor Syntax Visualizer</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
     
     <!--Buttons section. -->
     <!--This section defines the elements the user can interact with, like a menu command or a button 
@@ -87,20 +99,18 @@
       </Button>
       
     </Buttons>
-
-    <Menus>
-      <Menu guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar" priority="0x0001" type="ToolWindowToolbar">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
-        <CommandFlag>AlwaysCreate</CommandFlag>
-        <Strings>
-          <ButtonText>Test Explorer</ButtonText>
-        </Strings>
-      </Menu>
-    </Menus>
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdRunFailedTests" priority="0x0001">
+    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowSourceMappingsButton" priority="0x0001">
+      <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedCode" priority="0x0002">
+      <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedHtml" priority="0x0002">
       <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
     </CommandPlacement>
   </CommandPlacements>
@@ -112,14 +122,14 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidSyntaxVisualizerMenuCmdSet" value="{a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec}">
       <IDSymbol name="cmdidRazorSyntaxVisualizer" value="0x0101" />
-      <IDSymbol name="menuidToolWindowToolbar" Value="0x0102" />
+      <IDSymbol name="menuidToolWindowToolbar" value="0x0102" />
 
-      <IDSymbol name="grpidRazorSyntaxVisualizer" Value="0x1000" />
+      <IDSymbol name="grpidRazorSyntaxVisualizer" value="0x1000" />
 
       <!-- Top level commands in the tool window -->
-      <IDSymbol name="cmdidShowSourceMappingsButton" Value="0x0110" />
-      <IDSymbol name="cmdidShowGeneratedCode" Value="0x0111" />
-      <IDSymbol name="cmdidShowGeneratedHtml" Value="0x0112" />
+      <IDSymbol name="cmdidShowSourceMappingsButton" value="0x0110" />
+      <IDSymbol name="cmdidShowGeneratedCode" value="0x0111" />
+      <IDSymbol name="cmdidShowGeneratedHtml" value="0x0112" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

@@ -1,8 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
@@ -18,6 +22,9 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
     [Guid("28080d9c-0842-4155-9e7d-3b9e6d64bb29")]
     public class SyntaxVisualizerToolWindow : ToolWindowPane
     {
+        private static readonly Guid CmdSet = new Guid("a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec");
+        private static readonly int ToolbarCmdId = 0x0102;
+
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
@@ -39,6 +46,9 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on 
             // the object returned by the Content property.
             Content = new SyntaxVisualizerControl();
+
+            ToolBar = new CommandID(CmdSet, ToolbarCmdId);
+            ToolBarLocation = (int)VSTWT_LOCATION.VSTWT_TOP;
         }
 
         internal TServiceInterface GetVsService<TServiceInterface, TService>()
