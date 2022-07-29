@@ -126,10 +126,15 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         internal static string GetHiveDirectory()
         {
+            // There could be multiple copies of visual studio installed, each with their own RoslynDev hive
+            // so to make sure we find the one for the instance of VS we are actually running, we need to find
+            // the installation ID for this install. This is stored in an ini file, next to devenv.exe, and the
+            // ID itself is pre-pended to the hive name in the file system.
             var devenvPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
             var isolationIni = Path.Combine(devenvPath, "devenv.isolation.ini");
 
             var installationId = "";
+            // Lazy ini file parsing starts now!
             foreach (var line in File.ReadAllLines(isolationIni))
             {
                 if (line.StartsWith("InstallationID=", StringComparison.OrdinalIgnoreCase))
@@ -141,6 +146,11 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
+
+            // Just in case the enterprise grade ini file parsing above didn't work, or VS changes how they
+            // store things, the following is written to work even if installationId is an empty string. In
+            // that case it will fall back to the previous behavior of expecting a single RoslynDev hive to
+            // exist, or fail.
             var directories = Directory.GetDirectories(vsLocalDir, $"17*{installationId}RoslynDev", SearchOption.TopDirectoryOnly);
             var hiveDirectories = directories.Where(d => !d.Contains("$")).ToList();
 
