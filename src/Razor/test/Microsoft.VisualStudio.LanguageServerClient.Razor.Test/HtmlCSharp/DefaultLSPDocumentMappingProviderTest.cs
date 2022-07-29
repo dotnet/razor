@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -32,7 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentManager.AddDocument(RazorFile, documentSnapshot1);
             documentManager.AddDocument(AnotherRazorFile, documentSnapshot2);
             DocumentManager = new Lazy<LSPDocumentManager>(() => documentManager);
+            RazorLSPConventions = new RazorLSPConventions(TestLanguageServerFeatureOptions.Instance);
         }
+
+        private RazorLSPConventions RazorLSPConventions { get; }
 
         private static Uri RazorFile => new("file:///some/folder/to/file.razor");
 
