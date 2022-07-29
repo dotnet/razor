@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override string ProjectConfigurationFileName { get; } = LanguageServerConstants.DefaultProjectConfigurationFile;
 
-        public override string CSharpVirtualDocumentSuffix => ".ide.cs";
+        public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
         public override string HtmlVirtualDocumentSuffix => "__virtual.html";
 
