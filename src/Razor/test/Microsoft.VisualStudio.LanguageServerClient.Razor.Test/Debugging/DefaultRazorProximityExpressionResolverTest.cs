@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         public DefaultRazorProximityExpressionResolverTest()
         {
             DocumentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
-            CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".g.cs", UriKind.Absolute);
+            CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".ide.cs", UriKind.Absolute);
 
             ValidProximityExpressionRoot = "var abc = 123;";
             InvalidProximityExpressionRoot = "private int bar;";

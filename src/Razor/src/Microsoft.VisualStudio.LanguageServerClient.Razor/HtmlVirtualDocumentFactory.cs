@@ -5,6 +5,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -17,15 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class HtmlVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
         private static IContentType s_htmlLSPContentType;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public HtmlVirtualDocumentFactory(
             IContentTypeRegistryService contentTypeRegistry,
             ITextBufferFactoryService textBufferFactory,
             ITextDocumentFactoryService textDocumentFactory,
-            FileUriProvider filePathProvider)
+            FileUriProvider filePathProvider,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, filePathProvider)
         {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         protected override IContentType LanguageContentType
@@ -42,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         protected override string HostDocumentContentTypeName => RazorConstants.RazorLSPContentTypeName;
-        protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualHtmlFileNameSuffix;
+        protected override string LanguageFileNameSuffix => _languageServerFeatureOptions.HtmlVirtualDocumentSuffix;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new HtmlVirtualDocument(uri, textBuffer);
     }
 }
