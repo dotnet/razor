@@ -153,7 +153,9 @@
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Binder.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.IO.Pipelines.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Reactive.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Runtime.CompilerServices.Unsafe.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Threading.Channels.dll" />
 
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />

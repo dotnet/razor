@@ -117,6 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private var x = 1; }}";
             var codeDocument = CreateCodeDocument(contents);
+            Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
             var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
             var actionParams = new ExtractToCodeBehindCodeActionParams
@@ -126,6 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
                 ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal),
                 RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal),
+                Namespace = @namespace,
             };
             var data = JObject.FromObject(actionParams);
 
@@ -164,6 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"{Environment.NewLine}@functions {{ private var x = 1; }}";
             var codeDocument = CreateCodeDocument(contents);
+            Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
             var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
             var actionParams = new ExtractToCodeBehindCodeActionParams
@@ -173,6 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
                 ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal),
                 RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal),
+                Namespace = @namespace,
             };
             var data = JObject.FromObject(actionParams);
 
@@ -211,6 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"\n@using System.Diagnostics{Environment.NewLine}@code {{ private var x = 1; }}";
             var codeDocument = CreateCodeDocument(contents);
+            Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
             var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
             var actionParams = new ExtractToCodeBehindCodeActionParams
@@ -220,6 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
                 ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal),
                 RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal),
+                Namespace = @namespace,
             };
             var data = JObject.FromObject(actionParams);
 

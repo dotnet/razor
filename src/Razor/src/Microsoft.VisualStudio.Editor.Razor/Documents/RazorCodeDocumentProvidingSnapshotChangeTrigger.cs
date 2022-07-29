@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     [System.Composition.Shared]
     internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : ProjectSnapshotChangeTrigger
     {
-        private readonly HashSet<string> _openDocuments = new();
-        private readonly Dictionary<string, string> _documentProjectMap = new();
+        private readonly HashSet<string> _openDocuments = new(FilePathComparer.Instance);
+        private readonly Dictionary<string, string> _documentProjectMap = new(FilePathComparer.Instance);
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase? _projectManager;
 

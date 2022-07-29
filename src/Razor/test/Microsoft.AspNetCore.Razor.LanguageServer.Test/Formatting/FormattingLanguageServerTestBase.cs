@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return monitor.Object;
         }
 
-        internal class TestRazorFormattingService : RazorFormattingService
+        internal class DummyRazorFormattingService : RazorFormattingService
         {
             public bool Called { get; private set; }
 

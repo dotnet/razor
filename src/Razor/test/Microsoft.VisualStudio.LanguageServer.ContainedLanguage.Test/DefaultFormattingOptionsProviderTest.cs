@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var documentUri = new Uri("C:/path/to/razorfile.razor");
             var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 0);
+            var documentManager = new TestLSPDocumentManager(documentSnapshot);
             var expectedInsertSpaces = true;
             var expectedTabSize = 1337;
             var unneededIndentSize = 123;
@@ -25,15 +26,31 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             indentationManagerService
                 .Setup(service => service.GetIndentation(documentSnapshot.Snapshot.TextBuffer, false, out expectedInsertSpaces, out expectedTabSize, out unneededIndentSize))
                 .Verifiable();
-            var provider = new DefaultFormattingOptionsProvider(indentationManagerService.Object);
+            var provider = new DefaultFormattingOptionsProvider(documentManager, indentationManagerService.Object);
 
             // Act
-            var options = provider.GetOptions(documentSnapshot);
+            var options = provider.GetOptions(documentUri);
 
             // Assert
             indentationManagerService.VerifyAll();
             Assert.Equal(expectedInsertSpaces, options.InsertSpaces);
             Assert.Equal(expectedTabSize, options.TabSize);
+        }
+
+        private class TestLSPDocumentManager : LSPDocumentManager
+        {
+            private readonly LSPDocumentSnapshot _snapshot;
+
+            public TestLSPDocumentManager(LSPDocumentSnapshot snapshot)
+            {
+                _snapshot = snapshot;
+            }
+
+            public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
+            {
+                lspDocumentSnapshot = _snapshot;
+                return true;
+            }
         }
     }
 }

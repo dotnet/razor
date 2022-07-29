@@ -1307,23 +1307,5 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await completionHandler.HandleRequestAsync(completionParams, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
             return result;
         }
-
-        private class TestFormattingOptionsProvider : FormattingOptionsProvider
-        {
-            public static readonly TestFormattingOptionsProvider Default = new(
-                new FormattingOptions()
-                {
-                    InsertSpaces = true,
-                    TabSize = 4,
-                });
-            private readonly FormattingOptions _options;
-
-            public TestFormattingOptionsProvider(FormattingOptions options)
-            {
-                _options = options;
-            }
-
-            public override FormattingOptions GetOptions(LSPDocumentSnapshot documentSnapshot) => _options;
-        }
     }
 }

@@ -228,18 +228,49 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.Equal(47, actionParams.RemoveEnd);
         }
 
-        private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
+        [Fact]
+        public async Task Handle_NullRelativePath_ReturnsNull()
         {
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            codeDocument.SetFileKind(FileKinds.Component);
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = "@page \"/test\"\n@code { private var x = 1; }";
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range(),
+            };
 
-            var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
+            var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, relativePath: null);
+
+            var provider = new ExtractToCodeBehindCodeActionProvider();
+
+            // Act
+            var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+            // Assert
+            Assert.Null(commandOrCodeActionContainer);
+        }
+
+        private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
+            => CreateRazorCodeActionContext(request, location, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
+
+        private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, string relativePath, bool supportsFileCreation = true)
+        {
+            var sourceDocument = RazorSourceDocument.Create(text, new RazorSourceDocumentProperties(filePath, relativePath));
             var options = RazorParserOptions.Create(o =>
             {
                 o.Directives.Add(ComponentCodeDirective.Directive);
                 o.Directives.Add(FunctionsDirective.Directive);
             });
             var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
+
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetFileKind(FileKinds.Component);
+            codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
+            {
+                o.RootNamespace = "ExtractToCodeBehindTest";
+            }));
             codeDocument.SetSyntaxTree(syntaxTree);
 
             var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>

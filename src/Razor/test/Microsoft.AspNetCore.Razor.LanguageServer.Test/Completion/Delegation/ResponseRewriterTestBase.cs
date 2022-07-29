@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var completionContext = new VSInternalCompletionContext();
             var codeDocument = CreateCodeDocument(documentContent);
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument);
-            var provider = TestDelegatedCompletionListProvider.Create(LoggerFactory, initialCompletionList, Rewriter);
+            var provider = TestDelegatedCompletionListProvider.Create(initialCompletionList, Rewriter);
             var clientCapabilities = new VSInternalClientCapabilities();
             var completionList = await provider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, CancellationToken.None);
             return completionList;
