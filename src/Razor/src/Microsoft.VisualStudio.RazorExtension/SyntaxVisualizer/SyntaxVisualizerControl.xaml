@@ -21,6 +21,14 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel>
-        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" />
+        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes">
+            <TreeView.Resources>
+                <!-- Style the inactive selection the same as active -->
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                     Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
+            </TreeView.Resources>
+        </TreeView>
     </DockPanel>
 </UserControl>
