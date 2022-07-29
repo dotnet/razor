@@ -69,10 +69,6 @@ namespace Microsoft.VisualStudio.RazorExtension
                 var toolwndCommandID = new CommandID(GuidSyntaxVisualizerMenuCmdSet, (int)CmdIDRazorSyntaxVisualizer);
                 var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
-
-                // Initialize command handlers in the window
-                var window = (SyntaxVisualizerToolWindow)FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
-                window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
             }
         }
 
@@ -88,10 +84,17 @@ namespace Microsoft.VisualStudio.RazorExtension
             // Get the instance number 0 of this tool window. This window is single instance so this instance
             // is actually the only one. The last flag is set to true so that if the tool window does not exist
             // it will be created.
-            var window = FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
+            var window = (SyntaxVisualizerToolWindow)FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
             if (window?.Frame is not IVsWindowFrame windowFrame)
             {
                 throw new NotSupportedException("Can not create window");
+            }
+
+            // Initialize command handlers in the window
+            if (!window.CommandHandlersInitialized)
+            {
+                var mcs = (IMenuCommandService)GetService(typeof(IMenuCommandService));
+                window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
             }
 
             ErrorHandler.ThrowOnFailure(windowFrame.Show());

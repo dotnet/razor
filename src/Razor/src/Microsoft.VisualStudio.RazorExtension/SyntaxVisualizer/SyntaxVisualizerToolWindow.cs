@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -30,6 +31,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 
         private MenuCommand? _showSourceMappingsCommand;
         private SyntaxVisualizerControl _visualizerControl => (SyntaxVisualizerControl)Content;
+
+        public bool CommandHandlersInitialized { get; private set; }
 
         /// <summary>
         /// Standard constructor for the tool window.
@@ -64,8 +67,12 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             return (TServiceInterface)GetService(typeof(TService));
         }
 
-        internal void InitializeCommands(OleMenuCommandService mcs, Guid guidSyntaxVisualizerMenuCmdSet)
+        internal void InitializeCommands(IMenuCommandService mcs, Guid guidSyntaxVisualizerMenuCmdSet)
         {
+            Contract.Requires(!CommandHandlersInitialized);
+
+            CommandHandlersInitialized = true;
+
             _showSourceMappingsCommand = new MenuCommand(ShowSourceMappings, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowSourceMappingsButton))
             {
                 Checked = SourceMappingTagger.Enabled
