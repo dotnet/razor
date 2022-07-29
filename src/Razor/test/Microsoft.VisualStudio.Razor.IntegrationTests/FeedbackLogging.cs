@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Xunit;
 using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
@@ -49,8 +51,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static void RazorMEFErrorLogger(string filePath)
         {
-            var hiveDirectories = GetHiveDirectories();
-            var hiveDirectory = hiveDirectories.Single();
+            var hiveDirectory = GetHiveDirectory();
             var errorFile = Path.Combine(hiveDirectory, "ComponentModelCache", "Microsoft.VisualStudio.Defaullt.err");
             if (File.Exists(errorFile))
             {
@@ -96,49 +97,56 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static void RazorExtensionExplorerLogger(string filePath)
         {
-            var hiveDirectories = GetHiveDirectories();
+            var hiveDirectory = GetHiveDirectory();
             var fileBuilder = new StringBuilder();
-            if (hiveDirectories.Count() != 1)
+
+            var extensionsDir = Path.Combine(hiveDirectory, "Extensions");
+            var compatListFile = Path.Combine(extensionsDir, "CompatibilityList.xml");
+            if (File.Exists(compatListFile))
             {
-                fileBuilder.Append("Expected 1 hive but found ");
-                fileBuilder.AppendLine(hiveDirectories.Count().ToString());
+                var compatListContent = File.ReadAllText(compatListFile);
+                fileBuilder.AppendLine("CompatListContents:");
+                fileBuilder.AppendLine(compatListContent);
+            }
+            else
+            {
+                fileBuilder.AppendLine("Missing CompatList file");
             }
 
-            foreach (var hiveDirectory in hiveDirectories)
+            var microsoftDir = Path.Combine(extensionsDir, "Microsoft");
+            var msExtensionFiles = Directory.EnumerateFiles(microsoftDir, "*", SearchOption.AllDirectories);
+            foreach (var msExtensionFile in msExtensionFiles)
             {
-                var extensionsDir = Path.Combine(hiveDirectory, "Extensions");
-                var compatListFile = Path.Combine(extensionsDir, "CompatibilityList.xml");
-                if (File.Exists(compatListFile))
-                {
-                    var compatListContent = File.ReadAllText(compatListFile);
-                    fileBuilder.AppendLine("CompatListContents:");
-                    fileBuilder.AppendLine(compatListContent);
-                }
-                else
-                {
-                    fileBuilder.AppendLine("Missing CompatList file");
-                }
-
-                var microsoftDir = Path.Combine(extensionsDir, "Microsoft");
-                var msExtensionFiles = Directory.EnumerateFiles(microsoftDir, "*", SearchOption.AllDirectories);
-                foreach (var msExtensionFile in msExtensionFiles)
-                {
-                    fileBuilder.Append("  ");
-                    fileBuilder.AppendLine(msExtensionFile);
-                }
+                fileBuilder.Append("  ");
+                fileBuilder.AppendLine(msExtensionFile);
             }
 
             File.WriteAllText(filePath, fileBuilder.ToString());
         }
 
-        internal static IEnumerable<string> GetHiveDirectories()
+        internal static string GetHiveDirectory()
         {
-            var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
-            var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
-            var directories = Directory.GetDirectories(vsLocalDir, "17*RoslynDev", SearchOption.TopDirectoryOnly);
-            var hiveDirectories = directories.Where(d => !d.Contains("$"));
+            var devenvPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            var isolationIni = Path.Combine(devenvPath, "devenv.isolation.ini");
 
-            return hiveDirectories;
+            var installationId = "";
+            foreach (var line in File.ReadAllLines(isolationIni))
+            {
+                if (line.StartsWith("InstallationID=", StringComparison.OrdinalIgnoreCase))
+                {
+                    installationId = line.Split('=')[1];
+                    break;
+                }
+            }
+
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var vsLocalDir = Path.Combine(localAppData, "Microsoft", "VisualStudio");
+            var directories = Directory.GetDirectories(vsLocalDir, $"17*{installationId}RoslynDev", SearchOption.TopDirectoryOnly);
+            var hiveDirectories = directories.Where(d => !d.Contains("$")).ToList();
+
+            Assert.True(hiveDirectories.Count == 1, $"Could not find the hive path for InstallationID '{installationId}'. Found instead:{Environment.NewLine}{string.Join(Environment.NewLine, hiveDirectories)}");
+
+            return hiveDirectories[0];
         }
 
         private static void RazorOutputPaneLogger(string filePath)
