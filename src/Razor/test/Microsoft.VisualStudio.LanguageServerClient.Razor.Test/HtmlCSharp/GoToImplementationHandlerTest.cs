@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var invokedRemapRequest = false;
             var expectedLocation = GetLocation(5, 5, 5, 5, Uri);
 
-            var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/file.razor.ide.g.cs");
             var csharpLocation = GetVSInternalReferenceItem(100, 100, 100, 100, virtualCSharpUri);
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);

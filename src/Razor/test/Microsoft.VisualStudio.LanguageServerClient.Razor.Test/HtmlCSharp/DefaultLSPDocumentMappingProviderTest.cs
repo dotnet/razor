@@ -40,11 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static Uri RazorFile => new("file:///some/folder/to/file.razor");
 
-        private static Uri RazorVirtualCSharpFile => new("file:///some/folder/to/file.razor.g.cs");
+        private static Uri RazorVirtualCSharpFile => new("file:///some/folder/to/file.razor.ide.g.cs");
 
         private static Uri AnotherRazorFile => new("file:///some/folder/to/anotherfile.razor");
 
-        private static Uri AnotherRazorVirtualCSharpFile => new("file:///some/folder/to/anotherfile.razor.g.cs");
+        private static Uri AnotherRazorVirtualCSharpFile => new("file:///some/folder/to/anotherfile.razor.ide.g.cs");
 
         private static Uri CSharpFile => new("file:///some/folder/to/csharpfile.cs");
 
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task RemapLocationsAsync_ReturnsModifiedInstance()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor.g.cs");
+            var uri = new Uri("file:///some/folder/to/file.razor.ide.g.cs");
 
             var response = new RazorMapToDocumentRangesResponse()
             {
