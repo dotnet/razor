@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPDiagnosticsTranslator _diagnosticsProvider;
+        private readonly RazorLSPConventions _razorConventions;
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
 
         private ILogger _logger;
@@ -37,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public RazorHtmlPublishDiagnosticsInterceptor(
             LSPDocumentManager documentManager,
             LSPDiagnosticsTranslator diagnosticsProvider,
+            RazorLSPConventions razorConventions,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (documentManager is null)
@@ -49,6 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
+            if (razorConventions is null)
+            {
+                throw new ArgumentNullException(nameof(razorConventions));
+            }
+
             if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
@@ -56,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _documentManager = documentManager;
             _diagnosticsProvider = diagnosticsProvider;
+            _razorConventions = razorConventions;
             _loggerProvider = loggerProvider;
         }
 
@@ -85,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             // We only support interception of Virtual HTML Files
-            if (!RazorLSPConventions.IsVirtualHtmlFile(diagnosticParams.Uri))
+            if (!_razorConventions.IsVirtualHtmlFile(diagnosticParams.Uri))
             {
                 return CreateDefaultResponse(token);
             }
@@ -94,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 diagnosticParams.Uri, diagnosticParams.Diagnostics.Length);
 
             var htmlDocumentUri = diagnosticParams.Uri;
-            var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(htmlDocumentUri);
+            var razorDocumentUri = _razorConventions.GetRazorDocumentUri(htmlDocumentUri);
 
             // Note; this is an `interceptor` & not a handler, hence
             // it's possible another interceptor mutates this request

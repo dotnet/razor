@@ -4,6 +4,7 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             var serviceProviderFactory = new DefaultRazorDocumentServiceProviderFactory();
             var lspEditorEnabledFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable() == true, MockBehavior.Strict);
-            InnerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector);
+            InnerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector, TestLanguageServerFeatureOptions.Instance);
             ProjectSnapshotManager = new TestProjectSnapshotManager(Workspace);
 
             var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "RootNamespace");

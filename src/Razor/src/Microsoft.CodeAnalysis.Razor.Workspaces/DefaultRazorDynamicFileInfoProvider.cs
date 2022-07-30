@@ -28,9 +28,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly Func<Key, Entry> _createEmptyEntry;
         private readonly RazorDocumentServiceProviderFactory _factory;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
-        public DefaultRazorDynamicFileInfoProvider(RazorDocumentServiceProviderFactory factory, LSPEditorFeatureDetector lspEditorFeatureDetector)
+        public DefaultRazorDynamicFileInfoProvider(
+            RazorDocumentServiceProviderFactory factory,
+            LSPEditorFeatureDetector lspEditorFeatureDetector,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (factory is null)
             {
@@ -42,8 +46,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
             }
 
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _factory = factory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _entries = new ConcurrentDictionary<Key, Entry>();
             _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
         }
@@ -146,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             var associatedKey = associatedKvp.Value.Key;
             var associatedEntry = associatedKvp.Value.Value;
 
-            var filename = associatedKey.FilePath + ".g.cs";
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(associatedKey.FilePath);
 
             // To promote the background document, we just need to add the passed in properties service to
             // the dynamic file info. The properties service contains the client name and allows the C#
@@ -302,14 +312,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private RazorDynamicFileInfo CreateEmptyInfo(Key key)
         {
-            var filename = key.FilePath + ".g.cs";
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(key.FilePath);
             var textLoader = new EmptyTextLoader(filename);
             return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
         }
 
         private RazorDynamicFileInfo CreateInfo(Key key, DynamicDocumentContainer document)
         {
-            var filename = key.FilePath + ".g.cs";
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(key.FilePath);
             var textLoader = document.GetTextLoader(filename);
             return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
         }

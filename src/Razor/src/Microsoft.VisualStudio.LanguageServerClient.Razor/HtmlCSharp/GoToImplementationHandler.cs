@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
+        private readonly RazorLSPConventions _razorConventions;
         private readonly ILogger _logger;
 
         [ImportingConstructor]
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
+            RazorLSPConventions razorConventions,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
@@ -51,6 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
+            if (razorConventions is null)
+            {
+                throw new ArgumentNullException(nameof(razorConventions));
+            }
+
             if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
@@ -60,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
-
+            _razorConventions = razorConventions;
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
         }
 
@@ -128,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // We check for the _vs_id property, which is required in VSInternalReferenceItem, to know which is which.
             if (result.Value is VSInternalReferenceItem[] referenceItems)
             {
-                var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, cancellationToken).ConfigureAwait(false);
+                var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, _razorConventions, cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Returning {remappedLocationsLength} internal reference items.", remappedLocations?.Length);
                 return remappedLocations;

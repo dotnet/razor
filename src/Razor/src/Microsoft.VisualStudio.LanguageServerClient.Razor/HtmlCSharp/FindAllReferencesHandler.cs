@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
+        private readonly RazorLSPConventions _razorConventions;
         private readonly ILogger _logger;
 
         [ImportingConstructor]
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
             LSPProgressListener lspProgressListener,
+            RazorLSPConventions razorConventions,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
@@ -69,6 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(lspProgressListener));
             }
 
+            if (razorConventions is null)
+            {
+                throw new ArgumentNullException(nameof(razorConventions));
+            }
+
             if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
@@ -79,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
             _lspProgressListener = lspProgressListener;
-
+            _razorConventions = razorConventions;
             _logger = loggerProvider.CreateLogger(nameof(FindAllReferencesHandler));
         }
 
@@ -210,9 +217,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, CancellationToken cancellationToken)
-            => RemapReferenceItemsAsync(result, _documentMappingProvider, _documentManager, cancellationToken);
+            => RemapReferenceItemsAsync(result, _documentMappingProvider, _documentManager, _razorConventions, cancellationToken);
 
-        public static async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, LSPDocumentMappingProvider documentMappingProvider, LSPDocumentManager documentManager, CancellationToken cancellationToken)
+        public static async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(
+            VSInternalReferenceItem[] result,
+            LSPDocumentMappingProvider documentMappingProvider,
+            LSPDocumentManager documentManager,
+            RazorLSPConventions razorConventions,
+            CancellationToken cancellationToken)
         {
             var remappedLocations = new List<VSInternalReferenceItem>();
 
@@ -231,16 +243,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // Indicates the reference item is directly available in the code
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
-                if (!RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
-                    !RazorLSPConventions.IsVirtualHtmlFile(referenceItem.Location.Uri))
+                if (!razorConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
+                    !razorConventions.IsVirtualHtmlFile(referenceItem.Location.Uri))
                 {
                     // This location doesn't point to a virtual cs file. No need to remap.
                     remappedLocations.Add(referenceItem);
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
-                var languageKind = RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
+                var razorDocumentUri = razorConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
+                var languageKind = razorConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
                 var mappingResult = await documentMappingProvider.MapToDocumentRangesAsync(
                     languageKind,
                     razorDocumentUri,

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -24,15 +25,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         };
 
         private static IContentType? s_csharpContentType;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public CSharpVirtualDocumentFactory(
             IContentTypeRegistryService contentTypeRegistry,
             ITextBufferFactoryService textBufferFactory,
             ITextDocumentFactoryService textDocumentFactory,
-            FileUriProvider fileUriProvider)
+            FileUriProvider fileUriProvider,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
         {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         protected override IContentType LanguageContentType
@@ -50,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         protected override string HostDocumentContentTypeName => RazorConstants.RazorLSPContentTypeName;
-        protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualCSharpFileNameSuffix;
+        protected override string LanguageFileNameSuffix => _languageServerFeatureOptions.CSharpVirtualDocumentSuffix;
         protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => s_languageBufferProperties;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new CSharpVirtualDocument(uri, textBuffer);
 

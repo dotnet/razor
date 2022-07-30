@@ -7,6 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.ProjectSystem
             Document1 = (DefaultDocumentSnapshot)Project.GetDocument(hostDocument1.FilePath);
             Document2 = (DefaultDocumentSnapshot)Project.GetDocument(hostDocument2.FilePath);
 
-            Provider = new DefaultRazorDynamicFileInfoProvider(DocumentServiceFactory, EditorFeatureDetector);
+            Provider = new DefaultRazorDynamicFileInfoProvider(DocumentServiceFactory, EditorFeatureDetector, TestLanguageServerFeatureOptions.Instance);
             TestAccessor = Provider.GetTestAccessor();
             Provider.Initialize(ProjectSnapshotManager);
 

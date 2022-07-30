@@ -14,5 +14,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         public abstract string HtmlVirtualDocumentSuffix { get; }
 
         public abstract bool SingleServerCompletionSupport { get; }
+
+        public string GetRazorCSharpFilePath(string razorFilePath) => razorFilePath + CSharpVirtualDocumentSuffix;
+        
+        public string GetRazorHtmlFilePath(string razorFilePath) => razorFilePath + HtmlVirtualDocumentSuffix;
+
+        public string GetRazorFilePath(string filePath)
+        {
+            filePath = filePath.Replace(CSharpVirtualDocumentSuffix, string.Empty);
+            filePath = filePath.Replace(HtmlVirtualDocumentSuffix, string.Empty);
+
+            return filePath;
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -32,15 +33,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentManager.AddDocument(RazorFile, documentSnapshot1);
             documentManager.AddDocument(AnotherRazorFile, documentSnapshot2);
             DocumentManager = new Lazy<LSPDocumentManager>(() => documentManager);
+            RazorLSPConventions = new RazorLSPConventions(TestLanguageServerFeatureOptions.Instance);
         }
+
+        private RazorLSPConventions RazorLSPConventions { get; }
 
         private static Uri RazorFile => new("file:///some/folder/to/file.razor");
 
-        private static Uri RazorVirtualCSharpFile => new("file:///some/folder/to/file.razor.g.cs");
+        private static Uri RazorVirtualCSharpFile => new("file:///some/folder/to/file.razor.ide.g.cs");
 
         private static Uri AnotherRazorFile => new("file:///some/folder/to/anotherfile.razor");
 
-        private static Uri AnotherRazorVirtualCSharpFile => new("file:///some/folder/to/anotherfile.razor.g.cs");
+        private static Uri AnotherRazorVirtualCSharpFile => new("file:///some/folder/to/anotherfile.razor.ide.g.cs");
 
         private static Uri CSharpFile => new("file:///some/folder/to/csharpfile.cs");
 
@@ -74,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new ReinvocationResponse<RazorMapToDocumentRangesResponse>("TestLanguageClient", response)));
 
-            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, DocumentManager);
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, DocumentManager, RazorLSPConventions);
             var projectedRange = new Range()
             {
                 Start = new Position(10, 10),
@@ -96,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task RemapLocationsAsync_ReturnsModifiedInstance()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor.g.cs");
+            var uri = new Uri("file:///some/folder/to/file.razor.ide.g.cs");
 
             var response = new RazorMapToDocumentRangesResponse()
             {
@@ -120,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new ReinvocationResponse<RazorMapToDocumentRangesResponse>("TestLanguageClient", response)));
 
-            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, DocumentManager);
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, DocumentManager, RazorLSPConventions);
             var projected= new VSInternalLocation()
             {
                 Uri = uri,
@@ -155,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 ((RazorLanguageKind.CSharp, RazorFile, new[] { new TestTextEdit("newText", new TestRange(10, 10, 10, 15)) }), (new[] { new TestTextEdit("newText", expectedRange) }, expectedVersion))
             });
-            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager);
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager, RazorLSPConventions);
 
             var workspaceEdit = new TestWorkspaceEdit(versionedEdits: true);
             workspaceEdit.AddEdits(RazorVirtualCSharpFile, 10, new TestTextEdit("newText", new TestRange(10, 10, 10, 15)));
@@ -184,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 ((RazorLanguageKind.CSharp, RazorFile, new[] { new TestTextEdit("newText", new TestRange(10, 10, 10, 15)) }), (new[] { new TestTextEdit("newText", expectedRange) }, expectedVersion))
             });
-            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager);
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager, RazorLSPConventions);
 
             var workspaceEdit = new TestWorkspaceEdit(versionedEdits: false);
             workspaceEdit.AddEdits(RazorVirtualCSharpFile, 10, new TestTextEdit("newText", new TestRange(10, 10, 10, 15)));
@@ -210,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var expectedVersion = 10;
 
             var requestInvoker = GetRequestInvoker(mappingPairs: null); // will throw if RequestInvoker is called.
-            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager);
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager, RazorLSPConventions);
 
             var workspaceEdit = new TestWorkspaceEdit(versionedEdits: true);
             workspaceEdit.AddEdits(CSharpFile, expectedVersion, new TestTextEdit("newText", expectedRange));
@@ -242,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 ((RazorLanguageKind.CSharp, RazorFile, new[] { new TestTextEdit("newText", new TestRange(10, 10, 10, 15)) }), (new[] { new TestTextEdit("newText", expectedRange1) }, expectedVersion1)),
                 ((RazorLanguageKind.CSharp, AnotherRazorFile, new[] { new TestTextEdit("newText", new TestRange(20, 20, 20, 25)) }), (new[] { new TestTextEdit("newText", expectedRange2) }, expectedVersion2))
             });
-            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager);
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, DocumentManager, RazorLSPConventions);
 
             var workspaceEdit = new TestWorkspaceEdit(versionedEdits: true);
             workspaceEdit.AddEdits(RazorVirtualCSharpFile, 10, new TestTextEdit("newText", new TestRange(10, 10, 10, 15)));

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -64,7 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 l.CreateLogger(It.IsAny<string>()) == logger &&
                 l.InitializeLoggerAsync(It.IsAny<CancellationToken>()) == Task.CompletedTask,
                 MockBehavior.Strict);
+            RazorLSPConventions = new RazorLSPConventions(TestLanguageServerFeatureOptions.Instance);
         }
+
+        private RazorLSPConventions RazorLSPConventions { get; }
 
         private HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
 
@@ -75,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = new TestDocumentManager();
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -99,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = new TestDocumentManager();
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = s_diagnostics,
@@ -122,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = new TestDocumentManager();
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = s_diagnostics,
@@ -145,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = new TestDocumentManager();
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = s_diagnostics,
@@ -168,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = new TestDocumentManager();
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = s_diagnostics,
@@ -197,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager.Object, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager.Object, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = s_diagnostics,
@@ -221,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = CreateDocumentManager();
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = Array.Empty<Diagnostic>(),
@@ -245,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentManager = CreateDocumentManager();
             var diagnosticsProvider = GetDiagnosticsProvider();
 
-            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, RazorLSPConventions, LoggerProvider);
             var diagnosticRequest = new PublishDiagnosticParams()
             {
                 Diagnostics = s_diagnostics,
