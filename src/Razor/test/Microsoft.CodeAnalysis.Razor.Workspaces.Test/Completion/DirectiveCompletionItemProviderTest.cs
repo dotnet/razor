@@ -430,7 +430,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null, bool isSnippet = false)
         {
             Assert.Equal(item.DisplayText, completionDisplayText);
-            Assert.Equal(item.InsertText, isSnippet ? DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive] : directive.Directive);
+
+            if (isSnippet)
+            {
+                Assert.StartsWith(directive.Directive, item.InsertText);
+                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive]);
+            }
+            else
+            {
+                Assert.Equal(item.InsertText, directive.Directive);
+            }
+
             var completionDescription = item.GetDirectiveCompletionDescription();
             Assert.Equal(directive.Description, completionDescription.Description);
             Assert.Equal(item.CommitCharacters, commitCharacters ?? DirectiveCompletionItemProvider.SingleLineDirectiveCommitCharacters);

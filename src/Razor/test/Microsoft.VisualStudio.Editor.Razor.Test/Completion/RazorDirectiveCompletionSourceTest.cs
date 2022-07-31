@@ -134,7 +134,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         {
             Assert.Equal(item.DisplayText, completionDisplayText);
             Assert.Equal(item.FilterText, completionDisplayText);
-            Assert.Equal(item.InsertText, isSnippet ? DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive] : directive.Directive);
+
+            if (isSnippet)
+            {
+                Assert.StartsWith(directive.Directive, item.InsertText);
+                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive]);
+            }
+            else
+            {
+                Assert.Equal(item.InsertText, directive.Directive);
+            }
+
             Assert.Same(item.Source, source);
             Assert.True(item.Properties.TryGetProperty<DirectiveCompletionDescription>(RazorDirectiveCompletionSource.DescriptionKey, out var actualDescription));
             Assert.Equal(directive.Description, actualDescription.Description);
