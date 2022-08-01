@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
@@ -378,6 +380,51 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 });
         }
 
+        [Fact]
+        public async Task Handle_Rename_SingleServerRename_CallsDelegatedLanguageServer()
+        {
+            // Arrange
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerRenameSupport == true, MockBehavior.Strict);
+
+            var delegatedEdit = new WorkspaceEdit();
+            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturnsMock
+                .Setup(l => l.Returning<WorkspaceEdit>(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(delegatedEdit));
+
+            var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServerMock
+                .Setup(c => c.SendRequestAsync(LanguageServerConstants.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>()))
+                .Returns(Task.FromResult(responseRouterReturnsMock.Object));
+
+            var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+            documentMappingServiceMock
+                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Protocol.RazorLanguageKind.CSharp);
+
+            var projectedPosition = new Position(1, 1);
+            var projectedIndex = 1;
+            documentMappingServiceMock.Setup(c => c.TryMapToProjectedDocumentPosition(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex)).Returns(true);
+
+            var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
+
+            var request = new RenameParamsBridge
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                },
+                Position = new Position(1, 0),
+                NewName = "Test2"
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Same(delegatedEdit, result);
+        }
+
         private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)
         {
             var fullyQualifiedName = $"{namespaceName}.{tagName}";
@@ -430,7 +477,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             return documentSnapshot;
         }
 
-        private RenameEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null)
+        private RenameEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, RazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)
         {
             var tagHelperDescriptors = new List<TagHelperDescriptor>();
             tagHelperDescriptors.AddRange(CreateRazorComponentTagHelperDescriptors("First", "First.Components", "Component1"));
@@ -506,8 +553,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerRenameSupport == false, MockBehavior.Strict);
 
-            var documentMappingService = Mock.Of<RazorDocumentMappingService>(MockBehavior.Strict);
-            var languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+            documentMappingService ??= Mock.Of<RazorDocumentMappingService>(MockBehavior.Strict);
+            languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);
             return endpoint;
