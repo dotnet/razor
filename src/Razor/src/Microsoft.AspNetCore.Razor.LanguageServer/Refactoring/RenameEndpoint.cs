@@ -88,6 +88,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
+            var razorEdits = await TryGetRazorComponentRenameEditsAsync(request, requestDocumentSnapshot, codeDocument, cancellationToken).ConfigureAwait(false);
+
+            if (razorEdits is not null)
+            {
+                return razorEdits;
+            }
+
+            if (_languageServerFeatureOptions.SingleServerRenameSupport)
+            {
+                // Delegate to C#/HTML
+            }
+
+            return null;
+        }
+
+        private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParamsBridge request, DocumentSnapshot requestDocumentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        {
             var originTagHelpers = await GetOriginTagHelpersAsync(requestDocumentSnapshot, codeDocument, request.Position).ConfigureAwait(false);
             if (originTagHelpers is null || originTagHelpers.Count == 0)
             {
