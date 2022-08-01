@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     HoverProvider = true,
                     DefinitionProvider = true,
                     DocumentHighlightProvider = true,
-                    RenameProvider = true,
+                    RenameProvider = !_languageServerFeatureOptions.SingleServerRenameSupport,
                     ReferencesProvider = true,
                     SignatureHelpProvider = new SignatureHelpOptions()
                     {
