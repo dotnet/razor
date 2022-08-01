@@ -504,8 +504,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory2Component), MockBehavior.Strict);
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
-            languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
-            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
+            languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerRenameSupport == false, MockBehavior.Strict);
+
+            var documentMappingService = Mock.Of<RazorDocumentMappingService>(MockBehavior.Strict);
+            var languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+
+            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);
             return endpoint;
         }
 
