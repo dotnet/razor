@@ -35,6 +35,10 @@
       <_Parameter1>::MonoDevelop.Ide</_Parameter1>
       <_Parameter2>17.3</_Parameter2>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="Mono.Addins.AddinDependencyAttribute">
+      <_Parameter1>::MonoDevelop.TextEditor</_Parameter1>
+      <_Parameter2>17.3</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>
