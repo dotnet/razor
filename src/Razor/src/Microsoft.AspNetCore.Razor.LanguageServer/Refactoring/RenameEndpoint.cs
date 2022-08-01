@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
@@ -30,19 +32,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly ProjectSnapshotManager _projectSnapshotManager;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly RazorDocumentMappingService _documentMappingService;
+        private readonly ClientNotifierServiceBase _languageServer;
+        private readonly ILogger<RenameEndpoint> _logger;
 
         public RenameEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentContextFactory documentContextFactory,
             RazorComponentSearchEngine componentSearchEngine,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            RazorDocumentMappingService documentMappingService,
+            ClientNotifierServiceBase languageServer,
+            ILoggerFactory loggerFactory)
         {
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+
+            _logger = loggerFactory.CreateLogger<RenameEndpoint>();
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
@@ -95,12 +107,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return razorEdits;
             }
 
-            if (_languageServerFeatureOptions.SingleServerRenameSupport)
+            // If we're not doing single server rename, then we're done. C# and Html will be handled by the RenameHandler in the HtmlCSharp server.
+            if (!_languageServerFeatureOptions.SingleServerRenameSupport)
             {
-                // Delegate to C#/HTML
+                return null;
             }
 
-            return null;
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var absoluteIndex))
+            {
+                return null;
+            }
+
+            var projection = await documentContext.GetProjectionAsync(absoluteIndex, _documentMappingService, cancellationToken).ConfigureAwait(false);
+
+            // If the language is Razor then the downstream servers won't know how to handle it anyway
+            if (projection.LanguageKind == Protocol.RazorLanguageKind.Razor)
+            {
+                return null;
+            }
+
+            var delegatedParams = new DelegatedRenameParams(
+                documentContext.Identifier,
+                projection.Position,
+                projection.LanguageKind,
+                request.NewName);
+            var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorRenameEndpointName, delegatedParams).ConfigureAwait(false);
+            var delegatedResponse = await delegatedRequest.Returning<WorkspaceEdit?>(cancellationToken).ConfigureAwait(false);
+
+            return delegatedResponse;
         }
 
         private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParamsBridge request, DocumentSnapshot requestDocumentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
