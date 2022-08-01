@@ -22,5 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public override string HtmlVirtualDocumentSuffix => "__virtual.html";
 
         public override bool SingleServerCompletionSupport => false;
+
+        public override bool SingleServerRenameSupport => false;
     }
 }

@@ -48,3 +48,9 @@
 "Value"=dword:00000001
 "Title"="Enable enhanced Razor completion (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Razor\LSP\SingleServerRename]
+"Description"="Enable single server rename when editing Razor (ASP.NET Core)."
+"Value"=dword:00000001
+"Title"="Enable enhanced Razor rename (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"

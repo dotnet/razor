@@ -15,8 +15,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public abstract bool SingleServerCompletionSupport { get; }
 
+        public abstract bool SingleServerRenameSupport { get; }
+
         public string GetRazorCSharpFilePath(string razorFilePath) => razorFilePath + CSharpVirtualDocumentSuffix;
-        
+
         public string GetRazorHtmlFilePath(string razorFilePath) => razorFilePath + HtmlVirtualDocumentSuffix;
 
         public string GetRazorFilePath(string filePath)
