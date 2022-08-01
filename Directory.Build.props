@@ -22,8 +22,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DebugType>portable</DebugType>
-    <PublishWindowsPdb>true</PublishWindowsPdb>
     <GenerateResxSource>true</GenerateResxSource>
     <GenerateResxSourceEmitFormatMethods>true</GenerateResxSourceEmitFormatMethods>
     <ExcludeFromSourceBuild Condition="'$(IsUnitTestProject)' == 'true'">true</ExcludeFromSourceBuild>
