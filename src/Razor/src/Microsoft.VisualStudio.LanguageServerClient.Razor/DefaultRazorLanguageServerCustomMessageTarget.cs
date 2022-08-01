@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -1049,6 +1050,65 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var formattingOptions = _formattingOptionsProvider.GetOptions(document.Uri);
             return Task.FromResult(formattingOptions);
+        }
+
+        public override async Task<WorkspaceEdit?> RenameAsync(DelegatedRenameParams request, CancellationToken cancellationToken)
+        {
+            var hostDocumentUri = request.HostDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
+            if (request.ProjectedKind == RazorLanguageKind.Html &&
+                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlVirtualDocument.Uri;
+                virtualDocumentSnapshot = htmlVirtualDocument;
+            }
+            else if (request.ProjectedKind == RazorLanguageKind.CSharp &&
+                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
+            {
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                projectedUri = csharpVirtualDocument.Uri;
+                virtualDocumentSnapshot = csharpVirtualDocument;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                request.HostDocument.Version, virtualDocumentSnapshot, rejectOnNewerParallelRequest: false, cancellationToken);
+
+            if (!synchronized)
+            {
+                return null;
+            }
+
+            var renameParams = new RenameParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = projectedUri,
+                },
+                Position = request.ProjectedPosition,
+                NewName = request.NewName,
+            };
+
+            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit?>(
+                textBuffer,
+                Methods.TextDocumentRenameName,
+                languageServerName,
+                renameParams,
+                cancellationToken).ConfigureAwait(false);
+            return response?.Response;
         }
     }
 }
