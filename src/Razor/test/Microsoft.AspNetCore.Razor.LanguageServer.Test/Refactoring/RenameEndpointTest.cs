@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,18 +17,24 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 {
+    [UseExportProvider]
     public class RenameEndpointTest : LanguageServerTestBase
     {
         private readonly RenameEndpoint _endpoint;
@@ -429,6 +436,82 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             Assert.Same(delegatedEdit, result);
         }
 
+        [Fact]
+        public async Task Handle_Rename_SingleServer_CSharpEditsAreMapped()
+        {
+            var input = """
+                <div></div>
+
+                @{
+                    var $$myVariable = "Hello";
+
+                    var length = myVariable.Length;
+                }
+                """;
+
+            var newName = "newVar";
+
+            var expected = """
+                <div></div>
+
+                @{
+                    var newVar = "Hello";
+
+                    var length = newVar.Length;
+                }
+                """;
+
+            // Arrange
+            TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
+            var codeDocument = CreateCodeDocument(output);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+            var serverCapabilities = new ServerCapabilities()
+            {
+                RenameProvider = true
+            };
+
+            // A null mapping service means we are exercising the workspace edit remapping code
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null).ConfigureAwait(false);
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+
+            var razorFilePath = "C:/path/to/file.razor";
+            var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
+                options.SupportsFileManipulation == true &&
+                options.SingleServerSupport == true &&
+                options.CSharpVirtualDocumentSuffix == ".g.cs" &&
+                options.HtmlVirtualDocumentSuffix == ".g.html"
+                , MockBehavior.Strict);
+            var languageServer = new RenameLanguageServer(csharpServer, csharpDocumentUri);
+            var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
+            var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
+            var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
+            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
+
+            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);
+
+            codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+            var request = new RenameParamsBridge
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri(razorFilePath)
+                },
+                Position = new Position(line, offset),
+                NewName = newName
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(e => e.AsTextChange(codeDocument.GetSourceText()));
+            var newText = codeDocument.GetSourceText().WithChanges(edits).ToString();
+            Assert.Equal(expected, newText);
+        }
+
         private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)
         {
             var fullyQualifiedName = $"{namespaceName}.{tagName}";
@@ -577,6 +660,72 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             }
 
             public override ProjectSnapshotManagerBase Instance { get; }
+        }
+
+        private class RenameLanguageServer : ClientNotifierServiceBase
+        {
+            private readonly CSharpTestLspServer _csharpServer;
+            private readonly Uri _csharpDocumentUri;
+
+            public RenameLanguageServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri)
+            {
+                _csharpServer = csharpServer;
+                _csharpDocumentUri = csharpDocumentUri;
+            }
+
+            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings { get; }
+
+            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+            {
+                return Task.CompletedTask;
+            }
+
+            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            {
+                throw new NotImplementedException();
+            }
+
+            public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+            {
+                Assert.Equal(LanguageServerConstants.RazorRenameEndpointName, method);
+                var renameParams = Assert.IsType<DelegatedRenameParams>(@params);
+
+                var renameRequest = new RenameParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = renameParams.ProjectedPosition,
+                    NewName = renameParams.NewName,
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName, renameRequest, CancellationToken.None);
+
+                return new ResponseRouterReturn(result);
+            }
+        }
+
+        private class ResponseRouterReturn : IResponseRouterReturns
+        {
+            private WorkspaceEdit _result;
+
+            public ResponseRouterReturn(WorkspaceEdit result)
+            {
+                _result = result;
+            }
+
+            public Task<TResponse> Returning<TResponse>(CancellationToken cancellationToken)
+            {
+                Assert.IsType<TResponse>(_result);
+
+                return Task.FromResult((TResponse)(object)_result);
+            }
+
+            public Task ReturningVoid(CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
