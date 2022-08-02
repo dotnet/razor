@@ -554,7 +554,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
 
-            documentMappingService ??= Mock.Of<RazorDocumentMappingService>(MockBehavior.Strict);
+            var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+            documentMappingServiceMock
+                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Protocol.RazorLanguageKind.Html);
+            documentMappingService ??= documentMappingServiceMock.Object;
+
             languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);

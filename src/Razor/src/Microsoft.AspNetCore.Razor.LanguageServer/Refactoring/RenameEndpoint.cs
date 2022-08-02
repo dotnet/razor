@@ -20,7 +20,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -101,19 +100,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var razorEdits = await TryGetRazorComponentRenameEditsAsync(request, requestDocumentSnapshot, codeDocument, cancellationToken).ConfigureAwait(false);
-
-            if (razorEdits is not null)
-            {
-                return razorEdits;
-            }
-
-            // If we're not doing single server rename, then we're done. C# and Html will be handled by the RenameHandler in the HtmlCSharp server.
-            if (!_languageServerFeatureOptions.SingleServerSupport)
-            {
-                return null;
-            }
-
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var absoluteIndex))
             {
@@ -121,6 +107,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             var projection = await documentContext.GetProjectionAsync(absoluteIndex, _documentMappingService, cancellationToken).ConfigureAwait(false);
+
+            // If we're in C# then there is no point checking for a component tag, because there won't be one
+            if (projection.LanguageKind != RazorLanguageKind.CSharp)
+            {
+                var razorEdits = await TryGetRazorComponentRenameEditsAsync(request, absoluteIndex, requestDocumentSnapshot, codeDocument, cancellationToken).ConfigureAwait(false);
+                if (razorEdits is not null)
+                {
+                    return razorEdits;
+                }
+            }
+
+            // If we're not doing single server rename, then we're done. C# and Html will be handled by the RenameHandler in the HtmlCSharp server.
+            if (!_languageServerFeatureOptions.SingleServerSupport)
+            {
+                return null;
+            }
 
             // If the language is Razor then the downstream servers won't know how to handle it anyway
             if (projection.LanguageKind == Protocol.RazorLanguageKind.Razor)
@@ -139,9 +141,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return delegatedResponse;
         }
 
-        private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParamsBridge request, DocumentSnapshot requestDocumentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParamsBridge request, int absoluteIndex, DocumentSnapshot requestDocumentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
-            var originTagHelpers = await GetOriginTagHelpersAsync(requestDocumentSnapshot, codeDocument, request.Position).ConfigureAwait(false);
+            var originTagHelpers = GetOriginTagHelpers(requestDocumentSnapshot, codeDocument, absoluteIndex);
             if (originTagHelpers is null || originTagHelpers.Count == 0)
             {
                 return null;
@@ -345,14 +347,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) =>
             potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
-        private async Task<IReadOnlyList<TagHelperDescriptor>?> GetOriginTagHelpersAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
+        private static IReadOnlyList<TagHelperDescriptor>? GetOriginTagHelpers(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, int absoluteIndex)
         {
-            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            var linePosition = new LinePosition((int)position.Line, (int)position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, (int)position.Line, (int)position.Character);
-
-            var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
+            var change = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = codeDocument.GetSyntaxTree();
             if (syntaxTree?.Root is null)
             {
@@ -377,7 +374,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             // mitigation till `textDocument/prepareRename` is supported
             // and we can ensure renames aren't triggered in unsupported
             // contexts. (https://github.com/dotnet/aspnetcore/issues/26407)
-            if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(hostDocumentIndex))
+            if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(absoluteIndex))
             {
                 return null;
             }
