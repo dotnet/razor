@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var projection = await documentContext.GetProjectionAsync(absoluteIndex, _documentMappingService, cancellationToken).ConfigureAwait(false);
+            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
             // If we're in C# then there is no point checking for a component tag, because there won't be one
             if (projection.LanguageKind != RazorLanguageKind.CSharp)

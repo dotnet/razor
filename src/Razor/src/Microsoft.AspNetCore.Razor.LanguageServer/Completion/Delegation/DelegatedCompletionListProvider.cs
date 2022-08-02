@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             VSInternalClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var projection = await documentContext.GetProjectionAsync(absoluteIndex, _documentMappingService, cancellationToken).ConfigureAwait(false);
+            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
             if (projection.LanguageKind == RazorLanguageKind.Razor)
             {
@@ -158,7 +158,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 return null;
             }
 
-            var previousCharacterProjection = await documentContext.GetProjectionAsync(projection.AbsoluteIndex - 1, _documentMappingService, cancellationToken).ConfigureAwait(false);
+            var previousCharacterProjection = await _documentMappingService.GetProjectionAsync(documentContext, projection.AbsoluteIndex - 1, cancellationToken).ConfigureAwait(false);
             if (previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp)
             {
                 return null;
