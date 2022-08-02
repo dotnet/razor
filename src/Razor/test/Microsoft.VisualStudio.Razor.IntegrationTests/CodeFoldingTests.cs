@@ -38,7 +38,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Built in retry logic because getting spans can take time.
             //
             var tries = 0;
-            const int MaxTries = 1;
+            const int MaxTries = 10;
+            const int Delay = 500;
             ImmutableArray<CollapsibleBlock> missingLines;
             var outlines = new ICollapsible[0];
             while (tries++ < MaxTries)
@@ -60,7 +61,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     return;
                 }
 
-                await Task.Delay(500);
+                await Task.Delay(Delay);
             }
 
             if (missingLines.Length > 0)
