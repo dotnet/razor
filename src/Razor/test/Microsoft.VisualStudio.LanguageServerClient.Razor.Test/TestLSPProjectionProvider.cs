@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
     {
         public static readonly TestLSPProjectionProvider Instance = new();
 
-        private readonly DefaultRazorDocumentMappingService _mappingService = new(TestLoggerFactory.Instance);
+        private readonly DefaultRazorDocumentMappingService _mappingService = new(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
 
         private TestLSPProjectionProvider()
         {

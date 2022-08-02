@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
     {
         public RazorBreakpointSpanEndpointTest()
         {
-            MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         }
 
         private RazorDocumentMappingService MappingService { get; }

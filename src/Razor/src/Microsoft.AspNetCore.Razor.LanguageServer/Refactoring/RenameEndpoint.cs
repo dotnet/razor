@@ -138,6 +138,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorRenameEndpointName, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<WorkspaceEdit?>(cancellationToken).ConfigureAwait(false);
 
+            if (delegatedResponse is not null)
+            {
+                delegatedResponse = await _documentMappingService.RemapWorkspaceEditAsync(delegatedResponse, cancellationToken).ConfigureAwait(false);
+            }
+
             return delegatedResponse;
         }
 

@@ -30,15 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
         {
-            if (virtualDocumentUri is null)
-            {
-                throw new ArgumentNullException(nameof(virtualDocumentUri));
-            }
-
-            var uriPath = virtualDocumentUri.AbsoluteUri;
-            var razorFilePath = _languageServerFeatureOptions.GetRazorFilePath(uriPath);
-            var uri = new Uri(razorFilePath, UriKind.Absolute);
-            return uri;
+            return _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
         }
 
         private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)

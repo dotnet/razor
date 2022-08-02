@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -19,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public static RazorFormattingService CreateWithFullSupport(RazorCodeDocument codeDocument)
         {
-            var mappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
 
             var dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
             var versionCache = new DefaultDocumentVersionCache(dispatcher);

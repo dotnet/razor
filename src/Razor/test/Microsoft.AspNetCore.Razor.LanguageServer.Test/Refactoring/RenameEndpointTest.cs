@@ -402,6 +402,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             documentMappingServiceMock
                 .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(Protocol.RazorLanguageKind.CSharp);
+            documentMappingServiceMock
+                .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(delegatedEdit));
 
             var projectedPosition = new Position(1, 1);
             var projectedIndex = 1;

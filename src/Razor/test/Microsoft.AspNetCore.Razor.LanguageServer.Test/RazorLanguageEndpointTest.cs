@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -23,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public RazorLanguageEndpointTest()
         {
-            MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         }
 
         private RazorDocumentMappingService MappingService { get; }

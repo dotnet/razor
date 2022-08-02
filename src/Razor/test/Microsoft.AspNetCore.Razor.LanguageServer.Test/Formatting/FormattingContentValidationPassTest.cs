@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -119,7 +120,7 @@ public class Foo { }
 
         private FormattingContentValidationPass GetPass()
         {
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
             var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
             var pass = new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory)
