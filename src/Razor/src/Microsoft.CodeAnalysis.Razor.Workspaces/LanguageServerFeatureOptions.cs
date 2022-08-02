@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             return filePath;
         }
 
-        internal Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+        public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
         {
             var uriPath = virtualDocumentUri.AbsoluteUri;
             var razorFilePath = GetRazorFilePath(uriPath);
