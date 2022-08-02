@@ -27,7 +27,8 @@
 
     <RemoveDir Directories="$(IntermediateOutputPath)MPack\" />
     <MakeDir Directories="$(IntermediateOutputPath);$(IntermediateOutputPath)MPack\" />
-    <Copy SourceFiles="@(MPackFile)" DestinationFolder="$(IntermediateOutputPath)MPack\" />
+    <Copy SourceFiles="@(MPackFile)" DestinationFolder="$(IntermediateOutputPath)MPack" Condition="%(MPackFile.Folder) == ''" />
+    <Copy SourceFiles="@(MPackFile)" DestinationFolder="$(IntermediateOutputPath)MPack\%(MPackFile.Folder)" Condition="%(MPackFile.Folder) != ''" />
 
     <MakeDir Directories="$(ArtifactsMPackDir)" />
     <ZipDirectory

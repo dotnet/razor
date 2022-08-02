@@ -5,64 +5,120 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
     internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
     {
-        private readonly DelegatedCompletionRequestResponseFactory _completionFactory;
+        private readonly CompletionRequestResponseFactory _completionFactory;
 
-        private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, ILoggerFactory loggerFactory, DelegatedCompletionRequestResponseFactory completionFactory) :
+        private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, CompletionRequestResponseFactory completionFactory) :
             base(
                 responseRewriters,
-                new DefaultRazorDocumentMappingService(loggerFactory),
-                new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, object>>()
+                new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance),
+                new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
                 {
-                    [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegation,
+                    [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,
                 }),
                 new CompletionListCache())
         {
             _completionFactory = completionFactory;
         }
 
-        public static TestDelegatedCompletionListProvider Create(ILoggerFactory loggerFactory, params DelegatedCompletionResponseRewriter[] responseRewriters) =>
-            Create(loggerFactory, delegatedCompletionList: null, responseRewriters);
+        public static TestDelegatedCompletionListProvider Create(params DelegatedCompletionResponseRewriter[] responseRewriters) =>
+            Create(delegatedCompletionList: null, responseRewriters: responseRewriters);
 
-        public static TestDelegatedCompletionListProvider Create(ILoggerFactory loggerFactory, VSInternalCompletionList delegatedCompletionList, params DelegatedCompletionResponseRewriter[] responseRewriters)
+        public static TestDelegatedCompletionListProvider Create(CSharpTestLspServer csharpServer, params DelegatedCompletionResponseRewriter[] responseRewriters)
+        {
+            var requestResponseFactory = new DelegatedCSharpCompletionRequestResponseFactory(csharpServer);
+            var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory);
+            return provider;
+        }
+
+        public static TestDelegatedCompletionListProvider Create(VSInternalCompletionList delegatedCompletionList, params DelegatedCompletionResponseRewriter[] responseRewriters)
         {
             delegatedCompletionList ??= new VSInternalCompletionList()
             {
                 Items = Array.Empty<CompletionItem>(),
             };
-            var requestResponseFactory = new DelegatedCompletionRequestResponseFactory(delegatedCompletionList);
-            var provider = new TestDelegatedCompletionListProvider(responseRewriters, loggerFactory, requestResponseFactory);
+            var requestResponseFactory = new StaticCompletionRequestResponseFactory(delegatedCompletionList);
+            var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory);
             return provider;
         }
 
         public DelegatedCompletionParams DelegatedParams => _completionFactory.DelegatedParams;
 
-        private class DelegatedCompletionRequestResponseFactory
+        private class StaticCompletionRequestResponseFactory : CompletionRequestResponseFactory
         {
             private readonly VSInternalCompletionList _completionResponse;
+            private DelegatedCompletionParams _delegatedParams;
 
-            public DelegatedCompletionRequestResponseFactory(VSInternalCompletionList completionResponse)
+            public StaticCompletionRequestResponseFactory(VSInternalCompletionList completionResponse)
             {
                 _completionResponse = completionResponse;
             }
 
-            public DelegatedCompletionParams DelegatedParams { get; private set; }
+            public override DelegatedCompletionParams DelegatedParams => _delegatedParams;
 
-            public object OnDelegation(object parameters)
+            public override Task<object> OnDelegationAsync(object parameters)
             {
-                DelegatedParams = (DelegatedCompletionParams)parameters;
+                _delegatedParams = (DelegatedCompletionParams)parameters;
 
-                return _completionResponse;
+                return Task.FromResult<object>(_completionResponse);
             }
+        }
+
+        private class DelegatedCSharpCompletionRequestResponseFactory : CompletionRequestResponseFactory
+        {
+            private readonly CSharpTestLspServer _csharpServer;
+            private DelegatedCompletionParams _delegatedParams;
+
+            public DelegatedCSharpCompletionRequestResponseFactory(CSharpTestLspServer csharpServer)
+            {
+                _csharpServer = csharpServer;
+            }
+
+            public override DelegatedCompletionParams DelegatedParams => _delegatedParams;
+
+            public override async Task<object> OnDelegationAsync(object parameters)
+            {
+                var completionParams = (DelegatedCompletionParams)parameters;
+                _delegatedParams = completionParams;
+
+                var csharpDocumentPath = completionParams.HostDocument.Uri.OriginalString + "__virtual.g.cs";
+                var csharpDocumentUri = new Uri(csharpDocumentPath);
+                var csharpCompletionParams = new CompletionParams()
+                {
+                    Context = completionParams.Context,
+                    Position = completionParams.ProjectedPosition,
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = csharpDocumentUri,
+                    }
+                };
+
+                var delegatedCompletionList = await _csharpServer.ExecuteRequestAsync<CompletionParams, VSInternalCompletionList>(
+                    Methods.TextDocumentCompletionName,
+                    csharpCompletionParams,
+                    CancellationToken.None).ConfigureAwait(false);
+
+                return delegatedCompletionList;
+            }
+        }
+
+        private abstract class CompletionRequestResponseFactory
+        {
+            public abstract DelegatedCompletionParams DelegatedParams { get; }
+
+            public abstract Task<object> OnDelegationAsync(object parameters);
         }
     }
 }

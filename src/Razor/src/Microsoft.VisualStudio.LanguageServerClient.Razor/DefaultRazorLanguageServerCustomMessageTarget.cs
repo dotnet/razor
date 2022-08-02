@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
+        private readonly FormattingOptionsProvider _formattingOptionsProvider;
         private readonly EditorSettingsManager _editorSettingsManager;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
 
@@ -52,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IRazorAsynchronousOperationListenerProviderAccessor asyncOpListenerProvider,
+            FormattingOptionsProvider formattingOptionsProvider,
             EditorSettingsManager editorSettingsManager,
             LSPDocumentSynchronizer documentSynchronizer)
                 : this(
@@ -60,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     requestInvoker,
                     uIContextManager,
                     asyncOpListenerProvider.GetListener(RazorReadyFeature).BeginAsyncOperation(RazorReadyFeature),
+                    formattingOptionsProvider,
                     editorSettingsManager,
                     documentSynchronizer)
         {
@@ -72,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IDisposable razorReadyListener,
-            EditorSettingsManager editorSettingsManager,
-            LSPDocumentSynchronizer documentSynchronizer)
+            FormattingOptionsProvider formattingOptionsProvider,
+            EditorSettingsManager editorSettingsManager, LSPDocumentSynchronizer documentSynchronizer)
         {
             if (documentManager is null)
             {
@@ -100,6 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(razorReadyListener));
             }
 
+            if (formattingOptionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(formattingOptionsProvider));
+            }
+
             if (editorSettingsManager is null)
             {
                 throw new ArgumentNullException(nameof(editorSettingsManager));
@@ -121,6 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _requestInvoker = requestInvoker;
             _uIContextManager = uIContextManager;
             _razorReadyListener = razorReadyListener;
+            _formattingOptionsProvider = formattingOptionsProvider;
             _editorSettingsManager = editorSettingsManager;
             _documentSynchronizer = documentSynchronizer;
         }
@@ -1034,6 +1043,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 completionResolveParams,
                 cancellationToken).ConfigureAwait(false);
             return response?.Response;
+        }
+
+        public override Task<FormattingOptions?> GetFormattingOptionsAsync(TextDocumentIdentifier document, CancellationToken cancellationToken)
+        {
+            var formattingOptions = _formattingOptionsProvider.GetOptions(document.Uri);
+            return Task.FromResult(formattingOptions);
         }
     }
 }

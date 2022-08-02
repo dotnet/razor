@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
         private RazorCodeDocumentProvidingSnapshotChangeTrigger? _codeDocumentProvider;
         private ITextDocumentFactoryService? _textDocumentFactoryService;
         private JoinableTaskFactory? _joinableTaskFactory;
+        private LanguageServerFeatureOptions? _languageServerFeatureOptions;
         private uint _runningDocumentTableCookie;
         private IVsRunningDocumentTable? _runningDocumentTable;
         private IWpfTextView? _activeWpfTextView;
@@ -54,10 +56,10 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             InitializeRunningDocumentTable();
         }
 
-        [MemberNotNull(nameof(_codeDocumentProvider), nameof(_textDocumentFactoryService), nameof(_joinableTaskFactory))]
+        [MemberNotNull(nameof(_codeDocumentProvider), nameof(_textDocumentFactoryService), nameof(_joinableTaskFactory), nameof(_languageServerFeatureOptions))]
         private void EnsureInitialized()
         {
-            if (_codeDocumentProvider is not null && _textDocumentFactoryService is not null && _joinableTaskFactory is not null)
+            if (_codeDocumentProvider is not null && _textDocumentFactoryService is not null && _joinableTaskFactory is not null && _languageServerFeatureOptions is not null)
             {
                 return;
             }
@@ -65,6 +67,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             _codeDocumentProvider = VSServiceHelpers.GetRequiredMefService<RazorCodeDocumentProvidingSnapshotChangeTrigger>();
             _textDocumentFactoryService = VSServiceHelpers.GetRequiredMefService<ITextDocumentFactoryService>();
             _joinableTaskFactory = VSServiceHelpers.GetRequiredMefService<JoinableTaskContext>().Factory;
+            _languageServerFeatureOptions = VSServiceHelpers.GetRequiredMefService<LanguageServerFeatureOptions>();
         }
 
         private void InitializeRunningDocumentTable()
@@ -121,7 +124,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 return;
             }
 
-            OpenGeneratedCode(textDocument.FilePath, ".g.cs", codeDocument.GetCSharpDocument().GeneratedCode);
+            OpenGeneratedCode(textDocument.FilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix, codeDocument.GetCSharpDocument().GeneratedCode);
         }
 
         private void OpenGeneratedCode(string filePath, string extension, string generatedCode)
@@ -400,8 +403,6 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 
             item.Selected += new RoutedEventHandler((sender, e) =>
             {
-                item.IsExpanded = true;
-
                 if (!_isNavigatingFromSourceToTree)
                 {
                     _isNavigatingFromTreeToSource = true;
@@ -477,6 +478,30 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
             }
 
             return wpfTextView;
+        }
+
+        private void treeView_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter)
+                return;
+
+            if (!IsVisible || _activeWpfTextView is null)
+                return;
+
+            if (treeView.SelectedItem is not TreeViewItem item)
+                return;
+
+            if (item.Tag is not RazorSyntaxNode node)
+                return;
+
+            var caretPoint = new SnapshotPoint(_activeWpfTextView.TextBuffer.CurrentSnapshot, node.SpanEnd);
+
+            // When we activate a node, we don't move the caret, because its a bit weird, but its equally weird to move focus
+            // to the editor, and not move the caret.
+            _isNavigatingFromTreeToSource = true;
+            _activeWpfTextView.Caret.MoveTo(caretPoint);
+            _activeWpfTextView.VisualElement.Focus();
+            _isNavigatingFromTreeToSource = false;
         }
     }
 }

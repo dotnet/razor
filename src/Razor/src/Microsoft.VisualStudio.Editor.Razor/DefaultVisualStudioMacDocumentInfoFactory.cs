@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -18,9 +17,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(VisualStudioMacDocumentInfoFactory))]
     internal class DefaultVisualStudioMacDocumentInfoFactory : VisualStudioMacDocumentInfoFactory
     {
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+
+        [ImportingConstructor]
+        public DefaultVisualStudioMacDocumentInfoFactory(LanguageServerFeatureOptions languageServerFeatureOptions)
+        {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
+        }
+
         public override DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId)
         {
-            var filename = Path.ChangeExtension(razorFilePath, ".g.cs");
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(razorFilePath);
             var textLoader = new EmptyTextLoader(filename);
             var docId = DocumentId.CreateNewId(projectId, debugName: filename);
             return DocumentInfo.Create(

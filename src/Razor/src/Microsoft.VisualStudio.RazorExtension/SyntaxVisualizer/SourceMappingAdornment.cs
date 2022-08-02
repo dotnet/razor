@@ -3,6 +3,7 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
 {
@@ -17,8 +18,8 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
                 HorizontalContentAlignment = HorizontalAlignment.Left,
                 VerticalContentAlignment = VerticalAlignment.Top,
                 VerticalAlignment = VerticalAlignment.Stretch,
-                Background = SystemColors.InfoBrush,
-                Foreground = SystemColors.InfoTextBrush,
+                Background = Brushes.Yellow,
+                Foreground = Brushes.Black,
                 Width = isStart ? 15 : 10,
                 Content = isStart ? "<#" : ">",
             };

@@ -35,6 +35,10 @@
       <_Parameter1>::MonoDevelop.Ide</_Parameter1>
       <_Parameter2>17.3</_Parameter2>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="Mono.Addins.AddinDependencyAttribute">
+      <_Parameter1>::MonoDevelop.TextEditor</_Parameter1>
+      <_Parameter2>17.3</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +47,12 @@
 
   <ItemGroup>
     <Content Include="$(RepositoryRoot)NOTICE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <!-- Embedded grammars -->
+    <Content Include="..\Microsoft.VisualStudio.RazorExtension\EmbeddedGrammars\*">
+      <Link>Grammars\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -91,6 +101,11 @@
 
     <!-- Third Party Notices -->
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\NOTICE.txt" />
+
+    <!-- Embedded Grammars -->
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Grammars\**">
+      <Folder>Grammars</Folder>
+    </MPackFile>
   </ItemGroup>
 
   <ItemGroup Condition="$(DebugType) != 'embedded'">
@@ -110,4 +125,16 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Mac.LanguageServices.Razor\Microsoft.VisualStudio.Mac.LanguageServices.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServerClient.Razor\Microsoft.VisualStudio.LanguageServerClient.Razor.csproj" />
   </ItemGroup>
+
+  <Target Name="_BuildRazorGrammar">
+    <MSBuild Projects="..\Microsoft.AspNetCore.Razor.VSCode.Extension\Microsoft.AspNetCore.Razor.VSCode.Extension.npmproj" Targets="Build" />
+  </Target>
+
+  <Target Name="_IncludeRazorGrammar" DependsOnTargets="PrepareForBuild;_BuildRazorGrammar" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <MPackFile Include="..\Microsoft.AspNetCore.Razor.VSCode.Extension\syntaxes\aspnetcorerazor.tmLanguage.json">
+        <Folder>Grammars</Folder>
+      </MPackFile>
+    </ItemGroup>
+  </Target>
 </Project>

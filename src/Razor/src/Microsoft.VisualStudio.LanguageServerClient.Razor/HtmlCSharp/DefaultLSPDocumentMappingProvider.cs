@@ -30,9 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // The Document Manager is a more "Core Service" it depends on the ChangeTriggers which require the LSPDocumentMappingProvider
         // LSPDocumentManager => LSPDocumentMappingProvider => LSPDocumentManagerChangeTrigger => LSPDocumentManager
         private readonly Lazy<LSPDocumentManager> _lazyDocumentManager;
+        private readonly RazorLSPConventions _razorConventions;
 
         [ImportingConstructor]
-        public DefaultLSPDocumentMappingProvider(LSPRequestInvoker requestInvoker, Lazy<LSPDocumentManager> lazyDocumentManager)
+        public DefaultLSPDocumentMappingProvider(
+            LSPRequestInvoker requestInvoker,
+            Lazy<LSPDocumentManager> lazyDocumentManager,
+            RazorLSPConventions razorConventions)
         {
             if (requestInvoker is null)
             {
@@ -44,8 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(lazyDocumentManager));
             }
 
+            if (razorConventions is null)
+            {
+                throw new ArgumentNullException(nameof(razorConventions));
+            }
+
             _requestInvoker = requestInvoker;
             _lazyDocumentManager = lazyDocumentManager;
+            _razorConventions = razorConventions;
         }
 
         public override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, CancellationToken cancellationToken)
@@ -104,11 +114,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 var uri = location.Uri;
                 RazorLanguageKind languageKind;
-                if (RazorLSPConventions.IsVirtualCSharpFile(uri))
+                if (_razorConventions.IsVirtualCSharpFile(uri))
                 {
                     languageKind = RazorLanguageKind.CSharp;
                 }
-                else if (RazorLSPConventions.IsVirtualHtmlFile(uri))
+                else if (_razorConventions.IsVirtualHtmlFile(uri))
                 {
                     languageKind = RazorLanguageKind.Html;
                 }
@@ -119,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
+                var razorDocumentUri = _razorConventions.GetRazorDocumentUri(uri);
 
                 var mappingResult = await MapToDocumentRangesAsync(
                     languageKind,
@@ -167,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(edits));
             }
 
-            if (!RazorLSPConventions.IsVirtualCSharpFile(uri) && !RazorLSPConventions.IsVirtualHtmlFile(uri))
+            if (!_razorConventions.IsVirtualCSharpFile(uri) && !_razorConventions.IsVirtualHtmlFile(uri))
             {
                 // This is not a virtual razor file. No need to remap.
                 return edits;
@@ -189,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(edits));
             }
 
-            if (!RazorLSPConventions.IsVirtualCSharpFile(uri) && !RazorLSPConventions.IsVirtualHtmlFile(uri))
+            if (!_razorConventions.IsVirtualCSharpFile(uri) && !_razorConventions.IsVirtualHtmlFile(uri))
             {
                 // This is not a virtual razor file. No need to remap.
                 return edits;
@@ -275,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
+                var razorDocumentUri = _razorConventions.GetRazorDocumentUri(uri);
                 remappedDocumentEdits.Add(new TextDocumentEdit()
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier()
@@ -312,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
+                var razorDocumentUri = _razorConventions.GetRazorDocumentUri(uri);
                 remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
             }
 
@@ -327,11 +337,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             FormattingOptions? formattingOptions = null)
         {
             var languageKind = RazorLanguageKind.Razor;
-            if (RazorLSPConventions.IsVirtualCSharpFile(uri))
+            if (_razorConventions.IsVirtualCSharpFile(uri))
             {
                 languageKind = RazorLanguageKind.CSharp;
             }
-            else if (RazorLSPConventions.IsVirtualHtmlFile(uri))
+            else if (_razorConventions.IsVirtualHtmlFile(uri))
             {
                 languageKind = RazorLanguageKind.Html;
             }
@@ -340,7 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Debug.Fail("This method should only be called for Razor background files.");
             }
 
-            var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
+            var razorDocumentUri = _razorConventions.GetRazorDocumentUri(uri);
 
             var mapToDocumentEditsParams = new RazorMapToDocumentEditsParams()
             {
@@ -376,9 +386,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return (documentSnapshot, mappingResult.TextEdits);
         }
 
-        private static bool CanRemap(Uri uri)
+        private bool CanRemap(Uri uri)
         {
-            return RazorLSPConventions.IsVirtualCSharpFile(uri) || RazorLSPConventions.IsVirtualHtmlFile(uri);
+            return _razorConventions.IsVirtualCSharpFile(uri) || _razorConventions.IsVirtualHtmlFile(uri);
         }
 
         private static bool CheckRazorRangeMappingCapability(JToken token)

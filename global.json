@@ -19,7 +19,7 @@
     "version": "7.0.100-preview.5.22307.18"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22367.1",
+    "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22379.10",
     "Yarn.MSBuild": "1.22.10"
   }
 }

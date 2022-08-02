@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -30,10 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public const string CssLSPContentTypeName = "cssLSPClient";
 
         public const string TypeScriptLSPContentTypeName = "JavaScript";
-
-        public const string VirtualCSharpFileNameSuffix = ".g.cs";
-
-        public const string VirtualHtmlFileNameSuffix = "__virtual.html";
 
         public static readonly Guid RazorActiveUIContextGuid = new("3c5ded8f-72c7-4b1f-af2d-099ceeb935b8");
     }

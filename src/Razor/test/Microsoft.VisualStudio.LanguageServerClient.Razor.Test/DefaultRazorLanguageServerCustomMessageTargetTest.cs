@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
             var request = new CodeActionParams()
             {
                 TextDocument = new LanguageServer.Protocol.TextDocumentIdentifier()
@@ -364,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
             var codeAction = new VSInternalCodeAction()
             {
                 Title = "Something",
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
             var request = new ProvideSemanticTokensRangeParams(
                 textDocument: new TextDocumentIdentifier()
                 {
@@ -518,7 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                uIContextManager.Object, disposable.Object, EditorSettingsManager, documentSynchronizer.Object);
+                uIContextManager.Object, disposable.Object, TestFormattingOptionsProvider.Default, EditorSettingsManager, documentSynchronizer.Object);
 
             // Act
             await target.RazorServerReadyAsync(CancellationToken.None);

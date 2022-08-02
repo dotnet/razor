@@ -28,16 +28,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         [IdeFact]
         public async Task SetBreakpoint_FirstCharacter_InvalidLine()
         {
-            var version = await TestServices.Shell.GetVersionAsync(ControlledHangMitigatingCancellationToken);
-            if (version < new System.Version(17, 3, 32412, 127))
-            {
-                // Functionality under test was added in v17.3-Preview1 (17.3.32412.127) so this test will
-                // fail until CI is updated, so we'll skip it.
-                //
-                // Re-enabling this test is tracked by https://github.com/dotnet/razor-tooling/issues/6280
-                return;
-            }
-
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 

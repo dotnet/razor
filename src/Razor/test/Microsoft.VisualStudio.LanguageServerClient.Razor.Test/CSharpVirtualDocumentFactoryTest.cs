@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var uri = new Uri("C:/path/to/file.razor");
             var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri, MockBehavior.Strict);
-            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, TextDocumentFactoryService, uriProvider);
+            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, TextDocumentFactoryService, uriProvider, TestLanguageServerFeatureOptions.Instance);
 
             // Act
             var result = factory.TryCreateFor(NonRazorLSPBuffer, out var virtualDocument);
@@ -76,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var uri = new Uri("C:/path/to/file.razor");
             var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(RazorLSPBuffer) == uri, MockBehavior.Strict);
             Mock.Get(uriProvider).Setup(p => p.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>())).Verifiable();
-            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, TextDocumentFactoryService, uriProvider);
+            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, TextDocumentFactoryService, uriProvider, TestLanguageServerFeatureOptions.Instance);
 
             // Act
             var result = factory.TryCreateFor(RazorLSPBuffer, out var virtualDocument);
@@ -86,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // Assert
                 Assert.True(result);
                 Assert.NotNull(virtualDocument);
-                Assert.EndsWith(RazorLSPConstants.VirtualCSharpFileNameSuffix, virtualDocument.Uri.OriginalString, StringComparison.Ordinal);
+                Assert.EndsWith(TestLanguageServerFeatureOptions.Instance.CSharpVirtualDocumentSuffix, virtualDocument.Uri.OriginalString, StringComparison.Ordinal);
             }
         }
     }

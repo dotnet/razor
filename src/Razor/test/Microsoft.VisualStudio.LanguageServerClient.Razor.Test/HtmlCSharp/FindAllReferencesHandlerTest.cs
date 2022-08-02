@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -30,9 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Long timeout after last notification to avoid triggering even in slow CI environments
             TestWaitForProgressNotificationTimeout = TimeSpan.FromSeconds(30);
+
+            RazorLSPConventions = new RazorLSPConventions(TestLanguageServerFeatureOptions.Instance);
         }
 
+        private RazorLSPConventions RazorLSPConventions { get; }
+
         private Uri Uri { get; }
+        
         private TimeSpan TestWaitForProgressNotificationTimeout { get; }
 
         private static readonly ILanguageClient s_languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
@@ -47,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
             var progressListener = Mock.Of<LSPProgressListener>(MockBehavior.Strict);
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
             var referenceRequest = new ReferenceParams()
@@ -76,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
             var progressListener = Mock.Of<LSPProgressListener>(MockBehavior.Strict);
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
             var referenceRequest = new ReferenceParams()
@@ -158,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Returns<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) => Task.FromResult(uri.LocalPath.Contains("file1") ? remappingResult1 : remappingResult2));
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -212,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     out onCompleted) == false, MockBehavior.Strict);
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
             var referenceRequest = new ReferenceParams()
@@ -241,8 +247,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
-            var virtualCSharpUri1 = new Uri("C:/path/to/file1.razor.g.cs");
-            var virtualCSharpUri2 = new Uri("C:/path/to/file2.razor.g.cs");
+            var virtualCSharpUri1 = new Uri("C:/path/to/file1.razor.ide.g.cs");
+            var virtualCSharpUri2 = new Uri("C:/path/to/file2.razor.ide.g.cs");
             var csharpLocation1 = GetReferenceItem(100, virtualCSharpUri1);
             var csharpLocation2 = GetReferenceItem(200, virtualCSharpUri2);
 
@@ -290,7 +296,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Returns<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) => Task.FromResult(uri.LocalPath.Contains("file1") ? remappingResult1 : remappingResult2));
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -329,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
             documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
-            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.ide.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
             var (requestInvoker, progressListener) = MockServices(csharpLocation, out var token);
 
@@ -350,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Returns(Task.FromResult(remappingResult));
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -389,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
             documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
-            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.ide.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri, text: rawText);
             var (requestInvoker, progressListener) = MockServices(csharpLocation, out var token);
 
@@ -410,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Returns(Task.FromResult(remappingResult));
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -461,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 new ClassifiedTextRun("text", "counter"),
                 new ClassifiedTextRun("punctuation", ";"),
             });
-            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.ide.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri, text: virtualClassifiedRun);
             var (requestInvoker, progressListener) = MockServices(csharpLocation, out var token);
 
@@ -482,7 +488,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Returns(Task.FromResult(remappingResult));
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -531,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -566,7 +572,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 123, MockBehavior.Strict));
 
-            var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/file.razor.ide.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
             var (requestInvoker, progressListener) = MockServices(csharpLocation, out var token);
 
@@ -589,7 +595,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -626,7 +632,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
             documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
-            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.ide.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
             var (requestInvoker, progressListener) = MockServices(csharpLocation, out var token);
 
@@ -649,7 +655,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -683,7 +689,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
-            var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
+            var virtualCSharpUri = new Uri("C:/path/to/file.razor.ide.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
             var (requestInvoker, progressListener) = MockServices(csharpLocation, out var token);
 
@@ -701,7 +707,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
@@ -757,7 +763,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 for (var documentInBatch = 0; documentInBatch < BATCH_SIZE; ++documentInBatch)
                 {
                     expectedUris[documentNumber] = new Uri($"C:/path/to/file{documentNumber}.razor");
-                    virtualUris[documentNumber] = new Uri($"C:/path/to/file{documentNumber}.razor.g.cs");
+                    virtualUris[documentNumber] = new Uri($"C:/path/to/file{documentNumber}.razor.ide.g.cs");
                     expectedReferences[batch][documentInBatch] = GetReferenceItem(documentNumber, expectedUris[documentNumber]);
 
                     var umappedOffset = documentNumber * MAPPING_OFFSET;
@@ -828,7 +834,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 });
 
             using var completedTokenSource = new CancellationTokenSource();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, LoggerProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, RazorLSPConventions, LoggerProvider);
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
