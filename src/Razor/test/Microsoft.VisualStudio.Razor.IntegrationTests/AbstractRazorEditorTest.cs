@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     {
         private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
-        private const string RazorComponentElementClassification = "RazorComponentElement";
 
         protected override string LanguageName => LanguageNames.Razor;
 
@@ -70,13 +69,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static void EnsureMEFCompositionSuccessForRazor()
         {
-            var hiveDirectories = VisualStudioLogging.GetHiveDirectories();
-            if (hiveDirectories.Count() != 1)
-            {
-                throw new ArgumentOutOfRangeException("Should only have one hive");
-            }
-
-            var hiveDirectory = hiveDirectories.Single();
+            var hiveDirectory = VisualStudioLogging.GetHiveDirectory();
             var cmcPath = Path.Combine(hiveDirectory, "ComponentModelCache");
             if (!Directory.Exists(cmcPath))
             {
