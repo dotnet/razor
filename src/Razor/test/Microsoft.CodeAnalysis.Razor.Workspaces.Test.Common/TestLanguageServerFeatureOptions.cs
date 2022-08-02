@@ -23,6 +23,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override bool SingleServerCompletionSupport => false;
 
-        public override bool SingleServerRenameSupport => false;
+        public override bool SingleServerSupport => false;
     }
 }

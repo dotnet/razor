@@ -382,10 +382,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         }
 
         [Fact]
-        public async Task Handle_Rename_SingleServerRename_CallsDelegatedLanguageServer()
+        public async Task Handle_Rename_SingleServer_CallsDelegatedLanguageServer()
         {
             // Arrange
-            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerRenameSupport == true, MockBehavior.Strict);
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
 
             var delegatedEdit = new WorkspaceEdit();
             var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
@@ -552,7 +552,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory2Component), MockBehavior.Strict);
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
-            languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerRenameSupport == false, MockBehavior.Strict);
+            languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
 
             documentMappingService ??= Mock.Of<RazorDocumentMappingService>(MockBehavior.Strict);
             languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);

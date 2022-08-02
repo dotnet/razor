@@ -13,11 +13,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         private const string SingleServerCompletionFeatureFlag = "Razor.LSP.SingleServerCompletion";
-        private const string SingleServerRenameFeatureFlag = "Razor.LSP.SingleServerRename";
+        private const string SingleServerFeatureFlag = "Razor.LSP.SingleServer";
 
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private readonly Lazy<bool> _singleServerCompletionSupport;
-        private readonly Lazy<bool> _singleServerRenameSupport;
+        private readonly Lazy<bool> _singleServerSupport;
 
         [ImportingConstructor]
         public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -36,11 +36,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return singleServerCompletionEnabled;
             });
 
-            _singleServerRenameSupport = new Lazy<bool>(() =>
+            _singleServerSupport = new Lazy<bool>(() =>
             {
                 var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-                var singleServerRenameEnabled = featureFlags.IsFeatureEnabled(SingleServerRenameFeatureFlag, defaultValue: false);
-                return singleServerRenameEnabled;
+                var singleServerEnabled = featureFlags.IsFeatureEnabled(SingleServerFeatureFlag, defaultValue: false);
+                return singleServerEnabled;
             });
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool SingleServerCompletionSupport => _singleServerCompletionSupport.Value;
 
-        public override bool SingleServerRenameSupport => _singleServerRenameSupport.Value;
+        public override bool SingleServerSupport => _singleServerSupport.Value;
 
         private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
     }

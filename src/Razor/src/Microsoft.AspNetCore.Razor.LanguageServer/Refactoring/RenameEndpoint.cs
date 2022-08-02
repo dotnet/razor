@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             // If we're not doing single server rename, then we're done. C# and Html will be handled by the RenameHandler in the HtmlCSharp server.
-            if (!_languageServerFeatureOptions.SingleServerRenameSupport)
+            if (!_languageServerFeatureOptions.SingleServerSupport)
             {
                 return null;
             }
