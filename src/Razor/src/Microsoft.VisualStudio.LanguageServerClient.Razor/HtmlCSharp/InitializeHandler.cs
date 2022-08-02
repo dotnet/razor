@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     HoverProvider = true,
                     DefinitionProvider = true,
                     DocumentHighlightProvider = true,
-                    RenameProvider = !_languageServerFeatureOptions.SingleServerSupport,
+                    RenameProvider = true,
                     ReferencesProvider = true,
                     SignatureHelpProvider = new SignatureHelpOptions()
                     {
@@ -103,6 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     SupportsDiagnosticRequests = true,
                 }
             };
+
+            // If we're in single server mode, turn off some capabilities that we want to let the Razor server support
+            if (_languageServerFeatureOptions.SingleServerSupport)
+            {
+                _initializeResult.Capabilities.RenameProvider = false;
+            }
 
             if (!_languageServerFeatureOptions.SingleServerCompletionSupport)
             {
