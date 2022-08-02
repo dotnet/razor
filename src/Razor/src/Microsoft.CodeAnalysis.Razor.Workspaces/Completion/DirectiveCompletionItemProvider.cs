@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             ["addTagHelper"] = "addTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}",
             ["attribute"] = "attribute [${1:Authorize}]$0",
             ["implements"] = "implements ${1:IDisposable}",
-            ["inherits"] = "inherits ${1:MyRazorPageClass}",
+            ["inherits"] = "inherits ${1:ComponentBase}",
             ["inject"] = "inject ${1:IService} ${2:MyService}",
             ["layout"] = "layout ${1:MainLayout}",
             ["model"] = "model ${1:MyModelClass}",
