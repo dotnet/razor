@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             HtmlCompletionParams = new DelegatedCompletionParams(documentContext.Identifier, new Position(0, 0), RazorLanguageKind.Html, new VSInternalCompletionContext(), ProvisionalTextEdit: null);
             DocumentContextFactory = new TestDocumentContextFactory();
             FormattingService = TestRazorFormattingService.Instance;
-            MappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         }
 
         private VSInternalClientCapabilities ClientCapabilities { get; }

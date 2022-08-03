@@ -13,9 +13,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         private const string SingleServerCompletionFeatureFlag = "Razor.LSP.SingleServerCompletion";
+        private const string SingleServerFeatureFlag = "Razor.LSP.SingleServer";
 
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private readonly Lazy<bool> _singleServerCompletionSupport;
+        private readonly Lazy<bool> _singleServerSupport;
 
         [ImportingConstructor]
         public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -33,6 +35,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 var singleServerCompletionEnabled = featureFlags.IsFeatureEnabled(SingleServerCompletionFeatureFlag, defaultValue: false);
                 return singleServerCompletionEnabled;
             });
+
+            _singleServerSupport = new Lazy<bool>(() =>
+            {
+                var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+                var singleServerEnabled = featureFlags.IsFeatureEnabled(SingleServerFeatureFlag, defaultValue: false);
+                return singleServerEnabled;
+            });
         }
 
         // We don't currently support file creation operations on VS Codespaces or VS Liveshare
@@ -46,6 +55,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override string HtmlVirtualDocumentSuffix => "__virtual.html";
 
         public override bool SingleServerCompletionSupport => _singleServerCompletionSupport.Value;
+
+        public override bool SingleServerSupport => _singleServerSupport.Value;
 
         private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
     }

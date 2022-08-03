@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         protected static Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
         {
-            var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
             if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
                 !DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {

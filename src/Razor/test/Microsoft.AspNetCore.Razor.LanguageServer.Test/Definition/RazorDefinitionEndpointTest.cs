@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
@@ -323,7 +324,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             SetupDocument(out var codeDocument, out _, content);
             var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
             // Act II
             var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
@@ -350,7 +351,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             SetupDocument(out var codeDocument, out _, content);
             var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(),LoggerFactory);
 
             // Act II
             var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
@@ -377,7 +378,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             SetupDocument(out var codeDocument, out _, content);
             var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(),LoggerFactory);
 
             // Act II
             var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
@@ -408,7 +409,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             SetupDocument(out var codeDocument, out _, content);
             var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(),LoggerFactory);
 
             // Act II
             var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);

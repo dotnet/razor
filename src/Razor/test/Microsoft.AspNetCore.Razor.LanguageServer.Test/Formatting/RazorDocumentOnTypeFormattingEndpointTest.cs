@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var uri = new Uri("file://path/test.razor");
             var formattingService = new DummyRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 EmptyDocumentContextFactory, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
@@ -48,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentContextFactory(new Uri("file://path/testDifferentFile.razor"), codeDocument);
             var formattingService = new DummyRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
@@ -80,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentContextFactory(uri, codeDocument);
             var formattingService = new DummyRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
@@ -178,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentContextFactory(uri, codeDocument);
             var formattingService = new DummyRazorFormattingService();
-            var documentMappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentResolver, LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);

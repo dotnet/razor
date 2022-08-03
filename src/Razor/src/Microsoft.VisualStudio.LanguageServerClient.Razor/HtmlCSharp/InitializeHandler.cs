@@ -104,6 +104,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
+            // If we're in single server mode, turn off some capabilities that we want to let the Razor server support
+            if (_languageServerFeatureOptions.SingleServerSupport)
+            {
+                _initializeResult.Capabilities.RenameProvider = false;
+            }
+
             if (!_languageServerFeatureOptions.SingleServerCompletionSupport)
             {
                 // Feature flag is not on, fallback to utilizing completion handler

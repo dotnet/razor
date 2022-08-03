@@ -20,10 +20,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
     {
         private readonly CompletionRequestResponseFactory _completionFactory;
 
-        private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, CompletionRequestResponseFactory completionFactory) :
-            base(
+        private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, CompletionRequestResponseFactory completionFactory)
+            : base(
                 responseRewriters,
-                new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance),
+                new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance),
                 new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
                 {
                     [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,

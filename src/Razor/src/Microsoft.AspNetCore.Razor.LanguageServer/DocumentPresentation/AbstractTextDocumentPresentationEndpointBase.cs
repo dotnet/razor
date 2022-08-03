@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -174,22 +173,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             return false;
         }
 
-        public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
-        {
-            var path = virtualDocumentUri.AbsoluteUri;
-            path = path.Replace(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix, string.Empty);
-            path = path.Replace(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix, string.Empty);
-
-            var uri = new Uri(path, UriKind.Absolute);
-            return uri;
-        }
-
-        private bool IsVirtualDocumentUri(Uri uri)
-        {
-            return uri.GetAbsoluteOrUNCPath().EndsWith(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix, StringComparison.Ordinal) ||
-                   uri.GetAbsoluteOrUNCPath().EndsWith(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix, StringComparison.Ordinal);
-        }
-
         private Dictionary<string, TextEdit[]> MapChanges(Dictionary<string, TextEdit[]> changes, bool mapRanges, RazorCodeDocument codeDocument)
         {
             var remappedChanges = new Dictionary<string, TextEdit[]>();
@@ -198,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 var uri = new Uri(entry.Key);
                 var edits = entry.Value;
 
-                if (!IsVirtualDocumentUri(uri))
+                if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
                     remappedChanges[entry.Key] = entry.Value;
@@ -212,7 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                     continue;
                 }
 
-                var razorDocumentUri = GetRazorDocumentUri(uri);
+                var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
                 remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
             }
 
@@ -225,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             foreach (var entry in documentEdits)
             {
                 var uri = entry.TextDocument.Uri;
-                if (!IsVirtualDocumentUri(uri))
+                if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
                     remappedDocumentEdits.Add(entry);
@@ -241,7 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                     continue;
                 }
 
-                var razorDocumentUri = GetRazorDocumentUri(uri);
+                var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
                 remappedDocumentEdits.Add(new TextDocumentEdit()
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier()

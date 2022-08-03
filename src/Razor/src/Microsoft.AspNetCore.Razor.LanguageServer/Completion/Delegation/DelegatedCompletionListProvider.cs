@@ -7,11 +7,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
@@ -53,9 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             VSInternalClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var projection = GetProjection(absoluteIndex, codeDocument, sourceText);
+            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
             if (projection.LanguageKind == RazorLanguageKind.Razor)
             {
@@ -63,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 return null;
             }
 
-            var provisionalCompletion = TryGetProvisionalCompletionInfo(completionContext, projection, codeDocument, sourceText);
+            var provisionalCompletion = await TryGetProvisionalCompletionInfoAsync(documentContext, completionContext, projection, cancellationToken).ConfigureAwait(false);
             TextEdit? provisionalTextEdit = null;
             if (provisionalCompletion is not null)
             {
@@ -105,32 +101,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return rewrittenCompletionList;
         }
 
-        private CompletionProjection GetProjection(int absoluteIndex, RazorCodeDocument codeDocument, SourceText sourceText)
-        {
-            sourceText.GetLineAndOffset(absoluteIndex, out var line, out var character);
-            var projectedPosition = new Position(line, character);
-
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
-            if (languageKind == RazorLanguageKind.CSharp)
-            {
-                if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var mappedPosition, out _))
-                {
-                    // For C# locations, we attempt to return the corresponding position
-                    // within the projected document
-                    projectedPosition = mappedPosition;
-                }
-                else
-                {
-                    // It no longer makes sense to think of this location as C#, since it doesn't
-                    // correspond to any position in the projected document. This should not happen
-                    // since there should be source mappings for all the C# spans.
-                    languageKind = RazorLanguageKind.Razor;
-                }
-            }
-
-            return new CompletionProjection(languageKind, projectedPosition, absoluteIndex);
-        }
-
         private static VSInternalCompletionContext RewriteContext(VSInternalCompletionContext context, RazorLanguageKind languageKind)
         {
             if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
@@ -168,11 +138,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return rewrittenContext;
         }
 
-        private ProvisionalCompletionInfo? TryGetProvisionalCompletionInfo(
+        private async Task<ProvisionalCompletionInfo?> TryGetProvisionalCompletionInfoAsync(
+            DocumentContext documentContext,
             VSInternalCompletionContext completionContext,
-            CompletionProjection projection,
-            RazorCodeDocument codeDocument,
-            SourceText sourceText)
+            Projection projection,
+            CancellationToken cancellationToken)
         {
             if (projection.LanguageKind != RazorLanguageKind.Html ||
                 completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
@@ -188,7 +158,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 return null;
             }
 
-            var previousCharacterProjection = GetProjection(projection.AbsoluteIndex - 1, codeDocument, sourceText);
+            var previousCharacterProjection = await _documentMappingService.GetProjectionAsync(documentContext, projection.AbsoluteIndex - 1, cancellationToken).ConfigureAwait(false);
             if (previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp)
             {
                 return null;
@@ -205,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 },
                 NewText = ".",
             };
-            var provisionalProjection = new CompletionProjection(
+            var provisionalProjection = new Projection(
                 RazorLanguageKind.CSharp,
                 new Position(
                     previousCharacterProjection.Position.Line,
@@ -214,8 +184,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return new ProvisionalCompletionInfo(addProvisionalDot, provisionalProjection);
         }
 
-        private record class ProvisionalCompletionInfo(TextEdit ProvisionalTextEdit, CompletionProjection ProvisionalProjection);
-
-        private record class CompletionProjection(RazorLanguageKind LanguageKind, Position Position, int AbsoluteIndex);
+        private record class ProvisionalCompletionInfo(TextEdit ProvisionalTextEdit, Projection ProvisionalProjection);
     }
 }

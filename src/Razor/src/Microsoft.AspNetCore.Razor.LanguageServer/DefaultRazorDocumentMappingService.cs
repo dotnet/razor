@@ -6,10 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -19,15 +22,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly ILogger _logger;
 
-        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
+        public DefaultRazorDocumentMappingService(
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            DocumentContextFactory documentContextFactory,
+            ILoggerFactory loggerFactory)
+            : base()
         {
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
+            if (documentContextFactory is null)
+            {
+                throw new ArgumentNullException(nameof(documentContextFactory));
+            }
+
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            _languageServerFeatureOptions = languageServerFeatureOptions;
+            _documentContextFactory = documentContextFactory;
             _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
         }
 
@@ -405,6 +426,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return languageKind;
         }
 
+        public async override Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+        {
+            if (TryGetDocumentChanges(workspaceEdit, out var documentChanges))
+            {
+                // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
+                var remappedEdits = await RemapVersionedDocumentEditsAsync(documentChanges, cancellationToken).ConfigureAwait(false);
+                return new WorkspaceEdit()
+                {
+                    DocumentChanges = remappedEdits
+                };
+            }
+            else if (workspaceEdit.Changes != null)
+            {
+                var remappedEdits = await RemapDocumentEditsAsync(workspaceEdit.Changes, cancellationToken).ConfigureAwait(false);
+                return new WorkspaceEdit()
+                {
+                    Changes = remappedEdits
+                };
+            }
+
+            return workspaceEdit;
+        }
+
         // Internal for testing
         internal static RazorLanguageKind GetLanguageKindCore(
             IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
@@ -715,6 +759,149 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return position.Line < sourceText.Lines.Count;
             }
+        }
+
+        private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, [NotNullWhen(true)] out TextDocumentEdit[]? documentChanges)
+        {
+            if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
+            {
+                documentChanges = documentEdits;
+                return true;
+            }
+
+            if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+            {
+                var documentEditList = new List<TextDocumentEdit>();
+                foreach (var sumType in sumTypeArray)
+                {
+                    if (sumType.Value is TextDocumentEdit textDocumentEdit)
+                    {
+                        documentEditList.Add(textDocumentEdit);
+                    }
+                }
+
+                if (documentEditList.Count > 0)
+                {
+                    documentChanges = documentEditList.ToArray();
+                    return true;
+                }
+            }
+
+            documentChanges = null;
+            return false;
+        }
+
+        private async Task<TextDocumentEdit[]> RemapVersionedDocumentEditsAsync(TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
+        {
+            var remappedDocumentEdits = new List<TextDocumentEdit>();
+            foreach (var entry in documentEdits)
+            {
+                var virtualDocumentUri = entry.TextDocument.Uri;
+                if (!CanRemap(virtualDocumentUri))
+                {
+                    // This location doesn't point to a background razor file. No need to remap.
+                    remappedDocumentEdits.Add(entry);
+                    continue;
+                }
+
+                var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+                var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+                if (documentContext is null)
+                {
+                    continue;
+                }
+
+                var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+                var remappedEdits = RemapTextEditsCore(virtualDocumentUri, codeDocument, entry.Edits);
+                if (remappedEdits is null || remappedEdits.Length == 0)
+                {
+                    // Nothing to do.
+                    continue;
+                }
+
+                remappedDocumentEdits.Add(new TextDocumentEdit()
+                {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier()
+                    {
+                        Uri = razorDocumentUri,
+                        Version = documentContext.Version
+                    },
+                    Edits = remappedEdits
+                });
+            }
+
+            return remappedDocumentEdits.ToArray();
+        }
+
+        private async Task<Dictionary<string, TextEdit[]>> RemapDocumentEditsAsync(Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
+        {
+            var remappedChanges = new Dictionary<string, TextEdit[]>();
+            foreach (var entry in changes)
+            {
+                var uri = new Uri(entry.Key);
+                var edits = entry.Value;
+
+                if (!CanRemap(uri))
+                {
+                    // This location doesn't point to a background razor file. No need to remap.
+                    remappedChanges[entry.Key] = entry.Value;
+                    continue;
+                }
+
+                var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
+                if (documentContext is null)
+                {
+                    continue;
+                }
+
+                var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var remappedEdits = RemapTextEditsCore(uri, codeDocument, edits);
+                if (remappedEdits is null || remappedEdits.Length == 0)
+                {
+                    // Nothing to do.
+                    continue;
+                }
+
+                var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
+                remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
+            }
+
+            return remappedChanges;
+        }
+
+        private TextEdit[] RemapTextEditsCore(Uri virtualDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
+        {
+            if (_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
+            {
+                var remappedEdits = new List<TextEdit>();
+                for (var i = 0; i < edits.Length; i++)
+                {
+                    var projectedRange = edits[i].Range;
+                    if (!TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                    {
+                        // Can't map range. Discard this edit.
+                        continue;
+                    }
+
+                    var edit = new TextEdit()
+                    {
+                        Range = originalRange,
+                        NewText = edits[i].NewText
+                    };
+
+                    remappedEdits.Add(edit);
+                }
+
+                return remappedEdits.ToArray();
+            }
+
+            return edits;
+        }
+
+        private bool CanRemap(Uri uri)
+        {
+            return _languageServerFeatureOptions.IsVirtualCSharpFile(uri) || _languageServerFeatureOptions.IsVirtualHtmlFile(uri);
         }
     }
 }

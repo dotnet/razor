@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Xunit;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -126,7 +127,7 @@ public class Foo { }
 
         private FormattingDiagnosticValidationPass GetPass()
         {
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
             var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
             var pass = new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory)
