@@ -14,6 +14,19 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
+using System.Threading.Tasks;
+using Moq;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using OmniSharp.Extensions.JsonRpc;
+using System.Threading;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using static System.Net.Mime.MediaTypeNames;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 {
@@ -490,6 +503,103 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "Test1TagHelper", VSPredefinedClassificationTypeNames.Type),
                 run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => DefaultVSLSPTagHelperTooltipFactoryTest.AssertExpectedClassification(run, "BoolVal", VSPredefinedClassificationTypeNames.Identifier));
+        }
+
+        [Fact]
+        public async Task Handle_Hover_SingleServer_CallsDelegatedLanguageServer()
+        {
+            // Arrange
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
+
+            var delegatedHover = new VSInternalHover();
+            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            responseRouterReturnsMock
+                .Setup(l => l.Returning<VSInternalHover>(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(delegatedHover));
+
+            var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServerMock
+                .Setup(c => c.SendRequestAsync(LanguageServerConstants.RazorHoverEndpointName, It.IsAny<DelegatedHoverParams>()))
+                .Returns(Task.FromResult(responseRouterReturnsMock.Object));
+
+            var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+            documentMappingServiceMock
+                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Protocol.RazorLanguageKind.CSharp);
+
+            var outRange = new Range();
+            documentMappingServiceMock
+                .Setup(c => c.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out outRange))
+                .Returns(true);
+
+            var projectedPosition = new Position(1, 1);
+            var projectedIndex = 1;
+            documentMappingServiceMock.Setup(
+                c => c.TryMapToProjectedDocumentPosition(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
+                .Returns(true);
+
+            var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
+
+            var request = new VSHoverParamsBridge
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("C:/text.razor")
+                },
+                Position = new Position(1, 0),
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Same(delegatedHover, result);
+        }
+
+        private RazorHoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, RazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)
+        {
+            var txt = @"@addTagHelper *, TestAssembly
+<any @test=""Increment"" />
+@code{
+    public void Increment(){
+    }
+}";
+            var path = "C:/text.razor";
+            var codeDocument = CreateCodeDocument(txt, path, DefaultTagHelpers);
+            var sourceText = SourceText.From(txt);
+
+            var projectWorkspaceState = new ProjectWorkspaceState(DefaultTagHelpers, LanguageVersion.Default);
+            var projectSnapshot = TestProjectSnapshot.Create("C:/project.csproj", projectWorkspaceState);
+
+            var snapshot = Mock.Of<DocumentSnapshot>(d =>
+                d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
+                d.FilePath == path &&
+                d.FileKind == FileKinds.Component &&
+                d.GetTextAsync() == Task.FromResult(sourceText) &&
+                d.Project == projectSnapshot, MockBehavior.Strict);
+
+            var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
+                d.TryCreateAsync(new Uri(path), It.IsAny<CancellationToken>()) == Task.FromResult(new DocumentContext(new Uri(path), snapshot, 1337)), MockBehavior.Strict);
+
+            languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
+
+            var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+            documentMappingServiceMock
+                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Protocol.RazorLanguageKind.Html);
+            documentMappingService ??= documentMappingServiceMock.Object;
+
+            languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+
+            var endpoint = new RazorHoverEndpoint(
+                documentContextFactory,
+                GetDefaultRazorHoverInfoService(),
+                languageServerFeatureOptions,
+                documentMappingService,
+                languageServer,
+                TestLoggerFactory.Instance);
+
+            return endpoint;
         }
 
         private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService()

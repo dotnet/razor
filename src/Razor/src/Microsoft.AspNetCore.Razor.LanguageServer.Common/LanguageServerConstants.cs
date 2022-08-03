@@ -68,6 +68,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorRenameEndpointName = "razor/rename";
 
+        public const string RazorHoverEndpointName = "razor/hover";
+
         // This needs to be the same as in Web Tools, that is used by the HTML editor, because
         // we actually respond to the Web Tools "Wrap With Div" command handler, which sends this message
         // to all servers. We then take the message, get the HTML virtual document, and send it

@@ -97,5 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(LanguageServerConstants.RazorRenameEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<WorkspaceEdit?> RenameAsync(DelegatedRenameParams request, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(LanguageServerConstants.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<VSInternalHover?> HoverAsync(DelegatedHoverParams request, CancellationToken cancellationToken);
     }
 }
