@@ -49,12 +49,6 @@
     <Content Include="$(RepositoryRoot)NOTICE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-
-    <!-- Embedded grammars -->
-    <Content Include="..\Microsoft.VisualStudio.RazorExtension\EmbeddedGrammars\*">
-      <Link>Grammars\%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -103,7 +97,7 @@
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\NOTICE.txt" />
 
     <!-- Embedded Grammars -->
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Grammars\**">
+    <MPackFile Include="..\Microsoft.VisualStudio.RazorExtension\EmbeddedGrammars\*">
       <Folder>Grammars</Folder>
     </MPackFile>
   </ItemGroup>
