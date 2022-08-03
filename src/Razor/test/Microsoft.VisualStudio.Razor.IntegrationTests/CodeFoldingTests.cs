@@ -44,6 +44,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             var outlines = new ICollapsible[0];
             while (tries++ < MaxTries)
             {
+                await TestServices.Editor.WaitForOutlineRegionsAsync(ControlledHangMitigatingCancellationToken);
+
                 textView = await TestServices.Editor.GetActiveTextViewAsync(ControlledHangMitigatingCancellationToken);
                 outlines = await TestServices.Editor.GetOutlineRegionsAsync(textView, ControlledHangMitigatingCancellationToken);
 
