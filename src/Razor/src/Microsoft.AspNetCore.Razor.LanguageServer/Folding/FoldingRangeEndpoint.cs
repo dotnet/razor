@@ -74,6 +74,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 try
                 {
                     foldingRanges = await HandleCoreAsync(requestParams, documentContext, cancellationToken);
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return null;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // No point retrying if we've been asked to cancel
+                    return null;
                 }
                 catch (Exception e) when (retries < MaxRetries)
                 {
@@ -110,12 +120,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 }
             }
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+
             mappedRanges.AddRange(foldingResponse.HtmlRanges);
 
             foreach (var provider in _foldingRangeProviders)
             {
                 var ranges = await provider.GetFoldingRangesAsync(documentContext, cancellationToken);
                 mappedRanges.AddRange(ranges);
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return null;
             }
 
             var finalRanges = FinalizeFoldingRanges(mappedRanges, codeDocument);
