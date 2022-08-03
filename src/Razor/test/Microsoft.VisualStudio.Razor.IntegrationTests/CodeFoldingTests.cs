@@ -38,11 +38,14 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Built in retry logic because getting spans can take time.
             //
             var tries = 0;
-            const int MaxTries = 1;
+            const int MaxTries = 10;
+            const int Delay = 500;
             ImmutableArray<CollapsibleBlock> missingLines;
             var outlines = new ICollapsible[0];
             while (tries++ < MaxTries)
             {
+                await TestServices.Editor.WaitForOutlineRegionsAsync(ControlledHangMitigatingCancellationToken);
+
                 textView = await TestServices.Editor.GetActiveTextViewAsync(ControlledHangMitigatingCancellationToken);
                 outlines = await TestServices.Editor.GetOutlineRegionsAsync(textView, ControlledHangMitigatingCancellationToken);
 
@@ -60,7 +63,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                     return;
                 }
 
-                await Task.Delay(500);
+                await Task.Delay(Delay);
             }
 
             if (missingLines.Length > 0)
@@ -118,7 +121,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_CodeBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -157,7 +160,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     }");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_IfBlock()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -202,7 +205,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_ForEach()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
@@ -237,7 +240,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6180")]
+        [IdeFact]
         public async Task CodeFolding_CodeBlock_Region()
         {
             await TestServices.SolutionExplorer.AddFileAsync(
