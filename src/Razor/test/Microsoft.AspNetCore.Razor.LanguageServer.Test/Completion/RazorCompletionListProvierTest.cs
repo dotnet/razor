@@ -358,6 +358,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Contains(completionList.Items, item => item.InsertText == "removeTagHelper");
             Assert.Contains(completionList.Items, item => item.InsertText == "tagHelperPrefix");
         }
+        
+        [Fact]
+        public async Task GetCompletionListAsync_ProvidesDirectiveCompletions_IncompleteTriggerOnDeletion()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocument("@");
+            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+            var completionContext = new VSInternalCompletionContext()
+            {
+                TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
+                InvokeKind = VSInternalCompletionInvokeKind.Deletion,
+            };
+            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+
+            // Act
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+
+            // Assert
+
+            // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
+            Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
+            Assert.Contains(completionList.Items, item => item.InsertText == "removeTagHelper");
+            Assert.Contains(completionList.Items, item => item.InsertText == "tagHelperPrefix");
+        }
 
         [Fact]
         public async Task GetCompletionListAsync_ProvidesInjectOnIncomplete_KeywordIn()

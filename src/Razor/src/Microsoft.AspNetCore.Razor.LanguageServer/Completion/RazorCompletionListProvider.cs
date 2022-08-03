@@ -260,6 +260,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return false;
             }
 
+            if (vsCompletionContext.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions)
+            {
+                // For incomplete completions we want to re-provide information if we would have originally.
+                return true;
+            }
+
             if (vsCompletionContext.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
             {
                 // We do not support providing completions on delete.
