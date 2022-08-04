@@ -75,17 +75,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 {
                     foldingRanges = await HandleCoreAsync(requestParams, documentContext, cancellationToken);
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return null;
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
-                catch (OperationCanceledException)
-                {
-                    // No point retrying if we've been asked to cancel
-                    return null;
-                }
-                catch (Exception e) when (retries < MaxRetries)
+                catch (Exception e) when (e is not OperationCanceledException && retries < MaxRetries)
                 {
                     _logger.LogWarning(e, "Try {retries} to get FoldingRange", retries);
                 }
@@ -120,10 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 }
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             mappedRanges.AddRange(foldingResponse.HtmlRanges);
 
@@ -133,10 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
                 mappedRanges.AddRange(ranges);
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var finalRanges = FinalizeFoldingRanges(mappedRanges, codeDocument);
             return finalRanges;
