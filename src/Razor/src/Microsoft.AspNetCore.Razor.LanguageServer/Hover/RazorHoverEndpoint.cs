@@ -6,9 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -17,14 +15,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class RazorHoverEndpoint : IVSHoverEndpoint
+    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover?, DelegatedHoverParams>, IVSHoverEndpoint
     {
-        private readonly ILogger _logger;
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorHoverInfoService _hoverInfoService;
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly ClientNotifierServiceBase _languageServer;
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorHoverEndpoint(
@@ -34,68 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
+            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory)
         {
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
-            _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-            _logger = loggerFactory?.CreateLogger<RazorHoverEndpoint>() ?? throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        public async Task<VSInternalHover?> Handle(VSHoverParamsBridge request, CancellationToken cancellationToken)
-        {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
-
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var absoluteIndex))
-            {
-                return null;
-            }
-
-            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-
-            // If the language is Razor then the downstream servers won't know how to handle it. If we're not using
-            // the single server implementation to delegate, then provide hover information using the hover service
-            if (!_languageServerFeatureOptions.SingleServerSupport || projection.LanguageKind == Protocol.RazorLanguageKind.Razor)
-            {
-                var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
-                var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-                var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
-                return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
-            }
-
-            var delegatedParams = new DelegatedHoverParams(
-                documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind);
-
-            var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorHoverEndpointName, delegatedParams).ConfigureAwait(false);
-            var delegatedResponse = await delegatedRequest.Returning<VSInternalHover?>(cancellationToken).ConfigureAwait(false);
-
-            if (delegatedResponse is not null &&
-                delegatedResponse.Range is not null &&
-                _documentMappingService.TryMapToProjectedDocumentRange(codeDocument, delegatedResponse.Range, out var projectedRange))
-            {
-                delegatedResponse.Range = projectedRange;
-            }
-
-            return delegatedResponse;
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
@@ -109,6 +43,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             };
 
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
+        }
+
+        /// <inheritdoc/>
+        protected override string EndpointName => LanguageServerConstants.RazorHoverEndpointName;
+
+        /// <inheritdoc/>
+        protected override DelegatedHoverParams CreateDelegatedParams(DocumentContext documentContext, Projection projection)
+            => new DelegatedHoverParams(
+                documentContext.Identifier,
+                projection.Position,
+                projection.LanguageKind);
+
+        /// <inheritdoc/>
+        protected override Task<VSInternalHover?> HandleInRazorAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken)
+            => DefaultHandleAsync(request, documentContext, codeDocument, sourceText, cancellationToken);
+
+        /// <inheritdoc/>
+        protected override Task<VSInternalHover?> HandleWithoutSingleServerAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken)
+            => DefaultHandleAsync(request, documentContext, codeDocument, sourceText, cancellationToken);
+
+        private Task<VSInternalHover?> DefaultHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken _)
+        {
+            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
+            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+            var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
+            var result = _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
+
+            return Task.FromResult(result);
         }
     }
 }
