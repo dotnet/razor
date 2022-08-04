@@ -62,12 +62,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return null;
             }
 
-            // If we're not doing single server rename, then we're done. C# and Html will be handled by the RenameHandler in the HtmlCSharp server.
-            if (!_languageServerFeatureOptions.SingleServerSupport)
-            {
-                return null;
-            }
-
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var absoluteIndex))
             {
@@ -76,10 +70,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
             var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
-            // If the language is Razor then the downstream servers won't know how to handle it anyway
-            if (projection.LanguageKind == Protocol.RazorLanguageKind.Razor)
+            // If the language is Razor then the downstream servers won't know how to handle it. If we're not using
+            // the single server implementation to delegate, then provide hover information using the hover service
+            if (!_languageServerFeatureOptions.SingleServerSupport || projection.LanguageKind == Protocol.RazorLanguageKind.Razor)
             {
-                return null;
+                var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
+                var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+                var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
+                return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
             }
 
             var delegatedParams = new DelegatedHoverParams(

@@ -21,7 +21,6 @@ using OmniSharp.Extensions.JsonRpc;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
