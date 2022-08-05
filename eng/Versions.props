@@ -113,18 +113,17 @@
     <MicrosoftVisualStudioShellInterop90PackageVersion>9.0.30730</MicrosoftVisualStudioShellInterop90PackageVersion>
     <MicrosoftVisualStudioShellInteropPackageVersion>7.10.6072</MicrosoftVisualStudioShellInteropPackageVersion>
     <MicrosoftVisualStudioTextUIPackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioTextUIPackageVersion>
-    <MicrosoftVisualStudioThreadingPackageVersion>16.3.13</MicrosoftVisualStudioThreadingPackageVersion>
+    <MicrosoftVisualStudioThreadingPackageVersion>17.2.32</MicrosoftVisualStudioThreadingPackageVersion>
     <MonoAddinsPackageVersion>1.3.8</MonoAddinsPackageVersion>
     <MonoDevelopSdkPackageVersion>1.0.10</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.10.0</MoqPackageVersion>
-    <!-- STOP!!! We need to reference the version of JSON that our HOSTS supprt. -->
-    <NewtonsoftJsonPackageVersion>9.0.1</NewtonsoftJsonPackageVersion>
+    <NewtonsoftJsonPackageVersion>13.0.1</NewtonsoftJsonPackageVersion>
     <OmniSharpExtensionsLanguageServerPackageVersion>0.13.1</OmniSharpExtensionsLanguageServerPackageVersion>
     <OmniSharpMSBuildPackageVersion>1.33.0</OmniSharpMSBuildPackageVersion>
-    <VS_NewtonsoftJsonPackageVersion>12.0.1</VS_NewtonsoftJsonPackageVersion>
-    <VSMAC_NewtonsoftJsonPackageVersion>10.0.3</VSMAC_NewtonsoftJsonPackageVersion>
-    <TEST_NewtonsoftJsonPackageVersion>12.0.1</TEST_NewtonsoftJsonPackageVersion>
-    <StreamJsonRpcPackageVersion>2.0.167</StreamJsonRpcPackageVersion>
+    <VS_NewtonsoftJsonPackageVersion>13.0.1</VS_NewtonsoftJsonPackageVersion>
+    <VSMAC_NewtonsoftJsonPackageVersion>13.0.1</VSMAC_NewtonsoftJsonPackageVersion>
+    <TEST_NewtonsoftJsonPackageVersion>13.0.1</TEST_NewtonsoftJsonPackageVersion>
+    <StreamJsonRpcPackageVersion>2.11.35</StreamJsonRpcPackageVersion>
     <SystemNetHttpPackageVersion>4.3.4</SystemNetHttpPackageVersion>
     <SystemSecurityCryptographyX509CertificatesPackageVersion>4.3.2</SystemSecurityCryptographyX509CertificatesPackageVersion>
     <VSIX_MicrosoftVisualStudioTelemetryPackageVersion>16.0.4-master</VSIX_MicrosoftVisualStudioTelemetryPackageVersion>
