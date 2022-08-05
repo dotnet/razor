@@ -18,6 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
     internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover?, DelegatedHoverParams>, IVSHoverEndpoint
     {
         private readonly RazorHoverInfoService _hoverInfoService;
+        private readonly RazorDocumentMappingService _documentMappingService;
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorHoverEndpoint(
@@ -30,6 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory)
         {
             _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
@@ -49,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string EndpointName => LanguageServerConstants.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override DelegatedHoverParams CreateDelegatedParams(DocumentContext documentContext, Projection projection)
+        protected override DelegatedHoverParams CreateDelegatedParams(VSHoverParamsBridge request, DocumentContext documentContext, Projection projection)
             => new DelegatedHoverParams(
                 documentContext.Identifier,
                 projection.Position,
@@ -62,6 +64,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         /// <inheritdoc/>
         protected override Task<VSInternalHover?> HandleWithoutSingleServerAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken)
             => DefaultHandleAsync(request, documentContext, codeDocument, sourceText, cancellationToken);
+
+        /// <inheritdoc/>
+        protected override Task<VSInternalHover?> RemapResponseAsync(VSInternalHover? response, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        {
+            if (response is null)
+            {
+                throw new ArgumentNullException(nameof(response));
+            }
+
+            if (response.Range is null)
+            {
+                return Task.FromResult<VSInternalHover?>(response);
+            }
+
+            if (_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
+            {
+                response.Range = projectedRange;
+            }
+
+            return Task.FromResult<VSInternalHover?>(response);
+        }
 
         private Task<VSInternalHover?> DefaultHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken _)
         {

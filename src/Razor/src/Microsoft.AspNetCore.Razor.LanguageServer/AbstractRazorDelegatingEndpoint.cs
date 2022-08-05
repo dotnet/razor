@@ -21,9 +21,9 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class AbstractRazorDelegatingEndpoint<TParamsBridge, TResponse, TDelegatedParams> : IJsonRpcRequestHandler<TParamsBridge, TResponse?>
-        where TParamsBridge : TextDocumentPositionParams, IRequest<TResponse>
-        where TResponse : class?
+    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse, TDelegatedParams> : IJsonRpcRequestHandler<TRequest, TResponse?>
+        where TRequest : TextDocumentPositionParams, IRequest<TResponse>
+        where TResponse : class
         where TDelegatedParams : class
     {
         private readonly DocumentContextFactory _documentContextFactory;
@@ -49,21 +49,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// Override to provide fallback behavior for when single server is not supported
         /// </summary>
-        protected abstract Task<TResponse?> HandleWithoutSingleServerAsync(TParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken);
+        protected abstract Task<TResponse?> HandleWithoutSingleServerAsync(TRequest request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Override to provide behavior for razor contexts. Since the c#/html servers won't
         /// have any information for this context it doesn't need to be delegated
         /// </summary>
-        protected abstract Task<TResponse?> HandleInRazorAsync(TParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken);
+        protected abstract Task<TResponse?> HandleInRazorAsync(TRequest request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken);
 
         /// <summary>
         /// The delegated object to send to the <see cref="EndpointName"/>
         /// </summary>
-        /// <param name="documentContext"></param>
-        /// <param name="projection"></param>
-        /// <returns></returns>
-        protected abstract TDelegatedParams CreateDelegatedParams(DocumentContext documentContext, Projection projection);
+        protected abstract TDelegatedParams CreateDelegatedParams(TRequest request, DocumentContext documentContext, Projection projection);
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="LanguageServerConstants"/>
@@ -73,10 +70,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// If the response needs to be remapped for any reasons, override to handle the remapping logic
         /// </summary>
-        protected virtual Task<TResponse?> RemapResponseAsync(TResponse? delegatedResponse, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        protected virtual Task<TResponse> RemapResponseAsync(TResponse delegatedResponse, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
-        public async Task<TResponse?> Handle(TParamsBridge request, CancellationToken cancellationToken)
+        /// <summary>
+        /// Extracts information about the request and then calls <see cref="GetDelegatedResponseAsync(TRequest, DocumentContext, RazorCodeDocument, SourceText, int, Projection, CancellationToken)"/>.
+        /// Children can override to provide any more custom logic needed before doing a normal delegated response pass with <see cref="GetDelegatedResponseAsync(TRequest, DocumentContext, RazorCodeDocument, SourceText, int, Projection, CancellationToken)"/>
+        /// </summary>
+        public virtual async Task<TResponse?> Handle(TRequest request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -101,26 +102,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
+            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+
+            return await GetDelegatedResponseAsync(request, documentContext, codeDocument, sourceText, absoluteIndex, projection, cancellationToken).ConfigureAwait(false);
+        }
+
+        protected async Task<TResponse?> GetDelegatedResponseAsync(
+            TRequest request,
+            DocumentContext documentContext,
+            RazorCodeDocument codeDocument,
+            SourceText sourceText,
+            int absoluteIndex,
+            Projection projection,
+            CancellationToken cancellationToken)
+        {
             if (!_languageServerFeatureOptions.SingleServerSupport)
             {
                 return await HandleWithoutSingleServerAsync(request, documentContext, codeDocument, sourceText, cancellationToken).ConfigureAwait(false);
             }
-
-            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
             if (projection.LanguageKind == RazorLanguageKind.Razor)
             {
                 return await HandleInRazorAsync(request, documentContext, codeDocument, sourceText, cancellationToken).ConfigureAwait(false);
             }
 
-            var delegatedParams = CreateDelegatedParams(documentContext, projection);
+            var delegatedParams = CreateDelegatedParams(request, documentContext, projection);
 
             var delegatedRequest = await _languageServer.SendRequestAsync(EndpointName, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
 
-            return await RemapResponseAsync(delegatedResponse, codeDocument, cancellationToken).ConfigureAwait(false);
+            return delegatedResponse is null
+                ? delegatedResponse
+                : await RemapResponseAsync(delegatedResponse, codeDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        
     }
 }
