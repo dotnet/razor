@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse, TDelegatedParams> : IJsonRpcRequestHandler<TRequest, TResponse?>
         where TRequest : TextDocumentPositionParams, IRequest<TResponse>
-        where TResponse : class
+        where TResponse : class?
         where TDelegatedParams : class
     {
         private readonly DocumentContextFactory _documentContextFactory;

@@ -38,8 +38,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly ILogger<RenameEndpoint> _logger;
 
-        protected override string EndpointName => throw new NotImplementedException();
-
         public RenameEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentContextFactory documentContextFactory,
@@ -72,6 +70,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             return new RegistrationExtensionResult(ServerCapability, options);
         }
+
+        /// <inheritdoc/>
+        protected override string EndpointName => LanguageServerConstants.RazorRenameEndpointName;
 
         /// <inheritdoc/>
         protected override Task<WorkspaceEdit?> HandleWithoutSingleServerAsync(RenameParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken)
