@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -17,6 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
     internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover?, DelegatedHoverParams>, IVSHoverEndpoint
     {
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorHoverInfoService _hoverInfoService;
         private readonly RazorDocumentMappingService _documentMappingService;
         private VSInternalClientCapabilities? _clientCapabilities;
@@ -28,8 +30,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory)
+            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
         {
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
@@ -51,22 +54,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string EndpointName => LanguageServerConstants.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override DelegatedHoverParams CreateDelegatedParams(VSHoverParamsBridge request, DocumentContext documentContext, Projection projection)
-            => new DelegatedHoverParams(
-                documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind);
+        protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
+        {
+            var documentContext = await _documentContextFactory.GetRequiredAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
+            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+
+            return new DelegatedHoverParams(
+                        documentContext.Identifier,
+                        projection.Position,
+                        projection.LanguageKind);
+        }
 
         /// <inheritdoc/>
-        protected override Task<VSInternalHover?> HandleInRazorAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken)
-            => DefaultHandleAsync(request, documentContext, codeDocument, sourceText, cancellationToken);
+        protected override async Task<VSInternalHover?> HandleInRazorAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
+        {
+            var documentContext = await _documentContextFactory.GetRequiredAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
+            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+            var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+
+            return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
+        }
 
         /// <inheritdoc/>
-        protected override Task<VSInternalHover?> HandleWithoutSingleServerAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken cancellationToken)
-            => DefaultHandleAsync(request, documentContext, codeDocument, sourceText, cancellationToken);
-
-        /// <inheritdoc/>
-        protected override Task<VSInternalHover?> RemapResponseAsync(VSInternalHover? response, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> RemapResponseAsync(VSInternalHover? response, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             if (response is null)
             {
@@ -75,25 +91,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
             if (response.Range is null)
             {
-                return Task.FromResult<VSInternalHover?>(response);
+                return response;
             }
+
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
 
             if (_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
             {
                 response.Range = projectedRange;
             }
 
-            return Task.FromResult<VSInternalHover?>(response);
-        }
-
-        private Task<VSInternalHover?> DefaultHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, RazorCodeDocument codeDocument, SourceText sourceText, CancellationToken _)
-        {
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
-            var result = _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
-
-            return Task.FromResult(result);
+            return response;
         }
     }
 }

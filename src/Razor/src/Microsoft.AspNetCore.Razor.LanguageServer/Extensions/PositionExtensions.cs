@@ -26,6 +26,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             return TryGetAbsoluteIndex(position.Character, position.Line, sourceText, logger, out absoluteIndex);
         }
 
+        public static int GetRequiredAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger)
+        {
+            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return absoluteIndex;
+        }
+
         public static int CompareTo(this Position position, Position other)
         {
             if (position is null)
