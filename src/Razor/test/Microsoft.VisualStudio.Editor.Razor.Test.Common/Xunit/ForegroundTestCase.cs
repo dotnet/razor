@@ -42,7 +42,20 @@ namespace Xunit
 
                     Exception caught = null;
                     var frame = new DispatcherFrame();
-                    _ = Task.Run(async () =>
+                    _ = WaitForWorkerAsync();
+
+                    Dispatcher.PushFrame(frame);
+
+                    if (caught == null)
+                    {
+                        tcs.SetResult(worker.Result);
+                    }
+                    else
+                    { 
+                        tcs.SetException(caught);
+                    }
+
+                    async ValueTask WaitForWorkerAsync()
                     {
                         try
                         {
@@ -56,17 +69,6 @@ namespace Xunit
                         {
                             frame.Continue = false;
                         }
-                    });
-
-                    Dispatcher.PushFrame(frame);
-
-                    if (caught == null)
-                    {
-                        tcs.SetResult(worker.Result);
-                    }
-                    else
-                    { 
-                        tcs.SetException(caught);
                     }
                 }
                 catch (Exception e)
