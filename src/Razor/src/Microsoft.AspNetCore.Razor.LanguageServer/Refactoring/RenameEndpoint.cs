@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -71,12 +70,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         protected override string EndpointName => LanguageServerConstants.RazorRenameEndpointName;
 
         /// <inheritdoc/>
-        protected override async Task<WorkspaceEdit?> HandleInRazorAsync(RenameParamsBridge request, CancellationToken cancellationToken)
+        protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.GetRequiredAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+
+            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken);
+
+            // If we're in C# then there is no point checking for a component tag, because there won't be one
+            if (projection.LanguageKind == RazorLanguageKind.CSharp)
+            {
+                return null;
+            }
 
             return await TryGetRazorComponentRenameEditsAsync(request, absoluteIndex, documentContext.Snapshot, codeDocument, cancellationToken).ConfigureAwait(false);
         }
@@ -84,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         /// <inheritdoc/>
         protected override async Task<DelegatedRenameParams> CreateDelegatedParamsAsync(RenameParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.GetRequiredAsync(request.TextDocument.Uri, cancellationToken);
+            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
             var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);

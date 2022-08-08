@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         /// <inheritdoc/>
         protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.GetRequiredAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
             var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
@@ -68,11 +68,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> HandleInRazorAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> TryHandleAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.GetRequiredAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, _logger, cancellationToken).ConfigureAwait(false);
+            if (projection is null)
+            {
+                return null;
+            }
 
+            if (projection.LanguageKind != RazorLanguageKind.Razor)
+            {
+                return null;
+            }
+
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);

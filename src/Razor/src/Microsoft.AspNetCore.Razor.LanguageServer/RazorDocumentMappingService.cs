@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -58,6 +59,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             return new Projection(languageKind, projectedPosition, absoluteIndex);
+        }
+
+        public async Task<Projection?> TryGetProjectionAsync(DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
+        {
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+            {
+                return null;
+            }
+
+            return await GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
         }
     }
 

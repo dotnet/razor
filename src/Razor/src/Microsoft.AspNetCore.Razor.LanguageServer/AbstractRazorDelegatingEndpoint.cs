@@ -6,9 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -42,19 +39,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         /// <summary>
-        /// Override to provide behavior for razor contexts. Since the c#/html servers won't
-        /// have any information for this context it doesn't need to be delegated
-        /// </summary>
-        protected abstract Task<TResponse?> HandleInRazorAsync(TRequest request, CancellationToken cancellationToken);
-
-        /// <summary>
         /// The delegated object to send to the <see cref="EndpointName"/>
         /// </summary>
         protected abstract Task<TDelegatedParams> CreateDelegatedParamsAsync(TRequest request, CancellationToken cancellationToken);
 
         /// <summary>
-        /// The name of the endpoint to delegate to, from <see cref="LanguageServerConstants"/>
+        /// The name of the endpoint to delegate to, from <see cref="LanguageServerConstants"/>. This is the
+        /// custom endpoint that is sent via <see cref="ClientNotifierServiceBase"/> which returns
+        /// a response by delegating to C#/HTML. 
         /// </summary>
+        /// <remarks>
+        /// An example is <see cref="LanguageServerConstants.RazorHoverEndpointName"/> 
+        /// </remarks>
         protected abstract string EndpointName { get; }
 
         /// <summary>
@@ -63,6 +59,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         protected virtual Task<TResponse> RemapResponseAsync(TResponse delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
+        /// <summary>
+        /// If the request can be handled without delegation, override this to provide a response. If a null
+        /// value is returned the request will be delegated to C#/HTML servers, otherwise the response
+        /// will be used in <see cref="Handle(TRequest, CancellationToken)"/>
+        /// </summary>
+        protected virtual Task<TResponse?> TryHandleAsync(TRequest request, CancellationToken cancellationToken)
+            => Task.FromResult<TResponse?>(null);
+
+        /// <summary>
+        /// Implementation for <see cref="IRequest{TResponse}"/>
+        /// </summary>
         public async Task<TResponse?> Handle(TRequest request, CancellationToken cancellationToken)
         {
             if (request is null)
@@ -70,32 +77,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
+            var response = await TryHandleAsync(request, cancellationToken).ConfigureAwait(false);
+            if (response is not null)
             {
-                return null;
-            }
-
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var absoluteIndex))
-            {
-                return null;
-            }
-
-            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-
-            if (projection.LanguageKind == RazorLanguageKind.Razor)
-            {
-                return await HandleInRazorAsync(request, cancellationToken).ConfigureAwait(false);
+                return response;
             }
 
             if (!_languageServerFeatureOptions.SingleServerSupport)
+            {
+                return null;
+            }
+
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return null;
             }
@@ -105,9 +99,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var delegatedRequest = await _languageServer.SendRequestAsync(EndpointName, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
 
-            return delegatedResponse is null
-                ? delegatedResponse
-                : await RemapResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
+            if (delegatedResponse is null)
+            {
+                return null;
+            }
+
+            var remappedResponse = await RemapResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
+            return remappedResponse;
         }
     }
 }
