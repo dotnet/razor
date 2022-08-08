@@ -109,44 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.ProjectSystem
         }
 
         [Fact]
-        public async Task UpdateLSPFileInfo_DocumentRemoved_Noops()
-        {
-            // Arrange
-            await TestAccessor.GetDynamicFileInfoAsync(Project.FilePath, Document1.FilePath, CancellationToken.None).ConfigureAwait(false);
-            var called = false;
-            Provider.Updated += (sender, args) => called = true;
-            ProjectSnapshotManager.DocumentRemoved(Project.HostProject, Document1.State.HostDocument);
-
-            // Act
-            Provider.UpdateLSPFileInfo(new Uri(Document1.FilePath), LSPDocumentContainer);
-
-            // Assert
-            Assert.False(called);
-        }
-
-        [Fact]
-        public async Task UpdateLSPFileInfo_UnrelatedDocumentRemoved_UpdateOnlyValidDocuments()
-        {
-            // Arrange
-            await TestAccessor.GetDynamicFileInfoAsync(Project.FilePath, Document1.FilePath, CancellationToken.None).ConfigureAwait(false);
-            await TestAccessor.GetDynamicFileInfoAsync(Project.FilePath, Document2.FilePath, CancellationToken.None).ConfigureAwait(false);
-            var callCount = 0;
-            Provider.Updated += (sender, documentFilePath) =>
-            {
-                Assert.Equal(Document1.FilePath, documentFilePath);
-                callCount++;
-            };
-            ProjectSnapshotManager.DocumentRemoved(Project.HostProject, Document2.State.HostDocument);
-
-            // Act
-            Provider.UpdateLSPFileInfo(new Uri(Document2.FilePath), LSPDocumentContainer);
-            Provider.UpdateLSPFileInfo(new Uri(Document1.FilePath), LSPDocumentContainer);
-
-            // Assert
-            Assert.Equal(1, callCount);
-        }
-
-        [Fact]
         public async Task UpdateLSPFileInfo_SolutionClosing_ClearsAllDocuments()
         {
             // Arrange
