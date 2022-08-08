@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
-    internal class ProjectSnapshotSynchronizationService : ICollaborationService, IAsyncDisposable
+    internal class ProjectSnapshotSynchronizationService : ICollaborationService, System.IAsyncDisposable
     {
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly CollaborationSession _sessionContext;
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             await InitializeGuestProjectManagerAsync(projectManagerState.ProjectHandles, cancellationToken);
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             _hostProjectManagerProxy.Changed -= HostProxyProjectManager_Changed;
 
