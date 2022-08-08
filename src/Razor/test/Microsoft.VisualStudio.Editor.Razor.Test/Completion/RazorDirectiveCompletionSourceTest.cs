@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 async () => await completionSource.GetCompletionContextAsync(null, new CompletionTrigger(CompletionTriggerReason.Invoke, triggerLocation.Snapshot), triggerLocation, applicableSpan, CancellationToken.None));
 
             // Assert
-            Assert.Empty(completionContext.Items);
+            Assert.Empty(completionContext.ItemList);
         }
 
         [UIFact]
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 async () => await completionSource.GetCompletionContextAsync(null, new CompletionTrigger(CompletionTriggerReason.Invoke, triggerLocation.Snapshot), triggerLocation, applicableSpan, CancellationToken.None));
 
             // Assert
-            Assert.Empty(completionContext.Items);
+            Assert.Empty(completionContext.ItemList);
         }
 
         // This is more of an integration level test validating the end-to-end completion flow.
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
             // Assert
             Assert.Collection(
-                completionContext.Items,
+                completionContext.ItemList,
                 item => AssertRazorCompletionItem(SectionDirective.Directive, item, completionSource),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, completionSource),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, completionSource),
