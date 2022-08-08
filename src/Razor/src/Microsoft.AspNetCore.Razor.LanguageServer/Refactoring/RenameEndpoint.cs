@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
 
         /// <inheritdoc/>
-        protected override async Task<WorkspaceEdit?> RemapResponseAsync(WorkspaceEdit? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             if (response is null)
             {

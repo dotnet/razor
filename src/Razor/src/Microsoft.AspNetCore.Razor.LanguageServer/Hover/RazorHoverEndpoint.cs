@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> RemapResponseAsync(VSInternalHover? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             if (response is null)
             {

@@ -54,9 +54,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         protected abstract string EndpointName { get; }
 
         /// <summary>
-        /// If the response needs to be remapped for any reasons, override to handle the remapping logic
+        /// If the response needs to be handled, such as for remapping positions back, override and handle here
         /// </summary>
-        protected virtual Task<TResponse> RemapResponseAsync(TResponse delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            var remappedResponse = await RemapResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
+            var remappedResponse = await HandleDelegatedResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
             return remappedResponse;
         }
     }
