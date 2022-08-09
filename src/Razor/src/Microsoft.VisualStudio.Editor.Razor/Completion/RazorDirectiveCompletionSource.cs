@@ -22,11 +22,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     internal class RazorDirectiveCompletionSource : IAsyncCompletionSource
     {
         // Internal for testing
-        internal static readonly object DescriptionKey = new object();
+        internal static readonly object DescriptionKey = new();
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        internal static readonly Guid ImageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        internal static readonly ImageElement DirectiveImageGlyph = new ImageElement(
+        internal static readonly Guid ImageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        internal static readonly ImageElement DirectiveImageGlyph = new(
             new ImageId(ImageCatalogGuid, 3233), // KnownImageIds.Type = 3233
             "Razor Directive.");
         internal static readonly ImmutableArray<CompletionFilter> DirectiveCompletionFilters = new[] {
@@ -82,9 +82,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var completionItems = new List<CompletionItem>();
                 foreach (var razorCompletionItem in razorCompletionItems)
                 {
-                    if (razorCompletionItem.Kind != RazorCompletionItemKind.Directive)
+                    if (razorCompletionItem.Kind != RazorCompletionItemKind.Directive &&
+                        razorCompletionItem.Kind != RazorCompletionItemKind.DirectiveSnippet)
                     {
-                        // Don't support any other types of completion kinds other than directives.
+                        // Don't support any other types of completion kinds other than directives and directive snippets.
                         continue;
                     }
 

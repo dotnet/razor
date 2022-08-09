@@ -36,8 +36,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Assert
             Assert.Collection(
                 completionItems,
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
@@ -56,8 +59,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem(customDirective, item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
@@ -80,8 +86,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("different", customDirective, item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
@@ -104,8 +113,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("code", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
@@ -127,8 +139,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("section", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
@@ -159,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Assert
             Assert.Collection(
                 completionItems,
+                item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
                 item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
         }
 
@@ -180,9 +196,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Assert
             Assert.Collection(
                 completionItems,
+                item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
                 item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, isSnippet: true));
         }
 
@@ -434,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             if (isSnippet)
             {
                 Assert.StartsWith(directive.Directive, item.InsertText);
-                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive]);
+                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive].InsertText);
             }
             else
             {

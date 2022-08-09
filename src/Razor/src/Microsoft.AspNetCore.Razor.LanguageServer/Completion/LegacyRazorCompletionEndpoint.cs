@@ -208,113 +208,130 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             switch (razorCompletionItem.Kind)
             {
                 case RazorCompletionItemKind.Directive:
+                {
+                    var directiveCompletionItem = new VSInternalCompletionItem()
                     {
-                        var directiveCompletionItem = new VSInternalCompletionItem()
-                        {
-                            Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.DisplayText,
-                            SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = insertTextFormat,
-                            Kind = CompletionItemKind.Struct,
-                        };
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = CompletionItemKind.Struct,
+                    };
 
-                        directiveCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+                    directiveCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
-                        if (razorCompletionItem == DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem)
-                        {
-                            directiveCompletionItem.Command = s_retriggerCompletionCommand;
-                            directiveCompletionItem.Kind = tagHelperCompletionItemKind;
-                        }
-
-                        completionItem = directiveCompletionItem;
-                        return true;
+                    if (razorCompletionItem == DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem)
+                    {
+                        directiveCompletionItem.Command = s_retriggerCompletionCommand;
+                        directiveCompletionItem.Kind = tagHelperCompletionItemKind;
                     }
+
+                    completionItem = directiveCompletionItem;
+                    return true;
+                }
+                case RazorCompletionItemKind.DirectiveSnippet:
+                {
+                    var directiveSnippetCompletionItem = new VSInternalCompletionItem()
+                    {
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = CompletionItemKind.Snippet,
+                    };
+
+                    directiveSnippetCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+
+                    completionItem = directiveSnippetCompletionItem;
+                    return true;
+                }
                 case RazorCompletionItemKind.DirectiveAttribute:
+                {
+                    var directiveAttributeCompletionItem = new VSInternalCompletionItem()
                     {
-                        var directiveAttributeCompletionItem = new VSInternalCompletionItem()
-                        {
-                            Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.InsertText,
-                            SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = insertTextFormat,
-                            Kind = tagHelperCompletionItemKind,
-                        };
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.InsertText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = tagHelperCompletionItemKind,
+                    };
 
-                        directiveAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+                    directiveAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
-                        completionItem = directiveAttributeCompletionItem;
-                        return true;
-                    }
+                    completionItem = directiveAttributeCompletionItem;
+                    return true;
+                }
                 case RazorCompletionItemKind.DirectiveAttributeParameter:
+                {
+                    var parameterCompletionItem = new VSInternalCompletionItem()
                     {
-                        var parameterCompletionItem = new VSInternalCompletionItem()
-                        {
-                            Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.InsertText,
-                            SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = insertTextFormat,
-                            Kind = tagHelperCompletionItemKind,
-                        };
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.InsertText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = tagHelperCompletionItemKind,
+                    };
 
-                        parameterCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+                    parameterCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
-                        completionItem = parameterCompletionItem;
-                        return true;
-                    }
+                    completionItem = parameterCompletionItem;
+                    return true;
+                }
                 case RazorCompletionItemKind.MarkupTransition:
+                {
+                    var markupTransitionCompletionItem = new VSInternalCompletionItem()
                     {
-                        var markupTransitionCompletionItem = new VSInternalCompletionItem()
-                        {
-                            Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.DisplayText,
-                            SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = insertTextFormat,
-                            Kind = tagHelperCompletionItemKind,
-                        };
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = tagHelperCompletionItemKind,
+                    };
 
-                        markupTransitionCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+                    markupTransitionCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
-                        completionItem = markupTransitionCompletionItem;
-                        return true;
-                    }
+                    completionItem = markupTransitionCompletionItem;
+                    return true;
+                }
                 case RazorCompletionItemKind.TagHelperElement:
+                {
+                    var tagHelperElementCompletionItem = new VSInternalCompletionItem()
                     {
-                        var tagHelperElementCompletionItem = new VSInternalCompletionItem()
-                        {
-                            Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.DisplayText,
-                            SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = insertTextFormat,
-                            Kind = tagHelperCompletionItemKind,
-                        };
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = tagHelperCompletionItemKind,
+                    };
 
-                        tagHelperElementCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+                    tagHelperElementCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
-                        completionItem = tagHelperElementCompletionItem;
-                        return true;
-                    }
+                    completionItem = tagHelperElementCompletionItem;
+                    return true;
+                }
                 case RazorCompletionItemKind.TagHelperAttribute:
+                {
+                    var tagHelperAttributeCompletionItem = new VSInternalCompletionItem()
                     {
-                        var tagHelperAttributeCompletionItem = new VSInternalCompletionItem()
-                        {
-                            Label = razorCompletionItem.DisplayText,
-                            InsertText = razorCompletionItem.InsertText,
-                            FilterText = razorCompletionItem.DisplayText,
-                            SortText = razorCompletionItem.SortText,
-                            InsertTextFormat = insertTextFormat,
-                            Kind = tagHelperCompletionItemKind,
-                        };
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = tagHelperCompletionItemKind,
+                    };
 
-                        tagHelperAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+                    tagHelperAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
-                        completionItem = tagHelperAttributeCompletionItem;
-                        return true;
-                    }
+                    completionItem = tagHelperAttributeCompletionItem;
+                    return true;
+                }
             }
 
             completionItem = null;

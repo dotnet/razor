@@ -394,9 +394,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Assert
 
             // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
-            Assert.Contains(completionList.Items, item => CheckDirectiveSnippet(item, "addTagHelper"));
-            Assert.Contains(completionList.Items, item => CheckDirectiveSnippet(item, "removeTagHelper"));
-            Assert.Contains(completionList.Items, item => CheckDirectiveSnippet(item, "tagHelperPrefix"));
+            Assert.Collection(completionList.Items,
+                item => Assert.Equal("addTagHelper", item.InsertText),
+                item => AssertDirectiveSnippet(item, "addTagHelper"),
+                item => Assert.Equal("removeTagHelper", item.InsertText),
+                item => AssertDirectiveSnippet(item, "removeTagHelper"),
+                item => Assert.Equal("tagHelperPrefix", item.InsertText),
+                item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            );
         }
 
         [Fact]
@@ -433,7 +438,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Contains(completionList.Items, item => CheckDirectiveSnippet(item, "addTagHelper"));
+            Assert.Collection(completionList.Items,
+                item => Assert.Equal("addTagHelper", item.InsertText),
+                item => AssertDirectiveSnippet(item, "addTagHelper"),
+                item => Assert.Equal("removeTagHelper", item.InsertText),
+                item => AssertDirectiveSnippet(item, "removeTagHelper"),
+                item => Assert.Equal("tagHelperPrefix", item.InsertText),
+                item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            );
         }
 
         [Fact]
@@ -506,7 +518,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
 
             // Assert
-            Assert.Contains(completionList.Items, item => CheckDirectiveSnippet(item, "addTagHelper"));
+            Assert.Collection(completionList.Items,
+                item => Assert.Equal("addTagHelper", item.InsertText),
+                item => AssertDirectiveSnippet(item, "addTagHelper"),
+                item => Assert.Equal("removeTagHelper", item.InsertText),
+                item => AssertDirectiveSnippet(item, "removeTagHelper"),
+                item => Assert.Equal("tagHelperPrefix", item.InsertText),
+                item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+            );
         }
 
         // This is more of an integration test to validate that all the pieces work together
@@ -594,10 +613,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return codeDocument;
         }
 
-        private static bool CheckDirectiveSnippet(CompletionItem completionItem, string directive)
+        private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
         {
-            return completionItem.InsertText.StartsWith(directive) &&
-                   completionItem.InsertText == DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive];
+            Assert.StartsWith(directive, completionItem.InsertText);
+            Assert.Equal(DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
+            Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
         }
     }
 }

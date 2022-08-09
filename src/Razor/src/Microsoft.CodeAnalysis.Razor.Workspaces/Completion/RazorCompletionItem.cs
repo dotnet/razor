@@ -74,10 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 {
                     lock (this)
                     {
-                        if (_items is null)
-                        {
-                            _items = new ItemCollection();
-                        }
+                        _items ??= new ItemCollection();
                     }
                 }
 
