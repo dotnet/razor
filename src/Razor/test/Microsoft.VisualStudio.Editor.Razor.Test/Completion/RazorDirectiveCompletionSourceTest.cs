@@ -93,8 +93,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             Assert.Collection(
                 completionContext.Items,
                 item => AssertRazorCompletionItem(SectionDirective.Directive, item, completionSource),
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, completionSource, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, completionSource, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, completionSource, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, completionSource, isSnippet: true),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, completionSource, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[2], item, completionSource, isSnippet: true));
         }
 
@@ -138,7 +141,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             if (isSnippet)
             {
                 Assert.StartsWith(directive.Directive, item.InsertText);
-                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive]);
+                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive].InsertText);
             }
             else
             {
