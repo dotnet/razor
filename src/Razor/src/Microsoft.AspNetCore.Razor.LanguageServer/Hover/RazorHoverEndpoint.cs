@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override string EndpointName => LanguageServerConstants.RazorHoverEndpointName;
+        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
         /// <inheritdoc/>
         protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)

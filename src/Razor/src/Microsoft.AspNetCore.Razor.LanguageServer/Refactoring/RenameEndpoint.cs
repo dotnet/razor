@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
 
         /// <inheritdoc/>
-        protected override string EndpointName => LanguageServerConstants.RazorRenameEndpointName;
+        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;
 
         /// <inheritdoc/>
         protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, CancellationToken cancellationToken)

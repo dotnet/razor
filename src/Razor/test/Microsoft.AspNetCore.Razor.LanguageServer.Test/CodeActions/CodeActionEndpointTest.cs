@@ -736,7 +736,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             public override Task<IResponseRouterReturns> SendRequestAsync(string method)
             {
-                if (method != LanguageServerConstants.RazorProvideCodeActionsEndpoint)
+                if (method != RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint)
                 {
                     throw new InvalidOperationException($"Unexpected method {method}");
                 }
@@ -746,7 +746,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
             {
-                if (method != LanguageServerConstants.RazorProvideCodeActionsEndpoint)
+                if (method != RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint)
                 {
                     throw new InvalidOperationException($"Unexpected method {method}");
                 }

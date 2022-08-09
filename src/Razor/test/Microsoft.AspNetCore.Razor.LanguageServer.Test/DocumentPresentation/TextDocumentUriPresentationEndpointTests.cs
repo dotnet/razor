@@ -224,7 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -278,7 +278,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -335,7 +335,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -390,7 +390,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -439,7 +439,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -489,7 +489,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -538,7 +538,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
                 .ReturnsAsync(responseRouterReturns.Object);
 
             var endpoint = new TextDocumentUriPresentationEndpoint(

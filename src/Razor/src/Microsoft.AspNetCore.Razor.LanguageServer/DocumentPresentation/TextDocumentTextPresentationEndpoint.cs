@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         {
         }
 
-        public override string EndpointName => LanguageServerConstants.RazorTextPresentationEndpoint;
+        public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint;
 
         public override RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {

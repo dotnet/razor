@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             _razorComponentSearchEngine = razorComponentSearchEngine;
         }
 
-        public override string EndpointName => LanguageServerConstants.RazorUriPresentationEndpoint;
+        public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint;
 
         public override RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {

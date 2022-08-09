@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            var result = _server.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+            var result = _server.SendRequest(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, request);
             // This is the call that actually makes the request, any SendRequest without a .Returning* after it will do nothing.
             _ = result.ReturningVoid(CancellationToken.None);
         }
@@ -163,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            var result = _server.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
+            var result = _server.SendRequest(RazorLanguageServerCustomMessageTargets.RazorUpdateHtmlBufferEndpoint, request);
             _ = result.ReturningVoid(CancellationToken.None);
         }
 

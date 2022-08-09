@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken)
         {
             var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
-            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, parameter);
+            var request = await _languageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
 
             if (csharpResponse is null)

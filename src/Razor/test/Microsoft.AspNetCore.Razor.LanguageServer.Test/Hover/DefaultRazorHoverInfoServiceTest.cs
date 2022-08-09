@@ -518,7 +518,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServerMock
-                .Setup(c => c.SendRequestAsync(LanguageServerConstants.RazorHoverEndpointName, It.IsAny<DelegatedHoverParams>()))
+                .Setup(c => c.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedHoverParams>()))
                 .Returns(Task.FromResult(responseRouterReturnsMock.Object));
 
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);

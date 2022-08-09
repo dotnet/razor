@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,11 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public abstract Task<object[]> WorkspaceConfigurationAsync(OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to update the contents of the virtual CSharp buffer.
-        [JsonRpcMethod(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task UpdateCSharpBufferAsync(UpdateBufferRequest token, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to update the contents of the virtual Html buffer.
-        [JsonRpcMethod(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUpdateHtmlBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task UpdateHtmlBufferAsync(UpdateBufferRequest token, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to invoke a textDocument/formatting request
@@ -47,22 +46,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // Called by the Razor Language Server to invoke a textDocument/rangeFormatting request
         // on the virtual Html/CSharp buffer.
-        [JsonRpcMethod(LanguageServerConstants.RazorRangeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorRangeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams token, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to provide code actions from the platform.
-        [JsonRpcMethod(LanguageServerConstants.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<IReadOnlyList<VSInternalCodeAction>?> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to resolve code actions from the platform.
-        [JsonRpcMethod(LanguageServerConstants.RazorResolveCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<VSInternalCodeAction?> ResolveCodeActionsAsync(RazorResolveCodeActionParams codeAction, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to provide ranged semantic tokens from the platform.
-        [JsonRpcMethod(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(ProvideSemanticTokensRangeParams semanticTokensParams, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task RazorServerReadyAsync(CancellationToken cancellationToken);
 
         // Called by Visual Studio to wrap the current selection with a tag
@@ -70,20 +69,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public abstract Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to provide inline completions from the platform.
-        [JsonRpcMethod(LanguageServerConstants.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to provide document colors from the platform.
-        [JsonRpcMethod(LanguageServerConstants.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<IReadOnlyList<ColorInformation>> ProvideHtmlDocumentColorAsync(DocumentColorParams documentColorParams, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<RazorFoldingRangeResponse?> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorTextPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorUriPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken);
 
         [JsonRpcMethod(LanguageServerConstants.RazorCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
@@ -95,10 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [JsonRpcMethod(LanguageServerConstants.RazorGetFormattingOptionsEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<FormattingOptions?> GetFormattingOptionsAsync(TextDocumentIdentifier document, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorRenameEndpointName, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<WorkspaceEdit?> RenameAsync(DelegatedRenameParams request, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<VSInternalHover?> HoverAsync(DelegatedHoverParams request, CancellationToken cancellationToken);
     }
 }

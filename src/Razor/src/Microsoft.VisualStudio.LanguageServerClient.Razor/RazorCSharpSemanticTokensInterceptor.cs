@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var refreshParams = new SemanticTokensRefreshParams();
             await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
-                LanguageServerConstants.RazorSemanticTokensRefreshEndpoint,
+AspNetCore.Razor.LanguageServer.Common.RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 refreshParams,
                 cancellationToken).ConfigureAwait(false);

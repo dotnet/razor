@@ -39,19 +39,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         /// <summary>
-        /// The delegated object to send to the <see cref="EndpointName"/>
+        /// The delegated object to send to the <see cref="CustomMessageTarget"/>
         /// </summary>
         protected abstract Task<TDelegatedParams> CreateDelegatedParamsAsync(TRequest request, CancellationToken cancellationToken);
 
         /// <summary>
-        /// The name of the endpoint to delegate to, from <see cref="LanguageServerConstants"/>. This is the
+        /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
         /// custom endpoint that is sent via <see cref="ClientNotifierServiceBase"/> which returns
         /// a response by delegating to C#/HTML. 
         /// </summary>
         /// <remarks>
-        /// An example is <see cref="LanguageServerConstants.RazorHoverEndpointName"/> 
+        /// An example is <see cref="RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName"/> 
         /// </remarks>
-        protected abstract string EndpointName { get; }
+        protected abstract string CustomMessageTarget { get; }
 
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var delegatedParams = await CreateDelegatedParamsAsync(request, cancellationToken);
 
-            var delegatedRequest = await _languageServer.SendRequestAsync(EndpointName, delegatedParams).ConfigureAwait(false);
+            var delegatedRequest = await _languageServer.SendRequestAsync(CustomMessageTarget, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
 
             if (delegatedResponse is null)
