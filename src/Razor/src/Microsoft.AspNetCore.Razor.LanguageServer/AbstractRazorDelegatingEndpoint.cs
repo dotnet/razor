@@ -68,6 +68,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             => Task.FromResult<TResponse?>(null);
 
         /// <summary>
+        /// Returns true if the configuration supports this operation being handled, otherwise returns false. 
+        /// </summary>
+        protected virtual bool IsSupported() => true;
+
+        /// <summary>
         /// Implementation for <see cref="IRequest{TResponse}"/>
         /// </summary>
         public async Task<TResponse?> Handle(TRequest request, CancellationToken cancellationToken)
@@ -75,6 +80,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (!IsSupported())
+            {
+                return null;
             }
 
             var response = await TryHandleAsync(request, cancellationToken).ConfigureAwait(false);

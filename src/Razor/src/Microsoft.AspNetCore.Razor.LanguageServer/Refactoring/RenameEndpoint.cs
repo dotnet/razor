@@ -88,6 +88,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return await TryGetRazorComponentRenameEditsAsync(request, absoluteIndex, documentContext.Snapshot, codeDocument, cancellationToken).ConfigureAwait(false);
         }
 
+        protected override bool IsSupported()
+            => _languageServerFeatureOptions.SupportsFileManipulation;
+
         /// <inheritdoc/>
         protected override async Task<DelegatedRenameParams> CreateDelegatedParamsAsync(RenameParamsBridge request, CancellationToken cancellationToken)
         {
