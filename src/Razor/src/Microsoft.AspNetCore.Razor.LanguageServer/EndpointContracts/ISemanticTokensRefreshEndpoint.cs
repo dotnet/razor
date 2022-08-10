@@ -6,7 +6,7 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    [Parallel, Method(LanguageServerConstants.RazorSemanticTokensRefreshEndpoint, Direction.ClientToServer)]
+    [Parallel, Method(RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint, Direction.ClientToServer)]
     internal interface ISemanticTokensRefreshEndpoint : IJsonRpcNotificationHandler<SemanticTokensRefreshParamsBridge>,
         IRegistrationExtension
     {
