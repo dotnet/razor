@@ -562,8 +562,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         }
 
         [Fact]
-        public async Task Handle_Hover_SingleServer_RangeIsMapped()
+        public async Task Handle_Hover_SingleServer_CSharpVariable()
         {
+            // Arrange
             var input = """
                 <div></div>
 
@@ -574,9 +575,66 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 }
                 """;
 
+
+            // Act
+            var result = await GetResultFromSingleServerEndpointAsync(input);
+
+            // Assert
+            var range = result.Range;
+            var expected = new Range()
+            {
+                Start = new Position(line: 3, character: 8),
+                End = new Position(line: 3, character: 18)
+            };
+
+            Assert.Equal(expected, range);
+
+            var rawContainer = (ContainerElement)result.RawContent;
+            var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
+
+            var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
+            var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
+
+            // No need to validate exact text, in case the c# language server changes. Just
+            // verify that the expected variable is represented within the hover text
+            Assert.Contains("myVariable", text);
+        }
+
+        [Fact]
+        public async Task Handle_Hover_SingleServer_Component()
+        {
             // Arrange
+            var input = """
+                @addTagHelper *, TestAssembly
+
+                <$$test1></test1>
+                """;
+
+            // Act
+            var result = await GetResultFromSingleServerEndpointAsync(input);
+
+            // Assert
+            var range = result.Range;
+            var expected = new Range()
+            {
+                Start = new Position(line: 2, character: 1),
+                End = new Position(line: 2, character: 6)
+            };
+
+            Assert.Equal(expected, range);
+
+            var rawContainer = (ContainerElement)result.RawContent;
+            var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
+
+            var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
+            var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
+            Assert.Equal("Test1TagHelper", text);
+        }
+
+        private async Task<VSInternalHover> GetResultFromSingleServerEndpointAsync(string input)
+        {
             TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
-            var codeDocument = CreateCodeDocument(output);
+            var codeDocument = CreateCodeDocument(output, DefaultTagHelpers);
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
             var serverCapabilities = new ServerCapabilities()
@@ -598,9 +656,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri);
             var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
             var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
-            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
-            var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
-            var hoverInfoService = new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
+            var hoverInfoService = GetDefaultRazorHoverInfoService();
 
             var endpoint = new RazorHoverEndpoint(
                 documentContextFactory,
@@ -609,6 +665,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 documentMappingService,
                 languageServer,
                 LoggerFactory);
+
+            var clientCapabilities = MarkDownCapabilities;
+            clientCapabilities.SupportsVisualStudioExtensions = true;
+
+            _ = endpoint.GetRegistration(clientCapabilities);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new VSHoverParamsBridge
@@ -620,28 +681,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 Position = new Position(line, offset)
             };
 
-            // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
-
-            // Assert
-            var range = result.Range;
-            var expected = new Range()
-            {
-                Start = new Position(line: 3, character: 8),
-                End = new Position(line: 3, character: 18)
-            };
-
-            Assert.Equal(expected, range);
-
-            var rawContainer = (ContainerElement)result.RawContent;
-            var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
-
-            var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
-            var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
-
-            // No need to validate exact text, in case the c# language server changes. Just
-            // verify that the expected variable is represented within the hover text
-            Assert.Contains("myVariable", text);
+            return await endpoint.Handle(request, CancellationToken.None);
         }
 
         private RazorHoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, RazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)

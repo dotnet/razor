@@ -75,7 +75,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return null;
             }
 
-            if (projection.LanguageKind != RazorLanguageKind.Razor)
+            // HTML can still sometimes be handled by razor. For example hovering over
+            // a component tag like <Counter /> will still be in an html context
+            if (projection.LanguageKind == RazorLanguageKind.CSharp)
             {
                 return null;
             }
