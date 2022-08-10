@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    public static class RazorLanguageServerCustomMessageTargets
+    internal static class RazorLanguageServerCustomMessageTargets
     {
         public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
 
