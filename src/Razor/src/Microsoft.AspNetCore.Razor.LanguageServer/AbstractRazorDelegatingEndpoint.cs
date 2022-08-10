@@ -65,7 +65,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             => Task.FromResult<TResponse?>(null);
 
         /// <summary>
-        /// Returns true if the configuration supports this operation being handled, otherwise returns false. 
+        /// Returns true if the configuration supports this operation being handled, otherwise returns false. Use to
+        /// handle cases where <see cref="LanguageServerFeatureOptions"/> other than <see cref="LanguageServerFeatureOptions.SingleServerSupport"/>
+        /// need to be checked to validate that the operation can be done.
         /// </summary>
         protected virtual bool IsSupported() => true;
 
