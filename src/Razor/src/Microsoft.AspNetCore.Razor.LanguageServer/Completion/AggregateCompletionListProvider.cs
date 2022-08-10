@@ -15,14 +15,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal class AggregateCompletionListProvider
     {
         private readonly IReadOnlyList<CompletionListProvider> _completionListProviders;
-        private readonly ILogger<AggregateCompletionListProvider> _logger;
 
-        public AggregateCompletionListProvider(
-            IEnumerable<CompletionListProvider> completionListProviders,
-            ILoggerFactory loggerFactory)
+        public AggregateCompletionListProvider(IEnumerable<CompletionListProvider> completionListProviders)
         {
             _completionListProviders = completionListProviders.ToArray();
-            _logger = loggerFactory.CreateLogger<AggregateCompletionListProvider>();
 
             var allTriggerCharacters = _completionListProviders.SelectMany(provider => provider.TriggerCharacters);
             var distinctTriggerCharacters = new HashSet<string>(allTriggerCharacters);
@@ -48,35 +44,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     // Trigger character doesn't apply
                     continue;
                 }
-
-                try
-                {
-                    var task = completionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken);
-                    completionListTasks.Add(task);
-                }
-                catch (Exception ex) when (ex is not TaskCanceledException)
-                {
-                    _logger.LogError(ex, "Resolving completions failed synchronously unexpectedly.");
-                }
+                
+                var task = completionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken);
+                completionListTasks.Add(task);
             }
 
             var completionLists = new Queue<VSInternalCompletionList>();
             foreach (var completionListTask in completionListTasks)
             {
-                try
+                var completionList = await completionListTask.ConfigureAwait(false);
+                if (completionList is not null)
                 {
-                    var completionList = await completionListTask.ConfigureAwait(false);
-                    if (completionList is not null)
-                    {
-                        completionLists.Enqueue(completionList);
-                    }
+                    completionLists.Enqueue(completionList);
+                }
 
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogError(ex, "Resolving completions failed unexpectedly.");
-                }
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             if (completionLists.Count == 0)

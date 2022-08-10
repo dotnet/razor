@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         public RazorCompletionEndpointTest()
         {
-            CompletionListProvider = new AggregateCompletionListProvider(Array.Empty<CompletionListProvider>(), LoggerFactory);
+            CompletionListProvider = new AggregateCompletionListProvider(Array.Empty<CompletionListProvider>());
         }
 
         private AggregateCompletionListProvider CompletionListProvider { get; }
