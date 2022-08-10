@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover?, DelegatedHoverParams>, IVSHoverEndpoint
+    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover, DelegatedHoverParams>, IVSHoverEndpoint
     {
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorHoverInfoService _hoverInfoService;
@@ -92,13 +92,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover> HandleDelegatedResponseAsync(VSInternalHover response, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
-
             if (response.Range is null)
             {
                 return response;

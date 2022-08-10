@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBridge, WorkspaceEdit?, DelegatedRenameParams>, IRenameEndpoint
+    internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBridge, WorkspaceEdit, DelegatedRenameParams>, IRenameEndpoint
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentContextFactory _documentContextFactory;
@@ -107,15 +107,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
 
         /// <inheritdoc/>
-        protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, DocumentContext documentContext, CancellationToken cancellationToken)
-        {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
-
-            return await _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken).ConfigureAwait(false);
-        }
+        protected override Task<WorkspaceEdit> HandleDelegatedResponseAsync(WorkspaceEdit response, DocumentContext documentContext, CancellationToken cancellationToken)
+            => _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken);
 
         private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParamsBridge request, int absoluteIndex, DocumentSnapshot requestDocumentSnapshot, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
