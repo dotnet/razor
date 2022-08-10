@@ -256,7 +256,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideCodeActionsEndpoint, context.Request);
+            var response = await _languageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, context.Request);
             return await response.Returning<RazorVSInternalCodeAction[]>(cancellationToken);
         }
 

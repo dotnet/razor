@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         protected async Task<CodeAction?> ResolveCodeActionWithServerAsync(Uri uri, CodeAction codeAction, CancellationToken cancellationToken)
         {
             var resolveCodeActionParams = new RazorResolveCodeActionParams(uri, codeAction);
-            var response = await LanguageServer.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, resolveCodeActionParams).ConfigureAwait(false);
+            var response = await LanguageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, resolveCodeActionParams).ConfigureAwait(false);
             var resolvedCodeAction = await response.Returning<CodeAction?>(cancellationToken).ConfigureAwait(false);
 
             return resolvedCodeAction;

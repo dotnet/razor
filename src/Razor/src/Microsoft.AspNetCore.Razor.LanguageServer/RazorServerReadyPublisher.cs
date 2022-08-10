@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     // Un-register this method, we only need to send this once.
                     _projectManager!.Changed -= ProjectSnapshotManager_Changed;
-                    var response = await _clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
+                    var response = await _clientNotifierService.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorServerReadyEndpoint);
                     await response.ReturningVoid(cancellationToken);
 
                     _hasNotified = true;

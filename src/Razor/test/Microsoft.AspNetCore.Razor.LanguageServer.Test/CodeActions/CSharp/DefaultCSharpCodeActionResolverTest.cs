@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             return languageServer.Object;

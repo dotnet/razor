@@ -132,7 +132,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         };
 
         request.Position = projectedPosition;
-        var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorInlineCompletionEndpoint, razorRequest).ConfigureAwait(false);
+        var response = await _languageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint, razorRequest).ConfigureAwait(false);
         var list = await response.Returning<VSInternalInlineCompletionList>(cancellationToken).ConfigureAwait(false);
         if (list == null || !list.Items.Any())
         {

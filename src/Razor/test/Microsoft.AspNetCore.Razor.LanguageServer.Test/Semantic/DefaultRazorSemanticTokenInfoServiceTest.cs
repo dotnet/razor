@@ -688,7 +688,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()))
+                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);

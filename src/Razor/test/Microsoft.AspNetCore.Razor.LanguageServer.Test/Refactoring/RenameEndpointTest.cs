@@ -401,7 +401,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServerMock
-                .Setup(c => c.SendRequestAsync(LanguageServerConstants.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>()))
+                .Setup(c => c.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>()))
                 .Returns(Task.FromResult(responseRouterReturnsMock.Object));
 
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
@@ -686,7 +686,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
             {
-                Assert.Equal(LanguageServerConstants.RazorRenameEndpointName, method);
+                Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, method);
                 var renameParams = Assert.IsType<DelegatedRenameParams>(@params);
 
                 var renameRequest = new RenameParams()
