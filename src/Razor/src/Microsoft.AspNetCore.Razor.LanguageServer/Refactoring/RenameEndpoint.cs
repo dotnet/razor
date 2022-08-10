@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
-        ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory)
             : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())
         {
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
