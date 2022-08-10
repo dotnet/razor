@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return response;
             }
 
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
             {
