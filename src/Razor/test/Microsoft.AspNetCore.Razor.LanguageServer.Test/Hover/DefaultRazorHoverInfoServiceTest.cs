@@ -627,8 +627,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var range = result.Range;
             var expected = new Range()
             {
-                Start = new Position(line: 32, character: 8),
-                End = new Position(line:32, character: 18)
+                Start = new Position(line: 3, character: 8),
+                End = new Position(line: 3, character: 18)
             };
 
             Assert.Equal(expected, range);
@@ -753,7 +753,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
         private class ResponseRouterReturn : IResponseRouterReturns
         {
-            private VSInternalHover _result;
+            private readonly VSInternalHover _result;
 
             public ResponseRouterReturn(VSInternalHover result)
             {
