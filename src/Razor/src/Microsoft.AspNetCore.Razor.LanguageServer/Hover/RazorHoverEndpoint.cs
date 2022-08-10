@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
+            : base(documentContextFactory, languageServerFeatureOptions, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
         {
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
+            var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, Logger);
             var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
 
             return new DelegatedHoverParams(
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         /// <inheritdoc/>
         protected override async Task<VSInternalHover?> TryHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, _logger, cancellationToken).ConfigureAwait(false);
+            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
             if (projection is null)
             {
                 return null;

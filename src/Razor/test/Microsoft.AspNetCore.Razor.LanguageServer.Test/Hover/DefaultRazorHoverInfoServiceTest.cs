@@ -598,9 +598,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri);
             var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
             var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
-            var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
             var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var hoverInfoService = new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);

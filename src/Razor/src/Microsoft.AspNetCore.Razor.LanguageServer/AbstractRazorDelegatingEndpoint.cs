@@ -20,22 +20,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
-        protected readonly ILogger _logger;
+        protected readonly ILogger Logger;
 
         protected AbstractRazorDelegatingEndpoint(
             DocumentContextFactory documentContextFactory,
             LanguageServerFeatureOptions languageServerFeatureOptions,
-            RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILogger logger)
         {
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
