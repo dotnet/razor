@@ -70,9 +70,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;
 
         /// <inheritdoc/>
-        protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, CancellationToken cancellationToken)
+        protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
@@ -92,9 +91,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             => _languageServerFeatureOptions.SupportsFileManipulation;
 
         /// <inheritdoc/>
-        protected override async Task<DelegatedRenameParams> CreateDelegatedParamsAsync(RenameParamsBridge request, CancellationToken cancellationToken)
+        protected override async Task<DelegatedRenameParams> CreateDelegatedParamsAsync(RenameParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
             var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);

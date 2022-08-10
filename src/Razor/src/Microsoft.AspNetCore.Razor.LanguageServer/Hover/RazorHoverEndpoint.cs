@@ -54,9 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
+        protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, _logger);
             var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
@@ -68,9 +67,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> TryHandleAsync(VSHoverParamsBridge request, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> TryHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.CreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, _logger, cancellationToken).ConfigureAwait(false);
             if (projection is null)
             {

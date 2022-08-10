@@ -13,22 +13,28 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Extensions.SourceTextExtensions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 {
+    [UseExportProvider]
     public class DefaultRazorHoverInfoServiceTest : TagHelperServiceTestBase
     {
         internal static VSInternalClientCapabilities MarkDownCapabilities
@@ -508,7 +514,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         public async Task Handle_Hover_SingleServer_CallsDelegatedLanguageServer()
         {
             // Arrange
-            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SingleServerSupport == true, MockBehavior.Strict);
 
             var delegatedHover = new VSInternalHover();
             var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
@@ -555,6 +561,92 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             Assert.Same(delegatedHover, result);
         }
 
+        [Fact]
+        public async Task Handle_Hover_SingleServer_RangeIsMapped()
+        {
+            var input = """
+                <div></div>
+
+                @{
+                    var $$myVariable = "Hello";
+
+                    var length = myVariable.Length;
+                }
+                """;
+
+            // Arrange
+            TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
+            var codeDocument = CreateCodeDocument(output);
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+            var serverCapabilities = new ServerCapabilities()
+            {
+                HoverProvider = true
+            };
+
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null).ConfigureAwait(false);
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+
+            var razorFilePath = "C:/path/to/file.razor";
+            var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
+                options.SupportsFileManipulation == true &&
+                options.SingleServerSupport == true &&
+                options.CSharpVirtualDocumentSuffix == ".g.cs" &&
+                options.HtmlVirtualDocumentSuffix == ".g.html"
+                , MockBehavior.Strict);
+            var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri);
+            var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
+            var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
+            var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
+            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
+            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
+            var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
+            var hoverInfoService = new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
+
+            var endpoint = new RazorHoverEndpoint(
+                documentContextFactory,
+                hoverInfoService,
+                languageServerFeatureOptions,
+                documentMappingService,
+                languageServer,
+                LoggerFactory);
+
+            codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+            var request = new VSHoverParamsBridge
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri(razorFilePath)
+                },
+                Position = new Position(line, offset)
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            var range = result.Range;
+            var expected = new Range()
+            {
+                Start = new Position(line: 32, character: 8),
+                End = new Position(line:32, character: 18)
+            };
+
+            Assert.Equal(expected, range);
+
+            var rawContainer = (ContainerElement)result.RawContent;
+            var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
+
+            var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
+            var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
+
+            // No need to validate exact text, in case the c# language server changes. Just
+            // verify that the expected variable is represented within the hover text
+            Assert.Contains("myVariable", text);
+        }
+
         private RazorHoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, RazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)
         {
             var txt = @"@addTagHelper *, TestAssembly
@@ -578,7 +670,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 d.Project == projectSnapshot, MockBehavior.Strict);
 
             var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
-                d.TryCreateAsync(new Uri(path), It.IsAny<CancellationToken>()) == Task.FromResult(new DocumentContext(new Uri(path), snapshot, 1337)), MockBehavior.Strict);
+                d.TryCreateAsync(new Uri(path), It.IsAny<CancellationToken>()) == Task.FromResult(new DocumentContext(new Uri(path), snapshot, 1337)),
+                MockBehavior.Strict);
 
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
 
@@ -606,6 +699,81 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory();
             var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
             return new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
+        }
+
+        internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
+        {
+            public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
+            {
+                Instance = instance;
+            }
+
+            public override ProjectSnapshotManagerBase Instance { get; }
+        }
+
+        private class HoverLanguageServer : ClientNotifierServiceBase
+        {
+            private readonly CSharpTestLspServer _csharpServer;
+            private readonly Uri _csharpDocumentUri;
+
+            public HoverLanguageServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri)
+            {
+                _csharpServer = csharpServer;
+                _csharpDocumentUri = csharpDocumentUri;
+            }
+
+            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings { get; }
+
+            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+            {
+                return Task.CompletedTask;
+            }
+
+            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            {
+                throw new NotImplementedException();
+            }
+
+            public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+            {
+                Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, method);
+                var hoverParams = Assert.IsType<DelegatedHoverParams>(@params);
+
+                var hoverRequest = new VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams()
+                {
+                    TextDocument = new VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = hoverParams.ProjectedPosition
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams, VSInternalHover>(Methods.TextDocumentHoverName, hoverRequest, CancellationToken.None);
+
+                return new ResponseRouterReturn(result);
+            }
+        }
+
+        private class ResponseRouterReturn : IResponseRouterReturns
+        {
+            private VSInternalHover _result;
+
+            public ResponseRouterReturn(VSInternalHover result)
+            {
+                _result = result;
+            }
+
+            public Task<TResponse> Returning<TResponse>(CancellationToken cancellationToken)
+            {
+                Assert.IsType<TResponse>(_result);
+
+                return Task.FromResult((TResponse)(object)_result);
+            }
+
+            public Task ReturningVoid(CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

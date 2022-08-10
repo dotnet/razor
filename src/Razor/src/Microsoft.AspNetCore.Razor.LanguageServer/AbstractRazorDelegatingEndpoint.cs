@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// The delegated object to send to the <see cref="CustomMessageTarget"/>
         /// </summary>
-        protected abstract Task<TDelegatedParams> CreateDelegatedParamsAsync(TRequest request, CancellationToken cancellationToken);
+        protected abstract Task<TDelegatedParams> CreateDelegatedParamsAsync(TRequest request, DocumentContext documentContext, CancellationToken cancellationToken);
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// value is returned the request will be delegated to C#/HTML servers, otherwise the response
         /// will be used in <see cref="Handle(TRequest, CancellationToken)"/>
         /// </summary>
-        protected virtual Task<TResponse?> TryHandleAsync(TRequest request, CancellationToken cancellationToken)
+        protected virtual Task<TResponse?> TryHandleAsync(TRequest request, DocumentContext documentContext, CancellationToken cancellationToken)
             => Task.FromResult<TResponse?>(null);
 
         /// <summary>
@@ -87,7 +87,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            var response = await TryHandleAsync(request, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
+            {
+                return null;
+            }
+
+            var response = await TryHandleAsync(request, documentContext, cancellationToken).ConfigureAwait(false);
             if (response is not null)
             {
                 return response;
@@ -98,13 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
-
-            var delegatedParams = await CreateDelegatedParamsAsync(request, cancellationToken);
+            var delegatedParams = await CreateDelegatedParamsAsync(request, documentContext, cancellationToken);
 
             var delegatedRequest = await _languageServer.SendRequestAsync(CustomMessageTarget, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
