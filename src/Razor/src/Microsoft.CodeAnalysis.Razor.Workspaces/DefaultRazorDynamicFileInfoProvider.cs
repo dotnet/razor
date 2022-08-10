@@ -299,14 +299,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
                         break;
                     }
-                case ProjectChangeKind.DocumentRemoved:
-                    {
-                        var owningProject = args.Newer;
-
-                        var key = new Key(owningProject.FilePath, args.DocumentFilePath);
-                        _entries.TryRemove(key, out _);
-                        break;
-                    }
             }
         }
 
