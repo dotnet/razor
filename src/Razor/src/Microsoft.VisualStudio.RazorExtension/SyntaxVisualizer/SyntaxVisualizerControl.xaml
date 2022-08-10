@@ -4,21 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
              Loaded="SyntaxVisualizerControl_Loaded"
              GotFocus="SyntaxVisualizerControl_GotFocus"
              LostFocus="SyntaxVisualizerControl_LostFocus"
-             Unloaded="SyntaxVisualizerControl_Unloaded">
+             Unloaded="SyntaxVisualizerControl_Unloaded"
+             Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <DockPanel>
-        <ToolBarTray IsLocked="true" DockPanel.Dock="Top">
-            <ToolBar AutomationProperties.Name="Config" KeyboardNavigation.TabNavigation="Continue">
-                <ToggleButton x:Name="showSourceMappingsButton" Content="Show C# Transitions" Click="ShowSourceMappingsButton_Click" TabIndex="1" />
-                <Button x:Name="showGeneratedCode" Content="Show Generated C#" Click="ShowGeneratedCode_Click" TabIndex="2" />
-                <Button x:Name="showGeneratedHtml" Content="Show Generated Html" Click="ShowGeneratedHtml_Click" TabIndex="3" />
-            </ToolBar>
-        </ToolBarTray>
-        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" TabIndex="4" KeyUp="treeView_KeyUp">
+        <TreeView x:Name="treeView" AutomationProperties.Name="Nodes" KeyUp="treeView_KeyUp">
             <TreeView.Resources>
                 <!-- Style the inactive selection the same as active -->
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
