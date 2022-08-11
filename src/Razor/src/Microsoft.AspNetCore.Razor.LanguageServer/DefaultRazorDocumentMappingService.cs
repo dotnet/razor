@@ -220,7 +220,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return projectedEdits.ToArray();
         }
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
+            => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
@@ -447,6 +448,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             return workspaceEdit;
+        }
+
+        public async override Task<Range> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
+        {
+            // We only map from C# files
+            if (!_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
+            {
+                return projectedRange;
+            }
+
+            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+            var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
+            {
+                return projectedRange;
+            }
+
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+            if (TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var mappedRange))
+            {
+                return mappedRange;
+            }
+
+            return projectedRange;
         }
 
         // Internal for testing
@@ -797,7 +823,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             foreach (var entry in documentEdits)
             {
                 var virtualDocumentUri = entry.TextDocument.Uri;
-                if (!CanRemap(virtualDocumentUri))
+                if (!_languageServerFeatureOptions.IsVirtualDocumentUri(virtualDocumentUri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
                     remappedDocumentEdits.Add(entry);
@@ -842,7 +868,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var uri = new Uri(entry.Key);
                 var edits = entry.Value;
 
-                if (!CanRemap(uri))
+                if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
                     remappedChanges[entry.Key] = entry.Value;
@@ -897,11 +923,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             return edits;
-        }
-
-        private bool CanRemap(Uri uri)
-        {
-            return _languageServerFeatureOptions.IsVirtualCSharpFile(uri) || _languageServerFeatureOptions.IsVirtualHtmlFile(uri);
         }
     }
 }

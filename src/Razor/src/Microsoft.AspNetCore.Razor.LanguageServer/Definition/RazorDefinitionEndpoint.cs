@@ -105,6 +105,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                     projection.Position,
                     projection.LanguageKind);
 
+        protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        {
+            if (response is null)
+            {
+                return null;
+            }
+
+            if (response.Value.TryGetFirst(out var location))
+            {
+                location.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
+            }
+            else if (response.Value.TryGetSecond(out var locations))
+            {
+                foreach (var loc in locations)
+                {
+                    loc.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else if (response.Value.TryGetThird(out var links))
+            {
+                foreach (var link in links)
+                {
+                    if (link.Target is not null)
+                    {
+                        link.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(link.Target, link.Range, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return response;
+        }
+
         private async Task<Range> GetNavigateRangeAsync(DocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
         {
             if (attributeDescriptor is not null)
