@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Resources = Microsoft.CodeAnalysis.Razor.Workspaces.Resources;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
