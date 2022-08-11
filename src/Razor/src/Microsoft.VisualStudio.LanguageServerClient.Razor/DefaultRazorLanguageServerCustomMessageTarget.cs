@@ -1107,6 +1107,33 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response?.Response;
         }
 
+        public async override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+        {
+            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (delegationDetails is null)
+            {
+                return null;
+            }
+
+            var definitionParams = new TextDocumentPositionParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = delegationDetails.ProjectedUri,
+                },
+                Position = request.ProjectedPosition,
+            };
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]?>(
+                delegationDetails.TextBuffer,
+                Methods.TextDocumentDefinitionName,
+                delegationDetails.LanguageServerName,
+                definitionParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return response?.Response;
+        }
+
         private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
         {
             string languageServerName;

@@ -34,5 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorRenameEndpointName = "razor/rename";
 
         public const string RazorHoverEndpointName = "razor/hover";
+
+        public const string RazorDefinitionEndpointName = "razor/definition";
     }
 }

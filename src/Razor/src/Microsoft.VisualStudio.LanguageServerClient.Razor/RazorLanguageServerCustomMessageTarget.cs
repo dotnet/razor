@@ -99,5 +99,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
     }
 }
