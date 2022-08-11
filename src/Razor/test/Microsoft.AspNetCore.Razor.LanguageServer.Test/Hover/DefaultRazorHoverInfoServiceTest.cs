@@ -445,8 +445,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
-            Assert.False(vsHover.Contents.TryGetThird(out var _));
-            Assert.True(vsHover.Contents.TryGetSecond(out var _) && !vsHover.Contents.Second.Any());
+            Assert.False(vsHover.Contents.TryGetFourth(out var _));
+            Assert.True(vsHover.Contents.TryGetThird(out var _) && !vsHover.Contents.Third.Any());
             var expectedRange = new Range
             {
                 Start = new Position(1, 1),
@@ -483,8 +483,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
-            Assert.False(vsHover.Contents.TryGetThird(out var _));
-            Assert.True(vsHover.Contents.TryGetSecond(out var markedStrings) && !markedStrings.Any());
+            Assert.False(vsHover.Contents.TryGetFourth(out var _));
+            Assert.True(vsHover.Contents.TryGetThird(out var markedStrings) && !markedStrings.Any());
             var expectedRange = new Range
             {
                 Start = new Position(1, 7),
@@ -759,22 +759,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             {
                 throw new NotImplementedException();
             }
-
+#nullable enable
             public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
             {
                 Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, method);
                 var hoverParams = Assert.IsType<DelegatedPositionParams>(@params);
 
-                var hoverRequest = new VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams()
+                var hoverRequest = new TextDocumentPositionParams()
                 {
-                    TextDocument = new VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier()
+                    TextDocument = new TextDocumentIdentifier()
                     {
                         Uri = _csharpDocumentUri
                     },
                     Position = hoverParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams, VSInternalHover>(Methods.TextDocumentHoverName, hoverRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, VSInternalHover?>(Methods.TextDocumentHoverName, hoverRequest, CancellationToken.None);
 
                 return new TestResponseRouterReturn(result);
             }

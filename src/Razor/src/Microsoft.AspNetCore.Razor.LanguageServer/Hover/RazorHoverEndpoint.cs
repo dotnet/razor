@@ -46,6 +46,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
+        public override VSInternalHover? GetDefault()
+        {
+            return null;
+        }
+
         /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
@@ -73,9 +78,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover> HandleDelegatedResponseAsync(VSInternalHover response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, CancellationToken cancellationToken)
         {
-            if (response.Range is null)
+            if (response is null || response.Range is null)
             {
                 return response;
             }

@@ -108,11 +108,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 request,
                 cancellationToken);
 
-        internal Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
+        internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
             RequestType request,
             CancellationToken cancellationToken)
-            => _clientRpc.InvokeWithParameterObjectAsync<ResponseType?>(
+            => _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
                 methodName,
                 request,
                 cancellationToken);
