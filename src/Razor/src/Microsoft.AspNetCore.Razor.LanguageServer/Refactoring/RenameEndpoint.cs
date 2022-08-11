@@ -70,6 +70,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         /// <inheritdoc/>
         protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
+            // We only support renaming of .razor components, not .cshtml tag helpers
+            if (!FileKinds.IsComponent(documentContext.FileKind))
+            {
+                return null;
+            }
 
             // If we're in C# then there is no point checking for a component tag, because there won't be one
             if (projection.LanguageKind == RazorLanguageKind.CSharp)
