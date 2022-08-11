@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
@@ -66,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return default;
             }
 
-            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
+            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, projection.AbsoluteIndex, Logger, cancellationToken).ConfigureAwait(false);
             if (originTagDescriptor is null)
             {
                 Logger.LogInformation("Origin TagHelper descriptor is null.");
@@ -182,24 +180,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
         internal static async Task<(TagHelperDescriptor?, BoundAttributeDescriptor?)> GetOriginTagHelperBindingAsync(
             DocumentContext documentContext,
-            Position position,
+            int absoluteIndex,
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var linePosition = new LinePosition(position.Line, position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, position.Line, position.Character);
-
-            var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
-            if (syntaxTree.Root is null)
-            {
-                logger.LogInformation("Could not retrieve syntax tree.");
-                return (null, null);
-            }
-
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = await documentContext.GetSyntaxNodeAsync(absoluteIndex, cancellationToken).ConfigureAwait(false);
             if (owner is null)
             {
                 logger.LogInformation("Could not locate owner.");
@@ -238,9 +223,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
             }
 
-            if (!name.Span.Contains(location.AbsoluteIndex))
+            if (!name.Span.Contains(absoluteIndex))
             {
-                logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", location.AbsoluteIndex);
+                logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", absoluteIndex);
                 return (null, null);
             }
 

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
@@ -104,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         {
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
 
-            var originTagHelpers = GetOriginTagHelpers(documentContext.Snapshot, codeDocument, absoluteIndex);
+            var originTagHelpers = await GetOriginTagHelpersAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
             if (originTagHelpers is null || originTagHelpers.Count == 0)
             {
                 return null;
@@ -309,16 +308,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) =>
             potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
-        private static IReadOnlyList<TagHelperDescriptor>? GetOriginTagHelpers(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, int absoluteIndex)
+        private static async Task<IReadOnlyList<TagHelperDescriptor>?> GetOriginTagHelpersAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
         {
-            var change = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree?.Root is null)
-            {
-                return null;
-            }
-
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = await documentContext.GetSyntaxNodeAsync(absoluteIndex, cancellationToken).ConfigureAwait(false);
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
@@ -354,7 +346,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             var originTagHelpers = new List<TagHelperDescriptor>() { primaryTagHelper };
-            var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentSnapshot.Project.TagHelpers);
+            var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentContext.Snapshot.Project.TagHelpers);
             if (associatedTagHelper is null)
             {
                 Debug.Fail("Components should always have an associated TagHelper.");
