@@ -15,8 +15,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse, TDelegatedParams> : IJsonRpcRequestHandler<TRequest, TResponse?>
         where TRequest : TextDocumentPositionParams, IRequest<TResponse?>
-        where TResponse : class
-        where TDelegatedParams : class
     {
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -62,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// will be used in <see cref="Handle(TRequest, CancellationToken)"/>
         /// </summary>
         protected virtual Task<TResponse?> TryHandleAsync(TRequest request, DocumentContext documentContext, CancellationToken cancellationToken)
-            => Task.FromResult<TResponse?>(null);
+            => Task.FromResult<TResponse?>(default);
 
         /// <summary>
         /// Returns true if the configuration supports this operation being handled, otherwise returns false. Use to
@@ -83,13 +81,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (!IsSupported())
             {
-                return null;
+                return default;
             }
 
             var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
-                return null;
+                return default;
             }
 
             var response = await TryHandleAsync(request, documentContext, cancellationToken).ConfigureAwait(false);
@@ -100,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (!_languageServerFeatureOptions.SingleServerSupport)
             {
-                return null;
+                return default;
             }
 
             var delegatedParams = await CreateDelegatedParamsAsync(request, documentContext, cancellationToken);
@@ -110,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (delegatedResponse is null)
             {
-                return null;
+                return default;
             }
 
             var remappedResponse = await HandleDelegatedResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
