@@ -575,7 +575,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 }
                 """;
 
-
             // Act
             var result = await GetResultFromSingleServerEndpointAsync(input);
 
@@ -738,16 +737,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             return new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
         }
 
-        internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
-        {
-            public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
-            {
-                Instance = instance;
-            }
-
-            public override ProjectSnapshotManagerBase Instance { get; }
-        }
-
         private class HoverLanguageServer : ClientNotifierServiceBase
         {
             private readonly CSharpTestLspServer _csharpServer;
@@ -787,29 +776,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
                 var result = await _csharpServer.ExecuteRequestAsync<VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams, VSInternalHover>(Methods.TextDocumentHoverName, hoverRequest, CancellationToken.None);
 
-                return new ResponseRouterReturn(result);
-            }
-        }
-
-        private class ResponseRouterReturn : IResponseRouterReturns
-        {
-            private readonly VSInternalHover _result;
-
-            public ResponseRouterReturn(VSInternalHover result)
-            {
-                _result = result;
-            }
-
-            public Task<TResponse> Returning<TResponse>(CancellationToken cancellationToken)
-            {
-                Assert.IsType<TResponse>(_result);
-
-                return Task.FromResult((TResponse)(object)_result);
-            }
-
-            public Task ReturningVoid(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
+                return new TestResponseRouterReturn(result);
             }
         }
     }
