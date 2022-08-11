@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
-                item => AssertRazorCompletionItem(knownDirective, customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
+                item => AssertRazorCompletionItem(knownDirective + " ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true));
         }
 
         [Fact]
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: false),
-                item => AssertRazorCompletionItem("model", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
+                item => AssertRazorCompletionItem("model ...", customDirective, item, commitCharacters: DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, isSnippet: true),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: false),
                 item => AssertRazorCompletionItem(s_defaultDirectives[0], item, isSnippet: true),
                 item => AssertRazorCompletionItem(s_defaultDirectives[1], item, isSnippet: false),
@@ -450,24 +450,28 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null, bool isSnippet = false)
         {
             Assert.Equal(item.DisplayText, completionDisplayText);
+            var completionDescription = item.GetDirectiveCompletionDescription();
 
             if (isSnippet)
             {
+                var (insertText, displayText) = DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive];
+
                 Assert.StartsWith(directive.Directive, item.InsertText);
-                Assert.Equal(item.InsertText, DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive].InsertText);
+                Assert.Equal(item.InsertText, insertText);
+                Assert.StartsWith(displayText, completionDescription.Description.TrimStart('@'));
             }
             else
             {
                 Assert.Equal(item.InsertText, directive.Directive);
+                Assert.Equal(directive.Description, completionDescription.Description);
             }
 
-            var completionDescription = item.GetDirectiveCompletionDescription();
-            Assert.Equal(directive.Description, completionDescription.Description);
+            
             Assert.Equal(item.CommitCharacters, commitCharacters ?? DirectiveCompletionItemProvider.SingleLineDirectiveCommitCharacters);
         }
 
         private static void AssertRazorCompletionItem(DirectiveDescriptor directive, RazorCompletionItem item, bool isSnippet = false) =>
-            AssertRazorCompletionItem(directive.Directive, directive, item, isSnippet: isSnippet);
+            AssertRazorCompletionItem(directive.Directive + (isSnippet ? " ..." : string.Empty), directive, item, isSnippet: isSnippet);
 
         private static RazorSyntaxTree CreateSyntaxTree(string text, params DirectiveDescriptor[] directives)
         {

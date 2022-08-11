@@ -145,19 +145,19 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 var completionDescription = new DirectiveCompletionDescription(directive.Description);
                 completionItem.SetDirectiveCompletionDescription(completionDescription);
                 completionItems.Add(completionItem);
-
+                
                 if (s_singleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
                 {
                     var snippetCompletionItem = new RazorCompletionItem(
                         $"{completionDisplayText} ...",
                         snippetTexts.InsertText,
-                        RazorCompletionItemKind.DirectiveSnippet,
+                        RazorCompletionItemKind.Directive,
                         commitCharacters: commitCharacters,
                         isSnippet: true);
-
+                    
                     var snippetDescription = "@" + snippetTexts.DisplayText
-                                                 + Environment.NewLine + Environment.NewLine
-                                                 + "Type to replace placeholders. [Tab] to navigate or [Return] to complete snippet.";
+                                                 + Environment.NewLine
+                                                 + Resources.DirectiveSnippetDescription;
 
                     snippetCompletionItem.SetDirectiveCompletionDescription(new(snippetDescription));
                     completionItems.Add(snippetCompletionItem);

@@ -144,7 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         FilterText = razorCompletionItem.DisplayText,
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
-                        Kind = CompletionItemKind.Struct,
+                        Kind = razorCompletionItem.IsSnippet ? CompletionItemKind.Snippet : CompletionItemKind.Struct, // TODO: Make separate CompletionItemKind for razor directives. See https://github.com/dotnet/razor-tooling/issues/6504 and https://github.com/dotnet/razor-tooling/issues/6505
                     };
 
                     directiveCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -156,23 +156,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     }
 
                     completionItem = directiveCompletionItem;
-                    return true;
-                }
-                case RazorCompletionItemKind.DirectiveSnippet:
-                {
-                    var directiveSnippetCompletionItem = new VSInternalCompletionItem()
-                    {
-                        Label = razorCompletionItem.DisplayText,
-                        InsertText = razorCompletionItem.InsertText,
-                        FilterText = razorCompletionItem.DisplayText,
-                        SortText = razorCompletionItem.SortText,
-                        InsertTextFormat = insertTextFormat,
-                        Kind = CompletionItemKind.Snippet,
-                    };
-
-                    directiveSnippetCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
-
-                    completionItem = directiveSnippetCompletionItem;
                     return true;
                 }
                 case RazorCompletionItemKind.DirectiveAttribute:

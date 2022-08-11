@@ -6,7 +6,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     internal enum RazorCompletionItemKind
     {
         Directive,
-        DirectiveSnippet,
         DirectiveAttribute,
         DirectiveAttributeParameter,
         MarkupTransition,

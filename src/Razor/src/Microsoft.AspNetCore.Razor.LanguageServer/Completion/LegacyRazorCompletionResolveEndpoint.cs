@@ -117,7 +117,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             switch (associatedRazorCompletion.Kind)
             {
                 case RazorCompletionItemKind.Directive:
-                case RazorCompletionItemKind.DirectiveSnippet:
                 {
                     var descriptionInfo = associatedRazorCompletion.GetDirectiveCompletionDescription();
                     if (descriptionInfo is not null)

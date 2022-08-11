@@ -82,10 +82,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var completionItems = new List<CompletionItem>();
                 foreach (var razorCompletionItem in razorCompletionItems)
                 {
-                    if (razorCompletionItem.Kind != RazorCompletionItemKind.Directive &&
-                        razorCompletionItem.Kind != RazorCompletionItemKind.DirectiveSnippet)
+                    if (razorCompletionItem.Kind != RazorCompletionItemKind.Directive)
                     {
-                        // Don't support any other types of completion kinds other than directives and directive snippets.
+                        // Don't support any other types of completion kinds other than directives.
                         continue;
                     }
 

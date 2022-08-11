@@ -7,6 +7,11 @@
         <target state="translated">O valor não pode ser nulo ou uma cadeia de caracteres vazia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet\r\n[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="new">Insert a directive code snippet\r\n[Tab] to navigate between elements, [Enter] to complete</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
