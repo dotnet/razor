@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
 {
     internal class ProjectRazorJsonJsonConverter : JsonConverter
     {
-        public static readonly ProjectRazorJsonJsonConverter Instance = new ProjectRazorJsonJsonConverter();
+        public static readonly ProjectRazorJsonJsonConverter Instance = new();
         private const string SerializationFormatPropertyName = "SerializationFormat";
 
         public override bool CanConvert(Type objectType)
