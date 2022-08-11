@@ -1161,7 +1161,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalHover?>(
                 textBuffer,
-                Methods.TextDocumentRenameName,
+                Methods.TextDocumentHoverName,
                 languageServerName,
                 hoverParams,
                 cancellationToken).ConfigureAwait(false);
