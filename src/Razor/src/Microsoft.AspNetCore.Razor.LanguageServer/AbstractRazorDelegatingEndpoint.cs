@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -13,7 +14,7 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse, TDelegatedParams> : IJsonRpcRequestHandler<TRequest, TResponse?>
+    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IJsonRpcRequestHandler<TRequest, TResponse?>
         where TRequest : TextDocumentPositionParams, IRequest<TResponse?>
     {
         private readonly DocumentContextFactory _documentContextFactory;
@@ -40,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// The delegated object to send to the <see cref="CustomMessageTarget"/>
         /// </summary>
-        protected abstract TDelegatedParams CreateDelegatedParams(TRequest request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken);
+        protected abstract IDelegatedParams CreateDelegatedParams(TRequest request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken);
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the

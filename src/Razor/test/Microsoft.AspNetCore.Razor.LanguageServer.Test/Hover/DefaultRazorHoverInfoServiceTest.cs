@@ -524,7 +524,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServerMock
-                .Setup(c => c.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedHoverParams>()))
+                .Setup(c => c.SendRequestAsync<IDelegatedParams>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>()))
                 .Returns(Task.FromResult(responseRouterReturnsMock.Object));
 
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
@@ -774,7 +774,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
             {
                 Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, method);
-                var hoverParams = Assert.IsType<DelegatedHoverParams>(@params);
+                var hoverParams = Assert.IsType<DelegatedPositionParams>(@params);
 
                 var hoverRequest = new VisualStudio.LanguageServer.Protocol.TextDocumentPositionParams()
                 {
