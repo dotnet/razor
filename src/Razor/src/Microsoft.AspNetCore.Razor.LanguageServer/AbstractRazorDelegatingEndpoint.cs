@@ -18,25 +18,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
         protected readonly ILogger Logger;
 
         protected AbstractRazorDelegatingEndpoint(
             DocumentContextFactory documentContextFactory,
             LanguageServerFeatureOptions languageServerFeatureOptions,
+            RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILogger logger)
         {
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
         /// The delegated object to send to the <see cref="CustomMessageTarget"/>
         /// </summary>
-        protected abstract Task<TDelegatedParams> CreateDelegatedParamsAsync(TRequest request, DocumentContext documentContext, CancellationToken cancellationToken);
+        protected abstract TDelegatedParams CreateDelegatedParams(TRequest request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken);
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -59,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// value is returned the request will be delegated to C#/HTML servers, otherwise the response
         /// will be used in <see cref="Handle(TRequest, CancellationToken)"/>
         /// </summary>
-        protected virtual Task<TResponse?> TryHandleAsync(TRequest request, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected virtual Task<TResponse?> TryHandleAsync(TRequest request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => Task.FromResult<TResponse?>(default);
 
         /// <summary>
@@ -90,7 +94,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var response = await TryHandleAsync(request, documentContext, cancellationToken).ConfigureAwait(false);
+            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
+            if (projection is null)
+            {
+                return default;
+            }
+
+            var response = await TryHandleAsync(request, documentContext, projection, cancellationToken).ConfigureAwait(false);
             if (response is not null)
             {
                 return response;
@@ -101,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var delegatedParams = await CreateDelegatedParamsAsync(request, documentContext, cancellationToken);
+            var delegatedParams = CreateDelegatedParams(request, documentContext, projection, cancellationToken);
 
             var delegatedRequest = await _languageServer.SendRequestAsync(CustomMessageTarget, delegatedParams).ConfigureAwait(false);
             var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
