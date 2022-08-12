@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -150,13 +151,21 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
             Assert.Same(item.Source, source);
             Assert.True(item.Properties.TryGetProperty<DirectiveCompletionDescription>(RazorDirectiveCompletionSource.DescriptionKey, out var actualDescription));
-            Assert.Equal(directive.Description, actualDescription.Description);
+
+            var description = isSnippet ? "@" + DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive].DisplayText
+                             + Environment.NewLine
+                             + CodeAnalysis.Razor.Workspaces.Resources.DirectiveSnippetDescription
+                             : directive.Description;
+            Assert.Equal(description, actualDescription.Description);
 
             AssertRazorCompletionItemDefaults(item);
         }
 
-        private static void AssertRazorCompletionItem(DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source, bool isSnippet = false) =>
-            AssertRazorCompletionItem(directive.Directive, directive, item, source, isSnippet: isSnippet);
+        private static void AssertRazorCompletionItem(DirectiveDescriptor directive, CompletionItem item, IAsyncCompletionSource source, bool isSnippet = false)
+        {
+            var expectedDisplayText = isSnippet ? directive.Directive + " ..." : directive.Directive;
+            AssertRazorCompletionItem(expectedDisplayText, directive, item, source, isSnippet: isSnippet);
+        }
 
         private static void AssertRazorCompletionItemDefaults(CompletionItem item)
         {
