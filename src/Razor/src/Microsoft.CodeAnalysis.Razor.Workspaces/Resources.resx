@@ -121,6 +121,7 @@
     <value>Value cannot be null or an empty string.</value>
   </data>
   <data name="DirectiveSnippetDescription" xml:space="preserve">
-    <value>Insert a directive code snippet\r\n[Tab] to navigate between elements, [Enter] to complete</value>
+    <value>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</value>
   </data>
 </root>
