@@ -14,22 +14,22 @@
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedCode|ButtonText">
         <source>Show Generated C#</source>
-        <target state="new">Show Generated C#</target>
+        <target state="translated">生成された C# を表示</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
-        <target state="new">Show Generated HTML</target>
+        <target state="translated">生成された HTML を表示</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowSourceMappingsButton|ButtonText">
         <source>Show C# Transitions</source>
-        <target state="new">Show C# Transitions</target>
+        <target state="translated">C# の移行を表示</target>
         <note />
       </trans-unit>
       <trans-unit id="menuidToolWindowToolbar|ButtonText">
         <source>Razor Syntax Visualizer</source>
-        <target state="new">Razor Syntax Visualizer</target>
+        <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
     </body>
