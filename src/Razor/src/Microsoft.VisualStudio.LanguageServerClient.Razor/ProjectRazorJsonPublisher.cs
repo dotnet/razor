@@ -286,15 +286,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 var projectRazorJson = new ProjectRazorJson(publishFilePath, projectSnapshot);
                 _serializer.Serialize(writer, projectRazorJson);
-
-                var fileInfo = new FileInfo(publishFilePath);
-                if (fileInfo.Exists)
-                {
-                    fileInfo.Delete();
-                }
             }
 
-            tempFileInfo.MoveTo(publishFilePath);
+            var fileInfo = new FileInfo(publishFilePath);
+            if (fileInfo.Exists)
+            {
+                fileInfo.Delete();
+            }
+
+            File.Move(tempFilePath, publishFilePath);
         }
 
         protected virtual bool FileExists(string file)
