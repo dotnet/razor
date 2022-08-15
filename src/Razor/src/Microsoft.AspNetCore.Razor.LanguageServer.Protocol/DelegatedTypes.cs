@@ -9,15 +9,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-/// <summary>
-/// Interface for delegated params that enables sharing of code in DefaultRazorLanguageServerCustomMessageTarget
-/// </summary>
-internal interface IDelegatedParams
-{
-    public VersionedTextDocumentIdentifier HostDocument { get; }
-    public RazorLanguageKind ProjectedKind { get; }
-}
-
 internal record DelegatedPositionParams(
     VersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
