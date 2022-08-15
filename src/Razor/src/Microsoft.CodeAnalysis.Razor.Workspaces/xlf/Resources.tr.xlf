@@ -10,8 +10,8 @@
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="new">Insert a directive code snippet
-[Tab] to navigate between elements, [Enter] to complete</target>
+        <target state="translated">Yönerge kod parçacığı ekle
+öğeler arasında gezinmek için [Tab], tamamlamak için seçin [Enter] seçeneğini belirleyin</target>
         <note />
       </trans-unit>
     </body>

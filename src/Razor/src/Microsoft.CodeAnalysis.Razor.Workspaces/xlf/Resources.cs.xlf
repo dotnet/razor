@@ -10,8 +10,8 @@
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="new">Insert a directive code snippet
-[Tab] to navigate between elements, [Enter] to complete</target>
+        <target state="translated">Vložení fragmentu kódu direktivy
+[Tab] pro navigaci mezi elementy, [Enter] pro dokončení</target>
         <note />
       </trans-unit>
     </body>
