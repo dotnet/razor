@@ -12,5 +12,11 @@
   "[json]": {
     "editor.tabSize": 2
   },
-  "omnisharp.defaultLaunchSolution": "Razor.sln"
+  "omnisharp.defaultLaunchSolution": "Razor.sln",
+  "markdownlint.config": {
+    "MD028": false,
+    "MD025": {
+      "front_matter_title": ""
+    }
+  }
 }
