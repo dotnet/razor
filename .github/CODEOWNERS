@@ -7,5 +7,5 @@
 /eng/common/                                   @dotnet/razor-tooling
 /eng/Versions.props                            @dotnet/razor-tooling
 /eng/Version.Details.xml                       @dotnet/razor-tooling
-/src/                                          @dotnet/razor-tooling @ryanbrandenburg @allisonchou @sharwell @davidwengier
+/src/                                          @dotnet/razor-tooling
 /src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension/ @dotnet/razor-tooling @dotnet/aspnet-blazor-eng @captainsafia
