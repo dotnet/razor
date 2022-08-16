@@ -100,6 +100,13 @@
     <MPackFile Include="..\Microsoft.VisualStudio.RazorExtension\EmbeddedGrammars\*">
       <Folder>Grammars</Folder>
     </MPackFile>
+
+    <!-- Embedded Language Configuration Files -->
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\javascript-language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\css-language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\csharp-language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\razordirective-language-configuration.json" />
   </ItemGroup>
 
   <ItemGroup Condition="$(DebugType) != 'embedded'">
