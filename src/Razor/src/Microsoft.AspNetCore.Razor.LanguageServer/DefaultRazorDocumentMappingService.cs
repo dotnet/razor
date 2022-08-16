@@ -823,6 +823,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             foreach (var entry in documentEdits)
             {
                 var virtualDocumentUri = entry.TextDocument.Uri;
+
+                // Check if the edit is actually for a generated document, because if not we don't need to do anything
                 if (!_languageServerFeatureOptions.IsVirtualDocumentUri(virtualDocumentUri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
@@ -868,9 +870,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var uri = new Uri(entry.Key);
                 var edits = entry.Value;
 
+                // Check if the edit is actually for a generated document, because if not we don't need to do anything
                 if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
                 {
-                    // This location doesn't point to a background razor file. No need to remap.
                     remappedChanges[entry.Key] = entry.Value;
                     continue;
                 }

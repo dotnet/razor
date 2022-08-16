@@ -1174,6 +1174,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return new DelegationRequestDetails(languageServerName, projectedUri, virtualDocumentSnapshot.Snapshot.TextBuffer);
         }
 
-        private record DelegationRequestDetails(string LanguageServerName, Uri ProjectedUri, ITextBuffer TextBuffer);
+        private record struct DelegationRequestDetails(string LanguageServerName, Uri ProjectedUri, ITextBuffer TextBuffer);
     }
 }
