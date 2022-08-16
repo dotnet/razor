@@ -1064,17 +1064,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = delegationDetails.ProjectedUri,
+                    Uri = delegationDetails.Value.ProjectedUri,
                 },
                 Position = request.ProjectedPosition,
                 NewName = request.NewName,
             };
 
-            var textBuffer = delegationDetails.TextBuffer;
+            var textBuffer = delegationDetails.Value.TextBuffer;
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit?>(
                 textBuffer,
                 Methods.TextDocumentRenameName,
-                delegationDetails.LanguageServerName,
+                delegationDetails.Value.LanguageServerName,
                 renameParams,
                 cancellationToken).ConfigureAwait(false);
             return response?.Response;
@@ -1092,15 +1092,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = delegationDetails.ProjectedUri,
+                    Uri = delegationDetails.Value.ProjectedUri,
                 },
                 Position = request.ProjectedPosition,
             };
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalHover?>(
-                delegationDetails.TextBuffer,
+                delegationDetails.Value.TextBuffer,
                 Methods.TextDocumentHoverName,
-                delegationDetails.LanguageServerName,
+                delegationDetails.Value.LanguageServerName,
                 hoverParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -1119,15 +1119,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = delegationDetails.ProjectedUri,
+                    Uri = delegationDetails.Value.ProjectedUri,
                 },
                 Position = request.ProjectedPosition,
             };
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]?>(
-                delegationDetails.TextBuffer,
+                delegationDetails.Value.TextBuffer,
                 Methods.TextDocumentDefinitionName,
-                delegationDetails.LanguageServerName,
+                delegationDetails.Value.LanguageServerName,
                 definitionParams,
                 cancellationToken).ConfigureAwait(false);
 
