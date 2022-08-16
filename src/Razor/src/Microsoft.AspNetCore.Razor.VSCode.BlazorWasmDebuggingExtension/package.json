@@ -65,6 +65,6 @@
     "vscode-test": "^1.4.1"
   },
   "dependencies": {
-    "nanoid": "3.1.31"
+    "nanoid": "^4.0.0"
   }
 }
