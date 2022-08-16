@@ -2149,8 +2149,12 @@ micromatch@^4.0.4:
     picomatch "^2.2.3"
 
 "microsoft.aspnetcore.razor.vscode@link:../../src/Microsoft.AspNetCore.Razor.VSCode":
-  version "0.0.0"
-  uid ""
+  version "0.0.1"
+  dependencies:
+    ps-list "^7.0.0"
+    vscode-html-languageservice "^4.2.1"
+    vscode-languageclient "5.2.1"
+    vscode-languageserver-textdocument "^1.0.3"
 
 mime-db@1.43.0:
   version "1.43.0"
