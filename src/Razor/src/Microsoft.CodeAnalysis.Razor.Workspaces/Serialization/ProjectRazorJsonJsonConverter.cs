@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
 
         public override bool CanConvert(Type objectType)
         {
-            return typeof(ProjectRazorJson).IsAssignableFrom(objectType);
+            var canConvert = typeof(ProjectRazorJson).IsAssignableFrom(objectType);
+            return canConvert;
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
