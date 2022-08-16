@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
@@ -1053,39 +1054,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task<WorkspaceEdit?> RenameAsync(DelegatedRenameParams request, CancellationToken cancellationToken)
         {
-            var hostDocumentUri = request.HostDocument.Uri;
-            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
-            {
-                return null;
-            }
-
-            string languageServerName;
-            Uri projectedUri;
-            VirtualDocumentSnapshot virtualDocumentSnapshot;
-            if (request.ProjectedKind == RazorLanguageKind.Html &&
-                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
-            {
-                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-                projectedUri = htmlVirtualDocument.Uri;
-                virtualDocumentSnapshot = htmlVirtualDocument;
-            }
-            else if (request.ProjectedKind == RazorLanguageKind.CSharp &&
-                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
-            {
-                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-                projectedUri = csharpVirtualDocument.Uri;
-                virtualDocumentSnapshot = csharpVirtualDocument;
-            }
-            else
-            {
-                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
-                return null;
-            }
-
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                request.HostDocument.Version, virtualDocumentSnapshot, rejectOnNewerParallelRequest: false, cancellationToken);
-
-            if (!synchronized)
+            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (delegationDetails is null)
             {
                 return null;
             }
@@ -1094,32 +1064,86 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = projectedUri,
+                    Uri = delegationDetails.Value.ProjectedUri,
                 },
                 Position = request.ProjectedPosition,
                 NewName = request.NewName,
             };
 
-            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var textBuffer = delegationDetails.Value.TextBuffer;
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit?>(
                 textBuffer,
                 Methods.TextDocumentRenameName,
-                languageServerName,
+                delegationDetails.Value.LanguageServerName,
                 renameParams,
                 cancellationToken).ConfigureAwait(false);
             return response?.Response;
         }
 
-        public async override Task<VSInternalHover?> HoverAsync(DelegatedHoverParams request, CancellationToken cancellationToken)
+        public async override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         {
-            var hostDocumentUri = request.HostDocument.Uri;
-            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (delegationDetails is null)
             {
                 return null;
             }
 
+            var hoverParams = new TextDocumentPositionParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = delegationDetails.Value.ProjectedUri,
+                },
+                Position = request.ProjectedPosition,
+            };
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalHover?>(
+                delegationDetails.Value.TextBuffer,
+                Methods.TextDocumentHoverName,
+                delegationDetails.Value.LanguageServerName,
+                hoverParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return response?.Response;
+        }
+
+        public async override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+        {
+            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (delegationDetails is null)
+            {
+                return null;
+            }
+
+            var definitionParams = new TextDocumentPositionParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = delegationDetails.Value.ProjectedUri,
+                },
+                Position = request.ProjectedPosition,
+            };
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]?>(
+                delegationDetails.Value.TextBuffer,
+                Methods.TextDocumentDefinitionName,
+                delegationDetails.Value.LanguageServerName,
+                definitionParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return response?.Response;
+        }
+
+        private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
+        {
             string languageServerName;
             Uri projectedUri;
+
+            if (!_documentManager.TryGetDocument(request.HostDocument.Uri, out var documentSnapshot))
+            {
+                return null;
+            }
+
             VirtualDocumentSnapshot virtualDocumentSnapshot;
             if (request.ProjectedKind == RazorLanguageKind.Html &&
                 documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocument))
@@ -1141,32 +1165,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                request.HostDocument.Version, virtualDocumentSnapshot, rejectOnNewerParallelRequest: false, cancellationToken);
-
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(request.HostDocument.Version, virtualDocumentSnapshot, rejectOnNewerParallelRequest: false, cancellationToken);
             if (!synchronized)
             {
                 return null;
             }
 
-            var hoverParams = new TextDocumentPositionParams()
-            {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = projectedUri,
-                },
-                Position = request.ProjectedPosition,
-            };
-
-            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalHover?>(
-                textBuffer,
-                Methods.TextDocumentHoverName,
-                languageServerName,
-                hoverParams,
-                cancellationToken).ConfigureAwait(false);
-
-            return response?.Response;
+            return new DelegationRequestDetails(languageServerName, projectedUri, virtualDocumentSnapshot.Snapshot.TextBuffer);
         }
+
+        private record struct DelegationRequestDetails(string LanguageServerName, Uri ProjectedUri, ITextBuffer TextBuffer);
     }
 }

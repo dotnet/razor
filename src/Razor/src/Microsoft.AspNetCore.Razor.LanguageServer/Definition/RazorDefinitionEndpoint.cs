@@ -6,15 +6,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
@@ -25,29 +26,25 @@ using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
-    internal class RazorDefinitionEndpoint : IDefinitionEndpoint
+    internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<DefinitionParamsBridge, DefinitionResult?>, IDefinitionEndpoint
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly ILogger<RazorDefinitionEndpoint> _logger;
 
         public RazorDefinitionEndpoint(
             DocumentContextFactory documentContextFactory,
             RazorComponentSearchEngine componentSearchEngine,
             RazorDocumentMappingService documentMappingService,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
+            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorDefinitionEndpoint>())
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _logger = loggerFactory.CreateLogger<RazorDefinitionEndpoint>();
         }
+
+        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
@@ -57,45 +54,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        public async Task<DefinitionResult?> Handle(DefinitionParamsBridge request, CancellationToken cancellationToken)
+        protected async override Task<DefinitionResult?> TryHandleAsync(DefinitionParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting go-to-def endpoint request.");
-
-            if (request is null)
-            {
-                _logger.LogWarning("Request is null.");
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-
-            if (documentContext is null)
-            {
-                _logger.LogWarning("Document snapshot is null for document.");
-                return null;
-            }
+            Logger.LogInformation("Starting go-to-def endpoint request.");
 
             if (!FileKinds.IsComponent(documentContext.FileKind))
             {
-                _logger.LogInformation("FileKind '{fileKind}' is not a component type.", documentContext.FileKind);
-                return null;
+                Logger.LogInformation("FileKind '{fileKind}' is not a component type.", documentContext.FileKind);
+                return default;
             }
 
-            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, request.Position, _logger, cancellationToken).ConfigureAwait(false);
+            var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, projection.AbsoluteIndex, Logger, cancellationToken).ConfigureAwait(false);
             if (originTagDescriptor is null)
             {
-                _logger.LogInformation("Origin TagHelper descriptor is null.");
-                return null;
+                Logger.LogInformation("Origin TagHelper descriptor is null.");
+                return default;
             }
 
             var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagDescriptor).ConfigureAwait(false);
             if (originComponentDocumentSnapshot is null)
             {
-                _logger.LogInformation("Origin TagHelper document snapshot is null.");
-                return null;
+                Logger.LogInformation("Origin TagHelper document snapshot is null.");
+                return default;
             }
 
-            _logger.LogInformation("Definition found at file path: {filePath}", originComponentDocumentSnapshot.FilePath);
+            Logger.LogInformation("Definition found at file path: {filePath}", originComponentDocumentSnapshot.FilePath);
 
             var range = await GetNavigateRangeAsync(originComponentDocumentSnapshot, attributeDescriptor, cancellationToken);
 
@@ -116,14 +99,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             };
         }
 
+        protected override IDelegatedParams CreateDelegatedParams(DefinitionParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+            => new DelegatedPositionParams(
+                    documentContext.Identifier,
+                    projection.Position,
+                    projection.LanguageKind);
+
+        protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        {
+            if (response is null)
+            {
+                return null;
+            }
+
+            if (response.Value.TryGetFirst(out var location))
+            {
+                location.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
+            }
+            else if (response.Value.TryGetSecond(out var locations))
+            {
+                foreach (var loc in locations)
+                {
+                    loc.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else if (response.Value.TryGetThird(out var links))
+            {
+                foreach (var link in links)
+                {
+                    if (link.Target is not null)
+                    {
+                        link.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(link.Target, link.Range, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return response;
+        }
+
         private async Task<Range> GetNavigateRangeAsync(DocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
         {
             if (attributeDescriptor is not null)
             {
-                _logger.LogInformation("Attempting to get definition from an attribute directly.");
+                Logger.LogInformation("Attempting to get definition from an attribute directly.");
 
                 var originCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-                var range = await TryGetPropertyRangeAsync(originCodeDocument, attributeDescriptor.GetPropertyName(), _documentMappingService, _logger, cancellationToken).ConfigureAwait(false);
+                var range = await TryGetPropertyRangeAsync(originCodeDocument, attributeDescriptor.GetPropertyName(), _documentMappingService, Logger, cancellationToken).ConfigureAwait(false);
 
                 if (range is not null)
                 {
@@ -191,24 +212,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
         internal static async Task<(TagHelperDescriptor?, BoundAttributeDescriptor?)> GetOriginTagHelperBindingAsync(
             DocumentContext documentContext,
-            Position position,
+            int absoluteIndex,
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var linePosition = new LinePosition(position.Line, position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, position.Line, position.Character);
-
-            var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
-            if (syntaxTree.Root is null)
-            {
-                logger.LogInformation("Could not retrieve syntax tree.");
-                return (null, null);
-            }
-
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = await documentContext.GetSyntaxNodeAsync(absoluteIndex, cancellationToken).ConfigureAwait(false);
             if (owner is null)
             {
                 logger.LogInformation("Could not locate owner.");
@@ -247,9 +255,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
             }
 
-            if (!name.Span.Contains(location.AbsoluteIndex))
+            if (!name.Span.Contains(absoluteIndex))
             {
-                logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", location.AbsoluteIndex);
+                logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", absoluteIndex);
                 return (null, null);
             }
 

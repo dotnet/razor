@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             throw new NotImplementedException();
         }
 
-        private IResponseRouterReturns GetResponseRouterReturns()
+        private static IResponseRouterReturns GetResponseRouterReturns()
         {
             var mock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             mock.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);

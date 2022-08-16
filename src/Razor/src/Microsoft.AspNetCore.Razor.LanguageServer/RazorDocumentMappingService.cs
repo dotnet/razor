@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public abstract RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative);
 
         public abstract Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Maps a range in the specified virtual document uri to a range in the Razor document that owns the
+        /// virtual document. If the uri passed in is not for a virtual document, or the range cannot be mapped
+        /// for some other reason, the original passed in range is returned unchanged.
+        /// </summary>
+        public abstract Task<Range> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken);
 
         public async Task<Projection> GetProjectionAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
         {

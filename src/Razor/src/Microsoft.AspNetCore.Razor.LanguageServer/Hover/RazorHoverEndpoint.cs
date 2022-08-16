@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover, DelegatedHoverParams>, IVSHoverEndpoint
+    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<VSHoverParamsBridge, VSInternalHover>, IVSHoverEndpoint
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorHoverInfoService _hoverInfoService;
         private readonly RazorDocumentMappingService _documentMappingService;
         private VSInternalClientCapabilities? _clientCapabilities;
@@ -30,9 +27,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
+            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
         {
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
@@ -54,27 +50,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override async Task<DelegatedHoverParams> CreateDelegatedParamsAsync(VSHoverParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
-        {
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var absoluteIndex = request.Position.GetRequiredAbsoluteIndex(sourceText, Logger);
-            var projection = await _documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-
-            return new DelegatedHoverParams(
-                        documentContext.Identifier,
-                        projection.Position,
-                        projection.LanguageKind);
-        }
+        protected override IDelegatedParams CreateDelegatedParams(VSHoverParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+            => new DelegatedPositionParams(
+                    documentContext.Identifier,
+                    projection.Position,
+                    projection.LanguageKind);
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> TryHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> TryHandleAsync(VSHoverParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
-            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, Logger, cancellationToken).ConfigureAwait(false);
-            if (projection is null)
-            {
-                return null;
-            }
-
             // HTML can still sometimes be handled by razor. For example hovering over
             // a component tag like <Counter /> will still be in an html context
             if (projection.LanguageKind == RazorLanguageKind.CSharp)
@@ -82,10 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return null;
             }
 
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
+            var location = new SourceLocation(projection.AbsoluteIndex, request.Position.Line, request.Position.Character);
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
 
             return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
