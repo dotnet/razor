@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var called = false;
 
-            var expectedContents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(
+            var expectedContents = new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>(
                 new MarkedString()
                 {
                     Language = "markdown",

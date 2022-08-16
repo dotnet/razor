@@ -46,17 +46,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
         /// custom endpoint that is sent via <see cref="ClientNotifierServiceBase"/> which returns
-        /// a response by delegating to C#/HTML. 
+        /// a response by delegating to C#/HTML.
         /// </summary>
         /// <remarks>
-        /// An example is <see cref="RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName"/> 
+        /// An example is <see cref="RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName"/>
         /// </remarks>
         protected abstract string CustomMessageTarget { get; }
 
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
         /// </summary>
-        protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected virtual Task<TResponse?> HandleDelegatedResponseAsync(TResponse? delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
         /// <summary>
