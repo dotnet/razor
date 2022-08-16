@@ -20,6 +20,7 @@
         "@types/rimraf": "2.0.2",
         "@types/vscode": "1.45.1",
         "glob": "^7.1.4",
+        "minimist": "1.2.6",
         "mocha": "^6.1.4",
         "rimraf": "2.6.3",
         "ts-node": "^7.0.1",
