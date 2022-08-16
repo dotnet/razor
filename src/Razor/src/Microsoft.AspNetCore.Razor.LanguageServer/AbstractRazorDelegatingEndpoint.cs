@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
         /// </summary>
-        protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected virtual Task<TResponse?> HandleDelegatedResponseAsync(TResponse? delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// Implementation for <see cref="IRequest{TResponse}"/>
         /// </summary>
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken)
+        public async Task<TResponse?> Handle(TRequest request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -125,7 +125,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var remappedResponse = await HandleDelegatedResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
             return remappedResponse;
         }
-
-        public abstract TResponse GetDefault();
     }
 }

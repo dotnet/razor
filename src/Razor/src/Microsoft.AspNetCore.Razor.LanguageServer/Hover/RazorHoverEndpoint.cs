@@ -46,11 +46,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        public override VSInternalHover? GetDefault()
-        {
-            return null;
-        }
-
         /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
