@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             ["layout"] = ("layout ${1:MainLayout}$0", "layout MainLayout"),
             ["model"] = ("model ${1:MyModelClass}$0", "model MyModelClass"),
             ["namespace"] = ("namespace ${1:MyNameSpace}$0", "namespace MyNameSpace"),
-            ["page"] = ("page \"${1:/page}\"$0", "page \"/page\""),
+            ["page"] = ("page \"/${1:page}\"$0", "page \"/page\""),
             ["preservewhitespace"] = ("preservewhitespace ${1:true}$0", "preservewhitespace true"),
             ["removeTagHelper"] = ("removeTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}", "removeTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers"),
             ["tagHelperPrefix"] = ("tagHelperPrefix ${1:prefix}$0", "tagHelperPrefix prefix"),
