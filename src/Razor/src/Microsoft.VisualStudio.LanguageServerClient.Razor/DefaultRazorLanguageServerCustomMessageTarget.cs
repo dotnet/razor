@@ -1098,7 +1098,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            var definitionParams = new TextDocumentPositionParams()
+            var positionParams = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -1111,7 +1111,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 delegationDetails.Value.TextBuffer,
                 methodName,
                 delegationDetails.Value.LanguageServerName,
-                definitionParams,
+                positionParams,
                 cancellationToken).ConfigureAwait(false);
 
             return response?.Response;
