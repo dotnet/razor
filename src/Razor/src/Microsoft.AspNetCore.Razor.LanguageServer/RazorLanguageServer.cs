@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
@@ -159,6 +160,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<FoldingRangeEndpoint>()
                     .WithHandler<TextDocumentTextPresentationEndpoint>()
                     .WithHandler<TextDocumentUriPresentationEndpoint>()
+                    .WithHandler<DocumentHighlightEndpoint>()
                     .WithServices(services =>
                     {
                         featureOptions ??= new DefaultLanguageServerFeatureOptions();

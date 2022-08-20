@@ -1080,7 +1080,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response?.Response;
         }
 
-        public async override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+        public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
+
+        public override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
+
+        public override Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
+
+        private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
+            where TResult : class
         {
             var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
             if (delegationDetails is null)
@@ -1088,7 +1098,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            var hoverParams = new TextDocumentPositionParams()
+            var positionParams = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -1097,38 +1107,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Position = request.ProjectedPosition,
             };
 
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalHover?>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, TResult?>(
                 delegationDetails.Value.TextBuffer,
-                Methods.TextDocumentHoverName,
+                methodName,
                 delegationDetails.Value.LanguageServerName,
-                hoverParams,
-                cancellationToken).ConfigureAwait(false);
-
-            return response?.Response;
-        }
-
-        public async override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        {
-            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
-            if (delegationDetails is null)
-            {
-                return null;
-            }
-
-            var definitionParams = new TextDocumentPositionParams()
-            {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = delegationDetails.Value.ProjectedUri,
-                },
-                Position = request.ProjectedPosition,
-            };
-
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]?>(
-                delegationDetails.Value.TextBuffer,
-                Methods.TextDocumentDefinitionName,
-                delegationDetails.Value.LanguageServerName,
-                definitionParams,
+                positionParams,
                 cancellationToken).ConfigureAwait(false);
 
             return response?.Response;
