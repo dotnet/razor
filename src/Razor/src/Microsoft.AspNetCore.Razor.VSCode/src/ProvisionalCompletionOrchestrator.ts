@@ -156,7 +156,7 @@ export class ProvisionalCompletionOrchestrator {
             this.projectedCSharpProvider.ensureDocumentContent(projectedDocument.uri);
 
             if (this.logger.verboseEnabled) {
-                this.logger.logVerbose(`Ensured removalof provisional completion on ${projectedDocument.uri}.`);
+                this.logger.logVerbose(`Ensured removal of provisional completion on ${projectedDocument.uri}.`);
             }
         }
 

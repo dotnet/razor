@@ -14,6 +14,7 @@ import {
     ServerOptions,
     State,
 } from 'vscode-languageclient/lib/main';
+import { RazorLanguage } from './RazorLanguage';
 import { RazorLanguageServerOptions } from './RazorLanguageServerOptions';
 import { resolveRazorLanguageServerOptions } from './RazorLanguageServerOptionsResolver';
 import { resolveRazorLanguageServerTrace } from './RazorLanguageServerTraceResolver';
@@ -220,6 +221,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
 
         this.clientOptions = {
             outputChannel: options.outputChannel,
+            documentSelector: [ { language: RazorLanguage.id, pattern: RazorLanguage.globbingPattern } ],
         };
 
         const args: string[] = [];
