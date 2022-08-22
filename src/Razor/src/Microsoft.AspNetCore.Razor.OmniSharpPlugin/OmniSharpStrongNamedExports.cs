@@ -59,7 +59,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         [ImportingConstructor]
         public ExportOmniSharpWorkspaceProjectStateChangeDetector(
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) : base(projectSnapshotManagerDispatcher, workspaceStateGenerator)
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator,
+            OmniSharpLanguageServerFeatureOptions languageServerFeatureOptions)
+            : base(projectSnapshotManagerDispatcher, workspaceStateGenerator, languageServerFeatureOptions)
         {
         }
     }
@@ -84,6 +86,16 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             [ImportMany] IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners) : base(projectSnapshotManagerDispatcher, remoteTextLoaderFactory, documentProcessedListeners)
+        {
+        }
+    }
+
+    [Shared]
+    [Export(typeof(OmniSharpLanguageServerFeatureOptions))]
+    public class ExportOmniSharpLanguageServerFeatureOptions : OmniSharpLanguageServerFeatureOptions
+    {
+        [ImportingConstructor]
+        public ExportOmniSharpLanguageServerFeatureOptions() : base()
         {
         }
     }
