@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly object _workQueueAccessLock = new();
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private BatchingWorkQueue? _workQueue;
         private ProjectSnapshotManagerBase? _projectManager;
         private bool _disposed;
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (workspaceStateGenerator is null)
             {
@@ -55,18 +57,26 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _workspaceStateGenerator = workspaceStateGenerator;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         // Internal for testing
         internal WorkspaceProjectStateChangeDetector(
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             BatchingWorkQueue workQueue)
         {
             _workspaceStateGenerator = workspaceStateGenerator;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _workQueue = workQueue;
         }
 
@@ -176,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     return;
                                 }
 
-                                if (IsRazorFileOrRazorVirtual(newDocument))
+                                if (state.self.IsRazorFileOrRazorVirtual(newDocument))
                                 {
                                     state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                                     return;
@@ -184,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 // We now know we're not operating directly on a Razor file. However, it's possible the user
                                 // is operating on a partial class that is associated with a Razor file.
-                                if (state.self.IsPartialComponentClass(newDocument))
+                                if (IsPartialComponentClass(newDocument))
                                 {
                                     state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                                 }
@@ -205,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     return;
                                 }
 
-                                if (IsRazorFileOrRazorVirtual(removedDocument))
+                                if (state.self.IsRazorFileOrRazorVirtual(removedDocument))
                                 {
                                     state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                                     return;
@@ -214,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 // We now know we're not operating directly on a Razor file. However, it's possible the user
                                 // is operating on a partial class that is associated with a Razor file.
 
-                                if (state.self.IsPartialComponentClass(removedDocument))
+                                if (IsPartialComponentClass(removedDocument))
                                 {
                                     state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                                 }
@@ -239,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     return;
                                 }
 
-                                if (IsRazorFileOrRazorVirtual(document))
+                                if (state.self.IsRazorFileOrRazorVirtual(document))
                                 {
                                     var newProject = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                     state.self.EnqueueUpdateOnProjectAndDependencies(newProject, state.NewSolution);
@@ -248,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
 
-                                if (state.self.IsPartialComponentClass(document))
+                                if (IsPartialComponentClass(document))
                                 {
                                     var newProject = state.NewSolution.GetRequiredProject(state.ProjectId!);
                                     state.self.EnqueueUpdateOnProjectAndDependencies(newProject, state.NewSolution);
@@ -292,23 +302,27 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 Debug.Fail("WorkspaceProjectStateChangeDetector.Workspace_WorkspaceChanged threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
+        }
 
-            static bool IsRazorFileOrRazorVirtual(Document document)
-            {
-                // Using EndsWith because Path.GetExtension will ignore everything before .cs
+        private bool IsRazorFileOrRazorVirtual(Document document)
+        {
+            if (document.FilePath is null)
+                return false;
+
+            // Using EndsWith because Path.GetExtension will ignore everything before .cs
+            return document.FilePath.EndsWith(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix, FilePathComparison.Instance) ||
+                // Still have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
+                document.FilePath.EndsWith(".cshtml.g.cs", FilePathComparison.Instance) ||
+                document.FilePath.EndsWith(".razor.g.cs", FilePathComparison.Instance) ||
+                document.FilePath.EndsWith(".razor", FilePathComparison.Instance) ||
+
+                // VSCode's background C# document
                 // Using Ordinal because the SDK generates these filenames.
-                // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
-                return document.FilePath.EndsWith(".cshtml.g.cs", FilePathComparison.Instance) ||
-                    document.FilePath.EndsWith(".razor.g.cs", FilePathComparison.Instance) ||
-                    document.FilePath.EndsWith(".razor", FilePathComparison.Instance) ||
-
-                    // VSCode's background C# document
-                    document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal);
-            }
+                document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal);
         }
 
         // Internal for testing
-        internal bool IsPartialComponentClass(Document document)
+        internal static bool IsPartialComponentClass(Document document)
         {
             if (!document.TryGetSyntaxRoot(out var root))
             {
