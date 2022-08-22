@@ -46,10 +46,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
         /// custom endpoint that is sent via <see cref="ClientNotifierServiceBase"/> which returns
-        /// a response by delegating to C#/HTML. 
+        /// a response by delegating to C#/HTML.
         /// </summary>
         /// <remarks>
-        /// An example is <see cref="RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName"/> 
+        /// An example is <see cref="RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName"/>
         /// </remarks>
         protected abstract string CustomMessageTarget { get; }
 
@@ -108,6 +108,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             if (!_languageServerFeatureOptions.SingleServerSupport)
+            {
+                return default;
+            }
+
+            // We can only delegate to C# and HTML, so if we're in a Razor context and our inheritor didn't want to provide
+            // any response then that's all we can do.
+            if (projection.LanguageKind == RazorLanguageKind.Razor)
             {
                 return default;
             }
