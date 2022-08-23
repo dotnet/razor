@@ -217,7 +217,7 @@ file_header_template = Licensed to the .NET Foundation under one or more agreeme
 # IDE0161: Convert to file-scoped namespace
 dotnet_diagnostic.IDE0161.severity = warning
 
-[**/{test,samples,perf}/**.{cs,vb}]
+[**{test,samples,perf}/**.{cs,vb}]
 # CA1018: Mark attributes with AttributeUsageAttribute
 dotnet_diagnostic.CA1018.severity = suggestion
 # CA1507: Use nameof to express symbol names
