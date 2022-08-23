@@ -2,10 +2,6 @@
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
-  <PropertyGroup Label="Resx settings">
-    <GenerateResxSource Condition="$(GenerateResxSource) == ''">true</GenerateResxSource>
-    <GenerateResxSourceEmitFormatMethods Condition="$(GenerateResxSourceEmitFormatMethods) == ''">true</GenerateResxSourceEmitFormatMethods>
-  </PropertyGroup>
   <PropertyGroup>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
   </PropertyGroup>
@@ -38,11 +34,6 @@
   <ItemGroup Condition=" '$(RemoveDevicePlatformSupport)' == 'true' ">
     <SupportedPlatform Remove="Android" />
     <SupportedPlatform Remove="iOS" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Remove unneeded reference to AspNetCore.App -->
-    <KnownFrameworkReference Remove="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <Target Name="GetCustomAssemblyAttributes"
