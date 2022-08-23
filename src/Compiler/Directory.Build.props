@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>6</AnalysisLevel>
+    <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Default</AnalysisMode>
     <LangVersion>Latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -41,5 +41,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" NoWarn="NU1608" />
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" />
+
+    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\globalconfigs\Compiler.globalconfig" />
   </ItemGroup>
 </Project>
