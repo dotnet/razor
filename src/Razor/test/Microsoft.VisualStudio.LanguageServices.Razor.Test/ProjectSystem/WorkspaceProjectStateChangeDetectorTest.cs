@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
             WorkQueueTestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
 
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue)
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue)
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue)
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue)
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
@@ -462,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
@@ -494,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
@@ -544,7 +545,7 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue)
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
@@ -573,7 +574,7 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, TestLanguageServerFeatureOptions.Instance, WorkQueue)
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
@@ -598,8 +599,6 @@ namespace Microsoft.AspNetCore.Components
         public async Task IsPartialComponentClass_NoIComponent_ReturnsFalse()
         {
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent{{}}
@@ -615,7 +614,7 @@ public partial class TestComponent{{}}
             await document.GetSemanticModelAsync();
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.False(result);
@@ -625,8 +624,6 @@ public partial class TestComponent{{}}
         public async Task IsPartialComponentClass_InitializedDocument_ReturnsTrue()
         {
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent : {ComponentsApi.IComponent.MetadataName} {{}}
@@ -646,7 +643,7 @@ namespace Microsoft.AspNetCore.Components
             await document.GetSemanticModelAsync();
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.True(result);
@@ -656,8 +653,6 @@ namespace Microsoft.AspNetCore.Components
         public void IsPartialComponentClass_Uninitialized_ReturnsFalse()
         {
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent : {ComponentsApi.IComponent.MetadataName} {{}}
@@ -673,7 +668,7 @@ namespace Microsoft.AspNetCore.Components
             var document = solution.GetDocument(PartialComponentClassDocumentId);
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.False(result);
@@ -683,8 +678,6 @@ namespace Microsoft.AspNetCore.Components
         public async Task IsPartialComponentClass_UninitializedSemanticModel_ReturnsFalse()
         {
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent : {ComponentsApi.IComponent.MetadataName} {{}}
@@ -702,7 +695,7 @@ namespace Microsoft.AspNetCore.Components
             await document.GetSyntaxRootAsync();
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.False(result);
@@ -712,8 +705,6 @@ namespace Microsoft.AspNetCore.Components
         public async Task IsPartialComponentClass_NonClass_ReturnsFalse()
         {
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(string.Empty);
             var syntaxTreeRoot = await CSharpSyntaxTree.ParseText(sourceText).GetRootAsync();
             var solution = SolutionWithTwoProjects
@@ -726,7 +717,7 @@ namespace Microsoft.AspNetCore.Components
             await document.GetSemanticModelAsync();
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.False(result);
@@ -737,8 +728,6 @@ namespace Microsoft.AspNetCore.Components
         {
 
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(
 $@"
 public partial class NonComponent1 {{}}
@@ -762,7 +751,7 @@ namespace Microsoft.AspNetCore.Components
             await document.GetSemanticModelAsync();
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.True(result);
@@ -773,8 +762,6 @@ namespace Microsoft.AspNetCore.Components
         {
 
             // Arrange
-            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             var sourceText = SourceText.From(
 $@"
 public partial class NonComponent1 {{}}
@@ -797,7 +784,7 @@ namespace Microsoft.AspNetCore.Components
             await document.GetSemanticModelAsync();
 
             // Act
-            var result = detector.IsPartialComponentClass(document);
+            var result = WorkspaceProjectStateChangeDetector.IsPartialComponentClass(document);
 
             // Assert
             Assert.False(result);
