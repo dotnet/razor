@@ -445,8 +445,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
-            Assert.False(vsHover.Contents.TryGetFourth(out var _));
-            Assert.True(vsHover.Contents.TryGetThird(out var _) && !vsHover.Contents.Third.Any());
+            Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));
+            Assert.True(vsHover.Contents.Value.TryGetThird(out var _) && !vsHover.Contents.Value.Third.Any());
             var expectedRange = new Range
             {
                 Start = new Position(1, 1),
@@ -483,8 +483,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var vsHover = service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
-            Assert.False(vsHover.Contents.TryGetFourth(out var _));
-            Assert.True(vsHover.Contents.TryGetThird(out var markedStrings) && !markedStrings.Any());
+            Assert.False(vsHover.Contents.Value.TryGetFourth(out var _));
+            Assert.True(vsHover.Contents.Value.TryGetThird(out var markedStrings) && !markedStrings.Any());
             var expectedRange = new Range
             {
                 Start = new Position(1, 7),
