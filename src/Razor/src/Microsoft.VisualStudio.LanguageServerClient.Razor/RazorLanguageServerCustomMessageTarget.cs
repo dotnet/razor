@@ -108,5 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<SumType<Location[]?, VSInternalReferenceItem[]?>> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
     }
 }
