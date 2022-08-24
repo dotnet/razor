@@ -437,6 +437,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         }
 
         [Fact]
+        public async Task Handle_Rename_SingleServer_DoesntDelegateForRazor()
+        {
+            // Arrange
+            var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
+            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+            var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+            documentMappingServiceMock
+                .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(RazorLanguageKind.Razor);
+
+            var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
+
+            var request = new RenameParamsBridge
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                },
+                Position = new Position(1, 0),
+                NewName = "Test2"
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
         public async Task Handle_Rename_SingleServer_CSharpEditsAreMapped()
         {
             var input = """

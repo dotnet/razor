@@ -68,4 +68,12 @@
   <Extension path="/MonoDevelop/Ide/Editor/TextMate">
     <Repository folderPath="Grammars"/>
   </Extension>
+
+  <Extension path="/MonoDevelop/Ide/Editor/LanguageConfiguration">
+    <LanguageConfiguration contentTypeName="Razor" scopeName="text.aspnetcorerazor" languageConfigurationFilePath="language-configuration.json" />
+    <LanguageConfiguration scopeName="source.js" languageConfigurationFilePath="javascript-language-configuration.json" />
+    <LanguageConfiguration scopeName="source.css" languageConfigurationFilePath="css-language-configuration.json" />
+    <LanguageConfiguration scopeName="source.cs" languageConfigurationFilePath="csharp-language-configuration.json" />
+    <LanguageConfiguration scopeName="meta.directive" languageConfigurationFilePath="razordirective-language-configuration.json" />
+  </Extension>
 </ExtensionModel>

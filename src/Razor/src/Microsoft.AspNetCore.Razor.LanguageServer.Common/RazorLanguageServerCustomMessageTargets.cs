@@ -36,5 +36,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorHoverEndpointName = "razor/hover";
 
         public const string RazorDefinitionEndpointName = "razor/definition";
+
+        public const string RazorDocumentHighlightEndpointName = "razor/documentHighlight";
+
+        public const string RazorSignatureHelpEndpointName = "razor/signatureHelp";
     }
 }

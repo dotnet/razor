@@ -4,8 +4,8 @@
 /global.json                                   @dotnet/razor-tooling
 /azure-pipelines.yml                           @dotnet/razor-tooling
 /eng/                                          @dotnet/razor-tooling
-/eng/common/                                   @dotnet-maestro-bot
-/eng/Versions.props                            @dotnet-maestro-bot
-/eng/Version.Details.xml                       @dotnet-maestro-bot
-/src/                                          @dotnet/razor-tooling @NTaylorMullen @ryanbrandenburg @allisonchou @sharwell @davidwengier
+/eng/common/                                   @dotnet/razor-tooling
+/eng/Versions.props                            @dotnet/razor-tooling
+/eng/Version.Details.xml                       @dotnet/razor-tooling
+/src/                                          @dotnet/razor-tooling
 /src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension/ @dotnet/razor-tooling @dotnet/aspnet-blazor-eng @captainsafia

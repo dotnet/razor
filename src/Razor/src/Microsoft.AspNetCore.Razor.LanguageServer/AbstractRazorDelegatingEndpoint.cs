@@ -112,6 +112,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
+            // We can only delegate to C# and HTML, so if we're in a Razor context and our inheritor didn't want to provide
+            // any response then that's all we can do.
+            if (projection.LanguageKind == RazorLanguageKind.Razor)
+            {
+                return default;
+            }
+
             var delegatedParams = CreateDelegatedParams(request, documentContext, projection, cancellationToken);
 
             var delegatedRequest = await _languageServer.SendRequestAsync(CustomMessageTarget, delegatedParams).ConfigureAwait(false);
