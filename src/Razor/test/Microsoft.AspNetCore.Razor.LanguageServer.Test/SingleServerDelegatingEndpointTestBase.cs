@@ -19,6 +19,10 @@ using Moq;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
+using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -77,9 +81,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return await (method switch
                 {
+                    RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => HandleDefinitionAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => HandleImplementationAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
                 });
+            }
+
+            private async Task<IResponseRouterReturns> HandleDefinitionAsync<T>(T @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+                var delegatedRequest = new TextDocumentPositionParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = delegatedParams.ProjectedPosition
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, DefinitionResult?>(Methods.TextDocumentDefinitionName, delegatedRequest, CancellationToken.None);
+
+                return new TestResponseRouterReturn(result);
             }
 
             private async Task<IResponseRouterReturns> HandleImplementationAsync<T>(T @params)
