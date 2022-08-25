@@ -25,6 +25,7 @@
     -->
     <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <DotNetFinalVersionKind Condition="'$(StabilizePackageVersion)' == 'true'">release</DotNetFinalVersionKind>
+    <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
     <DefaultNetCoreTargetFramework>net7.0</DefaultNetCoreTargetFramework>
     <DefaultNetCoreWindowsTargetFramework>net7.0-windows</DefaultNetCoreWindowsTargetFramework>
   </PropertyGroup>
