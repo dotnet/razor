@@ -15,7 +15,6 @@ public static class TestRazorCodeDocument
         return new DefaultRazorCodeDocument(source, imports: null);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads", Justification = "Test only")]
     public static RazorCodeDocument Create(string content, bool normalizeNewLines = false)
     {
         var source = TestRazorSourceDocument.Create(content, normalizeNewLines: normalizeNewLines);

@@ -257,6 +257,10 @@ dotnet_diagnostic.CA1846.severity = suggestion
 dotnet_diagnostic.CA2008.severity = suggestion
 # IDE0044: Make field readonly
 dotnet_diagnostic.IDE0044.severity = suggestion
+# RS0030: Do not used banned APIs
+dotnet_diagnostic.RS0030.severity = none
+# RS0027: Public API with optional parameter(s) should have the most parameters amongst its public overloads
+dotnet_diagnostic.RS0027.severity = none
 
 # CA2016: Forward the 'CancellationToken' parameter to methods that take one
 dotnet_diagnostic.CA2016.severity = suggestion
