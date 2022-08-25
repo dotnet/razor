@@ -84,6 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => HandleDefinitionAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => HandleImplementationAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => HandleSignatureHelpAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => HandleRenameAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
                 });
             }
@@ -135,6 +136,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
 
                 var result = await _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(Methods.TextDocumentSignatureHelpName, delegatedRequest, CancellationToken.None);
+
+                return new TestResponseRouterReturn(result);
+            }
+
+            private async Task<IResponseRouterReturns> HandleRenameAsync<T>(T @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedRenameParams>(@params);
+                var delegatedRequest = new RenameParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = delegatedParams.ProjectedPosition,
+                    NewName = delegatedParams.NewName,
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName, delegatedRequest, CancellationToken.None);
 
                 return new TestResponseRouterReturn(result);
             }
