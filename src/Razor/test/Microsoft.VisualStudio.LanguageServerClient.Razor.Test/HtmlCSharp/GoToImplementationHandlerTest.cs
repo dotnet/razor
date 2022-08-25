@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await implementationHandler.HandleRequestAsync(implementationRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result.Value);
+            Assert.Null(result.Value.Value);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await implementationHandler.HandleRequestAsync(implementationRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result.Value);
+            Assert.Null(result.Value.Value);
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>?>(
                     It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>>("LanguageClientName", new(new[] { htmlLocation }))));
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>?>("LanguageClientName", new(new[] { htmlLocation }))));
 
             var projectionResult = new ProjectionResult()
             {
@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>?>(
                     It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>>("LanguageClientName", new(new[] { csharpLocation }))));
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>?>("LanguageClientName", new(new[] { csharpLocation }))));
 
             var projectionResult = new ProjectionResult()
             {
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(invokedLSPRequest);
             Assert.True(invokedRemapRequest);
 
-            Assert.IsType<Location[]>(result.Value);
+            Assert.IsType<Location[]>(result.Value.Value);
 
             // Actual remapping behavior is tested elsewhere.
         }
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>?>(
                     It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>>("LanguageClientName", new(new[] { csharpLocation }))));
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<Location[], VSInternalReferenceItem[]>?>("LanguageClientName", new(new[] { csharpLocation }))));
 
             var projectionResult = new ProjectionResult()
             {
@@ -276,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(invokedLSPRequest);
             Assert.True(invokedRemapRequest);
 
-            Assert.IsType<VSInternalReferenceItem[]>(result.Value);
+            Assert.IsType<VSInternalReferenceItem[]>(result.Value.Value);
 
             // Actual remapping behavior is tested elsewhere.
         }

@@ -57,9 +57,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
                     projection.LanguageKind);
 
         /// <inheritdoc/>
-        protected override async Task<DocumentHighlight[]> HandleDelegatedResponseAsync(DocumentHighlight[] response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+            if (response is null)
+            {
+                return null;
+            }
 
             foreach (var highlight in response)
             {

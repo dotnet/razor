@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentImplementationName)]
-    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>
+    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>?>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
         }
 
-        public async Task<SumType<Location[]?, VSInternalReferenceItem[]?>> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<SumType<Location[], VSInternalReferenceItem[]>?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation("Requesting {languageServerName} implementation for {projectionResultUri}.", languageServerName, projectionResult.Uri);
 
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>?>(
                 textBuffer,
                 Methods.TextDocumentImplementationName,
                 languageServerName,
@@ -133,14 +133,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // From some language servers we get VSInternalReferenceItem results, and from some we get Location results.
             // We check for the _vs_id property, which is required in VSInternalReferenceItem, to know which is which.
-            if (result.Value is VSInternalReferenceItem[] referenceItems)
+            if (result.Value.Value is VSInternalReferenceItem[] referenceItems)
             {
                 var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, _razorConventions, cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Returning {remappedLocationsLength} internal reference items.", remappedLocations?.Length);
                 return remappedLocations;
             }
-            else if (result.Value is Location[] locations)
+            else if (result.Value.Value is Location[] locations)
             {
                 var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
 
