@@ -83,6 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => HandleDefinitionAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => HandleImplementationAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => HandleSignatureHelpAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
                 });
             }
@@ -117,6 +118,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
 
                 var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(Methods.TextDocumentImplementationName, delegatedRequest, CancellationToken.None);
+
+                return new TestResponseRouterReturn(result);
+            }
+
+            private async Task<IResponseRouterReturns> HandleSignatureHelpAsync<T>(T @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+                var delegatedRequest = new SignatureHelpParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = delegatedParams.ProjectedPosition,
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(Methods.TextDocumentSignatureHelpName, delegatedRequest, CancellationToken.None);
 
                 return new TestResponseRouterReturn(result);
             }
