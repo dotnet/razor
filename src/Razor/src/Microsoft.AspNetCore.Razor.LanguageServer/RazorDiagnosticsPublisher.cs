@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,15 +22,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal TimeSpan _publishDelay = TimeSpan.FromSeconds(2);
         internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedDiagnostics;
-        internal Timer _workTimer;
-        internal Timer _documentClosedTimer;
+        internal Timer? _workTimer;
+        internal Timer? _documentClosedTimer;
 
         private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ITextDocumentLanguageServer _languageServer;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private readonly ILogger<RazorDiagnosticsPublisher> _logger;
-        private ProjectSnapshotManager _projectManager;
+        private ProjectSnapshotManager? _projectManager;
 
         public RazorDiagnosticsPublisher(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -62,10 +60,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Used in tests to ensure we can control when background work completes.
-        public ManualResetEventSlim BlockBackgroundWorkCompleting { get; set; }
+        public ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
 
         // Used in tests to ensure we can control when background work completes.
-        public ManualResetEventSlim NotifyBackgroundWorkCompleting { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
 
         public override void Initialize(ProjectSnapshotManager projectManager)
         {
@@ -134,6 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(PublishedDiagnostics);
                     foreach (var entry in publishedDiagnostics)
                     {
+                        Assumes.NotNull(_projectManager);
                         if (!_projectManager.IsDocumentOpen(entry.Key))
                         {
                             // Document is now closed, we shouldn't track its diagnostics anymore.
@@ -236,7 +235,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 lock (_work)
                 {
                     // Resetting the timer allows another batch of work to start.
-                    _workTimer.Dispose();
+                    _workTimer?.Dispose();
                     _workTimer = null;
 
                     // If more work came in while we were running start the timer again.
@@ -251,7 +250,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 lock (_work)
                 {
                     // Resetting the timer allows another batch of work to start.
-                    _workTimer.Dispose();
+                    _workTimer?.Dispose();
                     _workTimer = null;
                 }
 

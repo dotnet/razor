@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly RazorConfigurationService _configurationService;
         private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
-        private event Action<RazorLSPOptions, string> OnChangeEvent;
+        private event Action<RazorLSPOptions, string>? OnChangeEvent;
         private RazorLSPOptions _currentValue;
 
         public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)

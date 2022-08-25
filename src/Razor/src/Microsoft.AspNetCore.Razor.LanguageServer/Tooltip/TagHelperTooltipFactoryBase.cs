@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -52,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         internal static string ReduceMemberName(string content) => ReduceFullName(content, reduceWhenDotCount: 2);
 
         // Internal for testing
-        internal static bool TryExtractSummary(string documentation, out string summary)
+        internal static bool TryExtractSummary(string documentation, [NotNullWhen(true)] out string? summary)
         {
             const string SummaryStartTag = "<summary>";
             const string SummaryEndTag = "</summary>";
@@ -93,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             var codeRegex = new Regex(@"<code>(.*?)<\/code>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
             var successfulMatches = ExtractSuccessfulMatches(codeRegex, summaryContent);
             return successfulMatches;
-    }
+        }
 
         internal static List<Match> ExtractCrefMatches(string summaryContent)
         {

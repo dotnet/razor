@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,8 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private readonly ILogger _logger;
-        private FileSystemWatcher _watcher;
+        private readonly ILogger? _logger;
+        private FileSystemWatcher? _watcher;
 
         private static readonly IReadOnlyCollection<string> s_ignoredDirectories = new string[]
         {
@@ -36,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             LanguageServerFeatureOptions languageServerFeatureOptions,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
         {
             if (projectSnapshotManagerDispatcher is null)
             {

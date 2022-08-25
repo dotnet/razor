@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +17,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         public static int GetIndentationSize(this TextLine line, long tabSize)
         {
             var text = line.Text;
+
+            Assumes.NotNull(text);
 
             var indentation = 0;
             for (var i = line.Start; i < line.End; i++)
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentOutOfRangeException(nameof(startOffset), RazorLS.Resources.Invalid_Offset);
             }
 
-            return line.Text.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);
+            return line.Text!.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);
         }
     }
 }

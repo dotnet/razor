@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
@@ -73,13 +71,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task InitializedAsync(CancellationToken token) => _innerServer.Initialize(token);
 
-        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, LanguageServerFeatureOptions featureOptions = null, Action<RazorLanguageServerBuilder> configure = null)
+        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, LanguageServerFeatureOptions? featureOptions = null, Action<RazorLanguageServerBuilder>? configure = null)
         {
             var serializer = new LspSerializer();
             serializer.RegisterRazorConverters();
             serializer.RegisterVSInternalExtensionConverters();
 
-            ILanguageServer server = null;
+            ILanguageServer? server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
             var initializedCompletionSource = new TaskCompletionSource<bool>();
 
@@ -120,8 +118,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         await fileChangeDetectorManager.InitializedAsync();
 
                         // Workaround for https://github.com/OmniSharp/csharp-language-server-protocol/issues/106
-                        var languageServer = (OmniSharp.Extensions.LanguageServer.Server.LanguageServer)server;
-                        if (request.Capabilities.Workspace.Configuration.IsSupported)
+                        var languageServer = (OmniSharp.Extensions.LanguageServer.Server.LanguageServer)server!;
+                        if (request.Capabilities?.Workspace?.Configuration.IsSupported == true)
                         {
                             // Initialize our options for the first time.
                             var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
@@ -323,10 +321,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var razorLanguageServer = new RazorLanguageServer(server);
 
-            IDisposable exitSubscription = null;
+            IDisposable? exitSubscription = null;
             exitSubscription = server.Exit.Subscribe((_) =>
             {
-                exitSubscription.Dispose();
+                exitSubscription!.Dispose();
                 razorLanguageServer.Dispose();
             });
 

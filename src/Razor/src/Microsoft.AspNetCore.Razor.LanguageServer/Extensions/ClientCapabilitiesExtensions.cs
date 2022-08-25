@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class ClientCapabilitiesExtensions
     {
-        public static VSInternalClientCapabilities ToVSClientCapabilities(this OmniSharpClientCapabilities omniSharpClientCapabilities, LspSerializer serializer)
+        public static VSInternalClientCapabilities ToVSClientCapabilities(this OmniSharpClientCapabilities? omniSharpClientCapabilities, LspSerializer serializer)
         {
             var jsonCapturingCapabilities = omniSharpClientCapabilities as ICaptureJson;
             if (jsonCapturingCapabilities is null)
