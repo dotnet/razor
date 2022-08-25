@@ -450,29 +450,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return workspaceEdit;
         }
 
-        public async override Task<Range> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
+        public async override Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
         {
+            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+
+            // For Html we just map the Uri, the range will be the same
+            if (_languageServerFeatureOptions.IsVirtualHtmlFile(virtualDocumentUri))
+            {
+                return (razorDocumentUri, projectedRange);
+            }
+
             // We only map from C# files
             if (!_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
             {
-                return projectedRange;
+                return (virtualDocumentUri, projectedRange);
             }
 
-            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
             var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
-                return projectedRange;
+                return (virtualDocumentUri, projectedRange);
             }
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var mappedRange))
             {
-                return mappedRange;
+                return (razorDocumentUri, mappedRange);
             }
 
-            return projectedRange;
+            return (virtualDocumentUri, projectedRange);
         }
 
         // Internal for testing
