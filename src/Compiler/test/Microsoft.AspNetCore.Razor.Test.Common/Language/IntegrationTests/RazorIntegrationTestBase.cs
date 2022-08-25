@@ -288,6 +288,7 @@ public class RazorIntegrationTestBase
         return CompileToAssembly(cSharpResult);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads", Justification = "Test only")]
     protected CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, bool throwOnFailure = true)
     {
         if (cSharpResult.Diagnostics.Any() && throwOnFailure)
