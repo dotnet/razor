@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
     {
-        private static RazorCompletionItem s_transitionCompletionItem;
+        private static RazorCompletionItem? s_transitionCompletionItem;
 
         public static RazorCompletionItem TransitionCompletionItem
         {

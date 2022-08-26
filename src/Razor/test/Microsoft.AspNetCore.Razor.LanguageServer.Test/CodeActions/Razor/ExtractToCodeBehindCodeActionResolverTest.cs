@@ -49,6 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ExtractStart = 19,
                 ExtractEnd = 41,
                 RemoveEnd = 41,
+                Namespace = "Test"
             });
 
             // Act
@@ -75,6 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ExtractStart = 20,
                 ExtractEnd = 41,
                 RemoveEnd = 41,
+                Namespace = "Test"
             });
 
             // Act
@@ -101,6 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ExtractStart = 20,
                 ExtractEnd = 41,
                 RemoveEnd = 41,
+                Namespace = "Test"
             });
 
             // Act

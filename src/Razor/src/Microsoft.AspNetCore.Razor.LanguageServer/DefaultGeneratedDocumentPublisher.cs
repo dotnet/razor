@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly IClientLanguageServer _server;
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
         public DefaultGeneratedDocumentPublisher(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -177,9 +175,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
+            Assumes.NotNull(_projectSnapshotManager);
+
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
+                    Assumes.NotNull(args.DocumentFilePath);
                     if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
                         // Document closed, evict published source text.

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -66,10 +64,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (_lineDiffOnly)
             {
                 var oldLine = OldText.Lines[oldTextIndex];
-                var oldLineText = oldLine.Text.GetSubText(oldLine.SpanIncludingLineBreak);
+                var oldLineText = oldLine.Text!.GetSubText(oldLine.SpanIncludingLineBreak);
 
                 var newLine = NewText.Lines[newTextIndex];
-                var newLineText = newLine.Text.GetSubText(newLine.SpanIncludingLineBreak);
+                var newLineText = newLine.Text!.GetSubText(newLine.SpanIncludingLineBreak);
 
                 return oldLineText.ContentEquals(newLineText);
             }
@@ -120,8 +118,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     if (edit.Operation == DiffEdit.Type.Insert)
                     {
+                        Assumes.NotNull(edit.NewTextPosition);
                         var newLine = NewText.Lines[edit.NewTextPosition.Value];
-                        builder.Append(newLine.Text.ToString(newLine.SpanIncludingLineBreak));
+                        builder.Append(newLine.Text!.ToString(newLine.SpanIncludingLineBreak));
                         return OldText.Lines[edit.Position].Start;
                     }
                     else
@@ -133,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     if (edit.Operation == DiffEdit.Type.Insert)
                     {
-                        builder.Append(NewText[edit.NewTextPosition.Value]);
+                        builder.Append(NewText[edit.NewTextPosition!.Value]);
                         return edit.Position;
                     }
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -15,8 +13,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
     {
         public RazorLanguageKind Kind { get; set; }
 
-        public Uri RazorDocumentUri { get; set; }
+        public required Uri RazorDocumentUri { get; set; }
 
-        public VSDiagnostic[] Diagnostics { get; set; }
+        public required VSDiagnostic[] Diagnostics { get; set; }
     }
 }

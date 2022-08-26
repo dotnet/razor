@@ -254,8 +254,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void UpdateProject(
             string filePath,
-            RazorConfiguration configuration,
-            string rootNamespace,
+            RazorConfiguration? configuration,
+            string? rootNamespace,
             ProjectWorkspaceState projectWorkspaceState,
             IReadOnlyList<DocumentSnapshotHandle> documents)
         {

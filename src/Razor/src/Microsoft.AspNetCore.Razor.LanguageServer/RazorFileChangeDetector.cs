@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -64,10 +62,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal int EnqueueDelay { get; set; } = 1000;
 
         // Used in tests to ensure we can control when delayed notification work starts.
-        internal ManualResetEventSlim BlockNotificationWorkStart { get; set; }
+        internal ManualResetEventSlim? BlockNotificationWorkStart { get; set; }
 
         // Used in tests to ensure we can understand when notification work noops.
-        internal ManualResetEventSlim NotifyNotificationNoop { get; set; }
+        internal ManualResetEventSlim? NotifyNotificationNoop { get; set; }
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
         {
@@ -269,7 +267,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal class DelayedFileChangeNotification
         {
-            public Task NotifyTask { get; set; }
+            public Task? NotifyTask { get; set; }
 
             public RazorFileChangeKind? ChangeKind { get; set; }
         }

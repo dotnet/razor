@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -29,8 +27,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public abstract void UpdateProject(
             string filePath,
-            RazorConfiguration configuration,
-            string rootNamespace,
+            RazorConfiguration? configuration,
+            string? rootNamespace,
             ProjectWorkspaceState projectWorkspaceState,
             IReadOnlyList<DocumentSnapshotHandle> documents);
     }

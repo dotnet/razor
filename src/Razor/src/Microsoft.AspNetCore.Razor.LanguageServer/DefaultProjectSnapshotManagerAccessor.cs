@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -19,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
-        private ProjectSnapshotManagerBase _instance;
+        private ProjectSnapshotManagerBase? _instance;
         private bool _disposed;
 
         public DefaultProjectSnapshotManagerAccessor(

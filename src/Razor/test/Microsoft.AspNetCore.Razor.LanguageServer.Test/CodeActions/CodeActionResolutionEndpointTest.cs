@@ -34,6 +34,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
+                {
+                    Namespace = "Test",
+                    Uri = new Uri("C:/path/to/Page.razor")
+                }
             };
             var request = new CodeActionBridge()
             {
@@ -62,7 +66,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
             var request = new CodeActionBridge()
             {
@@ -93,7 +100,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "TestCSharp",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
             var request = new CodeActionBridge()
             {
@@ -121,6 +131,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
+                {
+                    Namespace = "Test",
+                    Uri = new Uri("C:/path/to/Page.razor")
+                }
             };
             var request = new CodeActionBridge()
             {
@@ -152,7 +166,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
             var request = new CodeActionBridge()
             {
@@ -187,6 +204,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
+                {
+                    Namespace = "Test",
+                    Uri = new Uri("C:/path/to/Page.razor")
+                }
             };
             var request = new CodeActionBridge()
             {
@@ -220,7 +241,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
             var request = new CodeActionBridge()
             {
@@ -256,7 +280,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "A",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = JToken.FromObject(new AddUsingsCodeActionParams()),
+                Data = JToken.FromObject(new AddUsingsCodeActionParams()
+                {
+                    Namespace = "Test",
+                    Uri = new Uri("C:/path/to/Page.razor")
+                }),
             };
 
             // Act
@@ -282,7 +310,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "B",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = JToken.FromObject(new AddUsingsCodeActionParams())
+                Data = JToken.FromObject(new AddUsingsCodeActionParams()
+                {
+                    Namespace = "Test",
+                    Uri = new Uri("C:/path/to/Page.razor")
+                })
             };
 
             // Act
@@ -308,7 +340,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "A",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
 
             // Act
@@ -334,7 +369,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "B",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
 
             // Act
@@ -363,7 +401,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 Action = "D",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams())
+                Data = JObject.FromObject(new CSharpCodeActionParams()
+                {
+                    RazorFileUri = new Uri("C:/path/to/Page.razor"),
+                })
             };
 
             // Act
