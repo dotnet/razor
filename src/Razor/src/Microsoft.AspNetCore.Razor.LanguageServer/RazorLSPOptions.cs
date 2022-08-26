@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
@@ -46,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        public bool Equals(RazorLSPOptions other)
+        public bool Equals(RazorLSPOptions? other)
         {
             return
                 other != null &&

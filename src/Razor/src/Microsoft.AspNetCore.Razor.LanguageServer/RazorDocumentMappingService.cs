@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// virtual document. If the uri passed in is not for a virtual document, or the range cannot be mapped
         /// for some other reason, the original passed in range is returned unchanged.
         /// </summary>
-        public abstract Task<Range> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken);
+        public abstract Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken);
 
         public async Task<Projection> GetProjectionAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
         {

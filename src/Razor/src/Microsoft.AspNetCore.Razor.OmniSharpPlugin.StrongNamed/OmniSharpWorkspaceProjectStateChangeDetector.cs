@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
 {
@@ -15,7 +16,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     {
         public OmniSharpWorkspaceProjectStateChangeDetector(
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator,
+            OmniSharpLanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -29,7 +31,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
 
             InternalWorkspaceProjectStateChangeDetector = new ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
                 projectSnapshotManagerDispatcher.InternalDispatcher,
-                workspaceStateGenerator.InternalWorkspaceStateGenerator);
+                workspaceStateGenerator.InternalWorkspaceStateGenerator,
+                languageServerFeatureOptions.InternalLanguageServerFeatureOptions);
         }
 
         internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
@@ -45,7 +48,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
 
             public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, projectSnapshotManagerDispatcher)
+                ProjectWorkspaceStateGenerator workspaceStateGenerator,
+                LanguageServerFeatureOptions languageServerFeatureOptions)
+                : base(workspaceStateGenerator, projectSnapshotManagerDispatcher, languageServerFeatureOptions)
             {
                 if (projectSnapshotManagerDispatcher is null)
                 {

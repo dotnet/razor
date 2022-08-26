@@ -30,6 +30,9 @@ using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
+using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -1080,15 +1083,30 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response?.Response;
         }
 
-        public async override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+        public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
+
+        public override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
+
+        public override Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
+
+        public override Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
+
+        public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
+
+        private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
         {
             var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
             if (delegationDetails is null)
             {
-                return null;
+                return default;
             }
 
-            var hoverParams = new TextDocumentPositionParams()
+            var positionParams = new TextDocumentPositionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -1097,41 +1115,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Position = request.ProjectedPosition,
             };
 
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalHover?>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, TResult?>(
                 delegationDetails.Value.TextBuffer,
-                Methods.TextDocumentHoverName,
+                methodName,
                 delegationDetails.Value.LanguageServerName,
-                hoverParams,
+                positionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return response?.Response;
-        }
-
-        public async override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        {
-            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
-            if (delegationDetails is null)
+            if (response is null)
             {
-                return null;
+                return default;
             }
 
-            var definitionParams = new TextDocumentPositionParams()
-            {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = delegationDetails.Value.ProjectedUri,
-                },
-                Position = request.ProjectedPosition,
-            };
-
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]?>(
-                delegationDetails.Value.TextBuffer,
-                Methods.TextDocumentDefinitionName,
-                delegationDetails.Value.LanguageServerName,
-                definitionParams,
-                cancellationToken).ConfigureAwait(false);
-
-            return response?.Response;
+            return response.Response;
         }
 
         private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)

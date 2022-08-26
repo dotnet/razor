@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
@@ -36,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             capabilities.Experimental[RazorCapabilityKey] = JToken.FromObject(s_default);
         }
 
-        public static bool TryGet(JToken token, out RazorLanguageServerCapability razorCapability)
+        public static bool TryGet(JToken token, [NotNullWhen(true)] out RazorLanguageServerCapability? razorCapability)
         {
             if (token is not JObject jobject)
             {
@@ -63,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             razorCapability = razorCapabilityToken.ToObject<RazorLanguageServerCapability>();
-            return true;
+            return razorCapability is not null;
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
@@ -36,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _optionsMonitor = optionsMonitor;
         }
 
-        public override RazorProjectEngine Create(
+        public override RazorProjectEngine? Create(
             RazorConfiguration configuration,
             RazorProjectFileSystem fileSystem,
             Action<RazorProjectEngineBuilder> configure)

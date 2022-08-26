@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Razor
             _factories = factories;
         }
 
-        public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+#nullable enable
+        public override RazorProjectEngine? Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
         {
             if (fileSystem is null)
             {
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor
             var factory = SelectFactory(configuration) ?? _fallback;
             return factory.Create(configuration, fileSystem, configure);
         }
+#nullable disable
 
         public override IProjectEngineFactory FindFactory(ProjectSnapshot project)
         {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -35,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
 
-        public async override Task<RazorLSPOptions> GetLatestOptionsAsync(CancellationToken cancellationToken)
+        public async override Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
         {
             try
             {

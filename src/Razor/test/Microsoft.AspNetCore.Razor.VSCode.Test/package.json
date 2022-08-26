@@ -17,6 +17,7 @@
     "@types/node": "^10.9.4",
     "@types/vscode": "1.45.1",
     "jest": "^27.3.1",
+    "minimist": "1.2.6",
     "rimraf": "2.6.3",
     "ts-jest": "^27.0.7",
     "ts-node": "^7.0.1",

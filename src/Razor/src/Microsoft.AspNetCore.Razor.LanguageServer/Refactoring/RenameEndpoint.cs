@@ -96,8 +96,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                     request.NewName);
 
         /// <inheritdoc/>
-        protected override Task<WorkspaceEdit> HandleDelegatedResponseAsync(WorkspaceEdit response, DocumentContext documentContext, CancellationToken cancellationToken)
-            => _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken);
+        protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        {
+            if (response is null)
+            {
+                return null;
+            }
+
+            return await _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken);
+        }
 
         private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParamsBridge request, int absoluteIndex, DocumentContext documentContext, CancellationToken cancellationToken)
         {

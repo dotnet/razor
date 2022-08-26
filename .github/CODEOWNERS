@@ -1,12 +1,13 @@
 # Users referenced in this file will automatically be requested as reviewers for PRs that modify the given paths.
 # See https://help.github.com/articles/about-code-owners/
 
-/global.json                                   @dotnet/razor-tooling
-/azure-pipelines.yml                           @dotnet/razor-tooling
+/global.json                                   @dotnet/razor-tooling @dotnet/razor-compiler
+/azure-pipelines.yml                           @dotnet/razor-tooling @dotnet/razor-compiler
 /eng/                                          @dotnet/razor-tooling @dotnet/razor-compiler
-/eng/common/                                   @dotnet-maestro-bot
-/eng/Versions.props                            @dotnet-maestro-bot
-/eng/Version.Details.xml                       @dotnet-maestro-bot
-/src/Razor                                     @dotnet/razor-tooling @NTaylorMullen @ryanbrandenburg @allisonchou @sharwell @davidwengier
+/eng/common/                                   @dotnet/razor-tooling @dotnet/razor-compiler
+/eng/Versions.props                            @dotnet/razor-tooling @dotnet/razor-compiler
+/eng/Version.Details.xml                       @dotnet/razor-tooling @dotnet/razor-compiler
+/src/Razor                                     @dotnet/razor-tooling 
 /src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension/ @dotnet/razor-tooling @dotnet/aspnet-blazor-eng @captainsafia
 /src/Compiler                                  @dotnet/razor-compiler
+/src/Shared/								   @dotnet/razor-tooling @dotnet/razor-compiler

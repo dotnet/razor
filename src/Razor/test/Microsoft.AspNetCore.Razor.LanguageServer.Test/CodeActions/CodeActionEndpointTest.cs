@@ -714,7 +714,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return Task.FromResult(new List<RazorVSInternalCodeAction>() {
                     new RazorVSInternalCodeAction() {
                         Title = "SomeTitle",
-                        Data = JToken.FromObject(new AddUsingsCodeActionParams())
+                        Data = JToken.FromObject(new AddUsingsCodeActionParams()
+                        {
+                            Namespace="Test",
+                            Uri = new Uri("C:/path/to/Page.razor")
+                        })
                     }
                 } as IReadOnlyList<RazorVSInternalCodeAction>);
             }
