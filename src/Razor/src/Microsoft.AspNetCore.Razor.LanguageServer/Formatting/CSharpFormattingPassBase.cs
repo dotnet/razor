@@ -434,7 +434,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     owner.Parent is MarkupBlockSyntax block &&
                     owner == block.Children[block.Children.Count - 1] &&
                     // MarkupBlock -> CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
-                    block.Parent.Parent.Parent is RazorDirectiveSyntax directive &&
+                    block.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
                     directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
                 {
                     return true;
