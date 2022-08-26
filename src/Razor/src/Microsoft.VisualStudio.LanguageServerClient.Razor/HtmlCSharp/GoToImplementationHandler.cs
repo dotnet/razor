@@ -136,14 +136,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // From some language servers we get VSInternalReferenceItem results, and from some we get Location results.
             // We check for the _vs_id property, which is required in VSInternalReferenceItem, to know which is which.
-            if (result.Value is VSInternalReferenceItem[] referenceItems)
+            if (result.Value.Value is VSInternalReferenceItem[] referenceItems)
             {
                 var remappedLocations = await FindAllReferencesHandler.RemapReferenceItemsAsync(referenceItems, _documentMappingProvider, _documentManager, _razorConventions, cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Returning {remappedLocationsLength} internal reference items.", remappedLocations?.Length);
                 return remappedLocations;
             }
-            else if (result.Value is Location[] locations)
+            else if (result.Value.Value is Location[] locations)
             {
                 var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(locations, cancellationToken).ConfigureAwait(false);
 
