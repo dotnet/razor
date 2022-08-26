@@ -23,6 +23,9 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
+using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -118,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, SumType<Location[], VSInternalReferenceItem[]>>(Methods.TextDocumentImplementationName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, ImplementationResult>(Methods.TextDocumentImplementationName, delegatedRequest, CancellationToken.None);
 
                 return new TestResponseRouterReturn(result);
             }

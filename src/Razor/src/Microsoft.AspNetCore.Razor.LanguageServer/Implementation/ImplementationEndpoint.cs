@@ -10,10 +10,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[]?,
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]?>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
 {
-    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<ImplementationParamsBridge, SumType<Location[]?, VSInternalReferenceItem[]?>>, IImplementationEndpoint
+    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<ImplementationParamsBridge, ImplementationResult>, IImplementationEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
 
@@ -44,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
                     projection.Position,
                     projection.LanguageKind);
 
-        protected async override Task<SumType<Location[]?, VSInternalReferenceItem[]?>> HandleDelegatedResponseAsync(SumType<Location[]?, VSInternalReferenceItem[]?> delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
         {
             // Not using .TryGetXXX because this does the null check for us too
             if (delegatedResponse.Value is Location[] locations)

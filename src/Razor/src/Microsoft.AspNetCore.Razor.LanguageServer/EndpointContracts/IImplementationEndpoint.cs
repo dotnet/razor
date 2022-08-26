@@ -3,11 +3,14 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using OmniSharp.Extensions.JsonRpc;
+using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[]?,
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]?>;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [Parallel, Method(Methods.TextDocumentImplementationName)]
-    internal interface IImplementationEndpoint : IJsonRpcRequestHandler<ImplementationParamsBridge, SumType<Location[]?, VSInternalReferenceItem[]?>>,
+    internal interface IImplementationEndpoint : IJsonRpcRequestHandler<ImplementationParamsBridge, ImplementationResult>,
         IRegistrationExtension
     {
     }

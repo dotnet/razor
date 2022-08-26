@@ -10,12 +10,15 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[]?,
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]?>;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentImplementationName)]
-    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>
+    internal class GoToImplementationHandler : IRequestHandler<TextDocumentPositionParams, ImplementationResult>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -71,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(GoToImplementationHandler));
         }
 
-        public async Task<SumType<Location[]?, VSInternalReferenceItem[]?>> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<ImplementationResult> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -117,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation("Requesting {languageServerName} implementation for {projectionResultUri}.", languageServerName, projectionResult.Uri);
 
             var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<Location[]?, VSInternalReferenceItem[]?>>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, ImplementationResult>(
                 textBuffer,
                 Methods.TextDocumentImplementationName,
                 languageServerName,

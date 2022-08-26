@@ -30,6 +30,9 @@ using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
+using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[]?,
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]?>;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -1092,8 +1095,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public override Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
             => DelegateTextDocumentPositionRequestAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
 
-        public override Task<SumType<Location[]?, VSInternalReferenceItem[]?>> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-            => DelegateTextDocumentPositionRequestAsync<SumType<Location[]?, VSInternalReferenceItem[]?>>(request, Methods.TextDocumentImplementationName, cancellationToken);
+        public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
         private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
         {
