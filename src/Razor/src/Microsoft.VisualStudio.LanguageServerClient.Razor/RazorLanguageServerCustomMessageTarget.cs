@@ -16,8 +16,8 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.Location[]?,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]?>;
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {

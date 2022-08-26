@@ -10,9 +10,9 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
-using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.Location[]?,
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]?>;
+using ImplementationResult = System.Nullable<Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
+    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
+    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>>;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
