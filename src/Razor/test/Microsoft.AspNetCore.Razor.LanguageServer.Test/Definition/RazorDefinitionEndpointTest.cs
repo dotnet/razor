@@ -489,10 +489,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
 
             var codeDocument = CreateCodeDocument(output);
-            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+            var razorFilePath = "C:/path/to/file.razor";
 
             // Act
-            var result = await GetDefinitionResultAsync(codeDocument, csharpDocumentUri, cursorPosition);
+            var result = await GetDefinitionResultAsync(codeDocument, razorFilePath, cursorPosition);
 
             // Assert
             Assert.NotNull(result.Value.Second);
@@ -508,38 +508,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             TestFileMarkupParser.GetPositionAndSpan(input, out var output, out var cursorPosition, out var expectedSpan);
 
             var codeDocument = CreateCodeDocument(output);
-            var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+            var razorFilePath = "C:/path/to/file.razor";
 
             // Act
-            var result = await GetDefinitionResultAsync(codeDocument, csharpDocumentUri, cursorPosition);
+            var result = await GetDefinitionResultAsync(codeDocument, razorFilePath, cursorPosition);
 
             // Assert
             Assert.NotNull(result.Value.Second);
             var locations = result.Value.Second;
             var location = Assert.Single(locations);
-            Assert.Equal(csharpDocumentUri, location.Uri);
+            Assert.Equal(new Uri(razorFilePath), location.Uri);
 
             var expectedRange = expectedSpan.AsRange(codeDocument.GetSourceText());
             Assert.Equal(expectedRange, location.Range);
         }
 
-        private async Task<DefinitionResult?> GetDefinitionResultAsync(RazorCodeDocument codeDocument, Uri csharpDocumentUri, int cursorPosition)
+        private async Task<DefinitionResult?> GetDefinitionResultAsync(RazorCodeDocument codeDocument, string razorFilePath, int cursorPosition)
         {
+            var realLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var serverCapabilities = new ServerCapabilities()
             {
                 DefinitionProvider = true
             };
+            var csharpDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath(razorFilePath));
             var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null).ConfigureAwait(false);
             await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
 
-            var razorFilePath = "C:/path/to/file.razor";
             var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
                 options.SupportsFileManipulation == true &&
                 options.SingleServerSupport == true &&
-                options.CSharpVirtualDocumentSuffix == ".g.cs" &&
-                options.HtmlVirtualDocumentSuffix == ".g.html"
+                options.CSharpVirtualDocumentSuffix == realLanguageServerFeatureOptions.CSharpVirtualDocumentSuffix &&
+                options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix
                 , MockBehavior.Strict);
             var languageServer = new DefinitionLanguageServer(csharpServer, csharpDocumentUri);
             var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
