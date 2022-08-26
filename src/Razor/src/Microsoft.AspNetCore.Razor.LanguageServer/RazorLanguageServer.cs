@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -161,6 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<TextDocumentUriPresentationEndpoint>()
                     .WithHandler<DocumentHighlightEndpoint>()
                     .WithHandler<SignatureHelpEndpoint>()
+                    .WithHandler<ImplementationEndpoint>()
                     .WithServices(services =>
                     {
                         featureOptions ??= new DefaultLanguageServerFeatureOptions();

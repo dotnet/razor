@@ -40,5 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorDocumentHighlightEndpointName = "razor/documentHighlight";
 
         public const string RazorSignatureHelpEndpointName = "razor/signatureHelp";
+
+        public const string RazorImplementationEndpointName = "razor/implementation";
     }
 }

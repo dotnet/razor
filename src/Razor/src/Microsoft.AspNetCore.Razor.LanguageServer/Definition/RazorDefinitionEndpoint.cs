@@ -114,13 +114,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             if (response.Value.TryGetFirst(out var location))
             {
-                location.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
+                (location.Uri, location.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
             }
             else if (response.Value.TryGetSecond(out var locations))
             {
                 foreach (var loc in locations)
                 {
-                    loc.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                    (loc.Uri, loc.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
                 }
             }
             else if (response.Value.TryGetThird(out var links))
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 {
                     if (link.Target is not null)
                     {
-                        link.Range = await _documentMappingService.MapFromProjectedDocumentRangeAsync(link.Target, link.Range, cancellationToken).ConfigureAwait(false);
+                        (link.Target, link.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(link.Target, link.Range, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
