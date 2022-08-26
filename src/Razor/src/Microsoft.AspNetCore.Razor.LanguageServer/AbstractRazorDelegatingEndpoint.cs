@@ -102,7 +102,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var response = await TryHandleAsync(request, documentContext, projection, cancellationToken).ConfigureAwait(false);
-            if (response is not null)
+            // If TResponse is a SumType<T1,T2,...> then it might be non-null, but the value within it could be, so we have to check
+            // for that too.
+            if (response is not null && response is not ISumType { Value: null })
             {
                 return response;
             }
