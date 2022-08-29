@@ -18,11 +18,11 @@ public static class TestProject
             repoRoot = AppContext.BaseDirectory;
         }
 
-        var projectDirectory = Path.Combine(repoRoot, "src", directoryHint, "test");
+        var projectDirectory = Path.Combine(repoRoot, "src", "Compiler", directoryHint, "test");
 
         if (string.Equals(directoryHint, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
         {
-            projectDirectory = Path.Combine(repoRoot, "src", "Microsoft.AspNetCore.Razor.Language", "test");
+            projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
         }
 
         return projectDirectory;
@@ -37,10 +37,10 @@ public static class TestProject
         }
 
         var assemblyName = type.Assembly.GetName().Name;
-        var projectDirectory = Path.Combine(repoRoot, "src", assemblyName, "test");
+        var projectDirectory = Path.Combine(repoRoot, "src", "Compiler", assemblyName, "test");
         if (string.Equals(assemblyName, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
         {
-            projectDirectory = Path.Combine(repoRoot, "src", "Microsoft.AspNetCore.Razor.Language", "test");
+            projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
         }
 
         return projectDirectory;
