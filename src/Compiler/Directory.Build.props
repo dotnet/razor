@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>6</AnalysisLevel>
+    <AnalysisLevel>Latest</AnalysisLevel>
     <AnalysisMode>Default</AnalysisMode>
     <LangVersion>Latest</LangVersion>
     <Nullable>enable</Nullable>
