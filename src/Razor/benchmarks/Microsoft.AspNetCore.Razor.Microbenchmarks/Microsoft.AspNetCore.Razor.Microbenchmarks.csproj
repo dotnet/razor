@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
   </ItemGroup>
@@ -40,7 +41,6 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPackageVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion)" />
     <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="$(OmniSharpExtensionsLanguageProtocolPackageVersion)" />
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
