@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 internal static class MvcShim
 {
-    public static readonly string AssemblyName = "Microsoft.AspNetCore.Razor.Test.MvcShim";
+    public static readonly string AssemblyName = "Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler";
 
     private static Assembly _assembly;
     private static CSharpCompilation _baseCompilation;

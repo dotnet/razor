@@ -17,8 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" />
-    <ProjectReference Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
-    <ProjectReference Include="..\..\test\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.AspNetCore.Razor.Test.MvcShim.csproj" />
+    <ProjectReference Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.Compiler.csproj" />
+    <ProjectReference Include="..\..\test\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.csproj" />
 
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
@@ -27,7 +27,7 @@
 
   <Target Name="CopyDepsFromShims_Build" AfterTargets="Build">
     <ItemGroup>
-      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.deps.json" />
+      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.deps.json" />
     </ItemGroup>
 
     <Copy SourceFiles="@(MvcShim)" DestinationFolder="$(OutputPath)" />
@@ -35,9 +35,9 @@
 
   <Target Name="CopyDepsFromShims_Publish" AfterTargets="Publish">
     <ItemGroup>
-      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.deps.json" />
+      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.deps.json" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(MvcShim)"  DestinationFolder="$(PublishDir)" Condition="Exists($(PublishDir))" />
+    <Copy SourceFiles="@(MvcShim)" DestinationFolder="$(PublishDir)" Condition="Exists($(PublishDir))" />
   </Target>
 </Project>
