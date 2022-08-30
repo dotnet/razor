@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\Microsoft.*\**\*.cs" />
+    <Compile Include="..\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.*\**\*.cs" />
   </ItemGroup>
 
 </Project>
