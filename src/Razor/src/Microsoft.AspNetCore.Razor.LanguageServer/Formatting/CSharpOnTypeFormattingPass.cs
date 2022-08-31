@@ -95,6 +95,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
             }
 
+            // Sometimes teh C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
+            // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
+            // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
+            // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
+            foreach (var edit in textEdits)
+            {
+                var startLine = edit.Range.Start.Line;
+                var endLine = edit.Range.End.Line;
+                var count = csharpText.Lines.Count;
+                if (startLine >= count || endLine >= count)
+                {
+                    _logger.LogWarning("Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.", startLine, endLine, count);
+                    return result;
+                }
+            }
+
             var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
             var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
             var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
