@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
             }
 
-            // Sometimes teh C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
+            // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
             // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
             // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
             // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
