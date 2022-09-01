@@ -31,7 +31,7 @@ stages:
       jobs:
       - job: Windows
         pool:
-          name: NetCore1ESPool-Public
+          name: NetCore-Public
           demands: ImageOverride -equals build.windows.10.amd64.vs2019.pre.open
 
         steps:
