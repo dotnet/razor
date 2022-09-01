@@ -48,6 +48,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" PrivateAssets="All" />
     <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriPackageVersion)" ExcludeAssets="true" PrivateAssets="true" />
   </ItemGroup>
 
   <Target Name="PublishAllRids">
