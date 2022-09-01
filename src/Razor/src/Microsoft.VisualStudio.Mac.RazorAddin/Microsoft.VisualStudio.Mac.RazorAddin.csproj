@@ -52,11 +52,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.Internal.Transport" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.Internal.Transport" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Symbols.Transport" Version="$(MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.Razor.Tooling.Internal" Version="$(MicrosoftCodeAnalysisRazorToolingInternalPackageVersion)" GeneratePathProperty="true"/>
     <PackageReference Include="Mono.Addins" Version="$(MonoAddinsPackageVersion)" />
 
     <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
@@ -64,11 +59,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version1_X_Internal_Transport)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version2_X_Internal_Transport)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
-    <MPackFile Include="$(PkgMicrosoft_CodeAnalysis_Razor_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll" />
-    <MPackFile Include="$(PkgMicrosoft_CodeAnalysis_Razor_Tooling_Internal)\lib\netstandard2.0\Microsoft.CodeAnalysis.Razor.dll" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Language\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Editor.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Editor.Razor.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.LanguageServices.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Mac.LanguageServices.Razor.dll" />
@@ -110,7 +110,12 @@
   </ItemGroup>
 
   <ItemGroup Condition="$(DebugType) != 'embedded'">
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Razor_Symbols_Transport)\pdb\*.pdb" />
+
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Language\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Workspaces.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Editor.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Editor.Razor.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.LanguageServices.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Mac.LanguageServices.Razor.pdb" />

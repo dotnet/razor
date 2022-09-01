@@ -52,7 +52,8 @@
     See https://github.com/dotnet/arcade/blob/main/Documentation/Darc.md for instructions on using darc.
 
   -->
-  <PropertyGroup Label="Automated">
+  <!-- TODO: https://github.com/dotnet/razor-tooling/issues/6760 -->
+  <PropertyGroup Label="Automated">  
     <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.5.22364.1</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
     <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>

@@ -10,13 +10,17 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(Tooling_MicrosoftCodeAnalysisCSharpPackageVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Razor.Tooling.Internal" Version="$(MicrosoftCodeAnalysisRazorToolingInternalPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" Version="$(Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.Internal.Transport" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.Internal.Transport" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.NonCapturingTimer.Sources" Version="$(MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" />
   </ItemGroup>
 
 </Project>
