@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private async Task UpdateWorkspaceStateAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
             // We fire this up on a background thread so we could have been disposed already, and if so, waiting on our semaphore
-            // throws an exception, and then RPS yells at us.
+            // throws an exception.
             if (_disposed)
             {
                 return;
