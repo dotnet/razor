@@ -116,6 +116,13 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private async Task UpdateWorkspaceStateAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
+            // We fire this up on a background thread so we could have been disposed already, and if so, waiting on our semaphore
+            // throws an exception, and then RPS yells at us.
+            if (_disposed)
+            {
+                return;
+            }
+            
             try
             {
                 // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
