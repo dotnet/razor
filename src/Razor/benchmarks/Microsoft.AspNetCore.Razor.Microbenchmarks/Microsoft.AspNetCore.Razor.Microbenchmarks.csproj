@@ -45,6 +45,7 @@
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriPackageVersion)" ExcludeAssets="true" PrivateAssets="true" />
   </ItemGroup>
 
 </Project>
