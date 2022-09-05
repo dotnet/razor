@@ -2,15 +2,61 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal static class AddUsingsCodeActionProviderHelper
     {
+        public static async Task<TextEdit[]> GetUsingStatementEditsAsync(RazorCodeDocument codeDocument, SourceText originalCSharpText, SourceText changedCSharpText, CancellationToken cancellationToken)
+        {
+            // Now that we're done with everything, lets see if there are any using statements to fix up
+            // We do this by comparing the original generated C# code, and the changed C# code, and look for a difference
+            // in using statements. We can't use edits for this for two main reasons:
+            //
+            // 1. Using statements in the generated code might come from _Imports.razor, or from this file, and C# will shove them anywhere
+            // 2. The edit might not be clean. eg given:
+            //      using System;
+            //      using System.Text;
+            //    Adding "using System.Linq;" could result in an insert of "Linq;\r\nusing System." on line 2
+            //
+            // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
+            // to the Razor document.
+
+            // First grab the old usings. We just convert them all to strings, because we only care about how the statements are represented in code.
+            var oldSyntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
+            var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken);
+            var oldUsings = oldRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+
+            // Grab the new usings
+            var newSyntaxTree = CSharpSyntaxTree.ParseText(changedCSharpText, cancellationToken: cancellationToken);
+            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken);
+            var newUsings = newRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+
+            var edits = new List<TextEdit>();
+            foreach (var usingStatement in newUsings.Except(oldUsings))
+            {
+                // This identifier will be eventually thrown away.
+                var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
+                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, codeDocumentIdentifier: identifier);
+                edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
+            }
+
+            return edits.ToArray();
+        }
+        
         internal static readonly Regex AddUsingVSCodeAction = new Regex("^@?using ([^;]+);?$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         // Internal for testing
