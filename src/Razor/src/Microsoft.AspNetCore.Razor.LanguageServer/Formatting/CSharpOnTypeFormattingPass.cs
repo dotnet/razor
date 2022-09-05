@@ -208,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (context.AutomaticallyAddUsings)
             {
                 // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
-                if (finalEdits.Any(e => e.NewText.IndexOf("using") != -1))
+                if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
                 {
                     var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken);
                     finalEdits = usingStatementEdits.Concat(finalEdits).ToArray();
