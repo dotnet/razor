@@ -42,5 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorSignatureHelpEndpointName = "razor/signatureHelp";
 
         public const string RazorImplementationEndpointName = "razor/implementation";
+
+        public const string RazorOnAutoInsertnEndpointName = "razor/onAutoInsert";
     }
 }

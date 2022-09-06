@@ -1083,6 +1083,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response?.Response;
         }
 
+        public override async Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(DelegatedOnAutoInsertParams request, CancellationToken cancellationToken)
+        {
+            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (delegationDetails is null)
+            {
+                return default;
+            }
+
+            var onAutoInsertParams = new VSInternalDocumentOnAutoInsertParams
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = delegationDetails.Value.ProjectedUri,
+                },
+                Position = request.ProjectedPosition,
+                Character = request.Character,
+                Options = request.Options
+            };
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(
+               delegationDetails.Value.TextBuffer,
+               VSInternalMethods.OnAutoInsertName,
+               delegationDetails.Value.LanguageServerName,
+               onAutoInsertParams,
+               cancellationToken).ConfigureAwait(false);
+            return response?.Response;
+        }
+
         public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
             => DelegateTextDocumentPositionRequestAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
 
