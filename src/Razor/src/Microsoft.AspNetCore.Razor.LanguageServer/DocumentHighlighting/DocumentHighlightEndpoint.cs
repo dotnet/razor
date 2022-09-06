@@ -50,14 +50,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
         }
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(DocumentHighlightParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams? CreateDelegatedParams(DocumentHighlightParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
                     projection.LanguageKind);
 
         /// <inheritdoc/>
-        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 

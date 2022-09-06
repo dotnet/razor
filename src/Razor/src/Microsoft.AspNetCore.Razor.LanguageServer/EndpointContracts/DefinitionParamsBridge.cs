@@ -10,7 +10,7 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal class DefinitionParamsBridge : TextDocumentPositionParams, IRequest<DefinitionResult?>
+    internal class DefinitionParamsBridge : TextDocumentPositionParams, IRequest<DefinitionResult?>, ITextDocumentPositionParams
     {
     }
 }

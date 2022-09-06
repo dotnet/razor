@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
         }
 
         /// <inheritdoc />
-        protected override IDelegatedParams CreateDelegatedParams(SignatureHelpParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams? CreateDelegatedParams(SignatureHelpParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,

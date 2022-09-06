@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ using OmniSharp.Extensions.JsonRpc;
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IJsonRpcRequestHandler<TRequest, TResponse?>
-        where TRequest : TextDocumentPositionParams, IRequest<TResponse?>
+        where TRequest : ITextDocumentPositionParams, IRequest<TResponse?>
     {
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -41,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// The delegated object to send to the <see cref="CustomMessageTarget"/>
         /// </summary>
-        protected abstract IDelegatedParams CreateDelegatedParams(TRequest request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken);
+        protected abstract IDelegatedParams? CreateDelegatedParams(TRequest request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken);
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -56,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
         /// </summary>
-        protected virtual Task<TResponse?> HandleDelegatedResponseAsync(TResponse? delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected virtual Task<TResponse?> HandleDelegatedResponseAsync(TResponse? delegatedResponse, TRequest originalRequest, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
         /// <summary>
@@ -123,15 +124,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var delegatedParams = CreateDelegatedParams(request, documentContext, projection, cancellationToken);
 
-            var delegatedRequest = await _languageServer.SendRequestAsync(CustomMessageTarget, delegatedParams).ConfigureAwait(false);
-            var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
+            if (delegatedParams is null)
+            {
+                // I guess they don't want to delegate... fine then!
+                return default;
+            }
 
+            var delegatedRequest = await _languageServer.SendRequestAsync(CustomMessageTarget, delegatedParams).ConfigureAwait(false);
+            if (delegatedRequest is null)
+            {
+                return default;
+            }
+
+            var delegatedResponse = await delegatedRequest.Returning<TResponse?>(cancellationToken).ConfigureAwait(false);
             if (delegatedResponse is null)
             {
                 return default;
             }
 
-            var remappedResponse = await HandleDelegatedResponseAsync(delegatedResponse, documentContext, cancellationToken).ConfigureAwait(false);
+            var remappedResponse = await HandleDelegatedResponseAsync(delegatedResponse, request, documentContext, projection, cancellationToken).ConfigureAwait(false);
             return remappedResponse;
         }
     }

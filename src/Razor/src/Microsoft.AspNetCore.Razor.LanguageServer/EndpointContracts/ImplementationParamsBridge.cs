@@ -9,7 +9,7 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal class ImplementationParamsBridge : TextDocumentPositionParams, IRequest<ImplementationResult>
+    internal class ImplementationParamsBridge : TextDocumentPositionParams, IRequest<ImplementationResult>, ITextDocumentPositionParams
     {
     }
 }

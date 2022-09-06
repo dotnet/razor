@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
     /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="VSInternalDocumentOnAutoInsertParams"/>
     /// type does not implement <see cref="IRequest"/>.
     /// </summary>
-    internal class OnAutoInsertParamsBridge : VSInternalDocumentOnAutoInsertParams, IRequest<VSInternalDocumentOnAutoInsertResponseItem>
+    internal class OnAutoInsertParamsBridge : VSInternalDocumentOnAutoInsertParams, IRequest<VSInternalDocumentOnAutoInsertResponseItem>, ITextDocumentPositionParams
     {
     }
 }

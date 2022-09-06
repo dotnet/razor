@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             => _languageServerFeatureOptions.SupportsFileManipulation;
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(RenameParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams? CreateDelegatedParams(RenameParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => new DelegatedRenameParams(
                     documentContext.Identifier,
                     projection.Position,
@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                     request.NewName);
 
         /// <inheritdoc/>
-        protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, RenameParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
             if (response is null)
             {

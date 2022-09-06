@@ -41,13 +41,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        protected override IDelegatedParams CreateDelegatedParams(ImplementationParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams? CreateDelegatedParams(ImplementationParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
                     projection.LanguageKind);
 
-        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, ImplementationParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
             // Not using .TryGetXXX because this does the null check for us too
             if (delegatedResponse.Value is Location[] locations)
