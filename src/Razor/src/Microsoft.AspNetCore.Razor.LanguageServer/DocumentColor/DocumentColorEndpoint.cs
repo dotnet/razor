@@ -26,6 +26,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            // VSCode registers built-in features by default:
+            // https://github.com/microsoft/vscode-languageserver-node/blob/ed6a6d7da0ad64ebea0b55e4b2f339a1ec7f511f/client/src/common/client.ts#L1615
+            if (!clientCapabilities.SupportsVisualStudioExtensions)
+            {
+                return null;
+            }
+
             const string ServerCapabilities = "colorProvider";
             var options = new DocumentColorOptions();
 

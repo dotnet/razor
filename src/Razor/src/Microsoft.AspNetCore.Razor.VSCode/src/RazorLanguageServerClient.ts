@@ -236,11 +236,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
             args.push('--debug');
         }
 
-        this.serverOptions = {
-            run: { command, args },
-            debug: { command, args },
-        };
-
+        this.serverOptions = { command, args };
         this.client = new LanguageClient('razorLanguageServer', 'Razor Language Server', this.serverOptions, this.clientOptions);
     }
 }
