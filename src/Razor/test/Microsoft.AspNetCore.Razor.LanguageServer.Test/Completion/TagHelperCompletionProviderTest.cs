@@ -561,7 +561,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Collection(completions,
                 completion =>
                 {
-                    Assert.Equal("bool-val", completion.InsertText); // bool-val will be filtered on IDE side anyway, so just check that it exists and then don't care about it properties
+                    Assert.Equal("bool-val", completion.InsertText); // bool-val will be filtered on IDE side anyway, so just check that it exists and then don't care about its properties
                 },
                 completion =>
                 {
