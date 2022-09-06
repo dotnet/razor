@@ -69,9 +69,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            const string AssociatedServerCapability = "completionProvider";
-
             _clientCapabilities = clientCapabilities;
+
+            const string AssociatedServerCapability = "completionProvider";
 
             var registrationOptions = new CompletionOptions()
             {

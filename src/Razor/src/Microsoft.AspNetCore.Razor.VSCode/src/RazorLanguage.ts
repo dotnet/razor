@@ -9,5 +9,5 @@ export class RazorLanguage {
     public static id = 'aspnetcorerazor';
     public static fileExtensions = [ 'cshtml', 'razor' ];
     public static globbingPattern = `**/*.{${RazorLanguage.fileExtensions.join(',')}}`;
-    public static documentSelector: vscode.DocumentSelector = { pattern: RazorLanguage.globbingPattern };
+    public static documentSelector: vscode.DocumentSelector = { language: this.id, pattern: RazorLanguage.globbingPattern };
 }
