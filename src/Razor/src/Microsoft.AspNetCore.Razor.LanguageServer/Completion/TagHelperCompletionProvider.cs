@@ -180,7 +180,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 var attributeCommitCharacters = ResolveAttributeCommitCharacters(attributeContext);
                 var isSnippet = false;
                 var insertText = filterText;
-                if (TryResolveInsertText(insertText, attributeContext, out var snippetText))
+
+                // Do not turn attributes into snippets if we are in an already written full attribute (https://github.com/dotnet/razor-tooling/issues/6724)
+                if (containingAttribute is not (MarkupTagHelperAttributeSyntax or MarkupAttributeBlockSyntax) &&
+                    TryResolveInsertText(insertText, attributeContext, out var snippetText))
                 {
                     isSnippet = true;
                     insertText = snippetText;
@@ -293,19 +296,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private static IReadOnlyList<RazorCommitCharacter> ResolveAttributeCommitCharacters(AttributeContext attributeContext)
         {
-            switch (attributeContext)
+            return attributeContext switch
             {
-                case AttributeContext.Indexer:
-                    return s_noCommitCharacters;
-                case AttributeContext.Minimized:
-                    return MinimizedAttributeCommitCharacters;
-                case AttributeContext.Full:
-                    return AttributeCommitCharacters;
-                case AttributeContext.FullSnippet:
-                    return AttributeSnippetCommitCharacters;
-                default:
-                    throw new InvalidOperationException("Unexpected context");
-            }
+                AttributeContext.Indexer => s_noCommitCharacters,
+                AttributeContext.Minimized => MinimizedAttributeCommitCharacters,
+                AttributeContext.Full => AttributeCommitCharacters,
+                AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,
+                _ => throw new InvalidOperationException("Unexpected context"),
+            };
         }
 
         private enum AttributeContext
