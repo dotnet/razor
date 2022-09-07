@@ -545,6 +545,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             AssertBoolIntCompletions(completions);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6724")]
+        public void GetCompletionsAt_MiddleOfFullAttribute_ReturnsCompletions_NoSnippetBehaviour()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val=''>";
+            var context = CreateRazorCompletionContext(absoluteIndex: 40 + Environment.NewLine.Length, txt, options: new(SnippetsSupported: true), isRazorFile: false, tagHelpers: DefaultTagHelpers);
+
+            // Act
+            var completions = service.GetCompletionItems(context);
+
+            // Assert
+            Assert.Collection(completions,
+                completion =>
+                {
+                    Assert.Equal("bool-val", completion.InsertText); // bool-val will be filtered on IDE side anyway, so just check that it exists and then don't care about its properties
+                },
+                completion =>
+                {
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.False(completion.IsSnippet);
+                    Assert.Equal(TagHelperCompletionProvider.AttributeSnippetCommitCharacters, completion.CommitCharacters); // we still want `=` to be a commit character, but we don't want it to be inserted
+                }
+            );
+        }
+
         private static void AssertBoolIntCompletions(IReadOnlyList<RazorCompletionItem> completions)
         {
             Assert.Collection(completions,
