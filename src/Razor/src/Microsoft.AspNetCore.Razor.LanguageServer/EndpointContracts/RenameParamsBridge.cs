@@ -10,6 +10,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 /// This class is used as a "bridge" between the O# and VS worlds. Ultimately it only exists because the base <see cref="RenameParams"/>
 /// type does not implement <see cref="IRequest"/>.
 /// </summary>
-internal class RenameParamsBridge : RenameParams, IRequest<WorkspaceEdit?>
+internal class RenameParamsBridge : RenameParams, IRequest<WorkspaceEdit?>, ITextDocumentPositionParams
 {
 }
