@@ -60,10 +60,10 @@
     "@types/glob" "*"
     "@types/node" "*"
 
-"@types/vscode@1.45.1":
-  version "1.45.1"
-  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.45.1.tgz#672fb8c2cc33cf14cd4d3bdaa19bb294fe2b2706"
-  integrity sha512-0NO9qrrEJBO8FsqHCrFMgR2suKnwCsKBWvRSb2OzH5gs4i3QO5AhEMQYrSzDbU/wLPt7N617/rN9lPY213gmwg==
+"@types/vscode@1.69.0":
+  version "1.69.0"
+  resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/@types/vscode/-/vscode-1.69.0.tgz#a472011af392fbcf82cbb82f60b4c239c21b921c"
+  integrity sha1-pHIBGvOS+8+Cy7gvYLTCOcIbkhw=
 
 agent-base@4, agent-base@^4.3.0:
   version "4.3.0"

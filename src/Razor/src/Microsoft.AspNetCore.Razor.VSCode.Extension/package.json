@@ -9,7 +9,7 @@
   },
   "publisher": "ms-dotnettools",
   "engines": {
-    "vscode": "^1.45.1"
+    "vscode": "^1.69.0"
   },
   "categories": [
     "Other"
@@ -505,7 +505,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.2",
-    "@types/vscode": "1.45.1",
+    "@types/vscode": "1.69.0",
     "cross-env": "^5.2.0",
     "js-yaml": ">=3.13.1",
     "rimraf": "2.6.3",

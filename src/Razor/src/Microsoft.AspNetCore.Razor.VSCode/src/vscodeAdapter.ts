@@ -1044,7 +1044,7 @@ export interface WebviewPanel {
      *
      * @deprecated
      */
-    readonly viewColumn?: ViewColumn;
+    readonly viewColumn: ViewColumn;
 
     /**
      * Whether the panel is active (focused by the user).
