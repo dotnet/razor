@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "engines": {
-    "vscode": "^1.52.0"
+    "vscode": "^1.69.0"
   },
   "icon": "images/blazorIcon.png",
   "dotnetRuntimeVersion": "6.0",
