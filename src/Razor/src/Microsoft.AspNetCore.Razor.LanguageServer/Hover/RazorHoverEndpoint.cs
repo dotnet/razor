@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(VSHoverParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams? CreateDelegatedParams(VSHoverParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
             => new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, VSHoverParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
         {
             if (response is null || response.Range is null)
             {

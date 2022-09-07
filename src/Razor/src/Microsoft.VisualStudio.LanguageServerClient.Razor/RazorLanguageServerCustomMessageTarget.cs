@@ -114,5 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(DelegatedOnAutoInsertParams request, CancellationToken cancellationToken);
     }
 }

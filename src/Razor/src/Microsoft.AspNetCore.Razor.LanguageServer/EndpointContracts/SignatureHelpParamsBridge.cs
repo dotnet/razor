@@ -7,6 +7,6 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-internal class SignatureHelpParamsBridge : TextDocumentPositionParams, IRequest<LS.SignatureHelp?>
+internal class SignatureHelpParamsBridge : TextDocumentPositionParams, IRequest<LS.SignatureHelp?>, ITextDocumentPositionParams
 {
 }

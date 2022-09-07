@@ -25,6 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 /// we inherit DocumentHighlightParams,  and they do work if we don't.
 /// As I always say: "If it hurts when you do that, don't do that".
 /// </remarks>
-internal class DocumentHighlightParamsBridge : TextDocumentPositionParams, IRequest<DocumentHighlight[]?>
+internal class DocumentHighlightParamsBridge : TextDocumentPositionParams, IRequest<DocumentHighlight[]?>, ITextDocumentPositionParams
 {
 }
