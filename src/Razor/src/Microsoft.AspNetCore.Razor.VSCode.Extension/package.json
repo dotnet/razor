@@ -44,7 +44,7 @@
     "workspaceContains:**/*.csx",
     "workspaceContains:**/*.cake"
   ],
-  "main": "./dist/extension",
+  "main": "../Microsoft.AspNetCore.Razor.VSCode.Extension/dist/extension.js",
   "contributes": {
     "breakpoints": [
       {
