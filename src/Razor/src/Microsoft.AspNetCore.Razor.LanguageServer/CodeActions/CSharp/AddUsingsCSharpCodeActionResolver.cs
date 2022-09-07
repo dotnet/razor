@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (documentChanges!.Length != 1)
             {
-                // We don't yet support multi-document code actions, return original code action
+                Debug.Fail("We don't yet support multi-document code actions! If you're seeing this, something about Roslyn changed and we should react.");
                 return codeAction;
             }
 

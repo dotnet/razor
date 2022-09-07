@@ -35,15 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
             // to the Razor document.
 
-            // First grab the old usings. We just convert them all to strings, because we only care about how the statements are represented in code.
-            var oldSyntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
-            var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken);
-            var oldUsings = oldRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
-
-            // Grab the new usings
-            var newSyntaxTree = CSharpSyntaxTree.ParseText(changedCSharpText, cancellationToken: cancellationToken);
-            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken);
-            var newUsings = newRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
+            var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken);
+            var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken);
 
             var edits = new List<TextEdit>();
             foreach (var usingStatement in newUsings.Except(oldUsings))
@@ -56,7 +49,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return edits.ToArray();
         }
-        
+
+        private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
+            var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken);
+
+            // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
+            // the namespace node.
+            var usings = syntaxRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
+                // Filter to using directives
+                .OfType<UsingDirectiveSyntax>()
+                // Select everything after the initial "using " part of the statement. This is slightly lazy, for sure, but has
+                // the advantage of us not caring about chagnes to C# syntax, we just grab whatever Roslyn wanted to put in, so
+                // we should still work in C# v26
+                .Select(u => u.ToString().Substring("using ".Length));
+            
+            return usings;
+        }
+
         internal static readonly Regex AddUsingVSCodeAction = new Regex("^@?using ([^;]+);?$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         // Internal for testing
