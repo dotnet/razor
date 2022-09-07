@@ -43,6 +43,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorImplementationEndpointName = "razor/implementation";
 
-        public const string RazorOnAutoInsertnEndpointName = "razor/onAutoInsert";
+        public const string RazorOnAutoInsertEndpointName = "razor/onAutoInsert";
     }
 }

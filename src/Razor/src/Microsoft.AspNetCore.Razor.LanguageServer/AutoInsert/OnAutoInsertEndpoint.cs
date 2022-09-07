@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             _onAutoInsertProviders = onAutoInsertProvider?.ToList() ?? throw new ArgumentNullException(nameof(onAutoInsertProvider));
         }
 
-        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertnEndpointName;
+        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName;
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {

@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => HandleImplementationAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => HandleSignatureHelpAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => HandleRenameAsync(@params),
-                    RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertnEndpointName => HandleOnAutoInsertAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName => HandleOnAutoInsertAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
                 });
             }
