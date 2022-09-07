@@ -572,6 +572,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             );
         }
 
+        [Fact]
+        public void GetCompletionsAt_MiddleOfHtmlAttribute_ReturnsCompletion()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<tesDF></tesDF>";
+            var context = CreateRazorCompletionContext(absoluteIndex: 33 + Environment.NewLine.Length, txt, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+
+            // Act
+            var completions = service.GetCompletionItems(context);
+
+            // Assert
+            AssertTest1Test2Completions(completions);
+        }
+
+        [Fact]
+        public void GetCompletionsAt_EndOfAttribute_ReturnsCompletion()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<tesDF></tesDF>";
+            var context = CreateRazorCompletionContext(absoluteIndex: 35 + Environment.NewLine.Length, txt, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+
+            // Act
+            var completions = service.GetCompletionItems(context);
+
+            // Assert
+            AssertTest1Test2Completions(completions);
+        }
+
         private static void AssertBoolIntCompletions(IReadOnlyList<RazorCompletionItem> completions)
         {
             Assert.Collection(completions,
