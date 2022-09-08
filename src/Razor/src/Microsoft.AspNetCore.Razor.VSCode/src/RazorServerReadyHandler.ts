@@ -8,16 +8,16 @@ import { RazorLanguageServerClient } from './RazorLanguageServerClient';
 
 export class RazorServerReadyHandler {
     private static readonly razorServerReadyEndpoint = 'razor/serverReady';
-    private razorServerReadyHandlerType: RequestType<void, void, any, any> = new RequestType(RazorServerReadyHandler.razorServerReadyEndpoint);
+    private razorServerReadyHandlerType: RequestType<void, void, any> = new RequestType(RazorServerReadyHandler.razorServerReadyEndpoint);
 
     constructor(private readonly serverClient: RazorLanguageServerClient) {
     }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
-        this.serverClient.onRequestWithParams<void, void,  any, any>(
+        this.serverClient.onRequestWithParams<void, void, any>(
             this.razorServerReadyHandlerType,
-            async (request, token) => this.handleRazorServerReady());
+            async (request: any, token: any) => this.handleRazorServerReady());
     }
 
     private handleRazorServerReady(): void {

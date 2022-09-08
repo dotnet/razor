@@ -55,14 +55,15 @@ export class RazorHoverProvider
             return;
         }
 
-        const rewrittenContent = new Array<vscode.MarkedString>();
+        const rewrittenContent = new Array<vscode.MarkdownString>();
         for (const content of applicableHover.contents) {
             // For some reason VSCode doesn't respect the hover contents as-is. Because of this we need to look at each permutation
             // of "content" (MarkdownString | string | { language: string; value: string }) and re-compute it as a MarkdownString or
             // string.
 
             if (typeof content === 'string') {
-                rewrittenContent.push(content);
+                const markdownString = new vscode.MarkdownString(content);
+                rewrittenContent.push(markdownString);
             } else if ((content as { language: string; value: string }).language) {
                 const contentObject = (content as { language: string; value: string });
                 const markdownString = new vscode.MarkdownString();
