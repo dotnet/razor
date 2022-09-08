@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {

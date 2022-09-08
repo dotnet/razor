@@ -22,6 +22,7 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
