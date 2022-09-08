@@ -324,6 +324,27 @@ public class Tag
     }
 
     [Fact]
+    public void ComponentWithTupleParameter()
+    {
+        // Arrange
+
+        // Act
+        var generated = CompileToCSharp(@"
+@code {
+    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
+}
+
+<TestComponent Gutter=""(32, 16)"">
+</TestComponent>
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithTypeParameterValueTuple()
     {
         // Arrange
