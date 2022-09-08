@@ -48,6 +48,14 @@ internal class TypeNameHelper
             return typeName;
         }
 
+        // Mitigation for https://github.com/dotnet/razor-compiler/issues/332. When we add a reference to Roslyn
+        // at this layer, we can do this property by using ParseTypeName and then rewriting the tree. For now, we
+        // just skip prefixing tuples.
+        if (typeName.StartsWith("(", StringComparison.Ordinal))
+        {
+            return typeName;
+        }
+
         // Fast path, if the length doesn't fall within that of the
         // builtin c# types, then we can add global without further checks.
         if (typeName.Length < 3 || typeName.Length > 7)
@@ -69,6 +77,15 @@ internal class TypeNameHelper
     internal static void WriteGloballyQualifiedName(CodeWriter codeWriter, StringSegment typeName)
     {
         if (typeName.StartsWith("global::", StringComparison.Ordinal))
+        {
+            codeWriter.Write(typeName);
+            return;
+        }
+
+        // Mitigation for https://github.com/dotnet/razor-compiler/issues/332. When we add a reference to Roslyn
+        // at this layer, we can do this property by using ParseTypeName and then rewriting the tree. For now, we
+        // just skip prefixing tuples.
+        if (typeName.StartsWith("(", StringComparison.Ordinal))
         {
             codeWriter.Write(typeName);
             return;
