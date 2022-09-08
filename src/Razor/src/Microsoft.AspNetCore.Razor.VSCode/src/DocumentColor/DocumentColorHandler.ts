@@ -57,7 +57,8 @@ export class DocumentColorHandler {
         return this.emptyColorInformationResponse;
     }
 
-    // TO-DO: Complete
+    // TO-DO: Fill in the below method:
+    // https://github.com/dotnet/razor-tooling/issues/6806
     private commandAsCodeAction(command: vscode.Command): vscode.ColorInformation {
         return { } as vscode.ColorInformation;
     }
