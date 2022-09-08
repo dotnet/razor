@@ -27,8 +27,9 @@ export class FoldingRangeHandler {
         foldingRangeParams: SerializableFoldingRangeParams,
         cancellationToken: vscode.CancellationToken) {
         // This is currently a no-op because we don't have a way to get folding ranges from C#/HTML.
-        // Other functions accomplish this with `vscode.execute<Blank>Provider`, but that doesn't exist yet for folding ranges:
-        // https://github.com/microsoft/vscode/issues/36638
+        // Other functions accomplish this with `vscode.execute<Blank>Provider`, but that doesn't exist yet for folding ranges.
+        // VSCode issue: https://github.com/microsoft/vscode/issues/36638
+        // Razor tracking issue: https://github.com/dotnet/razor-tooling/issues/6811
         const emptyFoldingRange: vscode.FoldingRange[] = [];
         const response = new SerializableFoldingRangeResponse(emptyFoldingRange, emptyFoldingRange);
         return response;
