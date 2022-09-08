@@ -59,7 +59,8 @@ internal class GlobalQualifiedTypeNameRewriter : TypeNameRewriter
             node = (QualifiedNameSyntax)base.VisitQualifiedName(node);
 
             // Rewriting these is complicated, best to just tostring and parse again.
-            return SyntaxFactory.ParseTypeName(IsGloballyQualified(node) ? node.ToString() : "global::" + node.ToString());
+            return SyntaxFactory.ParseTypeName(IsGloballyQualified(node) ? node.ToString() : "global::" + node.ToString())
+                .WithTriviaFrom(node);
 
             static bool IsGloballyQualified(QualifiedNameSyntax node)
             {
