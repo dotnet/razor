@@ -4,7 +4,6 @@
 using System;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
