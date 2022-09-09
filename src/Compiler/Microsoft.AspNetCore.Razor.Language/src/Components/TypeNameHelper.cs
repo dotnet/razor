@@ -28,7 +28,8 @@ internal class TypeNameHelper
         "string",
         "ushort",
         "double",
-        "decimal"
+        "decimal",
+        "dynamic"
     };
 
     public static void WriteGloballyQualifiedName(CodeWriter codeWriter, string typeName)
