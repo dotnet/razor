@@ -21,7 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Legend
 
         public Task<SemanticTokensLegend> Handle(SemanticTokensLegendParams request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Providing semantic tokens legend.");
             return Task.FromResult(RazorSemanticTokensLegend.Instance);
         }
     }
