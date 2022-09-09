@@ -40,7 +40,7 @@ import { RazorRenameProvider } from './RazorRenameProvider';
 import { RazorServerReadyHandler } from './RazorServerReadyHandler';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
-import { SemanticTokensHandler } from './Semantic/SemanticTokensHandler';
+import { SemanticTokensRangeHandler } from './Semantic/SemanticTokensRangeHandler';
 import { TelemetryReporter } from './TelemetryReporter';
 
 // We specifically need to take a reference to a particular instance of the vscode namespace,
@@ -83,7 +83,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServerClient,
                 logger);
-            const semanticTokenHandler = new SemanticTokensHandler(languageServerClient);
+            const semanticTokenHandler = new SemanticTokensRangeHandler(languageServerClient);
             const documentColorHandler = new DocumentColorHandler(
                 documentManager,
                 languageServerClient,

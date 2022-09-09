@@ -9,9 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string DefaultProjectConfigurationFile = "project.razor.json";
 
-        public const string RazorSemanticTokensLegendEndpoint = "_vs_/textDocument/semanticTokensLegend";
-
-        public const string SemanticTokensProviderName = "semanticTokensProvider";
+        public const string RazorSemanticTokensLegendEndpoint = "razor/semanticTokensLegend";
 
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
