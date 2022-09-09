@@ -154,12 +154,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void StartWorker()
         {
-            // Access to the timer is protected by the lock in Synchronize and in Timer_Tick
-            if (_timer is null)
-            {
-                // Timer will fire after a fixed delay, but only once.
-                _timer = new Timer(Timer_Tick, null, Delay, Timeout.InfiniteTimeSpan);
-            }
+            // Access to the timer is protected by the lock in Synchronize and in Timer_Tick.
+            // Timer will fire after a fixed delay, but only once.
+            _timer ??= new Timer(Timer_Tick, null, Delay, Timeout.InfiniteTimeSpan);
         }
 
         private void Timer_Tick(object state)
