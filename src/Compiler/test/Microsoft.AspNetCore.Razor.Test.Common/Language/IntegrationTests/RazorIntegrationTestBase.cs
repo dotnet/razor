@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -322,7 +323,11 @@ public class RazorIntegrationTestBase
 
         using (var peStream = new MemoryStream())
         {
-            compilation.Emit(peStream);
+            var emitResult = compilation.Emit(peStream);
+            if (!emitResult.Success)
+            {
+                throw new CompilationFailedException(compilation, emitResult.Diagnostics);
+            }
 
             return new CompileToAssemblyResult
             {
@@ -398,12 +403,14 @@ public class RazorIntegrationTestBase
 
     private class CompilationFailedException : XunitException
     {
-        public CompilationFailedException(Compilation compilation)
+        public CompilationFailedException(Compilation compilation, ImmutableArray<Diagnostic>? diagnostics = null)
         {
             Compilation = compilation;
+            Diagnostics = diagnostics;
         }
 
         public Compilation Compilation { get; }
+        public ImmutableArray<Diagnostic>? Diagnostics { get; }
 
         public override string Message
         {
@@ -412,7 +419,7 @@ public class RazorIntegrationTestBase
                 var builder = new StringBuilder();
                 builder.AppendLine("Compilation failed: ");
 
-                var diagnostics = Compilation.GetDiagnostics();
+                var diagnostics = Compilation.GetDiagnostics().Concat(Diagnostics ?? Enumerable.Empty<Diagnostic>());
                 var syntaxTreesWithErrors = new HashSet<SyntaxTree>();
                 foreach (var diagnostic in diagnostics)
                 {
