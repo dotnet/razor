@@ -16,9 +16,9 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    public class AggregateCompletionListProviderTest : LanguageServerTestBase
+    public class CompletionListProviderTest : LanguageServerTestBase
     {
-        public AggregateCompletionListProviderTest()
+        public CompletionListProviderTest()
         {
             CompletionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
             CompletionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task MultipleCompletionLists_Merges()
         {
             // Arrange
-            var provider = new AggregateCompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
+            var provider = new CompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
 
             // Act
             var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task MultipleCompletionLists_DifferentCommitCharacters_OnlyCallsApplicable()
         {
             // Arrange
-            var provider = new AggregateCompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
+            var provider = new CompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
             CompletionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
             CompletionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
 

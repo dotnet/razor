@@ -8,11 +8,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal abstract class CompletionListProvider
+    internal interface ICompletionListProvider
     {
-        public abstract ImmutableHashSet<string> TriggerCharacters { get; }
+        public ImmutableHashSet<string> TriggerCharacters { get; }
 
-        public abstract Task<VSInternalCompletionList?> GetCompletionListAsync(
+        public Task<VSInternalCompletionList?> GetCompletionListAsync(
             int absoluteIndex,
             VSInternalCompletionContext completionContext,
             DocumentContext documentContext,

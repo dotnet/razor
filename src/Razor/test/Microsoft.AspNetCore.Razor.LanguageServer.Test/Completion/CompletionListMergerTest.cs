@@ -202,6 +202,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Assert.Same(sortedExpected[i], sortedActual[i]);
             }
         }
-
     }
 }

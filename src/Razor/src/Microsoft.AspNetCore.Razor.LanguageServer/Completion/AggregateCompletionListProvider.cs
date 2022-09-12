@@ -11,12 +11,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal class AggregateCompletionListProvider
+    internal class CompletionListProvider
     {
         private readonly RazorCompletionListProvider _razorCompletionListProvider;
         private readonly DelegatedCompletionListProvider _delegatedCompletionListProvider;
 
-        public AggregateCompletionListProvider(RazorCompletionListProvider razorCompletionListProvider, DelegatedCompletionListProvider delegatedCompletionListProvider)
+        public CompletionListProvider(RazorCompletionListProvider razorCompletionListProvider, DelegatedCompletionListProvider delegatedCompletionListProvider)
         {
             _razorCompletionListProvider = razorCompletionListProvider;
             _delegatedCompletionListProvider = delegatedCompletionListProvider;
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return finalCompletionList;
         }
 
-        private Task<VSInternalCompletionList?> GetCompletionListAsync(CompletionListProvider completionListProvider, int absoluteIndex, VSInternalCompletionContext completionContext, DocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        private Task<VSInternalCompletionList?> GetCompletionListAsync(ICompletionListProvider completionListProvider, int absoluteIndex, VSInternalCompletionContext completionContext, DocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter &&
                     completionContext.TriggerCharacter is not null &&
