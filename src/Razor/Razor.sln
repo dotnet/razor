@@ -113,6 +113,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Ra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X", "..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.csproj", "{DE2A3AB5-3CE4-4CB3-BF46-1D54E537D130}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Sdk.Razor.SourceGenerators", "..\Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators\Microsoft.NET.Sdk.Razor.SourceGenerators.csproj", "{A2DED0B8-1A7E-4E3D-A820-691BB4500610}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -497,6 +499,14 @@ Global
 		{DE2A3AB5-3CE4-4CB3-BF46-1D54E537D130}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DE2A3AB5-3CE4-4CB3-BF46-1D54E537D130}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{DE2A3AB5-3CE4-4CB3-BF46-1D54E537D130}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -549,6 +559,7 @@ Global
 		{375B71A8-DCAC-408B-A6A4-4DB842A57C01} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
 		{EF6275D9-682E-4ED9-85BB-92AFF18169CE} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
 		{DE2A3AB5-3CE4-4CB3-BF46-1D54E537D130} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
+		{A2DED0B8-1A7E-4E3D-A820-691BB4500610} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}
