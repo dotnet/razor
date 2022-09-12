@@ -403,14 +403,14 @@ public class RazorIntegrationTestBase
 
     private class CompilationFailedException : XunitException
     {
-        public CompilationFailedException(Compilation compilation, ImmutableArray<Diagnostic>? diagnostics = null)
+        public CompilationFailedException(Compilation compilation, ImmutableArray<Diagnostic> diagnostics = default)
         {
             Compilation = compilation;
             Diagnostics = diagnostics;
         }
 
         public Compilation Compilation { get; }
-        public ImmutableArray<Diagnostic>? Diagnostics { get; }
+        public ImmutableArray<Diagnostic> Diagnostics { get; }
 
         public override string Message
         {
@@ -419,7 +419,7 @@ public class RazorIntegrationTestBase
                 var builder = new StringBuilder();
                 builder.AppendLine("Compilation failed: ");
 
-                var diagnostics = Compilation.GetDiagnostics().Concat(Diagnostics ?? Enumerable.Empty<Diagnostic>());
+                var diagnostics = Compilation.GetDiagnostics().Concat(Diagnostics);
                 var syntaxTreesWithErrors = new HashSet<SyntaxTree>();
                 foreach (var diagnostic in diagnostics)
                 {
