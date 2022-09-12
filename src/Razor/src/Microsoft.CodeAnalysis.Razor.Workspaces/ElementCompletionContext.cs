@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public ElementCompletionContext(
             TagHelperDocumentContext documentContext,
-            IEnumerable<string> existingCompletions,
+            IEnumerable<string>? existingCompletions,
             string containingTagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
             string? containingParentTagName,
@@ -23,18 +23,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(documentContext));
             }
 
-            if (existingCompletions is null)
-            {
-                throw new ArgumentNullException(nameof(existingCompletions));
-            }
-
             if (inHTMLSchema is null)
             {
                 throw new ArgumentNullException(nameof(inHTMLSchema));
             }
 
             DocumentContext = documentContext;
-            ExistingCompletions = existingCompletions;
+            ExistingCompletions = existingCompletions ?? Array.Empty<string>();
             ContainingTagName = containingTagName;
             Attributes = attributes;
             ContainingParentTagName = containingParentTagName;

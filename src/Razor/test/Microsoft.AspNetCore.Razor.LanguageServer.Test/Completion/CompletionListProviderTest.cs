@@ -115,6 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 VSInternalCompletionContext completionContext,
                 DocumentContext documentContext,
                 VSInternalClientCapabilities clientCapabilities,
+                HashSet<string> existingCompletions,
                 CancellationToken cancellationToken)
             {
                 return Task.FromResult(_completionList);

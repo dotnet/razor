@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
-    internal class DelegatedCompletionListProvider : ICompletionListProvider
+    internal class DelegatedCompletionListProvider
     {
         private static readonly IReadOnlyList<string> s_razorTriggerCharacters = new[] { "@" };
         private static readonly IReadOnlyList<string> s_cSharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" };
