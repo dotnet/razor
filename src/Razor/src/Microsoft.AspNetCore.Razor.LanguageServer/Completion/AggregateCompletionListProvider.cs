@@ -6,19 +6,22 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class AggregateCompletionListProvider
     {
-        private readonly IReadOnlyList<CompletionListProvider> _completionListProviders;
+        private readonly RazorCompletionListProvider _razorCompletionListProvider;
+        private readonly DelegatedCompletionListProvider _delegatedCompletionListProvider;
 
-        public AggregateCompletionListProvider(IEnumerable<CompletionListProvider> completionListProviders)
+        public AggregateCompletionListProvider(RazorCompletionListProvider razorCompletionListProvider, DelegatedCompletionListProvider delegatedCompletionListProvider)
         {
-            _completionListProviders = completionListProviders.ToArray();
+            _razorCompletionListProvider = razorCompletionListProvider;
+            _delegatedCompletionListProvider = delegatedCompletionListProvider;
 
-            var allTriggerCharacters = _completionListProviders.SelectMany(provider => provider.TriggerCharacters);
+            var allTriggerCharacters = razorCompletionListProvider.TriggerCharacters.Concat(delegatedCompletionListProvider.TriggerCharacters);
             var distinctTriggerCharacters = new HashSet<string>(allTriggerCharacters);
             AggregateTriggerCharacters = distinctTriggerCharacters.ToImmutableHashSet();
         }
@@ -32,46 +35,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             VSInternalClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var completionListTasks = new List<Task<VSInternalCompletionList?>>(_completionListProviders.Count);
-            foreach (var completionListProvider in _completionListProviders)
-            {
-                if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter &&
-                    completionContext.TriggerCharacter is not null &&
-                    !completionListProvider.TriggerCharacters.Contains(completionContext.TriggerCharacter))
-                {
-                    // Trigger character doesn't apply
-                    continue;
-                }
-                
-                var task = completionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken);
-                completionListTasks.Add(task);
-            }
+            // First we delegate to get completion items from the individual language server
+            var delegatedCompletionList = await GetCompletionListAsync(_delegatedCompletionListProvider, absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
-            var completionLists = new Queue<VSInternalCompletionList>();
-            foreach (var completionListTask in completionListTasks)
-            {
-                var completionList = await completionListTask.ConfigureAwait(false);
-                if (completionList is not null)
-                {
-                    completionLists.Enqueue(completionList);
-                }
+            // Now we get the Razor completion list, using information from the actual language server if necessary
+            var razorCompletionList = await GetCompletionListAsync(_razorCompletionListProvider, absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            if (completionLists.Count == 0)
-            {
-                return null;
-            }
-
-            var finalCompletionList = completionLists.Dequeue();
-            while (completionLists.Count > 0)
-            {
-                var nextCompletionList = completionLists.Dequeue();
-                finalCompletionList = CompletionListMerger.Merge(finalCompletionList, nextCompletionList);
-            }
+            var finalCompletionList = CompletionListMerger.Merge(razorCompletionList, delegatedCompletionList);
 
             return finalCompletionList;
+        }
+
+        private Task<VSInternalCompletionList?> GetCompletionListAsync(CompletionListProvider completionListProvider, int absoluteIndex, VSInternalCompletionContext completionContext, DocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        {
+            if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter &&
+                    completionContext.TriggerCharacter is not null &&
+                    !completionListProvider.TriggerCharacters.Contains(completionContext.TriggerCharacter))
+            {
+                // Trigger character doesn't apply
+                return Task.FromResult<VSInternalCompletionList?>(null);
+            }
+
+            return completionListProvider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, cancellationToken);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // Act
-            var merged = CompletionListMerger.Merge(completionListA: null, CompletionListWith1);
+            var merged = CompletionListMerger.Merge(razorCompletionList: null, CompletionListWith1);
 
             // Assert
             Assert.Same(merged, CompletionListWith1);
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, completionListB: null);
+            var merged = CompletionListMerger.Merge(CompletionListWith1, delegatedCompletionList: null);
 
             // Assert
             Assert.Same(merged, CompletionListWith1);

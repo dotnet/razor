@@ -15,13 +15,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class RazorCompletionEndpointTest : LanguageServerTestBase
     {
-        public RazorCompletionEndpointTest()
-        {
-            CompletionListProvider = new AggregateCompletionListProvider(Array.Empty<CompletionListProvider>());
-        }
-
-        private AggregateCompletionListProvider CompletionListProvider { get; }
-
         [Fact]
         public async Task Handle_NoDocumentContext_NoCompletionItems()
         {
@@ -29,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentPath = "C:/path/to/document.cshtml";
             var documentContextFactory = new TestDocumentContextFactory();
             var completionEndpoint = new RazorCompletionEndpoint(
-                documentContextFactory, CompletionListProvider, LoggerFactory);
+                documentContextFactory, null, LoggerFactory);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
