@@ -3,24 +3,23 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
-{
-    internal static class VSInternalClientCapabilitiesExtensions
-    {
-        internal static VSInternalClientCapabilities ToVSInternalClientCapabilities(this ClientCapabilities clientCapabilities)
-        {
-            if (clientCapabilities is VSInternalClientCapabilities vSInternalClientCapabilities)
-            {
-                return vSInternalClientCapabilities;
-            }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
-            return new VSInternalClientCapabilities()
-            {
-                TextDocument = clientCapabilities.TextDocument,
-                SupportsVisualStudioExtensions = false,
-                Experimental = clientCapabilities.Experimental,
-                Workspace = clientCapabilities.Workspace,
-            };
+internal static class VSInternalClientCapabilitiesExtensions
+{
+    internal static VSInternalClientCapabilities ToVSInternalClientCapabilities(this ClientCapabilities clientCapabilities)
+    {
+        if (clientCapabilities is VSInternalClientCapabilities vSInternalClientCapabilities)
+        {
+            return vSInternalClientCapabilities;
         }
+
+        return new VSInternalClientCapabilities()
+        {
+            TextDocument = clientCapabilities.TextDocument,
+            SupportsVisualStudioExtensions = false,
+            Experimental = clientCapabilities.Experimental,
+            Workspace = clientCapabilities.Workspace,
+        };
     }
 }

@@ -7,58 +7,52 @@ using System.Collections.Immutable;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class LspServices : ILspServices
 {
-    internal class LspServices : ILspServices
+    private readonly IServiceProvider _serviceProvider;
+
+    public LspServices(IServiceCollection serviceCollection)
     {
-        private readonly IServiceProvider _serviceProvider;
+        serviceCollection.AddSingleton<ILspServices>(this);
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+    }
 
-        public LspServices(IServiceCollection serviceCollection)
+    public ImmutableArray<Type> GetRegisteredServices()
+    {
+        throw new NotImplementedException();
+    }
+
+    public T GetRequiredService<T>() where T : notnull
+    {
+        return _serviceProvider.GetRequiredService<T>();
+    }
+
+    public IEnumerable<T> GetRequiredServices<T>()
+    {
+        var services = _serviceProvider.GetServices<T>();
+        if (services is null)
         {
-            serviceCollection.AddSingleton<ILspServices>(this);
-            _serviceProvider = serviceCollection.BuildServiceProvider();
+            throw new ArgumentNullException($"Missing services {nameof(T)}");
         }
 
-        public ImmutableArray<Type> GetRegisteredServices()
-        {
-            throw new NotImplementedException();
-        }
+        return services;
+    }
 
-        public T GetRequiredService<T>() where T : notnull
-        {
-            return _serviceProvider.GetRequiredService<T>();
-        }
+    public object? TryGetService(Type type)
+    {
+        var service = _serviceProvider.GetService(type);
 
-        public IEnumerable<T> GetRequiredServices<T>()
-        {
-            var services = _serviceProvider.GetServices<T>();
-            if (services is null)
-            {
-                throw new ArgumentNullException($"Missing services {nameof(T)}");
-            }
+        return service;
+    }
 
-            return services;
-        }
+    public bool SupportsGetRegisteredServices()
+    {
+        return false;
+    }
 
-        public object? TryGetService(Type type)
-        {
-            var service = _serviceProvider.GetService(type);
-
-            return service;
-        }
-
-        public bool SupportsGetRegisteredServices()
-        {
-            return false;
-        }
-
-        public bool SupportsGetRequiredServices()
-        {
-            return true;
-        }
-
-        public void Dispose()
-        {
-        }
+    public void Dispose()
+    {
     }
 }
