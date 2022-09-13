@@ -930,7 +930,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
                 ["th:superli"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[0], documentDescriptors[1] },
-                ["th:li"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[1] },
             });
 
             var existingCompletions = new[] { "th:li" };
