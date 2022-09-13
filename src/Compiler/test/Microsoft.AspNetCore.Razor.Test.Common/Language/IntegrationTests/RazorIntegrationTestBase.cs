@@ -406,7 +406,7 @@ public class RazorIntegrationTestBase
         public CompilationFailedException(Compilation compilation, ImmutableArray<Diagnostic> diagnostics = default)
         {
             Compilation = compilation;
-            Diagnostics = diagnostics;
+            Diagnostics = diagnostics.IsDefault ? ImmutableArray<Diagnostic>.Empty : diagnostics;
         }
 
         public Compilation Compilation { get; }
