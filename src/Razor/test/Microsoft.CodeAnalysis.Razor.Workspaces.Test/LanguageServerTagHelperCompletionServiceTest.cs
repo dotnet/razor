@@ -653,10 +653,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     .TagOutputHint("table")
                     .Build(),
             };
-            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
-            {
-                ["table"] = new HashSet<TagHelperDescriptor>(),
-            });
+            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>());
 
             var existingCompletions = new[] { "table" };
             var completionContext = BuildElementCompletionContext(
@@ -728,11 +725,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
-                ["my-table"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] },
-                ["table"] = new HashSet<TagHelperDescriptor>(),
+                ["my-table"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
             });
 
-            var existingCompletions = new[] { "table" };
+            var existingCompletions = new[] { "table", "div" };
             var completionContext = BuildElementCompletionContext(
                 documentDescriptors,
                 existingCompletions,
@@ -763,7 +759,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
                 ["th:li"] = new HashSet<TagHelperDescriptor> { documentDescriptors[1], documentDescriptors[0] },
-                ["li"] = new HashSet<TagHelperDescriptor>(),
             });
 
             var existingCompletions = new[] { "li" };
@@ -798,7 +793,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 ["th:superli"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] },
                 ["th:li"] = new HashSet<TagHelperDescriptor> { documentDescriptors[1] },
-                ["li"] = new HashSet<TagHelperDescriptor>(),
             });
 
             var existingCompletions = new[] { "li" };
@@ -835,7 +829,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 ["myli"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] },
                 ["MYLI"] = new HashSet<TagHelperDescriptor> { documentDescriptors[1] },
-                ["li"] = new HashSet<TagHelperDescriptor> { },
             });
 
             var existingCompletions = new[] { "li" };
@@ -905,7 +898,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
                 ["superli"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[0], documentDescriptors[1] },
-                ["li"] = new HashSet<TagHelperDescriptor>(),
             });
 
             var existingCompletions = new[] { "li" };
