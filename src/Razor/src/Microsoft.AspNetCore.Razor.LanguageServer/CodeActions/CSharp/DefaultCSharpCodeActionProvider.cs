@@ -3,9 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -27,6 +31,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
             RazorPredefinedCodeFixProviderNames.ImplementInterface,
             RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
+        };
+
+        // This is aspirational :)
+        internal static readonly HashSet<string> SupportedImplicitExpressionCodeActionNames = new HashSet<string>()
+        {
+            // RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,        // No reason we shouldn't be able to remove a variable defined in an implicit expression
         };
 
         public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
@@ -51,11 +61,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
+            var tree = context.CodeDocument.GetSyntaxTree();
+            var node = tree.GetOwner(context.Location.AbsoluteIndex);
+            var isInImplicitExpression = node?.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax) ?? false;
+
+            var allowList = isInImplicitExpression
+                ? SupportedImplicitExpressionCodeActionNames
+                : SupportedDefaultCodeActionNames;
+
             var results = new List<RazorVSInternalCodeAction>();
 
             foreach (var codeAction in codeActions)
             {
-                if (codeAction.Name is not null && SupportedDefaultCodeActionNames.Contains(codeAction.Name))
+                if (codeAction.Name is not null && allowList.Contains(codeAction.Name))
                 {
                     results.Add(codeAction.WrapResolvableCSharpCodeAction(context));
                 }
