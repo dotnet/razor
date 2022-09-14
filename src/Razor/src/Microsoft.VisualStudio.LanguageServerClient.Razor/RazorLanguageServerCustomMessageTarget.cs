@@ -15,9 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
-using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
+using LanguageServerConstants = Microsoft.AspNetCore.Razor.LanguageServer.Common.LanguageServerConstants;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
         // supports sending workspace configuration requests.
         [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<object[]> WorkspaceConfigurationAsync(OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams, CancellationToken cancellationToken);
+        public abstract Task<object[]> WorkspaceConfigurationAsync(ConfigurationParams configParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to update the contents of the virtual CSharp buffer.
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
@@ -63,9 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Called by the Razor Language Server to provide ranged semantic tokens from the platform.
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(ProvideSemanticTokensRangeParams semanticTokensParams, CancellationToken cancellationToken);
-
-        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task RazorServerReadyAsync(CancellationToken cancellationToken);
 
         // Called by Visual Studio to wrap the current selection with a tag
         [JsonRpcMethod(LanguageServerConstants.RazorWrapWithTagEndpoint, UseSingleObjectParameterDeserialization = true)]
@@ -105,17 +100,5 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(DelegatedOnAutoInsertParams request, CancellationToken cancellationToken);
     }
 }

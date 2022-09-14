@@ -4,25 +4,26 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultWorkspaceSemanticTokensRefreshPublisher : WorkspaceSemanticTokensRefreshPublisher, IDisposable
     {
         private const string WorkspaceSemanticTokensRefreshKey = "WorkspaceSemanticTokensRefresh";
-        private readonly IClientLanguageServer _languageServer;
+        private readonly IInitializeManager<InitializeParams, InitializeResult> _settingsManager;
+        private readonly ClientNotifierServiceBase _notifierService;
         private readonly BatchingWorkQueue _workQueue;
         private static readonly TimeSpan s_debounceTimeSpan = TimeSpan.FromMilliseconds(250);
 
-        public DefaultWorkspaceSemanticTokensRefreshPublisher(IClientLanguageServer languageServer, ErrorReporter errorReporter)
+        public DefaultWorkspaceSemanticTokensRefreshPublisher(IInitializeManager<InitializeParams, InitializeResult> settingsManager, ClientNotifierServiceBase clientNotifier, ErrorReporter errorReporter)
         {
-            if (languageServer is null)
+            if (settingsManager is null)
             {
-                throw new ArgumentNullException(nameof(languageServer));
+                throw new ArgumentNullException(nameof(settingsManager));
             }
 
             if (errorReporter is null)
@@ -30,19 +31,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            _languageServer = languageServer;
+            _settingsManager = settingsManager;
+            _notifierService = clientNotifier;
             _workQueue = new BatchingWorkQueue(s_debounceTimeSpan, StringComparer.Ordinal, errorReporter: errorReporter);
         }
 
         public override void EnqueueWorkspaceSemanticTokensRefresh()
         {
-            var useWorkspaceRefresh = _languageServer.ClientSettings.Capabilities?.Workspace is not null &&
-                _languageServer.ClientSettings.Capabilities.Workspace.SemanticTokens.IsSupported &&
-                _languageServer.ClientSettings.Capabilities.Workspace.SemanticTokens.Value.RefreshSupport;
+            var clientSettings = _settingsManager.GetInitializeParams();
+            var useWorkspaceRefresh = clientSettings.Capabilities?.Workspace is not null &&
+                (clientSettings.Capabilities.Workspace.SemanticTokens?.RefreshSupport ?? false);
 
             if (useWorkspaceRefresh)
             {
-                var workItem = new SemanticTokensRefreshWorkItem(_languageServer);
+                var workItem = new SemanticTokensRefreshWorkItem(_notifierService);
                 _workQueue.Enqueue(WorkspaceSemanticTokensRefreshKey, workItem);
             }
         }
@@ -54,17 +56,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class SemanticTokensRefreshWorkItem : BatchableWorkItem
         {
-            private readonly IClientLanguageServer _languageServer;
+            private readonly ClientNotifierServiceBase _languageServer;
 
-            public SemanticTokensRefreshWorkItem(IClientLanguageServer languageServer)
+            public SemanticTokensRefreshWorkItem(ClientNotifierServiceBase languageServer)
             {
                 _languageServer = languageServer;
             }
 
             public override ValueTask ProcessAsync(CancellationToken cancellationToken)
             {
-                var request = _languageServer.SendRequest(WorkspaceNames.SemanticTokensRefresh);
-                return new ValueTask(request.ReturningVoid(cancellationToken));
+                var task = _languageServer.SendNotificationAsync("workspace/semanticTokens/refresh", cancellationToken);
+
+                return new ValueTask(task);
             }
         }
 

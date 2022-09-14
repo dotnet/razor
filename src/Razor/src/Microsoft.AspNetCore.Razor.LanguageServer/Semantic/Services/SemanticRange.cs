@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
