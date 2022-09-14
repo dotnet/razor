@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             if (IsRazorComment() ||
-                IsInHtmlTag() ||
+                IsInHtmlAttributeValue() ||
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
                 IsImplicitExpression() ||
@@ -367,7 +367,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return false;
             }
 
-            bool IsInHtmlTag()
+            bool IsInHtmlAttributeValue()
             {
                 // E.g, (| is position)
                 //
