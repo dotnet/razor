@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentPath = "C:/path/to/document.cshtml";
             var documentContextFactory = new TestDocumentContextFactory();
             var completionEndpoint = new RazorCompletionEndpoint(
-                documentContextFactory, null, LoggerFactory);
+                documentContextFactory, completionListProvider: null, LoggerFactory);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
