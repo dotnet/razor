@@ -10,7 +10,7 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentImplementationName)]
-    internal interface IImplementationEndpoint : IRazorRequestHandler<ImplementationParamsBridge, ImplementationResult>,
+    internal interface IImplementationEndpoint : IRazorRequestHandler<TextDocumentPositionParams, ImplementationResult>,
         IRegistrationExtension
     {
     }

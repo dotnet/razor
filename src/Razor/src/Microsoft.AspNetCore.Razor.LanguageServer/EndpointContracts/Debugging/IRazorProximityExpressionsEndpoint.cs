@@ -8,6 +8,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
 
 [LanguageServerEndpoint(LanguageServerConstants.RazorProximityExpressionsEndpoint)]
-internal interface IRazorProximityExpressionsEndpoint : IRazorRequestHandler<RazorProximityExpressionsParamsBridge, RazorProximityExpressionsResponse?>
+internal interface IRazorProximityExpressionsEndpoint : IRazorRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>
 {
 }
