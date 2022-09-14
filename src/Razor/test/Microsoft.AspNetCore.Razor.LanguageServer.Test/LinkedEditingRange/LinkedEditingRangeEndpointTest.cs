@@ -25,7 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument, documentFound: false);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -47,7 +48,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -84,7 +86,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -121,7 +124,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -158,7 +162,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -180,7 +185,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -202,7 +208,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -239,7 +246,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -276,7 +284,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -313,7 +322,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, LoggerFactory);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
             var request = new LinkedEditingRangeParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
