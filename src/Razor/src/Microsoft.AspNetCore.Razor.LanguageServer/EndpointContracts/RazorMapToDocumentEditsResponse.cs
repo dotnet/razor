@@ -3,12 +3,11 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
-    internal class RazorDiagnosticsResponse
+    internal class RazorMapToDocumentEditsResponse
     {
-        public VSDiagnostic[]? Diagnostics { get; set; }
+        public required TextEdit[] TextEdits { get; set; }
 
         public int? HostDocumentVersion { get; set; }
     }

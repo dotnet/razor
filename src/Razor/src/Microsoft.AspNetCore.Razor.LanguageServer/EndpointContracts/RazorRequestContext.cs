@@ -2,45 +2,43 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-
-internal readonly struct RazorRequestContext
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    private readonly DocumentContext? _documentContext;
-
-    public readonly ILspLogger LspLogger;
-
-    public readonly ILogger Logger;
-
-    public readonly ILspServices LspServices;
-
-    public RazorRequestContext(
-        DocumentContext? documentContext,
-        ILspLogger lspLoger,
-        ILogger logger,
-        ILspServices lspServices)
+    internal readonly struct RazorRequestContext
     {
-        _documentContext = documentContext;
-        LspLogger = lspLoger;
-        LspServices = lspServices;
-        Logger = logger;
-    }
+        public readonly DocumentContext? DocumentContext;
+        public readonly ILspLogger LspLogger;
+        public readonly ILogger Logger;
+        public readonly ILspServices LspServices;
 
-    public DocumentContext GetRequiredDocumentContext()
-    {
-        if (_documentContext is null)
+        public RazorRequestContext(
+            DocumentContext? documentContext,
+            ILspLogger lspLoger,
+            ILogger logger,
+            ILspServices lspServices)
         {
-            throw new ArgumentNullException(nameof(DocumentContext));
+            DocumentContext = documentContext;
+            LspLogger = lspLoger;
+            LspServices = lspServices;
+            Logger = logger;
         }
 
-        return _documentContext;
-    }
+        [MemberNotNull(nameof(DocumentContext))]
+        public void RequireDocumentContext()
+        {
+            if (DocumentContext is null)
+            {
+                throw new ArgumentNullException(nameof(DocumentContext));
+            }
+        }
 
-    public T GetRequiredService<T>() where T : class
-    {
-        return LspServices.GetRequiredService<T>();
+        public T GetRequiredService<T>() where T : class
+        {
+            return LspServices.GetRequiredService<T>();
+        }
     }
 }

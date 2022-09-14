@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var errorReporter = new TestErrorReporter();
             using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
             var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
-            var refreshParams = new SemanticTokensRefreshParamsBridge();
+            var refreshParams = new SemanticTokensRefreshParams();
 
             // Act
             await refreshEndpoint.Handle(refreshParams, CancellationToken.None);
