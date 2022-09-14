@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public abstract bool SingleServerSupport { get; }
 
+        public abstract bool RegisterBuiltInFeatures { get; }
+
         public string GetRazorCSharpFilePath(string razorFilePath) => razorFilePath + CSharpVirtualDocumentSuffix;
 
         public string GetRazorHtmlFilePath(string razorFilePath) => razorFilePath + HtmlVirtualDocumentSuffix;

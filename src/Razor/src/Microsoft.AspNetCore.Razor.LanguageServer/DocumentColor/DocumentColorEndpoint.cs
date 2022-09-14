@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
@@ -13,8 +14,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
     internal class DocumentColorEndpoint : IDocumentColorEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
+        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer, LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (languageServer is null)
             {
@@ -22,13 +24,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
             }
 
             _languageServer = languageServer;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            // VSCode registers built-in features by default:
-            // https://github.com/microsoft/vscode-languageserver-node/blob/ed6a6d7da0ad64ebea0b55e4b2f339a1ec7f511f/client/src/common/client.ts#L1615
-            if (!clientCapabilities.SupportsVisualStudioExtensions)
+            if (_languageServerFeatureOptions.RegisterBuiltInFeatures)
             {
                 return null;
             }

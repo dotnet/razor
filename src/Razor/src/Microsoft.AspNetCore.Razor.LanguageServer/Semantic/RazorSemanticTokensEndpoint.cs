@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,9 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly ILogger _logger;
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public RazorSemanticTokensEndpoint(
             RazorSemanticTokensInfoService semanticTokensInfoService,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
         {
             if (semanticTokensInfoService is null)
@@ -32,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             _semanticTokensInfoService = semanticTokensInfoService;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
@@ -58,9 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            // VSCode registers built-in features by default:
-            // https://github.com/microsoft/vscode-languageserver-node/blob/ed6a6d7da0ad64ebea0b55e4b2f339a1ec7f511f/client/src/common/client.ts#L1615
-            if (!clientCapabilities.SupportsVisualStudioExtensions)
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
             {
                 return null;
             }
