@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            if (_languageServerFeatureOptions.RegisterBuiltInFeatures)
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
             {
                 return null;
             }
