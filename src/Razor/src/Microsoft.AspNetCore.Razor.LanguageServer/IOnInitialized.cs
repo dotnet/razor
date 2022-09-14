@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class RazorUIContextManager
+    internal interface IOnInitialized
     {
-        public abstract Task SetUIContextAsync(Guid guid, bool isActive, CancellationToken cancellationToken);
+        Task OnInitializedAsync(CancellationToken cancellationToken);
     }
 }

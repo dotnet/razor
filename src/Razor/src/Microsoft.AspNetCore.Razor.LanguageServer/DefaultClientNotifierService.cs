@@ -4,9 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -17,45 +14,50 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class DefaultClientNotifierService : ClientNotifierServiceBase
     {
         private readonly TaskCompletionSource<bool> _initializedCompletionSource;
-        private readonly IClientLanguageServer _languageServer;
+        private readonly StreamJsonRpc.JsonRpc _jsonRpc;
 
-        public DefaultClientNotifierService(IClientLanguageServer languageServer)
+        public DefaultClientNotifierService(StreamJsonRpc.JsonRpc jsonRpc)
         {
-            if (languageServer is null)
+            if (jsonRpc is null)
             {
-                throw new ArgumentNullException(nameof(languageServer));
+                throw new ArgumentNullException(nameof(jsonRpc));
             }
 
-            _languageServer = languageServer;
+            _jsonRpc = jsonRpc;
             _initializedCompletionSource = new TaskCompletionSource<bool>();
         }
 
-        public override async Task<IResponseRouterReturns> SendRequestAsync(string method)
+        public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             await _initializedCompletionSource.Task;
+            var result = await _jsonRpc.InvokeAsync<TResponse>(method, @params);
 
-            return _languageServer.SendRequest(method);
+            return result;
         }
 
-        public override async Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+        public override async Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             await _initializedCompletionSource.Task;
 
-            return _languageServer.SendRequest(method, @params);
+            await _jsonRpc.NotifyAsync(method, @params);
+        }
+
+        public override async Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        {
+            await _initializedCompletionSource.Task;
+
+            await _jsonRpc.NotifyAsync(method);
         }
 
         /// <summary>
         /// Fires when the language server is set to "Started".
         /// </summary>
-        /// <param name="server"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+        public override Task OnInitializedAsync(CancellationToken cancellationToken)
         {
             _initializedCompletionSource.TrySetResult(true);
             return Task.CompletedTask;
         }
-
-        public override InitializeParams ClientSettings => _languageServer.ClientSettings;
     }
 }
