@@ -57,7 +57,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             _configureServer(services);
         }
 
-        services.AddSingleton<ILspLogger>(RazorLspLogger.Instance);
+        services.AddSingleton<ILspLogger>(_logger);
         services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
 
         if (_projectSnapshotManagerDispatcher is null)
@@ -100,13 +100,13 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         // Folding Range Providers
         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
 
-        AddHandlers(services, _featureOptions);
+        AddHandlers(services);
 
         var lspServices = new LspServices(services);
 
         return lspServices;
 
-        static void AddHandlers(IServiceCollection services, LanguageServerFeatureOptions? featureOptions)
+        static void AddHandlers(IServiceCollection services)
         {
             services.AddHandler<RazorDiagnosticsEndpoint>();
             services.AddHandler<RazorConfigurationEndpoint>();
