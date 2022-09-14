@@ -1,23 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorMapToDocumentEditsParams : IRequest<RazorMapToDocumentEditsResponse>
+    internal class RazorMapToDocumentEditsParams
     {
         public RazorLanguageKind Kind { get; set; }
 
-        public required Uri RazorDocumentUri { get; set; }
+        public Uri RazorDocumentUri { get; set; }
 
-        public required TextEdit[] ProjectedTextEdits { get; set; }
+        public TextEdit[] ProjectedTextEdits { get; set; }
 
         public TextEditKind TextEditKind { get; set; }
 
-        public required FormattingOptions FormattingOptions { get; set; }
+        public FormattingOptions FormattingOptions { get; set; }
     }
 }
