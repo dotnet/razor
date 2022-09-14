@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -15,14 +16,14 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    public class AggregateCompletionListProviderTest : LanguageServerTestBase
+    public class CompletionListProviderTest : LanguageServerTestBase
     {
-        public AggregateCompletionListProviderTest()
+        public CompletionListProviderTest()
         {
             CompletionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
             CompletionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
-            CompletionListProvider1 = new TestCompletionListProvider(CompletionList1, new[] { SharedTriggerCharacter, });
-            CompletionListProvider2 = new TestCompletionListProvider(CompletionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
+            RazorCompletionProvider = new TestRazorCompletionListProvider(CompletionList1, new[] { SharedTriggerCharacter, });
+            DelegatedCompletionProvider = new TestDelegatedCompletionListProvider(CompletionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
         }
 
         private string SharedTriggerCharacter => "@";
@@ -33,9 +34,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private VSInternalCompletionList CompletionList2 { get; }
 
-        private CompletionListProvider CompletionListProvider1 { get; }
+        private RazorCompletionListProvider RazorCompletionProvider { get; }
 
-        private CompletionListProvider CompletionListProvider2 { get; }
+        private DelegatedCompletionListProvider DelegatedCompletionProvider { get; }
 
         private VSInternalCompletionContext CompletionContext { get; } = new VSInternalCompletionContext();
 
@@ -44,36 +45,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private VSInternalClientCapabilities ClientCapabilities = new VSInternalClientCapabilities();
 
         [Fact]
-        public async Task NoCompletionLists_ReturnsNull()
-        {
-            // Arrange
-            var provider = new AggregateCompletionListProvider(Array.Empty<CompletionListProvider>());
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
-
-            // Assert
-            Assert.Null(completionList);
-        }
-
-        [Fact]
-        public async Task SingleCompletionList()
-        {
-            // Arrange
-            var provider = new AggregateCompletionListProvider(new[] { CompletionListProvider1 });
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
-
-            // Assert
-            Assert.Same(CompletionList1, completionList);
-        }
-
-        [Fact]
         public async Task MultipleCompletionLists_Merges()
         {
             // Arrange
-            var provider = new AggregateCompletionListProvider(new[] { CompletionListProvider1, CompletionListProvider2 });
+            var provider = new CompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
 
             // Act
             var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
@@ -87,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task MultipleCompletionLists_DifferentCommitCharacters_OnlyCallsApplicable()
         {
             // Arrange
-            var provider = new AggregateCompletionListProvider(new[] { CompletionListProvider1, CompletionListProvider2 });
+            var provider = new CompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
             CompletionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
             CompletionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
 
@@ -98,11 +73,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Same(CompletionList2, completionList);
         }
 
-        private class TestCompletionListProvider : CompletionListProvider
+        private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
         {
             private readonly VSInternalCompletionList _completionList;
 
-            public TestCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
+            public TestDelegatedCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
+                : base(Array.Empty<DelegatedCompletionResponseRewriter>(), null, null, null)
             {
                 _completionList = completionList;
                 TriggerCharacters = triggerCharacters.ToImmutableHashSet();
@@ -115,6 +91,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 VSInternalCompletionContext completionContext,
                 DocumentContext documentContext,
                 VSInternalClientCapabilities clientCapabilities,
+                CancellationToken cancellationToken)
+            {
+                return Task.FromResult(_completionList);
+            }
+        }
+
+        private class TestRazorCompletionListProvider : RazorCompletionListProvider
+        {
+            private readonly VSInternalCompletionList _completionList;
+
+            public TestRazorCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
+                : base(null, null, TestLoggerFactory.Instance)
+            {
+                _completionList = completionList;
+                TriggerCharacters = triggerCharacters.ToImmutableHashSet();
+            }
+
+            public override ImmutableHashSet<string> TriggerCharacters { get; }
+
+            public override Task<VSInternalCompletionList> GetCompletionListAsync(
+                int absoluteIndex,
+                VSInternalCompletionContext completionContext,
+                DocumentContext documentContext,
+                VSInternalClientCapabilities clientCapabilities,
+                HashSet<string> existingCompletions,
                 CancellationToken cancellationToken)
             {
                 return Task.FromResult(_completionList);

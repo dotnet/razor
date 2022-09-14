@@ -350,7 +350,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, DefaultCompletionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, DefaultCompletionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
 
@@ -364,7 +364,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 item => AssertDirectiveSnippet(item, "tagHelperPrefix")
             );
         }
-        
+
         [Fact]
         public async Task GetCompletionListAsync_ProvidesDirectiveCompletions_IncompleteTriggerOnDeletion()
         {
@@ -380,7 +380,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
 
@@ -411,7 +411,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             };
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -444,7 +444,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             };
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
             Assert.Empty(completionList.Items);
@@ -471,7 +471,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             };
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -501,7 +501,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, DefaultCompletionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, DefaultCompletionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "Test");
@@ -530,7 +530,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 6, DefaultCompletionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 6, DefaultCompletionContext, documentContext, ClientCapabilities, existingCompletions: null, CancellationToken.None);
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
