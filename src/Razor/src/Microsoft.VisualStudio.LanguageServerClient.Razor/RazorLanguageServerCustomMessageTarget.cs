@@ -64,9 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(ProvideSemanticTokensRangeParams semanticTokensParams, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task RazorServerReadyAsync(CancellationToken cancellationToken);
-
         // Called by Visual Studio to wrap the current selection with a tag
         [JsonRpcMethod(LanguageServerConstants.RazorWrapWithTagEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken);
