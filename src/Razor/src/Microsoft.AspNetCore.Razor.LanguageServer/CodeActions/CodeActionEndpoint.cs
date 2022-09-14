@@ -97,9 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             _supportsCodeActionResolve = clientCapabilities.TextDocument?.CodeAction?.ResolveSupport != null;
 
-            // VSCode registers built-in features by default:
-            // https://github.com/microsoft/vscode-languageserver-node/blob/ed6a6d7da0ad64ebea0b55e4b2f339a1ec7f511f/client/src/common/client.ts#L1615
-            if (!clientCapabilities.SupportsVisualStudioExtensions)
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
             {
                 return null;
             }

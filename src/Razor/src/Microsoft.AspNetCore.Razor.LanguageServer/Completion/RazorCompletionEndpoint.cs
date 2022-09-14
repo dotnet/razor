@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,15 +18,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly ILogger _logger;
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly CompletionListProvider _completionListProvider;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorCompletionEndpoint(
             DocumentContextFactory documentContextFactory,
             CompletionListProvider completionListProvider,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
         {
             _documentContextFactory = documentContextFactory;
             _completionListProvider = completionListProvider;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
         }
 
@@ -34,9 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             const string AssociatedServerCapability = "completionProvider";
             _clientCapabilities = clientCapabilities;
 
-            // VSCode registers built-in features by default and non-built-in features separately:
-            // https://github.com/microsoft/vscode-languageserver-node/blob/ed6a6d7da0ad64ebea0b55e4b2f339a1ec7f511f/client/src/common/client.ts#L1615
-            if (!clientCapabilities.SupportsVisualStudioExtensions)
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
             {
                 return null;
             }
