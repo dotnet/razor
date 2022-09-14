@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingR
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
 {

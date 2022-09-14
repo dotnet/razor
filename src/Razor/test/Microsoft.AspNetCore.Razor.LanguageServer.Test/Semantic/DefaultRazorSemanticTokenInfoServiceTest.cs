@@ -13,6 +13,7 @@ using Moq;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {

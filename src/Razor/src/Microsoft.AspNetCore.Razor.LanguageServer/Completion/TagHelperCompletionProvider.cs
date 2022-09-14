@@ -70,6 +70,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
             {
+                if ((containingTagNameToken.FullWidth > 1 || containingTagNameToken.Content == "-") &&
+                    containingTagNameToken.Span.Start != context.AbsoluteIndex &&
+                    containingTagNameToken.Span.End != context.AbsoluteIndex)
+                {
+                    // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
+                    // beginning/ending of an HTML element name.
+                    return Array.Empty<RazorCompletionItem>();
+                }
+
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var containingElement = parent.Parent;
                 var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context.TagHelperDocumentContext);

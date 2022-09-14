@@ -29,6 +29,7 @@ using CompletionItem = Microsoft.VisualStudio.LanguageServer.Protocol.Completion
 using CompletionList = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionList;
 using CompletionOptions = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionOptions;
 using CompletionTriggerKind = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionTriggerKind;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {

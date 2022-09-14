@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {

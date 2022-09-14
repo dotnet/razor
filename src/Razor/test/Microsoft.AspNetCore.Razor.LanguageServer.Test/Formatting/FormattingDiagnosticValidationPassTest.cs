@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Xunit;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 

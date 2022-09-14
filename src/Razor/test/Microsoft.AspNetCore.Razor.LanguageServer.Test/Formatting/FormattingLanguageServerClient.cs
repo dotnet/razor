@@ -35,6 +35,7 @@ using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {

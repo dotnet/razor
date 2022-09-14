@@ -2,15 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-
     internal static class RazorDiagnosticConverter
     {
         public static Diagnostic Convert(RazorDiagnostic razorDiagnostic, SourceText sourceText)
