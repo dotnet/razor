@@ -374,7 +374,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // `<p csharpattr="|Variable">` - true
                 //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is MarkupStartTagSyntax || n is MarkupTagHelperStartTagSyntax || n is MarkupEndTagSyntax || n is MarkupTagHelperEndTagSyntax);
+                    n => n is MarkupDynamicAttributeValueSyntax or
+                              MarkupLiteralAttributeValueSyntax or
+                              MarkupTagHelperAttributeValueSyntax);
             }
 
             bool IsInDirectiveWithNoKind()
