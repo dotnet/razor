@@ -1663,6 +1663,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 allowDiagnostics: true);
         }
 
+        [Fact]
+        public async Task FormatIndentedElementAttributes()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    Welcome.
+                    
+                    <div class="goo"
+                     align="center">
+                    </div>
+
+                    <SurveyPrompt Title="How is Blazor working for you?"
+                     Color="Red" />
+
+                    @if (true)
+                    {
+                    <div class="goo"
+                     align="center">
+                    </div>
+
+                    <SurveyPrompt Title="How is Blazor working for you?"
+                       Color="Red" />
+                    }
+                    """,
+                expected: """
+                    Welcome.
+
+                    <div class="goo"
+                         align="center">
+                    </div>
+
+                    <SurveyPrompt Title="How is Blazor working for you?"
+                                  Color="Red" />
+                    
+                    @if (true)
+                    {
+                        <div class="goo"
+                             align="center">
+                        </div>
+
+                        <SurveyPrompt Title="How is Blazor working for you?"
+                                      Color="Red" />
+                    }
+                    """);
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
         {
             AdditionalSyntaxTrees.Add(Parse("""
