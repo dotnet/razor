@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
     <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(RoslynPackageVersion)" />
 
-    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(RoslynPackageVersion)" />
     <!-- We hide these dependencies from consumers because they're implementation details and aren't required to interact with the language server. -->
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" PrivateAssets="All" />

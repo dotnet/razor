@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override Task OnStartedAsync(CancellationToken cancellationToken)
+        public override Task OnInitializedAsync(CancellationToken cancellationToken)
         {
             _initializedCompletionSource.TrySetResult(true);
             return Task.CompletedTask;
