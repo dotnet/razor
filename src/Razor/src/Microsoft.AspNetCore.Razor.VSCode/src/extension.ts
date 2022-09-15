@@ -12,7 +12,9 @@ import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
 import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
 import { ReportIssueCommand } from './Diagnostics/ReportIssueCommand';
+import { DocumentColorHandler } from './DocumentColor/DocumentColorHandler';
 import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
+import { FoldingRangeHandler } from './Folding/FoldingRangeHandler';
 import { HostEventStream } from './HostEventStream';
 import { RazorHtmlFeature } from './Html/RazorHtmlFeature';
 import { IEventEmitterFactory } from './IEventEmitterFactory';
@@ -82,6 +84,11 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServerClient,
                 logger);
             const semanticTokenHandler = new SemanticTokensHandler(languageServerClient);
+            const documentColorHandler = new DocumentColorHandler(
+                documentManager,
+                languageServerClient,
+                logger);
+            const foldingRangeHandler = new FoldingRangeHandler(languageServerClient);
             const razorServerReadyHandler = new RazorServerReadyHandler(languageServerClient);
 
             const completionItemProvider = new RazorCompletionItemProvider(
@@ -173,6 +180,8 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             razorFormattingFeature.register();
             razorCodeActionRunner.register();
             codeActionHandler.register();
+            documentColorHandler.register();
+            foldingRangeHandler.register();
             semanticTokenHandler.register();
         });
 
@@ -192,7 +201,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServiceClient,
                 logger);
             if (legend) {
-                localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
                 localRegistrations.push(vscodeType.languages.registerDocumentRangeSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
             }
 

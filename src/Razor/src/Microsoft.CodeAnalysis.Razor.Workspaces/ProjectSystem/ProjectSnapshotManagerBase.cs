@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public abstract Workspace Workspace { get; }
 
+        public abstract ErrorReporter ErrorReporter { get; }
+
         public abstract IReadOnlyCollection<string> OpenDocuments { get; }
 
         public abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);

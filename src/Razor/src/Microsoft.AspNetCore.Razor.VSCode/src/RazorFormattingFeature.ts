@@ -16,7 +16,7 @@ import { convertTextEditToSerializable } from './RPC/SerializableTextEdit';
 
 export class RazorFormattingFeature {
 
-    private rangeFormattingRequestType: RequestType<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any, any> = new RequestType('razor/rangeFormatting');
+    private rangeFormattingRequestType: RequestType<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any> = new RequestType('razor/rangeFormatting');
     private emptyRangeFormattingResponse: RazorDocumentRangeFormattingResponse = new RazorDocumentRangeFormattingResponse([]);
 
     constructor(
@@ -27,7 +27,7 @@ export class RazorFormattingFeature {
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
-        this.serverClient.onRequestWithParams<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any, any>(
+        this.serverClient.onRequestWithParams<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any>(
             this.rangeFormattingRequestType,
             async (request, token) => this.handleRangeFormatting(request, token));
     }

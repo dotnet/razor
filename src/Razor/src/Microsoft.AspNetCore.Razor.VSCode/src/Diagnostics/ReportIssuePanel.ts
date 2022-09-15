@@ -106,7 +106,7 @@ export class ReportIssuePanel {
         }
 
         let panelBodyContent = '';
-        if (this.logger.trace === Trace.Verbose) {
+        if (this.logger.trace.valueOf() === Trace.Verbose) {
             panelBodyContent = `<ol>
     <li>Press <button onclick="startIssue()">Start</button></li>
     <li>Perform the actions (or no action) that resulted in your Razor issue</li>

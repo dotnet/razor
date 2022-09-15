@@ -12,7 +12,7 @@ import { SemanticTokensResponse } from './SemanticTokensResponse';
 
 export class SemanticTokensHandler {
     private static readonly getSemanticTokensEndpoint = 'razor/provideSemanticTokens';
-    private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any, any> = new RequestType(SemanticTokensHandler.getSemanticTokensEndpoint);
+    private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any> = new RequestType(SemanticTokensHandler.getSemanticTokensEndpoint);
     private emptySemanticTokensResponse: ProvideSemanticTokensResponse = new ProvideSemanticTokensResponse(
         new SemanticTokensResponse(new Array<number>(), ''),
         null);
@@ -22,7 +22,7 @@ export class SemanticTokensHandler {
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
-        this.serverClient.onRequestWithParams<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any, any>(
+        this.serverClient.onRequestWithParams<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any>(
             this.semanticTokensRequestType,
             async (request, token) => this.getSemanticTokens(request, token));
     }

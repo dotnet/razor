@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public Workspace Workspace { get; }
 
-        public OmniSharpProjectSnapshotManagerBase ProjectManager { get; }
+        internal OmniSharpProjectSnapshotManagerBase ProjectManager { get; }
 
         public OmniSharpHostProject Project1 { get; }
 
