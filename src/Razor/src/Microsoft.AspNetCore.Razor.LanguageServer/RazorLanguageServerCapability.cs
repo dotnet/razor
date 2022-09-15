@@ -62,8 +62,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            razorCapability = razorCapabilityToken.ToObject<RazorLanguageServerCapability>()!;
-            return true;
+            razorCapability = razorCapabilityToken.ToObject<RazorLanguageServerCapability>();
+            return razorCapability is not null;
         }
     }
 }

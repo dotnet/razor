@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly WorkspaceSemanticTokensRefreshPublisher _publisher;
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
-        public DefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
+        internal DefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
         {
             _publisher = workspaceSemanticTokensRefreshPublisher;
         }

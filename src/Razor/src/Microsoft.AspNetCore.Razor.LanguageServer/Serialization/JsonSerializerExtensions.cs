@@ -18,10 +18,6 @@ internal static class JsonSerializerExtensions
             throw new ArgumentNullException(nameof(serializer));
         }
 
-        // In all of the below we add our converters to both the serializer settings and the actual
-        // JsonSerializer. The reasoning behind this choice is that OmniSharp framework is not consistent
-        // in using one over the other so we want to protect ourselves.
-
         serializer.Converters.RegisterRazorConverters();
 
         AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
@@ -33,13 +29,6 @@ internal static class JsonSerializerExtensions
         {
             throw new ArgumentNullException(nameof(serializer));
         }
-
-        // In all of the below we add our converters to both the serializer settings and the actual
-        // JsonSerializer. The reasoning behind this choice is that OmniSharp framework is not consistent
-        // in using one over the other so we want to protect ourselves.
-
-        // We create a temporary serializer because the VS API's only have extension methods for adding converters to the top-level serializer type; therefore,for adding converters to the top-level serializer type; therefore,
-        // we effectively create a bag that the VS APIs can add to and then extract the added converters to add to the LSP serializer.
 
         serializer.AddVSInternalExtensionConverters();
     }

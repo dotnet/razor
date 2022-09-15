@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 internal readonly struct RazorRequestContext
 {
-    private readonly DocumentContext? _documentContext;
+    public readonly DocumentContext? DocumentContext;
 
     public readonly ILspLogger LspLogger;
 
@@ -23,7 +23,7 @@ internal readonly struct RazorRequestContext
         ILogger logger,
         ILspServices lspServices)
     {
-        _documentContext = documentContext;
+        DocumentContext = documentContext;
         LspLogger = lspLoger;
         LspServices = lspServices;
         Logger = logger;
@@ -31,12 +31,12 @@ internal readonly struct RazorRequestContext
 
     public DocumentContext GetRequiredDocumentContext()
     {
-        if (_documentContext is null)
+        if (DocumentContext is null)
         {
             throw new ArgumentNullException(nameof(DocumentContext));
         }
 
-        return _documentContext;
+        return DocumentContext;
     }
 
     public T GetRequiredService<T>() where T : class

@@ -4,9 +4,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public override ValueTask ProcessAsync(CancellationToken cancellationToken)
             {
-                var task = _languageServer.SendNotificationAsync("workspace/semanticTokens/refresh", cancellationToken);
+                var task = _languageServer.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
 
                 return new ValueTask(task);
             }

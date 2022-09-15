@@ -22,24 +22,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
+        private const int TokenSize = 5;
+
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly ILogger _logger;
 
-        public DefaultRazorSemanticTokensInfoService(ClientNotifierServiceBase languageServer, RazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+        public DefaultRazorSemanticTokensInfoService(
+            ClientNotifierServiceBase languageServer,
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
         {
-            _documentMappingService = documentMappingService;
-            _languageServer = languageServer;
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
 
-            if(loggerFactory is null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
-
-        private const int TokenSize = 5;
 
         public override async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
@@ -60,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Error thrown while retrieving CSharp semantic range.");
+                _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
             }
 
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);

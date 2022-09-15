@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -20,6 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         [JsonProperty("_vs_supportsVisualStudioExtensions")]
         public bool SupportsVisualStudioExtensions { get; set; } = false;
 
-        public JToken Json { get; set; }
+        public required JToken Json { get; set; }
     }
 }

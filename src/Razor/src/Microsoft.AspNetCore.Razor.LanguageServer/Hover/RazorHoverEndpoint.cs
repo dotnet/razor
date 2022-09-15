@@ -48,8 +48,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-        public override bool MutatesSolutionState => false;
-
         /// <inheritdoc/>
         protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParams request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
         {
@@ -78,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, RazorRequestContext razorRequestContext, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, RazorRequestContext razorRequestContext,  CancellationToken cancellationToken)
         {
             if (response?.Range is null)
             {

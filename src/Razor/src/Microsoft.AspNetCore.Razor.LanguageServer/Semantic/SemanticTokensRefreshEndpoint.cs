@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly WorkspaceSemanticTokensRefreshPublisher _semanticTokensRefreshPublisher;
 
-        public bool MutatesSolutionState => false;
+        public bool MutatesSolutionState { get; } = false;
 
         public SemanticTokensRefreshEndpoint(WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher)
         {

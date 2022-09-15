@@ -5,8 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -50,12 +50,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// </remarks>
         protected abstract string CustomMessageTarget { get; }
 
-        public abstract bool MutatesSolutionState { get; }
+        public bool MutatesSolutionState { get; } = false;
 
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
         /// </summary>
-        protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, RazorRequestContext reqeuestContext, CancellationToken cancellationToken)
+        protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, TRequest originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
             => Task.FromResult(delegatedResponse);
 
         /// <summary>
@@ -88,7 +88,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var documentContext = context.GetRequiredDocumentContext();
+            var documentContext = context.DocumentContext;
+            if (documentContext is null)
+            {
+                return default;
+            }
 
             var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, context.Logger, cancellationToken).ConfigureAwait(false);
             if (projection is null)
@@ -97,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var response = await TryHandleAsync(request, context, projection, cancellationToken).ConfigureAwait(false);
-            if (response is not null)
+            if (response is not null && response is not ISumType { Value: null })
             {
                 return response;
             }
@@ -107,11 +111,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
+            // We can only delegate to C# and HTML, so if we're in a Razor context and our inheritor didn't want to provide
+            // any response then that's all we can do.
+            if (projection.LanguageKind == RazorLanguageKind.Razor)
+            {
+                return default;
+            }
+
             var delegatedParams = CreateDelegatedParams(request, context, projection, cancellationToken);
+            if (delegatedParams is null)
+            {
+                // I guess they don't want to delegate... fine then!
+                return default;
+            }
 
             var delegatedRequest = await _languageServer.SendRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, cancellationToken).ConfigureAwait(false);
+            if (delegatedRequest is null)
+            {
+                return default;
+            }
 
-            var remappedResponse = await HandleDelegatedResponseAsync(delegatedRequest, context, cancellationToken).ConfigureAwait(false);
+            var remappedResponse = await HandleDelegatedResponseAsync(delegatedRequest, request, context, projection, cancellationToken).ConfigureAwait(false);
 
             return remappedResponse;
         }

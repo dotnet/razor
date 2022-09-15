@@ -7,13 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class RazorSemanticTokensEndpoint : ISemanticTokensRangeEndpoint
     {
-        public bool MutatesSolutionState => false;
+        public bool MutatesSolutionState { get; } = false;
 
         public RazorSemanticTokensEndpoint()
         {
@@ -32,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticTokens = await semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, documentContext, cancellationToken);
             var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
-            context.LspLogger.LogInformation($"Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.");
+            context.Logger.LogInformation($"Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.");
 
             if (semanticTokens is not null)
             {
