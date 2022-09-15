@@ -11,6 +11,8 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
+    using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+
     public class RazorDiagnosticConverterTest
     {
         [Fact]

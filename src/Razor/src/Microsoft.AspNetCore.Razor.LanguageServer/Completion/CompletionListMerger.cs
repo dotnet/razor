@@ -16,32 +16,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private static readonly string Data2Key = nameof(MergedCompletionListData.Data2).ToLowerInvariant();
         private static readonly object EmptyData = new object();
 
-        public static VSInternalCompletionList? Merge(VSInternalCompletionList? completionListA, VSInternalCompletionList? completionListB)
+        public static VSInternalCompletionList? Merge(VSInternalCompletionList? razorCompletionList, VSInternalCompletionList? delegatedCompletionList)
         {
-            if (completionListA is null)
+            if (razorCompletionList is null)
             {
-                return completionListB;
+                return delegatedCompletionList;
             }
 
-            if (completionListB is null)
+            if (delegatedCompletionList is null)
             {
-                return completionListA;
+                return razorCompletionList;
             }
 
-            EnsureMergeableCommitCharacters(completionListA, completionListB);
-            EnsureMergeableData(completionListA, completionListB);
+            EnsureMergeableCommitCharacters(razorCompletionList, delegatedCompletionList);
+            EnsureMergeableData(razorCompletionList, delegatedCompletionList);
 
-            var mergedIsIncomplete = completionListA.IsIncomplete || completionListB.IsIncomplete;
-            var mergedItems = completionListA.Items.Concat(completionListB.Items).ToArray();
-            var mergedData = MergeData(completionListA.Data, completionListB.Data);
-            var mergedCommitCharacters = completionListA.CommitCharacters ?? completionListB.CommitCharacters;
-            var mergedSuggestionMode = completionListA.SuggestionMode || completionListB.SuggestionMode;
+            var mergedIsIncomplete = razorCompletionList.IsIncomplete || delegatedCompletionList.IsIncomplete;
+            var mergedItems = razorCompletionList.Items.Concat(delegatedCompletionList.Items).ToArray();
+            var mergedData = MergeData(razorCompletionList.Data, delegatedCompletionList.Data);
+            var mergedCommitCharacters = razorCompletionList.CommitCharacters ?? delegatedCompletionList.CommitCharacters;
+            var mergedSuggestionMode = razorCompletionList.SuggestionMode || delegatedCompletionList.SuggestionMode;
 
-            // We don't fully support merging continue characters currently. Razor doesn't currently use them so subsequent (i.e. delegated) completion lists always win.
-            var mergedContinueWithCharacters = completionListA.ContinueCharacters ?? completionListB.ContinueCharacters;
+            // We don't fully support merging continue characters currently. Razor doesn't currently use them so delegated completion lists always win.
+            var mergedContinueWithCharacters = razorCompletionList.ContinueCharacters ?? delegatedCompletionList.ContinueCharacters;
 
-            // We don't fully support merging edit ranges currently. Razor doesn't currently use them so subsequent (i.e. delegated) completion lists always win.
-            var mergedItemDefaultsEditRange = completionListA.ItemDefaults?.EditRange ?? completionListB.ItemDefaults?.EditRange;
+            // We don't fully support merging edit ranges currently. Razor doesn't currently use them so delegated completion lists always win.
+            var mergedItemDefaultsEditRange = razorCompletionList.ItemDefaults?.EditRange ?? delegatedCompletionList.ItemDefaults?.EditRange;
 
             var mergedCompletionList = new VSInternalCompletionList()
             {

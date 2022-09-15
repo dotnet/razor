@@ -243,9 +243,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Completion
                         services.AddSingleton<CompletionListCache>();
-                        services.AddSingleton<AggregateCompletionListProvider>();
-                        services.AddSingleton<CompletionListProvider, DelegatedCompletionListProvider>();
-                        services.AddSingleton<CompletionListProvider, RazorCompletionListProvider>();
+                        services.AddSingleton<CompletionListProvider>();
+                        services.AddSingleton<DelegatedCompletionListProvider>();
+                        services.AddSingleton<RazorCompletionListProvider>();
                         services.AddSingleton<DelegatedCompletionResponseRewriter, TextEditResponseRewriter>();
                         services.AddSingleton<DelegatedCompletionResponseRewriter, DesignTimeHelperResponseRewriter>();
 

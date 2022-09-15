@@ -16,12 +16,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private readonly ILogger _logger;
         private readonly DocumentContextFactory _documentContextFactory;
-        private readonly AggregateCompletionListProvider _completionListProvider;
+        private readonly CompletionListProvider _completionListProvider;
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorCompletionEndpoint(
             DocumentContextFactory documentContextFactory,
-            AggregateCompletionListProvider completionListProvider,
+            CompletionListProvider completionListProvider,
             ILoggerFactory loggerFactory)
         {
             _documentContextFactory = documentContextFactory;
