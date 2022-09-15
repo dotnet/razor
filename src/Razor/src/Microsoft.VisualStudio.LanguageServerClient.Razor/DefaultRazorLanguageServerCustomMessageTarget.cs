@@ -54,23 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             FormattingOptionsProvider formattingOptionsProvider,
             EditorSettingsManager editorSettingsManager,
             LSPDocumentSynchronizer documentSynchronizer)
-                : this(
-                    documentManager,
-                    joinableTaskContext,
-                    requestInvoker,
-                    formattingOptionsProvider,
-                    editorSettingsManager,
-                    documentSynchronizer)
-        {
-        }
-
-        // Testing constructor
-        internal DefaultRazorLanguageServerCustomMessageTarget(
-            LSPDocumentManager documentManager,
-            JoinableTaskContext joinableTaskContext,
-            LSPRequestInvoker requestInvoker,
-            FormattingOptionsProvider formattingOptionsProvider,
-            EditorSettingsManager editorSettingsManager, LSPDocumentSynchronizer documentSynchronizer)
         {
             if (documentManager is null)
             {

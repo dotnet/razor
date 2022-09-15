@@ -33,8 +33,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
 
             if (loggerFactory is null)
             {
