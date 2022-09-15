@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -12,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {
-        public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger? logger, out int absoluteIndex)
+        public static bool TryGetAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger, out int absoluteIndex)
         {
             if (position is null)
             {
@@ -71,14 +70,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 sourceText.Lines[position.Line].Start + position.Character <= sourceText.Length;
         }
 
-        private static bool TryGetAbsoluteIndex(int character, int line, SourceText sourceText, ILogger? logger, out int absoluteIndex)
+        private static bool TryGetAbsoluteIndex(int character, int line, SourceText sourceText, ILogger logger, out int absoluteIndex)
         {
             var linePosition = new LinePosition(line, character);
             if (linePosition.Line >= sourceText.Lines.Count)
             {
 #pragma warning disable CA2254 // Template should be a static expression.
                 // This is actually static, the compiler just doesn't know it.
-                logger?.LogError(Resources.FormatPositionIndex_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
+                logger.LogError(Resources.FormatPositionIndex_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
 #pragma warning restore CA2254 // Template should be a static expression
                 absoluteIndex = -1;
                 return false;

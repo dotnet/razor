@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -110,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             this RazorSyntaxTree syntaxTree,
             SourceText sourceText,
             Range range,
-            ILogger? logger)
+            ILogger logger)
         {
             if (syntaxTree is null)
             {

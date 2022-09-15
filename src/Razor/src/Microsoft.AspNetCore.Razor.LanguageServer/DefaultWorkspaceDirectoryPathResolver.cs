@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,11 +27,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var clientSettings = _settingsManager.GetInitializeParams();
             if (clientSettings.RootUri is null)
             {
-                // RootUri was added in LSP3, fallback to RootPath
 #pragma warning disable CS0618 // Type or member is obsolete
-                return clientSettings.RootPath!;
+                Assumes.NotNull(clientSettings.RootPath);
+                // RootUri was added in LSP3, fallback to RootPath
+                return clientSettings.RootPath;
 #pragma warning restore CS0618 // Type or member is obsolete
             }
+
             var normalized = clientSettings.RootUri.GetAbsoluteOrUNCPath();
             return normalized;
         }

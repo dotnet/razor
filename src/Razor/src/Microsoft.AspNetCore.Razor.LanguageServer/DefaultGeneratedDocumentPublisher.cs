@@ -169,11 +169,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
+            Assumes.NotNull(_projectSnapshotManager);
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
+                    Assumes.NotNull(args.DocumentFilePath);
                     if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
                         // Document closed, evict published source text.
