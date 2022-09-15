@@ -6,39 +6,38 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+internal readonly struct RazorRequestContext
 {
-    internal readonly struct RazorRequestContext
+    public readonly DocumentContext? DocumentContext;
+    public readonly ILspLogger LspLogger;
+    public readonly ILogger Logger;
+    public readonly ILspServices LspServices;
+
+    public RazorRequestContext(
+        DocumentContext? documentContext,
+        ILspLogger lspLoger,
+        ILogger logger,
+        ILspServices lspServices)
     {
-        public readonly DocumentContext? DocumentContext;
-        public readonly ILspLogger LspLogger;
-        public readonly ILogger Logger;
-        public readonly ILspServices LspServices;
+        DocumentContext = documentContext;
+        LspLogger = lspLoger;
+        LspServices = lspServices;
+        Logger = logger;
+    }
 
-        public RazorRequestContext(
-            DocumentContext? documentContext,
-            ILspLogger lspLoger,
-            ILogger logger,
-            ILspServices lspServices)
+    [MemberNotNull(nameof(DocumentContext))]
+    public void RequireDocumentContext()
+    {
+        if (DocumentContext is null)
         {
-            DocumentContext = documentContext;
-            LspLogger = lspLoger;
-            LspServices = lspServices;
-            Logger = logger;
+            throw new ArgumentNullException(nameof(DocumentContext));
         }
+    }
 
-        [MemberNotNull(nameof(DocumentContext))]
-        public void RequireDocumentContext()
-        {
-            if (DocumentContext is null)
-            {
-                throw new ArgumentNullException(nameof(DocumentContext));
-            }
-        }
-
-        public T GetRequiredService<T>() where T : class
-        {
-            return LspServices.GetRequiredService<T>();
-        }
+    public T GetRequiredService<T>() where T : class
+    {
+        return LspServices.GetRequiredService<T>();
     }
 }
