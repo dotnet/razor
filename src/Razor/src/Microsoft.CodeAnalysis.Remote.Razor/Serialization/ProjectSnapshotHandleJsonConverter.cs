@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                 }
 
                 return (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace);
-            }, (reader, objectType, existingValue, serializer, filePath: null as string, configuration: null as RazorConfiguration, rootNamespace: null as string));
+            }, (reader, objectType, existingValue, serializer, filePath: (string?)null, configuration: (RazorConfiguration?)null, rootNamespace: (string?)null));
 
             return new ProjectSnapshotHandle(filePath!, configuration, rootNamespace);
         }
