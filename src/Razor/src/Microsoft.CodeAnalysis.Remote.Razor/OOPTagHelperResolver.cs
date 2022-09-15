@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                     result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
                 }
 
+                // Was unable to get tag helpers OOP, fallback to default behavior.
                 result ??= await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
 
                 return result;
