@@ -33,10 +33,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
         };
 
-        // This is aspirational :)
+        // We don't support any code actions in implicit expressions at the moment, but rather than simply returning early
+        // I thought it best to create an allow list, empty, so that we can easily add them later if we identify any big
+        // hitters that we want to enable.
+        // The one example commented out here should not be taken as an opinion as to what that allow list should look like.
         internal static readonly HashSet<string> SupportedImplicitExpressionCodeActionNames = new HashSet<string>()
         {
-            // RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,        // No reason we shouldn't be able to remove a variable defined in an implicit expression
+            // RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
         };
 
         public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
