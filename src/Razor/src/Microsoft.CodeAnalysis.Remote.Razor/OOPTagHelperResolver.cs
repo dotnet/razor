@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -75,17 +73,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
             try
             {
-                TagHelperResolutionResult result = null;
+                TagHelperResolutionResult? result = null;
                 if (factory != null)
                 {
                     result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (result is null)
-                {
-                    // Was unable to get tag helpers OOP, fallback to default behavior.
-                    result = await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
-                }
+                result ??= await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }
@@ -95,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             }
         }
 
-        protected virtual async Task<TagHelperResolutionResult> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+        protected virtual async Task<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
             // We're being overly defensive here because the OOP host can return null for the client/session/operation
             // when it's disconnected (user stops the process).
@@ -133,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyCollection<TagHelperDescriptor> ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
+        protected virtual IReadOnlyCollection<TagHelperDescriptor>? ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
         {
             if (!_resultCache.TryGet(projectFilePath, lastResultId, out var tagHelpers))
             {

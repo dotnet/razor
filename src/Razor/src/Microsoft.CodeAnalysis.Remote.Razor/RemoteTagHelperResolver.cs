@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor
         public Task<TagHelperResolutionResult> GetTagHelpersAsync(
             Project project,
             RazorConfiguration configuration,
-            string factoryTypeName,
+            string? factoryTypeName,
             CancellationToken cancellationToken = default)
         {
             if (project is null)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor
             return GetTagHelpersAsync(project, engine, cancellationToken);
         }
 
-        internal RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, string factoryTypeName)
+        internal RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, string? factoryTypeName)
         {
             // This section is really similar to the code DefaultProjectEngineFactoryService
             // but with a few differences that are significant in the remote scenario
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Razor
             return factory.Create(configuration, RazorProjectFileSystem.Empty, b => { });
         }
 
-        private static IProjectEngineFactory? CreateFactory(string factoryTypeName)
+        private static IProjectEngineFactory? CreateFactory(string? factoryTypeName)
         {
             if (factoryTypeName is null)
             {
