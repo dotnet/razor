@@ -2,12 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using MediatR;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorLanguageQueryParams : IRequest<RazorLanguageQueryResponse>
+    internal class RazorLanguageQueryParams
     {
         public required Uri Uri { get; set; }
 

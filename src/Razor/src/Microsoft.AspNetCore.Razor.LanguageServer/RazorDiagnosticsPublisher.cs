@@ -11,9 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -27,14 +25,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly ITextDocumentLanguageServer _languageServer;
+        private readonly ClientNotifierServiceBase _languageServer;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private readonly ILogger<RazorDiagnosticsPublisher> _logger;
         private ProjectSnapshotManager? _projectManager;
 
         public RazorDiagnosticsPublisher(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ITextDocumentLanguageServer languageServer,
+            ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
             if (projectSnapshotManagerDispatcher is null)
@@ -98,10 +96,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (_workTimer is null)
             {
                 // Timer will fire after a fixed delay, but only once.
-                _workTimer = new Timer(WorkTimer_Tick, null, _publishDelay, Timeout.InfiniteTimeSpan);
+                _workTimer = new Timer(WorkTimer_Tick, state: null, dueTime: _publishDelay, period: Timeout.InfiniteTimeSpan);
             }
         }
-
         private void StartDocumentClosedCheckTimer()
         {
             if (_documentClosedTimer is null)
@@ -281,11 +278,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Host = string.Empty,
             };
 
-            _languageServer.PublishDiagnostics(new PublishDiagnosticsParams()
-            {
-                Uri = uriBuilder.Uri,
-                Diagnostics = new Container<Diagnostic>(diagnostics),
-            });
+            _ = _languageServer.SendNotificationAsync(
+                "textDocument/publishDiagnostics",
+                new PublishDiagnosticParams()
+                {
+                    Uri = uriBuilder.Uri,
+                    Diagnostics = diagnostics.ToArray(),
+                }, CancellationToken.None);
         }
     }
 }
