@@ -5,10 +5,9 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+[LanguageServerEndpoint(LanguageServerConstants.RazorLanguageQueryEndpoint)]
+internal interface IRazorLanguageQueryHandler : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse>
 {
-    [LanguageServerEndpoint(LanguageServerConstants.RazorLanguageQueryEndpoint)]
-    internal interface IRazorLanguageQueryHandler : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse>
-    {
-    }
 }

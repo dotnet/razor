@@ -5,10 +5,9 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+[LanguageServerEndpoint(LanguageServerConstants.RazorMapToDocumentEditsEndpoint)]
+internal interface IRazorMapToDocumentEditsHandler : IRazorRequestHandler<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>
 {
-    [LanguageServerEndpoint(LanguageServerConstants.RazorMapToDocumentEditsEndpoint)]
-    internal interface IRazorMapToDocumentEditsHandler : IRazorRequestHandler<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>
-    {
-    }
 }

@@ -25,12 +25,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentContext? documentContext = null;
             var textDocumentHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
 
-            TextDocumentIdentifier? textDocumentIdentifier = null;
+            Uri? uri = null;
             if (textDocumentHandler is not null)
             {
                 if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
                 {
-                    textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
+                    var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
+                    uri = textDocumentIdentifier.Uri;
+                }
+                else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
+                {
+                    uri = uriHandler.GetTextDocumentIdentifier(@params);
                 }
                 else
                 {
@@ -38,10 +43,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            if (textDocumentIdentifier is not null)
+            if (uri is not null)
             {
                 var documentContextFactory = _lspServices.GetRequiredService<DocumentContextFactory>();
-                documentContext = await documentContextFactory.TryCreateAsync(textDocumentIdentifier.Uri, cancellationToken);
+                documentContext = await documentContextFactory.TryCreateAsync(uri, cancellationToken);
             }
 
             var lspLogger = _lspServices.GetRequiredService<ILspLogger>();

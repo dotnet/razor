@@ -7,24 +7,23 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+[LanguageServerEndpoint(Methods.InitializedName)]
+internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams, RazorRequestContext>
 {
-    [LanguageServerEndpoint(Methods.InitializedName)]
-    internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams, RazorRequestContext>
+    public bool MutatesSolutionState { get; } = true;
+
+    public async Task HandleNotificationAsync(InitializedParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        public bool MutatesSolutionState => true;
+        var onStartedItems = requestContext.LspServices.GetRequiredServices<IOnInitialized>();
 
-        public async Task HandleNotificationAsync(InitializedParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        var fileChangeDetectorManager = requestContext.LspServices.GetRequiredService<RazorFileChangeDetectorManager>();
+        await fileChangeDetectorManager.InitializedAsync();
+
+        foreach (var onStartedItem in onStartedItems)
         {
-            var onStartedItems = requestContext.LspServices.GetRequiredServices<IOnLanguageServerStarted>();
-
-            var fileChangeDetectorManager = requestContext.LspServices.GetRequiredService<RazorFileChangeDetectorManager>();
-            await fileChangeDetectorManager.InitializedAsync();
-
-            foreach (var onStartedItem in onStartedItems)
-            {
-                await onStartedItem.OnStartedAsync(cancellationToken);
-            }
+            await onStartedItem.OnInitializedAsync(cancellationToken);
         }
     }
 }

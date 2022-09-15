@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
@@ -20,12 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
     internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>, ITextDocumentUriPresentationHandler
     {
         private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
+        private readonly ILogger _logger;
 
         public TextDocumentUriPresentationEndpoint(
             RazorDocumentMappingService razorDocumentMappingService,
             RazorComponentSearchEngine razorComponentSearchEngine,
             ClientNotifierServiceBase languageServer,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            ILoggerFactory loggerFactory)
             : base(razorDocumentMappingService,
                  languageServer,
                  languageServerFeatureOptions)
@@ -36,6 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             }
 
             _razorComponentSearchEngine = razorComponentSearchEngine;
+            _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
         }
 
         public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint;
@@ -74,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             if (request.Uris is null || request.Uris.Length == 0)
             {
-                // _logger.LogInformation("No URIs were included in the request?");
+                _logger.LogInformation("No URIs were included in the request?");
                 return null;
             }
 
@@ -85,13 +89,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
             if (!fileName.EndsWith(".razor", FilePathComparison.Instance))
             {
-                //  _logger.LogInformation("Last file in the drop was not a single razor file URI.");
+                _logger.LogInformation("Last file in the drop was not a single razor file URI.");
                 return null;
             }
 
             if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
             {
-                //   _logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
+                _logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
                 return null;
             }
 
@@ -128,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         {
             if (documentContext is null)
             {
-                //  _logger.LogInformation("Failed to find document for component {uri}.", uri);
+                _logger.LogInformation("Failed to find document for component {uri}.", uri);
                 return null;
             }
 
@@ -137,14 +141,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
             if (descriptor is null)
             {
-                //    _logger.LogInformation("Failed to find tag helper descriptor.");
+                _logger.LogInformation("Failed to find tag helper descriptor.");
                 return null;
             }
 
             var typeName = descriptor.GetTypeNameIdentifier();
             if (string.IsNullOrWhiteSpace(typeName))
             {
-                //  _logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
+                _logger.LogWarning("Found a tag helper, {descriptorName}, but it has an empty TypeNameIdentifier.", descriptor.Name);
                 return null;
             }
 

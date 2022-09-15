@@ -7,21 +7,20 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+[LanguageServerEndpoint(Methods.InitializeName)]
+internal class RazorInitializeEndpoint : IRazorDocumentlessRequestHandler<InitializeParams, InitializeResult>
 {
-    [LanguageServerEndpoint(Methods.InitializeName)]
-    internal class RazorInitializeEndpoint : IRazorDocumentlessRequestHandler<InitializeParams, InitializeResult>
+    public bool MutatesSolutionState { get; } = true;
+
+    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        public bool MutatesSolutionState => true;
+        var capabilitiesManager = context.GetRequiredService<IInitializeManager<InitializeParams, InitializeResult>>();
 
-        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RazorRequestContext context, CancellationToken cancellationToken)
-        {
-            var capabilitiesManager = context.GetRequiredService<IInitializeManager<InitializeParams, InitializeResult>>();
+        capabilitiesManager.SetInitializeParams(request);
+        var serverCapabilities = capabilitiesManager.GetInitializeResult();
 
-            capabilitiesManager.SetInitializeParams(request);
-            var serverCapabilities = capabilitiesManager.GetInitializeResult();
-
-            return Task.FromResult(serverCapabilities);
-        }
+        return Task.FromResult(serverCapabilities);
     }
 }

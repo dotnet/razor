@@ -60,6 +60,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         protected abstract Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, TParams request, DocumentContext? documentContext, CancellationToken cancellationToken);
 
+        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(TParams request);
+
         public async Task<WorkspaceEdit?> HandleRequestAsync(TParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.DocumentContext;
@@ -271,7 +273,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             return workspaceEdit;
         }
 
-        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(TParams request);
 
         protected record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
     }
