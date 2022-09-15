@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
 
             _ = _languageServer.SendNotificationAsync(
-                "textDocument/publishDiagnostics",
+                Methods.TextDocumentPublishDiagnosticsName,
                 new PublishDiagnosticParams()
                 {
                     Uri = uriBuilder.Uri,

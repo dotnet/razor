@@ -28,6 +28,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),
                 Code = razorDiagnostic.Id,
                 Severity = ConvertSeverity(razorDiagnostic.Severity),
+                // This is annotated as not null, but we have tests that validate the behaviour when
+                // we pass in null here
                 Range = ConvertSpanToRange(razorDiagnostic.Span, sourceText)!,
             };
 
