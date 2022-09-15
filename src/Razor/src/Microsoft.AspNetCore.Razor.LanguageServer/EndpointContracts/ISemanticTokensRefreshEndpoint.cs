@@ -2,12 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using OmniSharp.Extensions.JsonRpc;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    [Parallel, Method(RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint, Direction.ClientToServer)]
-    internal interface ISemanticTokensRefreshEndpoint : IJsonRpcNotificationHandler<SemanticTokensRefreshParamsBridge>,
+    [LanguageServerEndpoint(RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint)]
+    internal interface ISemanticTokensRefreshEndpoint : IRazorNotificationHandler<SemanticTokensRefreshParams>,
         IRegistrationExtension
     {
     }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
@@ -9,12 +10,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 internal readonly struct RazorRequestContext
 {
-    private readonly DocumentContext? _documentContext;
-
+    public readonly DocumentContext? DocumentContext;
     public readonly ILspLogger LspLogger;
-
     public readonly ILogger Logger;
-
     public readonly ILspServices LspServices;
 
     public RazorRequestContext(
@@ -23,20 +21,19 @@ internal readonly struct RazorRequestContext
         ILogger logger,
         ILspServices lspServices)
     {
-        _documentContext = documentContext;
+        DocumentContext = documentContext;
         LspLogger = lspLoger;
         LspServices = lspServices;
         Logger = logger;
     }
 
-    public DocumentContext GetRequiredDocumentContext()
+    [MemberNotNull(nameof(DocumentContext))]
+    public void RequireDocumentContext()
     {
-        if (_documentContext is null)
+        if (DocumentContext is null)
         {
             throw new ArgumentNullException(nameof(DocumentContext));
         }
-
-        return _documentContext;
     }
 
     public T GetRequiredService<T>() where T : class

@@ -6,11 +6,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal interface IRazorRequestHandler<TRequestType, TResponseType> : IRequestHandler<TRequestType, TResponseType, RazorRequestContext>, ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier>
+    internal interface IRazorRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType, RazorRequestContext>, ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifier>
     {
     }
 
-    internal interface IRazorDocumentlessRequestHandler<TRequestType, TResponseType> : IRequestHandler<TRequestType, TResponseType, RazorRequestContext>
+    internal interface IRazorDocumentlessRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType, RazorRequestContext>
     {
     }
 }
