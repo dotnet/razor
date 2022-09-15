@@ -169,8 +169,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            Assumes.NotNull(_projectSnapshotManager);
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+            Assumes.NotNull(_projectSnapshotManager);
 
             switch (args.Kind)
             {

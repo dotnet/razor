@@ -76,8 +76,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             if (linePosition.Line >= sourceText.Lines.Count)
             {
 #pragma warning disable CA2254 // Template should be a static expression.
-                // This is actually static, the compiler just doesn't know it.
-                logger.LogError(Resources.FormatPositionIndex_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
+// This is actually static, the compiler just doesn't know it.
+                logger?.LogError(Resources.GetResourceString("FormatPositionIndex_Outside_Range"), line, nameof(sourceText), sourceText.Lines.Count);
 #pragma warning restore CA2254 // Template should be a static expression
                 absoluteIndex = -1;
                 return false;

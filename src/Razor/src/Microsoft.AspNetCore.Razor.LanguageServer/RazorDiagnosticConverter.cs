@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),
                 Code = razorDiagnostic.Id,
                 Severity = ConvertSeverity(razorDiagnostic.Severity),
-                Range = ConvertSpanToRange(razorDiagnostic.Span, sourceText),
+                Range = ConvertSpanToRange(razorDiagnostic.Span, sourceText)!,
             };
 
             return diagnostic;

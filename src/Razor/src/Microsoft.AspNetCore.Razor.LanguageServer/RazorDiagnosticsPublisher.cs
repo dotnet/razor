@@ -99,6 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _workTimer = new Timer(WorkTimer_Tick, state: null, dueTime: _publishDelay, period: Timeout.InfiniteTimeSpan);
             }
         }
+
         private void StartDocumentClosedCheckTimer()
         {
             if (_documentClosedTimer is null)
