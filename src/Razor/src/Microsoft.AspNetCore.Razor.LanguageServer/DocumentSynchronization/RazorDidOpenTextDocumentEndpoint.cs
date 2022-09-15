@@ -24,7 +24,7 @@ internal class RazorDidOpenTextDocumentEndpoint : IVSDidOpenTextDocumentEndpoint
         _projectService = razorProjectService;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DidOpenTextDocumentParamsBridge request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidOpenTextDocumentParams request)
     {
         var identifier = new TextDocumentIdentifier
         {
@@ -33,7 +33,7 @@ internal class RazorDidOpenTextDocumentEndpoint : IVSDidOpenTextDocumentEndpoint
         return identifier;
     }
 
-    public async Task HandleNotificationAsync(DidOpenTextDocumentParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(DidOpenTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         var sourceText = SourceText.From(request.TextDocument.Text);
 

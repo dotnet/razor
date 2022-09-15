@@ -49,10 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         public override TextDocumentIdentifier GetTextDocumentIdentifier(UriPresentationParams request)
         {
-            return new TextDocumentIdentifier
-            {
-                Uri = request.Uris.Last()
-            };
+            return request.TextDocument;
         }
 
         protected override IRazorPresentationParams CreateRazorRequestParameters(UriPresentationParams request)

@@ -49,12 +49,12 @@ internal class RazorDidChangeTextDocumentEndpoint : IVSDidChangeTextDocumentEndp
         return result;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DidChangeTextDocumentParamsBridge request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidChangeTextDocumentParams request)
     {
         return request.TextDocument;
     }
 
-    public async Task HandleNotificationAsync(DidChangeTextDocumentParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(DidChangeTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         var documentContext = context.GetRequiredDocumentContext();
 

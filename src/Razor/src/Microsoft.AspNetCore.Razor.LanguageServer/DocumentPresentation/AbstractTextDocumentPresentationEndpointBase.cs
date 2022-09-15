@@ -73,19 +73,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                // _logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+                requestContext.LspLogger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
                 return null;
             }
 
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (request.Range.Start.TryGetAbsoluteIndex(sourceText, logger: null, out var hostDocumentIndex) != true)
+            if (request.Range.Start.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex) != true)
             {
                 return null;
             }
 
             var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // See if we can handle this directly in Razor. If not, we'll let things flow to the below delegated handling.
-            var result = await TryGetRazorWorkspaceEditAsync(languageKind, request, requestContext.DocumentContext, cancellationToken).ConfigureAwait(false);
+            var result = await TryGetRazorWorkspaceEditAsync(languageKind, request, documentContext, cancellationToken).ConfigureAwait(false);
             if (result is not null)
             {
                 return result;
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             if (languageKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
             {
-                //   _logger.LogInformation("Unsupported language {languageKind}.", languageKind);
+                requestContext.LspLogger.LogInformation("Unsupported language {languageKind}.", languageKind);
                 return null;
             }
 

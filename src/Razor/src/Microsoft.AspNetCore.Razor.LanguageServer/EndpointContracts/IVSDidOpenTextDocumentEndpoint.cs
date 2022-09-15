@@ -7,8 +7,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
-    internal interface IVSDidOpenTextDocumentEndpoint : IRazorNotificationHandler<DidOpenTextDocumentParamsBridge>,
-        ITextDocumentIdentifierHandler<DidOpenTextDocumentParamsBridge, TextDocumentIdentifier>
+    internal interface IVSDidOpenTextDocumentEndpoint : IRazorNotificationHandler<DidOpenTextDocumentParams>,
+        ITextDocumentIdentifierHandler<DidOpenTextDocumentParams, TextDocumentIdentifier>
     {
     }
 }
