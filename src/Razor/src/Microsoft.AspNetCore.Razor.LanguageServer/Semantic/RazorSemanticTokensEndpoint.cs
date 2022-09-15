@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
-        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParamsBridge request, CancellationToken cancellationToken)
+        public async Task<SemanticTokens?> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {

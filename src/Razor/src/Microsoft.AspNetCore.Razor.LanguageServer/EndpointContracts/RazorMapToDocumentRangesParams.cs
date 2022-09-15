@@ -2,13 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
-    internal class RazorMapToDocumentRangesParams : IRequest<RazorMapToDocumentRangesResponse>
+    internal class RazorMapToDocumentRangesParams
     {
         public RazorLanguageKind Kind { get; set; }
 

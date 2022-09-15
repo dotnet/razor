@@ -16,7 +16,7 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
 {
-    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<ImplementationParamsBridge, ImplementationResult>, IImplementationEndpoint
+    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, ImplementationResult>, IImplementationEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
 

@@ -2,22 +2,18 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal class RazorMapToDocumentEditsParams : IRequest<RazorMapToDocumentEditsResponse>
+    // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
+    internal class RazorDiagnosticsParams
     {
         public RazorLanguageKind Kind { get; set; }
 
         public required Uri RazorDocumentUri { get; set; }
 
-        public required TextEdit[] ProjectedTextEdits { get; set; }
-
-        public TextEditKind TextEditKind { get; set; }
-
-        public required FormattingOptions FormattingOptions { get; set; }
+        public required VSDiagnostic[] Diagnostics { get; set; }
     }
 }

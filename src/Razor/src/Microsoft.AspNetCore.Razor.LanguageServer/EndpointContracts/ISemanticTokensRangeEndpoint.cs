@@ -2,12 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    [Parallel, Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal interface ISemanticTokensRangeEndpoint : IJsonRpcRequestHandler<SemanticTokensRangeParamsBridge, SemanticTokens?>,
+    [LanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
+    internal interface ISemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParamsBridge, SemanticTokens?>,
         IRegistrationExtension
     {
     }
