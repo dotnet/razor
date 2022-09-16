@@ -63,7 +63,7 @@ internal class RazorDidChangeTextDocumentEndpoint : IVSDidChangeTextDocumentEndp
 
         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
             () => _projectService.UpdateDocument(documentContext.FilePath, sourceText, request.TextDocument.Version),
-            CancellationToken.None).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
     }
 
     // Internal for testing

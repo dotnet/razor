@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -24,13 +25,9 @@ internal class RazorDidOpenTextDocumentEndpoint : IVSDidOpenTextDocumentEndpoint
         _projectService = razorProjectService;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DidOpenTextDocumentParams request)
+    public Uri GetTextDocumentIdentifier(DidOpenTextDocumentParams request)
     {
-        var identifier = new TextDocumentIdentifier
-        {
-            Uri = request.TextDocument.Uri,
-        };
-        return identifier;
+        return request.TextDocument.Uri;
     }
 
     public async Task HandleNotificationAsync(DidOpenTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
@@ -39,6 +36,6 @@ internal class RazorDidOpenTextDocumentEndpoint : IVSDidOpenTextDocumentEndpoint
 
         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
             () => _projectService.OpenDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, request.TextDocument.Version),
-            CancellationToken.None).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
     }
 }

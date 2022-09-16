@@ -20,10 +20,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
     internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>, ITextDocumentUriPresentationHandler
     {
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
         private readonly ILogger _logger;
 
         public TextDocumentUriPresentationEndpoint(
+            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             RazorComponentSearchEngine razorComponentSearchEngine,
             ClientNotifierServiceBase languageServer,
@@ -38,6 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 throw new ArgumentNullException(nameof(razorComponentSearchEngine));
             }
 
+            _documentContextFactory = documentContextFactory;
             _razorComponentSearchEngine = razorComponentSearchEngine;
             _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
         }
@@ -67,7 +70,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         protected override async Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(
             RazorLanguageKind languageKind,
             UriPresentationParams request,
-            DocumentContext? documentContext,
             CancellationToken cancellationToken)
         {
             if (languageKind is not RazorLanguageKind.Html)
@@ -99,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 return null;
             }
 
-            var componentTagText = await TryGetComponentTagAsync(documentContext, cancellationToken).ConfigureAwait(false);
+            var componentTagText = await TryGetComponentTagAsync(razorFileUri, cancellationToken).ConfigureAwait(false);
             if (componentTagText is null)
             {
                 return null;
@@ -128,8 +130,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             };
         }
 
-        private async Task<string?> TryGetComponentTagAsync(DocumentContext? documentContext, CancellationToken cancellationToken)
+        private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
+
+            var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 _logger.LogInformation("Failed to find document for component {uri}.", uri);

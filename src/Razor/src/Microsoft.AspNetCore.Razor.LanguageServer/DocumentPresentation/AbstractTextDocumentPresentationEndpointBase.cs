@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
         protected abstract IRazorPresentationParams CreateRazorRequestParameters(TParams request);
 
-        protected abstract Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, TParams request, DocumentContext? documentContext, CancellationToken cancellationToken);
+        protected abstract Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, TParams request, CancellationToken cancellationToken);
 
         public abstract TextDocumentIdentifier GetTextDocumentIdentifier(TParams request);
 
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // See if we can handle this directly in Razor. If not, we'll let things flow to the below delegated handling.
-            var result = await TryGetRazorWorkspaceEditAsync(languageKind, request, documentContext, cancellationToken).ConfigureAwait(false);
+            var result = await TryGetRazorWorkspaceEditAsync(languageKind, request, cancellationToken).ConfigureAwait(false);
             if (result is not null)
             {
                 return result;
@@ -272,7 +272,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             return workspaceEdit;
         }
-
 
         protected record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
     }

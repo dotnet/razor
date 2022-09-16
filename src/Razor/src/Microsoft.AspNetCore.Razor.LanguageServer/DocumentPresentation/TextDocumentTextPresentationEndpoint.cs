@@ -47,7 +47,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         protected override Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(
             RazorLanguageKind languageKind,
             TextPresentationParams request,
-            DocumentContext? documentContext,
             CancellationToken cancellationToken)
         {
             // We don't do anything special with text
