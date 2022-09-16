@@ -12,22 +12,21 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
 {
-    internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp>, ISignatureHelpEndpoint
+    internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>, ISignatureHelpEndpoint
     {
         public SignatureHelpEndpoint(
-            DocumentContextFactory documentContextFactory,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerProvider)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
+            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
         {
         }
 
         /// <inheritdoc />
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "signatureHelpProvider";
             var option = new SignatureHelpOptions()
@@ -40,10 +39,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
         }
 
         /// <inheritdoc />
-        protected override IDelegatedParams? CreateDelegatedParams(SignatureHelpParams request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
-            => new DelegatedPositionParams(
+        protected override IDelegatedParams CreateDelegatedParams(SignatureHelpParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            return new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
                     projection.LanguageKind);
+        }
     }
 }
