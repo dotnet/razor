@@ -124,8 +124,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Options = context.Options
             };
 
-            var response = await _server.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+            var result = await _server.SendRequestAsync<RazorDocumentRangeFormattingParams, RazorDocumentFormattingResponse>(
+                RazorLanguageServerCustomMessageTargets.RazorRangeFormattingEndpoint,
+                @params,
+                cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
