@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext);
 
-            requestContext.Logger.LogTrace("Resolved {razorCompletionItems.Count} completion items.", razorCompletionItems.Count);
+            requestContext.Logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Count);
 
             var completionList = CreateLSPCompletionList(razorCompletionItems);
             var completionCapability = _clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;

@@ -78,6 +78,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             return resolvedCompletionItem;
         }
-
     }
 }
