@@ -11,7 +11,6 @@ import { LanguageQueryResponse } from './RPC/LanguageQueryResponse';
 import { RazorMapToDocumentRangesRequest } from './RPC/RazorMapToDocumentRangesRequest';
 import { RazorMapToDocumentRangesResponse } from './RPC/RazorMapToDocumentRangesResponse';
 import { convertRangeFromSerializable, convertRangeToSerializable } from './RPC/SerializableRange';
-import { SemanticTokensLegendRequest } from './Semantic/SemanticTokensLegendRequest';
 import { SemanticTokensRangeRequest } from './Semantic/SemanticTokensRangeRequest';
 
 export class RazorLanguageServiceClient {
@@ -48,17 +47,6 @@ export class RazorLanguageServiceClient {
 
         response.ranges = responseRanges;
         return response;
-    }
-
-    public async getSemanticTokenLegend(): Promise<vscode.SemanticTokensLegend | undefined> {
-        await this.ensureStarted();
-
-        const request = new SemanticTokensLegendRequest();
-        const response = await this.serverClient.sendRequest<vscode.SemanticTokensLegend>('razor/semanticTokensLegend', request);
-
-        if (response.tokenTypes && response.tokenTypes.length > 0) {
-            return response;
-        }
     }
 
     public async semanticTokensRange(uri: vscode.Uri, range: vscode.Range): Promise<vscode.SemanticTokens | undefined> {

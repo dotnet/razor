@@ -11,6 +11,7 @@ import {
     RequestType,
 } from 'vscode-jsonrpc';
 import {
+    InitializeResult,
     LanguageClientOptions,
     State,
 } from 'vscode-languageclient';
@@ -50,6 +51,10 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.setupLanguageServer();
 
         this.eventBus = new EventEmitter();
+    }
+
+    public get initializeResult(): InitializeResult | undefined {
+        return this.client.initializeResult;
     }
 
     public updateTraceLevel() {

@@ -9,8 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string DefaultProjectConfigurationFile = "project.razor.json";
 
-        public const string RazorSemanticTokensLegendEndpoint = "razor/semanticTokensLegend";
-
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
         public const string RazorBreakpointSpanEndpoint = "razor/breakpointSpan";
