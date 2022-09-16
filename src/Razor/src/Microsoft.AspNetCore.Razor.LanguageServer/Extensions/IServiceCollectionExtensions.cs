@@ -23,6 +23,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
@@ -142,6 +143,7 @@ internal static class IServiceCollectionExtensions
         services.AddRegisteringHandler<RazorDidChangeTextDocumentEndpoint>();
         services.AddHandler<RazorDidCloseTextDocumentEndpoint>();
         services.AddHandler<RazorDidOpenTextDocumentEndpoint>();
+        services.AddHandler<RazorDidSaveTextDocumentEndpoint>();
 
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
     }

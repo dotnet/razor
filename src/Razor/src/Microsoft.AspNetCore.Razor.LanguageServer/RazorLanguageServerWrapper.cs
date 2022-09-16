@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -39,8 +41,9 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         LanguageServerFeatureOptions? featureOptions = null)
     {
         var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
-        var logger = new RazorLspLogger();
         var jsonRpc = CreateJsonRpc(input, output);
+
+        var logger = GetLspLogger(logLevel);
 
         var server = new RazorLanguageServer(
             jsonRpc,
@@ -53,6 +56,7 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
 
         await server.InitializeAsync();
         jsonRpc.StartListening();
+
         return razorLanguageServer;
     }
 
@@ -93,4 +97,9 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
     }
 
     internal Task WaitForExit => _innerServer.WaitForExit;
+
+    public static ILspLogger GetLspLogger(LogLevel logLevel)
+    {
+        throw new NotImplementedException();
+    }
 }

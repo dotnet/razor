@@ -9,9 +9,9 @@ internal static class VSInternalClientCapabilitiesExtensions
 {
     internal static VSInternalClientCapabilities ToVSInternalClientCapabilities(this ClientCapabilities clientCapabilities)
     {
-        if (clientCapabilities is VSInternalClientCapabilities vSInternalClientCapabilities)
+        if (clientCapabilities is VSInternalClientCapabilities vsInternalClientCapabilities)
         {
-            return vSInternalClientCapabilities;
+            return vsInternalClientCapabilities;
         }
 
         return new VSInternalClientCapabilities()

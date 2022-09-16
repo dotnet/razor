@@ -6,7 +6,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    // TODO: Should be an abstract class that says if it's serial
     [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
     internal interface IVSDidCloseTextDocumentEndpoint: IRazorNotificationHandler<DidCloseTextDocumentParams>,
         ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
