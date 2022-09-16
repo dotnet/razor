@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using MediatR;
-
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
-    internal class MonitorProjectConfigurationFilePathParams : IRequest
+    internal class MonitorProjectConfigurationFilePathParams
     {
         public required string ProjectFilePath { get; set; }
 

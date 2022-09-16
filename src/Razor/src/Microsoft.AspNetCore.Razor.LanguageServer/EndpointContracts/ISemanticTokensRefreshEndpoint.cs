@@ -7,7 +7,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint)]
-    internal interface ISemanticTokensRefreshEndpoint : IRazorNotificationHandler<SemanticTokensRefreshParamsBridge>,
+    internal interface ISemanticTokensRefreshEndpoint : IRazorNotificationHandler<SemanticTokensRefreshParams>,
         IRegistrationExtension
     {
     }

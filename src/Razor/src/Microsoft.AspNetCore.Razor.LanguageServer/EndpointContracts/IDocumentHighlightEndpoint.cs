@@ -2,12 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-[Parallel, Method(Methods.TextDocumentDocumentHighlightName)]
-internal interface IDocumentHighlightEndpoint : IJsonRpcRequestHandler<DocumentHighlightParamsBridge, DocumentHighlight[]?>, IRegistrationExtension
+[LanguageServerEndpoint(Methods.TextDocumentDocumentHighlightName)]
+internal interface IDocumentHighlightEndpoint : IRazorRequestHandler<DocumentHighlightParams, DocumentHighlight[]?>, IRegistrationExtension
 {
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
@@ -10,11 +11,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 internal readonly struct RazorRequestContext
 {
     public readonly DocumentContext? DocumentContext;
-
     public readonly ILspLogger LspLogger;
-
     public readonly ILogger Logger;
-
     public readonly ILspServices LspServices;
 
     public RazorRequestContext(

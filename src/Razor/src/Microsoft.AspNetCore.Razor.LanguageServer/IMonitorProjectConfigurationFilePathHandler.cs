@@ -3,12 +3,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using OmniSharp.Extensions.JsonRpc;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    [Parallel, Method(LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint)]
-    internal interface IMonitorProjectConfigurationFilePathHandler : IJsonRpcNotificationHandler<MonitorProjectConfigurationFilePathParams>
+    [LanguageServerEndpoint(LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint)]
+    internal interface IMonitorProjectConfigurationFilePathHandler : IRazorNotificationHandler<MonitorProjectConfigurationFilePathParams>
     {
     }
 }
