@@ -20,19 +20,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
     internal class RazorBreakpointSpanEndpoint : IRazorBreakpointSpanEndpoint
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
+        public bool MutatesSolutionState => false;
+
         public RazorBreakpointSpanEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
 
             if (documentMappingService is null)
             {
@@ -44,18 +40,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _documentContextFactory = documentContextFactory;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorBreakpointSpanResponse?> Handle(RazorBreakpointSpanParamsBridge request, CancellationToken cancellationToken)
+        public Uri GetTextDocumentIdentifier(RazorBreakpointSpanParams request)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
+            return request.Uri;
+        }
+
+        public async Task<RazorBreakpointSpanResponse?> HandleRequestAsync(RazorBreakpointSpanParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);

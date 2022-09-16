@@ -4,10 +4,12 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 [LanguageServerEndpoint(LanguageServerConstants.RazorBreakpointSpanEndpoint)]
-internal interface IRazorBreakpointSpanEndpoint : IRazorRequestHandler<RazorBreakpointSpanParams, RazorBreakpointSpanResponse?>
+internal interface IRazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<RazorBreakpointSpanParams, RazorBreakpointSpanResponse?>,
+    ITextDocumentIdentifierHandler<RazorBreakpointSpanParams, Uri>
 {
 }
