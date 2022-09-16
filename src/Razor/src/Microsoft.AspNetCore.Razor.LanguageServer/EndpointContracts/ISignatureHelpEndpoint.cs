@@ -8,7 +8,7 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
-    internal interface ISignatureHelpEndpoint : IJsonRpcRequestHandler<SignatureHelpParams, LS.SignatureHelp?>,
+    internal interface ISignatureHelpEndpoint : IRazorRequestHandler<SignatureHelpParams, LS.SignatureHelp?>,
         IRegistrationExtension
     {
     }
