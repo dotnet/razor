@@ -1,27 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.Extensions.Options;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using System;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -69,7 +69,7 @@ internal static class IServiceCollectionExtensions
         if (featureOptions.SingleServerCompletionSupport)
         {
             services.AddRegisteringHandler<RazorCompletionEndpoint>();
-            services.AddRegisteringHandler<RazorCompletionResolveEndpoint>();
+            services.AddHandler<RazorCompletionResolveEndpoint>();
         }
         else
         {
@@ -78,9 +78,9 @@ internal static class IServiceCollectionExtensions
         }
 
         services.AddSingleton<CompletionListCache>();
-        services.AddSingleton<AggregateCompletionListProvider>();
-        services.AddSingleton<CompletionListProvider, DelegatedCompletionListProvider>();
-        services.AddSingleton<CompletionListProvider, RazorCompletionListProvider>();
+        services.AddSingleton<CompletionListProvider>();
+        services.AddSingleton<DelegatedCompletionListProvider>();
+        services.AddSingleton<RazorCompletionListProvider>();
         services.AddSingleton<DelegatedCompletionResponseRewriter, TextEditResponseRewriter>();
         services.AddSingleton<DelegatedCompletionResponseRewriter, DesignTimeHelperResponseRewriter>();
 
