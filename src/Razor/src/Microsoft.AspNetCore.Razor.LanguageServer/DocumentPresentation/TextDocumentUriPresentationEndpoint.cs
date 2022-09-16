@@ -67,10 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 Uris = request.Uris
             };
 
-        protected override async Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(
-            RazorLanguageKind languageKind,
-            UriPresentationParams request,
-            CancellationToken cancellationToken)
+        protected override async Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, UriPresentationParams request, CancellationToken cancellationToken)
         {
             if (languageKind is not RazorLanguageKind.Html)
             {
