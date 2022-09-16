@@ -4,10 +4,12 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
 
 [LanguageServerEndpoint(LanguageServerConstants.RazorProximityExpressionsEndpoint)]
-internal interface IRazorProximityExpressionsEndpoint : IRazorRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>
+internal interface IRazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>,
+    ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, Uri>
 {
 }
