@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher;
         }
 
-        public Task HandleNotificationAsync(SemanticTokensRefreshParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(SemanticTokensRefreshParams request, RazorRequestContext context, CancellationToken cancellationToken)
         {
             // We have to invalidate the tokens cache since it may no longer be up to date.
             _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();

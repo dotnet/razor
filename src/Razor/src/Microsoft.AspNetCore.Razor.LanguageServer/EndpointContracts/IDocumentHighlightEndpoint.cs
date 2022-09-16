@@ -7,6 +7,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 [LanguageServerEndpoint(Methods.TextDocumentDocumentHighlightName)]
-internal interface IDocumentHighlightEndpoint : IRazorRequestHandler<DocumentHighlightParams, DocumentHighlight[]?>, IRegistrationExtension
+internal interface IDocumentHighlightEndpoint : IRazorRequestHandler<DocumentHighlightParamsBridge, DocumentHighlight[]?>, IRegistrationExtension
 {
 }

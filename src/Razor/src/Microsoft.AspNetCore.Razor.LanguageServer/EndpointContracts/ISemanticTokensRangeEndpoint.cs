@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
-    internal interface ISemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParamsBridge, SemanticTokens?>,
+    internal interface ISemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
         IRegistrationExtension
     {
     }

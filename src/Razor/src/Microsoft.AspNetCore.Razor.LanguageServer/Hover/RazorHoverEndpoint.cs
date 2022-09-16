@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?, DelegatedPositionParams>, IVSHoverEndpoint
+    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, VSInternalHover?>, IVSHoverEndpoint
     {
         private readonly RazorHoverInfoService _hoverInfoService;
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParams request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = razorRequestContext.GetRequiredDocumentContext();
             return new DelegatedPositionParams(
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = razorRequestContext.GetRequiredDocumentContext();
             // HTML can still sometimes be handled by razor. For example hovering over
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         }
 
         /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, RazorRequestContext razorRequestContext,  CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
         {
             if (response?.Range is null)
             {

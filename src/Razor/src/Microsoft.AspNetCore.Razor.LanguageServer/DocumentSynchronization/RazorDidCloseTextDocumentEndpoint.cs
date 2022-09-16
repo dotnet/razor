@@ -36,12 +36,12 @@ internal class RazorDidCloseTextDocumentEndpoint : IVSDidCloseTextDocumentEndpoi
         _projectService = projectService;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DidCloseTextDocumentParamsBridge request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidCloseTextDocumentParams request)
     {
         return request.TextDocument;
     }
 
-    public async Task HandleNotificationAsync(DidCloseTextDocumentParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(DidCloseTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
             () => _projectService.CloseDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath()),

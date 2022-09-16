@@ -16,7 +16,7 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
 {
-    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, ImplementationResult>, IImplementationEndpoint
+    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, ImplementationResult>, IImplementationEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
 
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
             return new DelegatedPositionParams(
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
                     projection.LanguageKind);
         }
 
-        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             // Not using .TryGetXXX because this does the null check for us too
             if (delegatedResponse.Value is Location[] locations)
