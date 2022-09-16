@@ -10,9 +10,10 @@ import { SerializableSemanticTokensParams } from '../RPC/SerializableSemanticTok
 import { ProvideSemanticTokensResponse } from './ProvideSemanticTokensResponse';
 import { SemanticTokensResponse } from './SemanticTokensResponse';
 
-export class SemanticTokensHandler {
-    private static readonly getSemanticTokensEndpoint = 'razor/provideSemanticTokens';
-    private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any> = new RequestType(SemanticTokensHandler.getSemanticTokensEndpoint);
+export class SemanticTokensRangeHandler {
+    private static readonly getSemanticTokensRangeEndpoint = 'razor/provideSemanticTokensRange';
+    private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any> =
+        new RequestType(SemanticTokensRangeHandler.getSemanticTokensRangeEndpoint);
     private emptySemanticTokensResponse: ProvideSemanticTokensResponse = new ProvideSemanticTokensResponse(
         new SemanticTokensResponse(new Array<number>(), ''),
         null);
@@ -24,7 +25,7 @@ export class SemanticTokensHandler {
         // tslint:disable-next-line: no-floating-promises
         this.serverClient.onRequestWithParams<SerializableSemanticTokensParams, ProvideSemanticTokensResponse, any>(
             this.semanticTokensRequestType,
-            async (request, token) => this.getSemanticTokens(request, token));
+            async (request: SerializableSemanticTokensParams, token: vscode.CancellationToken) => this.getSemanticTokens(request, token));
     }
 
     private async getSemanticTokens(
