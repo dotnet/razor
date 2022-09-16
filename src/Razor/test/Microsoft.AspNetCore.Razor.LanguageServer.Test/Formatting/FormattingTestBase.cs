@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 InsertSpaces = insertSpaces,
             };
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
 
             // Act
             var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
