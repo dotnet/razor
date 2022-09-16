@@ -106,7 +106,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         return lspServices;
 
-        static void AddHandlers(IServiceCollection services, LanguageServerFeatureOptions? featureOptions)
+        static void AddHandlers(IServiceCollection services)
         {
             services.AddHandler<RazorDiagnosticsEndpoint>();
             services.AddHandler<RazorConfigurationEndpoint>();

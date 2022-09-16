@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 

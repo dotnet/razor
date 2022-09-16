@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentHoverName)]
-    internal interface IVSHoverEndpoint : IRazorRequestHandler<VSHoverParamsBridge, VSInternalHover?>, IRegistrationExtension
+    internal interface IVSHoverEndpoint : IRazorRequestHandler<TextDocumentPositionParams, VSInternalHover?>, IRegistrationExtension
     {
     }
 }

@@ -27,13 +27,14 @@ internal readonly struct RazorRequestContext
         Logger = logger;
     }
 
-    [MemberNotNull(nameof(DocumentContext))]
-    public void RequireDocumentContext()
+    public DocumentContext GetRequiredDocumentContext()
     {
         if (DocumentContext is null)
         {
             throw new ArgumentNullException(nameof(DocumentContext));
         }
+
+        return DocumentContext;
     }
 
     public T GetRequiredService<T>() where T : class
