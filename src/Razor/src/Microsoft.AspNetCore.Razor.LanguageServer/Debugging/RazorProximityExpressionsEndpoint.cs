@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,20 +19,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
     internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsEndpoint
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorProximityExpressionsEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
-
             if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
@@ -42,18 +36,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _documentContextFactory = documentContextFactory;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorProximityExpressionsResponse?> Handle(RazorProximityExpressionsParamsBridge request, CancellationToken cancellationToken)
+        public bool MutatesSolutionState => false;
+
+        public Uri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
+            return request.Uri;
+        }
+
+        public async Task<RazorProximityExpressionsResponse?> HandleRequestAsync(RazorProximityExpressionsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
@@ -93,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 return null;
             }
 
-            _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.", 
+            _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.",
                 request.Position.Line, request.Position.Character, expressions.Count);
 
             return new RazorProximityExpressionsResponse
