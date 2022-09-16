@@ -13,9 +13,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse, TDelegatedParams> : IRazorRequestHandler<TRequest, TResponse>
+    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IRazorRequestHandler<TRequest, TResponse>
         where TRequest : TextDocumentPositionParams
-        where TDelegatedParams : IDelegatedParams
     {
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly RazorDocumentMappingService _documentMappingService;
