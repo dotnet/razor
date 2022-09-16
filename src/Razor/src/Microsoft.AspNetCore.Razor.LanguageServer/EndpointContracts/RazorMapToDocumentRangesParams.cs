@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
     internal class RazorMapToDocumentRangesParams

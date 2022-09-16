@@ -7,8 +7,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
-    internal interface IVSDidCloseTextDocumentEndpoint: IRazorNotificationHandler<DidCloseTextDocumentParamsBridge>,
-        ITextDocumentIdentifierHandler<DidCloseTextDocumentParamsBridge, TextDocumentIdentifier>
+    internal interface IVSDidCloseTextDocumentEndpoint: IRazorNotificationHandler<DidCloseTextDocumentParams>,
+        ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
     {
     }
 }

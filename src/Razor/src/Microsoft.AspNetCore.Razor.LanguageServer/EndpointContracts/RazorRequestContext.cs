@@ -10,11 +10,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 internal readonly struct RazorRequestContext
 {
     public readonly DocumentContext? DocumentContext;
-
     public readonly ILspLogger LspLogger;
-
     public readonly ILogger Logger;
-
     public readonly ILspServices LspServices;
 
     public RazorRequestContext(

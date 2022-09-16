@@ -7,8 +7,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentDidSaveName)]
-    internal interface IVSDidSaveTextDocumentEndpoint : IRazorNotificationHandler<DidSaveTextDocumentParamsBridge>,
-        ITextDocumentIdentifierHandler<DidSaveTextDocumentParamsBridge, TextDocumentIdentifier>
+    internal interface IVSDidSaveTextDocumentEndpoint : IRazorNotificationHandler<DidSaveTextDocumentParams>,
+        ITextDocumentIdentifierHandler<DidSaveTextDocumentParams, TextDocumentIdentifier>
     {
     }
 }

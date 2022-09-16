@@ -4,7 +4,7 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     internal class RazorLanguageQueryParams
     {

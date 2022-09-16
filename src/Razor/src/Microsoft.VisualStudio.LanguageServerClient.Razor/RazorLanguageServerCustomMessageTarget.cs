@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
         // supports sending workspace configuration requests.
         [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<object[]> WorkspaceConfigurationAsync(OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams, CancellationToken cancellationToken);
+        public abstract Task<object[]> WorkspaceConfigurationAsync(ConfigurationParams configParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to update the contents of the virtual CSharp buffer.
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
