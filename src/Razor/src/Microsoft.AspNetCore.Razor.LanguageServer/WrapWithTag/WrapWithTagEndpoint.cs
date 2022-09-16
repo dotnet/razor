@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -19,23 +20,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
     {
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly RazorDocumentMappingService _razorDocumentMappingService;
-        private readonly DocumentContextFactory _documentContextFactory;
-        private readonly ILogger _logger;
 
         public WrapWithTagEndpoint(
             ClientNotifierServiceBase languageServer,
-            DocumentContextFactory documentContextFactory,
-            RazorDocumentMappingService razorDocumentMappingService,
-            ILoggerFactory loggerFactory)
+            RazorDocumentMappingService razorDocumentMappingService)
         {
             if (languageServer is null)
             {
                 throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
             }
 
             if (razorDocumentMappingService is null)
@@ -43,23 +35,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 throw new ArgumentNullException(nameof(razorDocumentMappingService));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _languageServer = languageServer;
-            _documentContextFactory = documentContextFactory;
             _razorDocumentMappingService = razorDocumentMappingService;
-            _logger = loggerFactory.CreateLogger<WrapWithTagEndpoint>();
         }
 
-        public async Task<WrapWithTagResponse?> Handle(WrapWithTagParamsBridge request, CancellationToken cancellationToken)
+        public bool MutatesSolutionState => false;
+
+        public TextDocumentIdentifier GetTextDocumentIdentifier(WrapWithTagParams request)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            return request.TextDocument;
+        }
+
+        public async Task<WrapWithTagResponse?> HandleRequestAsync(WrapWithTagParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.DocumentContext;
             if (documentContext is null)
             {
-                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
+                requestContext.Logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -68,12 +60,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                _logger.LogWarning("Failed to retrieve generated output for document {textDocumentUri}.", request.TextDocument.Uri);
+                requestContext.Logger.LogWarning("Failed to retrieve generated output for document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
+            if (request.Range?.Start.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex) != true)
             {
                 return null;
             }
@@ -90,15 +82,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
             if (languageKind is not RazorLanguageKind.Html)
             {
-                _logger.LogInformation("Unsupported language {languageKind:G}.", languageKind);
+                requestContext.Logger.LogInformation("Unsupported language {languageKind:G}.", languageKind);
                 return null;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             var parameter = request;
-            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, parameter).ConfigureAwait(false);
-            var htmlResponse = await response.Returning<WrapWithTagResponse>(cancellationToken).ConfigureAwait(false);
+            var htmlResponse = await _languageServer.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(
+                LanguageServerConstants.RazorWrapWithTagEndpoint,
+                parameter,
+                cancellationToken).ConfigureAwait(false);
 
             if (htmlResponse.TextEdits is not null)
             {
