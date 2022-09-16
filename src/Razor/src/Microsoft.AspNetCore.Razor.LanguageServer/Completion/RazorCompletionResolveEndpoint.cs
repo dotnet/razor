@@ -6,11 +6,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal class RazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint
+    internal class RazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint, IOnInitialized
     {
         private readonly AggregateCompletionItemResolver _completionItemResolver;
         private readonly CompletionListCache _completionListCache;
@@ -24,15 +25,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _completionListCache = completionListCache;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public bool MutatesSolutionState => false;
+
+        public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            _clientCapabilities = clientCapabilities;
-            return null;
+            _clientCapabilities = clientCapabilities.ToVSInternalClientCapabilities();
+
+            return Task.CompletedTask;
         }
 
-        public async Task<VSInternalCompletionItem> Handle(VSCompletionItemBridge completionItemBridge, CancellationToken cancellationToken)
+        public async Task<VSInternalCompletionItem> HandleRequestAsync(VSInternalCompletionItem completionItem, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
-            VSInternalCompletionItem completionItem = completionItemBridge;
 
             if (!completionItem.TryGetCompletionListResultIds(out var resultIds))
             {
@@ -75,5 +78,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             return resolvedCompletionItem;
         }
+
     }
 }

@@ -24,8 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     // for this legacy version.
     internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
     {
-        private readonly ILogger _logger;
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly CompletionListCache _completionListCache;
         private static readonly Command s_retriggerCompletionCommand = new()
@@ -35,17 +33,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         };
         private VSInternalClientCapabilities? _clientCapabilities;
 
-        public LegacyRazorCompletionEndpoint(
-            DocumentContextFactory documentContextFactory,
-            RazorCompletionFactsService completionFactsService,
-            CompletionListCache completionListCache,
-            ILoggerFactory loggerFactory)
-        {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
+        public bool MutatesSolutionState => false;
 
+        public LegacyRazorCompletionEndpoint(
+            RazorCompletionFactsService completionFactsService,
+            CompletionListCache completionListCache)
+        {
             if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
@@ -56,18 +49,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(completionListCache));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _documentContextFactory = documentContextFactory;
             _completionFactsService = completionFactsService;
-            _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
             _completionListCache = completionListCache;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "completionProvider";
 
@@ -83,13 +69,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        public async Task<VSInternalCompletionList?> Handle(VSCompletionParamsBridge request, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null || cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
+            return request.TextDocument;
+        }
+
+        public async Task<VSInternalCompletionList?> HandleRequestAsync(CompletionParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
 
             if (request.Context is null || !IsApplicableTriggerContext(request.Context))
             {
@@ -106,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
-            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex))
             {
                 return null;
             }
@@ -125,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext);
 
-            _logger.LogTrace("Resolved {razorCompletionItemsCount} completion items.", razorCompletionItems.Count);
+            requestContext.Logger.LogTrace("Resolved {razorCompletionItems.Count} completion items.", razorCompletionItems.Count);
 
             var completionList = CreateLSPCompletionList(razorCompletionItems);
             var completionCapability = _clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
