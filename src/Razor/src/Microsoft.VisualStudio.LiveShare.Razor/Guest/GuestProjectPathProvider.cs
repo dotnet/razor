@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -55,7 +54,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             _liveShareSessionAccessor = liveShareSessionAccessor;
         }
 
-        public override bool TryGetProjectPath(ITextBuffer textBuffer, out string filePath)
+        public override bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
         {
             if (!_liveShareSessionAccessor.IsGuestSessionActive)
             {
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         }
 
         // Internal virtual for testing
-        internal virtual Uri GetHostProjectPath(ITextDocument textDocument)
+        internal virtual Uri? GetHostProjectPath(ITextDocument textDocument)
         {
             // The path we're given is from the guest so following other patterns we always ask the host information in its own form (aka convert on guest instead of on host).
             var ownerPath = _liveShareSessionAccessor.Session?.ConvertLocalPathToSharedUri(textDocument.FilePath);
@@ -92,7 +91,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 var projectHierarchyProxy = _proxyAccessor.GetProjectHierarchyProxy();
 
                 // We need to block the UI thread to get a proper project path. However, this is only done once on opening the document.
-                return projectHierarchyProxy.GetProjectPathAsync(ownerPath, CancellationToken.None);
+                return projectHierarchyProxy.GetProjectPathAsync(ownerPath!, CancellationToken.None);
             });
 
             return hostProjectPath;
@@ -103,7 +102,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         [MethodImpl(MethodImplOptions.NoInlining)]
         private string ResolveGuestPath(Uri hostProjectPath)
         {
-            return _liveShareSessionAccessor.Session.ConvertSharedUriToLocalPath(hostProjectPath);
+            return _liveShareSessionAccessor.Session!.ConvertSharedUriToLocalPath(hostProjectPath);
         }
     }
 }

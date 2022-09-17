@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
@@ -11,17 +10,18 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
     [Export(typeof(LiveShareSessionAccessor))]
     internal class DefaultLiveShareSessionAccessor : LiveShareSessionAccessor
     {
-        private CollaborationSession _currentSession;
+        private CollaborationSession? _currentSession;
         private bool _guestSessionIsActive;
 
         // We have a separate IsGuestSessionActive to avoid loading LiveShare dlls unnecessarily.
+        [MemberNotNullWhen(returnValue: true, member: nameof(Session))]
         public override bool IsGuestSessionActive => _guestSessionIsActive;
 
-        public override CollaborationSession Session => _currentSession;
+        public override CollaborationSession? Session => _currentSession;
 
-        public void SetSession(CollaborationSession session)
+        public void SetSession(CollaborationSession? session)
         {
-            _guestSessionIsActive = session != null;
+            _guestSessionIsActive = session is not null;
             _currentSession = session;
         }
     }

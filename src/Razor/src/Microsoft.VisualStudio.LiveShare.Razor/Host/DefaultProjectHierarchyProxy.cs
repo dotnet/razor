@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +15,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         private readonly CollaborationSession _session;
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
-        private IVsUIShellOpenDocument _openDocumentShell;
+        private IVsUIShellOpenDocument? _openDocumentShell;
 
         public DefaultProjectHierarchyProxy(
             CollaborationSession session,
@@ -37,7 +35,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             _joinableTaskFactory = joinableTaskFactory;
         }
 
-        public async Task<Uri> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken)
+        public async Task<Uri?> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken)
         {
             if (documentFilePath is null)
             {
@@ -46,13 +44,11 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if (_openDocumentShell is null)
-            {
-                _openDocumentShell = ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
-            }
-
+#pragma warning disable VSSDK006 // Check services exist
+            _openDocumentShell ??= ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
+#pragma warning restore VSSDK006 // Check services exist
             var hostDocumentFilePath = _session.ConvertSharedUriToLocalPath(documentFilePath);
-            var hr = _openDocumentShell.IsDocumentInAProject(hostDocumentFilePath, out var hierarchy, out _, out _, out _);
+            var hr = _openDocumentShell!.IsDocumentInAProject(hostDocumentFilePath, out var hierarchy, out _, out _, out _);
             if (ErrorHandler.Succeeded(hr) && hierarchy != null)
             {
                 ErrorHandler.ThrowOnFailure(((IVsProject)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var path), VSConstants.E_NOTIMPL);

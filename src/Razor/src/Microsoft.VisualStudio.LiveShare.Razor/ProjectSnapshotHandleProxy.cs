@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -14,8 +12,8 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
         public ProjectSnapshotHandleProxy(
             Uri filePath,
             RazorConfiguration configuration,
-            string rootNamespace,
-            ProjectWorkspaceState projectWorkspaceState)
+            string? rootNamespace,
+            ProjectWorkspaceState? projectWorkspaceState)
         {
             if (filePath is null)
             {
@@ -37,8 +35,8 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
 
         public RazorConfiguration Configuration { get; }
 
-        public string RootNamespace { get; }
+        public string? RootNamespace { get; }
 
-        public ProjectWorkspaceState ProjectWorkspaceState { get; }
+        public ProjectWorkspaceState? ProjectWorkspaceState { get; }
     }
 }

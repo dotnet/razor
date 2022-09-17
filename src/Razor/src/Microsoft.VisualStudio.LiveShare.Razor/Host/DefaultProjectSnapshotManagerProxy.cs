@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +20,10 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly AsyncSemaphore _latestStateSemaphore;
         private bool _disposed;
-        private ProjectSnapshotManagerProxyState _latestState;
+        private ProjectSnapshotManagerProxyState? _latestState;
 
         // Internal for testing
-        internal JoinableTask _processingChangedEventTestTask;
+        internal JoinableTask? _processingChangedEventTestTask;
 
         public DefaultProjectSnapshotManagerProxy(
             CollaborationSession session,
@@ -62,13 +60,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public event EventHandler<ProjectChangeEventProxyArgs> Changed;
+        public event EventHandler<ProjectChangeEventProxyArgs>? Changed;
 
         public async Task<ProjectSnapshotManagerProxyState> GetProjectManagerStateAsync(CancellationToken cancellationToken)
         {
             using (await _latestStateSemaphore.EnterAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (_latestState != null)
+                if (_latestState is not null)
                 {
                     return _latestState;
                 }
@@ -109,7 +107,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 foreach (var project in projects)
                 {
                     var projectHandleProxy = ConvertToProxy(project);
-                    projectHandles.Add(projectHandleProxy);
+                    projectHandles.Add(projectHandleProxy!);
                 }
 
                 _latestState = new ProjectSnapshotManagerProxyState(projectHandles);
@@ -117,7 +115,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             }
         }
 
-        private ProjectSnapshotHandleProxy ConvertToProxy(ProjectSnapshot project)
+        private ProjectSnapshotHandleProxy? ConvertToProxy(ProjectSnapshot? project)
         {
             if (project is null)
             {

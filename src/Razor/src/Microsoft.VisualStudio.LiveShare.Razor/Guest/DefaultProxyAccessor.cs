@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -16,7 +14,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
     {
         private readonly LiveShareSessionAccessor _liveShareSessionAccessor;
         private readonly JoinableTaskFactory _joinableTaskFactory;
-        private IProjectHierarchyProxy _projectHierarchyProxy;
+        private IProjectHierarchyProxy? _projectHierarchyProxy;
 
         [ImportingConstructor]
         public DefaultProxyAccessor(
@@ -38,16 +36,15 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         }
 
         // Testing constructor
+#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         private protected DefaultProxyAccessor()
+#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         {
         }
 
         public override IProjectHierarchyProxy GetProjectHierarchyProxy()
         {
-            if (_projectHierarchyProxy is null)
-            {
-                _projectHierarchyProxy = CreateServiceProxy<IProjectHierarchyProxy>();
-            }
+            _projectHierarchyProxy ??= CreateServiceProxy<IProjectHierarchyProxy>();
 
             return _projectHierarchyProxy;
         }
@@ -56,7 +53,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         internal virtual TProxy CreateServiceProxy<TProxy>() where TProxy : class
         {
 #pragma warning disable VSTHRD110 // Observe result of async calls
-            return _joinableTaskFactory.Run(() => _liveShareSessionAccessor.Session?.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None));
+            return _joinableTaskFactory.Run(() => _liveShareSessionAccessor.Session?.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None)!);
 #pragma warning restore VSTHRD110 // Observe result of async calls
         }
     }
