@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -25,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public bool MutatesSolutionState => true;
 
-        public async Task HandleNotificationAsync(DidChangeConfigurationParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RazorRequestContext context, CancellationToken cancellationToken)
         {
             context.Logger.LogInformation("Settings changed. Updating the server.");
 
