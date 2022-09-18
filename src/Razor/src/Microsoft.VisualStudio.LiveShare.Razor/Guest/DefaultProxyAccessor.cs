@@ -52,8 +52,9 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         // Internal virtual for testing
         internal virtual TProxy CreateServiceProxy<TProxy>() where TProxy : class
         {
+            Assumes.NotNull(_liveShareSessionAccessor.Session);
 #pragma warning disable VSTHRD110 // Observe result of async calls
-            return _joinableTaskFactory.Run(() => _liveShareSessionAccessor.Session?.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None)!);
+            return _joinableTaskFactory.Run(() => _liveShareSessionAccessor.Session.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None));
 #pragma warning restore VSTHRD110 // Observe result of async calls
         }
     }

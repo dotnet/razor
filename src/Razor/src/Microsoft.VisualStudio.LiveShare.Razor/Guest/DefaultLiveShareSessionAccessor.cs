@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
@@ -14,7 +13,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         private bool _guestSessionIsActive;
 
         // We have a separate IsGuestSessionActive to avoid loading LiveShare dlls unnecessarily.
-        [MemberNotNullWhen(returnValue: true, member: nameof(Session))]
         public override bool IsGuestSessionActive => _guestSessionIsActive;
 
         public override CollaborationSession? Session => _currentSession;

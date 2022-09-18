@@ -83,15 +83,17 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         // Internal virtual for testing
         internal virtual Uri? GetHostProjectPath(ITextDocument textDocument)
         {
+            Assumes.NotNull(_liveShareSessionAccessor.Session);
+
             // The path we're given is from the guest so following other patterns we always ask the host information in its own form (aka convert on guest instead of on host).
-            var ownerPath = _liveShareSessionAccessor.Session?.ConvertLocalPathToSharedUri(textDocument.FilePath);
+            var ownerPath = _liveShareSessionAccessor.Session.ConvertLocalPathToSharedUri(textDocument.FilePath);
 
             var hostProjectPath = _joinableTaskFactory.Run(() =>
             {
                 var projectHierarchyProxy = _proxyAccessor.GetProjectHierarchyProxy();
 
                 // We need to block the UI thread to get a proper project path. However, this is only done once on opening the document.
-                return projectHierarchyProxy.GetProjectPathAsync(ownerPath!, CancellationToken.None);
+                return projectHierarchyProxy.GetProjectPathAsync(ownerPath, CancellationToken.None);
             });
 
             return hostProjectPath;
