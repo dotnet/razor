@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,7 +108,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 foreach (var project in projects)
                 {
                     var projectHandleProxy = ConvertToProxy(project);
-                    projectHandles.Add(projectHandleProxy!);
+                    projectHandles.Add(projectHandleProxy);
                 }
 
                 _latestState = new ProjectSnapshotManagerProxyState(projectHandles);
@@ -115,6 +116,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             }
         }
 
+        [return: NotNullIfNotNull(nameof(project))]
         private ProjectSnapshotHandleProxy? ConvertToProxy(ProjectSnapshot? project)
         {
             if (project is null)
