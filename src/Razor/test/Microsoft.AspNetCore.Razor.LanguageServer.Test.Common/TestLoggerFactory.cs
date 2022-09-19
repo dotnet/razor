@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
@@ -21,28 +20,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
         }
 
-        public ILogger CreateLogger(string categoryName) => new TestLogger();
+        public ILogger CreateLogger(string categoryName) => new TestLspLogger();
 
         public void Dispose()
         {
-        }
-
-        private class TestLogger : ILogger
-        {
-            public IDisposable BeginScope<TState>(TState state) => new DisposableScope();
-
-            public bool IsEnabled(LogLevel logLevel) => true;
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-            {
-            }
-
-            private class DisposableScope : IDisposable
-            {
-                public void Dispose()
-                {
-                }
-            }
         }
     }
 }
