@@ -445,6 +445,51 @@ public class Tag
     }
 
     [Fact]
+    public void ComponentWithTypeParameterValueTupleGloballyQualifiedTypes()
+    {
+        // Arrange
+        var classes = @"
+namespace N;
+
+public class MyClass
+{
+    public int MyClassId { get; set; }
+}
+
+public struct MyStruct
+{
+    public int MyStructId { get; set; }
+}
+";
+
+        AdditionalSyntaxTrees.Add(Parse(classes));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@using N
+@typeparam TParam
+
+@code {
+    [Parameter]
+    public TParam InferParam { get; set; }
+
+    [Parameter]
+    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }
+}
+
+<TestComponent InferParam=""1"">
+    <Template>
+        @context.I1.MyClassId - @context.I2.MyStructId
+    </Template>
+</TestComponent>");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithConstrainedTypeParameters()
     {
         // Arrange
