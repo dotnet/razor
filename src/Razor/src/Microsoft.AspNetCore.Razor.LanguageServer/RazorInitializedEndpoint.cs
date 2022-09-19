@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,13 +18,15 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
     public async Task HandleNotificationAsync(InitializedParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         var onStartedItems = requestContext.LspServices.GetRequiredServices<IOnInitialized>();
+        var capabilitiesManager = requestContext.GetRequiredService<IInitializeManager<InitializeParams, InitializeResult>>();
 
         var fileChangeDetectorManager = requestContext.LspServices.GetRequiredService<RazorFileChangeDetectorManager>();
         await fileChangeDetectorManager.InitializedAsync();
+        var clientCapabilities = capabilitiesManager.GetInitializeParams().Capabilities.ToVSInternalClientCapabilities();
 
         foreach (var onStartedItem in onStartedItems)
         {
-            await onStartedItem.OnInitializedAsync(cancellationToken);
+            await onStartedItem.OnInitializedAsync(clientCapabilities, cancellationToken);
         }
     }
 }
