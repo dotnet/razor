@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
     public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
     {
-        private RazorLanguageServer RazorLanguageServer { get; set; }
+        private RazorLanguageServerWrapper RazorLanguageServer { get; set; }
 
         private DefaultRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
@@ -91,6 +91,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 textDocumentIdentifier, Range, DocumentContext, cancellationToken).ConfigureAwait(false);
         }
 
+        private static LspServices GetLspServices()
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
         {
             await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
@@ -98,38 +103,35 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         }
 
         [GlobalCleanup]
-        public void CleanupServer()
+        public async Task CleanupServerAsync()
         {
-            RazorLanguageServer?.Dispose();
+            await RazorLanguageServer.DisposeAsync();
         }
 
-        protected internal override void Builder(RazorLanguageServerBuilder builder)
+        protected internal override void Builder(IServiceCollection collection)
         {
-            builder.Services.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
+            collection.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
         }
 
         private async Task EnsureServicesInitializedAsync()
         {
-            if (RazorLanguageServer != null)
+            if (RazorLanguageServerTask != null)
             {
                 return;
             }
 
-            RazorLanguageServer = await RazorLanguageServerTask.ConfigureAwait(false);
+            RazorLanguageServer = await RazorLanguageServerTask;
+
             var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-            RazorSemanticTokenService = languageServer.GetService(typeof(RazorSemanticTokensInfoService)) as TestRazorSemanticTokensInfoService;
-            VersionCache = languageServer.GetService(typeof(DocumentVersionCache)) as DocumentVersionCache;
-            ProjectSnapshotManagerDispatcher = languageServer.GetService(typeof(ProjectSnapshotManagerDispatcher)) as ProjectSnapshotManagerDispatcher;
+            RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>() as TestRazorSemanticTokensInfoService;
+            VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
+            ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
         }
 
         internal class TestRazorSemanticTokensInfoService : DefaultRazorSemanticTokensInfoService
         {
-            public TestRazorSemanticTokensInfoService(
-                ClientNotifierServiceBase languageServer,
-                RazorDocumentMappingService documentMappingService,
-                DocumentContextFactory documentContextFactory,
-                LoggerFactory loggerFactory)
-                : base(languageServer, documentMappingService, documentContextFactory, loggerFactory)
+            public TestRazorSemanticTokensInfoService(ClientNotifierServiceBase languageServer, RazorDocumentMappingService documentMappingService, LoggerFactory loggerFactory)
+                : base(languageServer, documentMappingService, loggerFactory)
             {
             }
 
@@ -137,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             internal override Task<SemanticRange[]> GetCSharpSemanticRangesAsync(
                 RazorCodeDocument codeDocument,
                 TextDocumentIdentifier textDocumentIdentifier,
-                Range range,
+                Range razorRange,
                 long documentVersion,
                 CancellationToken cancellationToken,
                 string previousResultId = null)

@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
     {
         private string _filePath;
 
-        private RazorLanguageServer RazorLanguageServer { get; set; }
+        private RazorLanguageServerWrapper RazorLanguageServer { get; set; }
 
         private RazorFormattingService RazorFormattingService { get; set; }
 
@@ -130,23 +130,24 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         }
 
         [GlobalCleanup]
-        public void CleanupServer()
+        public async Task CleanupServerAsync()
         {
             File.Delete(_filePath);
 
-            RazorLanguageServer?.Dispose();
+            await RazorLanguageServer.DisposeAsync();
         }
 
         private async Task EnsureServicesInitializedAsync()
         {
-            if (RazorLanguageServer != null)
+            if (RazorLanguageServerTask != null)
             {
                 return;
             }
 
             RazorLanguageServer = await RazorLanguageServerTask;
+
             var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-            RazorFormattingService = languageServer.GetService(typeof(RazorFormattingService)) as RazorFormattingService;
+            RazorFormattingService = languageServer.GetRequiredService<RazorFormattingService>();
         }
     }
 }
