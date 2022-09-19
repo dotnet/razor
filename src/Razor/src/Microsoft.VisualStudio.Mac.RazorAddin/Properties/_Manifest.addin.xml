@@ -15,12 +15,6 @@
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
-    <Import assembly="MediatR.dll" />
-    <Import assembly="OmniSharp.Extensions.JsonRpc.dll" />
-    <Import assembly="OmniSharp.Extensions.LanguageProtocol.dll" />
-    <Import assembly="OmniSharp.Extensions.LanguageServer.dll" />
-    <Import assembly="OmniSharp.Extensions.LanguageServer.Shared.dll" />
-    <Import assembly="Microsoft.Extensions.Configuration.Binder.dll" />
     <Import assembly="Microsoft.Extensions.Options.dll" />
     <Import assembly="Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
     <Import assembly="Microsoft.Extensions.Primitives.dll" />
