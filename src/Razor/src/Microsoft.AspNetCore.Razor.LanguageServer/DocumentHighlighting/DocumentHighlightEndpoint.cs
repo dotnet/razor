@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
 {
-    internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParams, DocumentHighlight[]?>, IDocumentHighlightEndpoint
+    internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParamsBridge, DocumentHighlight[]?>, IDocumentHighlightEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
 
@@ -42,14 +42,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName;
 
         /// <inheritdoc/>
-        protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             // We don't handle this in any particular way for Razor, we just delegate
             return Task.FromResult<DocumentHighlight[]?>(null);
         }
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(DocumentHighlightParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams CreateDelegatedParams(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
             return new DelegatedPositionParams(
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
                     projection.LanguageKind);
         }
         /// <inheritdoc/>
-        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);

@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
-    internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInsertParamsBridge, VSInternalDocumentOnAutoInsertResponseItem>, IVSOnAutoInsertEndpoint
+    internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInsertParamsBridge, VSInternalDocumentOnAutoInsertResponseItem?>, IVSOnAutoInsertEndpoint
     {
         private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
         private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
@@ -29,7 +29,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
 
         public OnAutoInsertEndpoint(
-            DocumentContextFactory documentContextFactory,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
@@ -37,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             AdhocWorkspaceFactory workspaceFactory,
             RazorFormattingService razorFormattingService,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<OnAutoInsertEndpoint>())
+            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<OnAutoInsertEndpoint>())
         {
             _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
             _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
@@ -66,8 +65,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(OnAutoInsertParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
+            var documentContext = requestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
@@ -117,8 +117,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return null;
         }
 
-        protected override IDelegatedParams? CreateDelegatedParams(OnAutoInsertParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams? CreateDelegatedParams(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
+            var documentContext = requestContext.GetRequiredDocumentContext();
             if (projection.LanguageKind == RazorLanguageKind.Html &&
                !s_htmlAllowedTriggerCharacters.Contains(request.Character))
             {
@@ -140,12 +141,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 request.Options);
         }
 
-        protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleDelegatedResponseAsync(VSInternalDocumentOnAutoInsertResponseItem? delegatedResponse, OnAutoInsertParamsBridge originalRequest, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleDelegatedResponseAsync(
+            VSInternalDocumentOnAutoInsertResponseItem? delegatedResponse,
+            OnAutoInsertParamsBridge originalRequest,
+            RazorRequestContext requestContext,
+            Projection projection,
+            CancellationToken cancellationToken)
         {
             if (delegatedResponse is null)
             {
                 return null;
             }
+
+            var documentContext = requestContext.GetRequiredDocumentContext();
 
             // For Html we just return the edit as is
             if (projection.LanguageKind == RazorLanguageKind.Html)

@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -15,8 +16,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public abstract Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken);
 
         public abstract Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken);
+
         public abstract Task SendNotificationAsync(string method, CancellationToken cancellationToken);
 
-        public abstract Task OnInitializedAsync(CancellationToken cancellationToken);
+        public abstract Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken);
     }
 }

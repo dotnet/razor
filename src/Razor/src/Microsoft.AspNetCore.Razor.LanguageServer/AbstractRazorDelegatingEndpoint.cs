@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IRazorRequestHandler<TRequest, TResponse>
-        where TRequest : TextDocumentPositionParams
+       where TRequest : ITextDocumentPositionParams
     {
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// The delegated object to send to the <see cref="CustomMessageTarget"/>
         /// </summary>
-        protected abstract IDelegatedParams CreateDelegatedParams(TRequest request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken);
+        protected abstract IDelegatedParams? CreateDelegatedParams(TRequest request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken);
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the

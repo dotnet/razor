@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
         }
 
-        public async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+        public async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorRequestContext context, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 });
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangeParamsBridge request)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangeParams request)
         {
             return request.TextDocument;
         }

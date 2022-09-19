@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -52,9 +53,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// Fires when the language server is set to "Started".
         /// </summary>
+        /// <param name="clientCapabilities"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override Task OnInitializedAsync(CancellationToken cancellationToken)
+        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             _initializedCompletionSource.TrySetResult(true);
             return Task.CompletedTask;

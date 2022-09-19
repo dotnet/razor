@@ -7,6 +7,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 [LanguageServerEndpoint(Methods.TextDocumentRenameName)]
-internal interface IRenameEndpoint : IRazorRequestHandler<RenameParams, WorkspaceEdit?>, IRegistrationExtension
+internal interface IRenameEndpoint : IRazorRequestHandler<RenameParamsBridge, WorkspaceEdit?>, IRegistrationExtension
 {
 }
