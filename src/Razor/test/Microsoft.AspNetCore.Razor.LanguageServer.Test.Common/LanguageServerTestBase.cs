@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -18,9 +20,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
+using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
@@ -36,10 +40,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
             Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
+
             LoggerFactory = TestLoggerFactory.Instance;
-            Serializer = new LspSerializer();
-            Serializer.RegisterRazorConverters();
-            Serializer.RegisterVSInternalExtensionConverters();
+            LspLogger = TestLspLogger.Instance;
+            Logger = TestLspLogger.Instance;
+
+            Serializer = new JsonSerializer();
+            Serializer.Converters.RegisterRazorConverters();
+            Serializer.AddVSInternalExtensionConverters();
+            Serializer.AddVSExtensionConverters();
         }
 
         // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
@@ -53,17 +62,33 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         internal FilePathNormalizer FilePathNormalizer { get; }
 
+        protected JsonSerializer Serializer { get; }
+
         internal IRazorSpanMappingService SpanMappingService { get; }
 
-        protected LspSerializer Serializer { get; }
+        protected ILspLogger LspLogger { get; } = TestLspLogger.Instance;
+
+        protected ILogger Logger { get; } = TestLspLogger.Instance;
 
         protected ILoggerFactory LoggerFactory { get; }
+
+        internal static RazorRequestContext CreateRazorRequestContext(DocumentContext? documentContext, ILspLogger? lspLogger = null, ILogger? logger = null, ILspServices? lspServices = null)
+        {
+            lspLogger ??= TestLspLogger.Instance;
+            logger ??= TestLspLogger.Instance;
+            lspServices ??= new Mock<ILspServices>(MockBehavior.Strict).Object;
+
+            var requestContext = new RazorRequestContext(documentContext, lspLogger, logger, lspServices);
+
+            return requestContext;
+        }
 
         protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"), builder => {
+            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"), builder =>
+            {
                 RazorExtensions.Register(builder);
             });
             var defaultImportDocument = TestRazorSourceDocument.Create(
@@ -79,6 +104,11 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             var codeDocument = CreateCodeDocument(sourceText);
             return CreateDocumentContextFactory(documentPath, codeDocument);
+        }
+
+        internal static DocumentContext? CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument, bool documentFound = true)
+        {
+            return documentFound ? TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument, hostDocumentVersion: 1337) : null;
         }
 
         internal static DocumentContextFactory CreateDocumentContextFactory(
