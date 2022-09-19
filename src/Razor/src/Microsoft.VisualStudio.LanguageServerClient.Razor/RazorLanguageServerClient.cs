@@ -262,9 +262,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
 
-        public async Task OnLoadedAsync()
+        public Task OnLoadedAsync()
         {
-            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            return StartAsync.InvokeAsync(this, EventArgs.Empty);
         }
 
         public Task OnServerInitializedAsync()
