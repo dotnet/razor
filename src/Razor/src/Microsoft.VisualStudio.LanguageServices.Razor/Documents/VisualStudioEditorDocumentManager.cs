@@ -201,9 +201,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 // has been renamed. In that case, we just process the change that we know about.
                 var filePaths = new HashSet<string>(documents.Select(d => d.DocumentFilePath));
 
-                // HashSet can correctly handle removing of `null` (it just won't remove anything).
-                // The `Remove` method from mscore is not properly annotated for it though,
-                // so we can just suppress the warning here
+                // `Remove` can correctly handle the case when the incoming value is null without any exceptions.
+                // The method is just not properly annotated for it,
+                // so we can suppress the warning here
                 filePaths.Remove(exceptFilePath!); 
 
                 foreach (var filePath in filePaths)
