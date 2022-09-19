@@ -12,7 +12,7 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
 {
-    internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>, ISignatureHelpEndpoint
+    internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParamsBridge, LS.SignatureHelp?>, ISignatureHelpEndpoint
     {
         public SignatureHelpEndpoint(
             LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
         }
 
         /// <inheritdoc />
-        protected override IDelegatedParams CreateDelegatedParams(SignatureHelpParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override IDelegatedParams CreateDelegatedParams(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
             return new DelegatedPositionParams(
