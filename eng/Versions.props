@@ -167,6 +167,7 @@
     <MicrosoftCodeAnalysisCommonVersion>4.0.0-4.final</MicrosoftCodeAnalysisCommonVersion>
     <MicrosoftCodeAnalysisCSharpVersion>4.0.0-4.final</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftCodeAnalysisCSharpWorkspacesVersion>4.3.0-2.final</MicrosoftCodeAnalysisCSharpWorkspacesVersion>
+    <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <MicrosoftCssParserVersion>1.0.0-20200708.1</MicrosoftCssParserVersion>
     <MicrosoftExtensionsDependencyModelVersion>6.0.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsFileSystemGlobbingVersion>6.0.0-preview.7.21377.19</MicrosoftExtensionsFileSystemGlobbingVersion>

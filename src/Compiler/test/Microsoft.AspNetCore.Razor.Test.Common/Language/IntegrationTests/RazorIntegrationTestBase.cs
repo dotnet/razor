@@ -36,11 +36,12 @@ public class RazorIntegrationTestBase
     {
         var referenceAssemblyRoots = new[]
         {
-                typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
-                typeof(Enumerable).Assembly, // Other .NET fundamental types
-                typeof(System.Linq.Expressions.Expression).Assembly,
-                typeof(ComponentBase).Assembly,
-            };
+            typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
+            typeof(Enumerable).Assembly, // Other .NET fundamental types
+            typeof(System.Linq.Expressions.Expression).Assembly,
+            typeof(ComponentBase).Assembly,
+            typeof(CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly, // needed to support `dynamic`
+        };
 
         var referenceAssemblies = referenceAssemblyRoots
             .SelectMany(assembly => assembly.GetReferencedAssemblies().Concat(new[] { assembly.GetName() }))
