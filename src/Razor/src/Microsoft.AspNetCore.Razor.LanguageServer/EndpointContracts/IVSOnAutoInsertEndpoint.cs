@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     [LanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
-    internal interface IVSOnAutoInsertEndpoint : IRazorRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
+    internal interface IVSOnAutoInsertEndpoint : IRazorRequestHandler<OnAutoInsertParamsBridge, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
     {
     }
 }

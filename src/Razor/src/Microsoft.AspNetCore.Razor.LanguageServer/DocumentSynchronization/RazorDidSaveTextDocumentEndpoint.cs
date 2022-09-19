@@ -13,12 +13,12 @@ internal class RazorDidSaveTextDocumentEndpoint : IVSDidSaveTextDocumentEndpoint
 {
     public bool MutatesSolutionState => false;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DidSaveTextDocumentParamsBridge request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidSaveTextDocumentParams request)
     {
         return request.TextDocument;
     }
 
-    public Task HandleNotificationAsync(DidSaveTextDocumentParamsBridge request, RazorRequestContext context, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(DidSaveTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         context.LspLogger.LogInformation($"Saved Document {request.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
 
