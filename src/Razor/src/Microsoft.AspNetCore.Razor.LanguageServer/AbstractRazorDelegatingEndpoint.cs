@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IRazorRequestHandler<TRequest, TResponse>
+    internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IRazorRequestHandler<TRequest, TResponse?>
        where TRequest : ITextDocumentPositionParams
     {
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// Implementation for <see cref="HandleRequestAsync(TRequest, RazorRequestContext, CancellationToken)"/>
         /// </summary>
-        public async Task<TResponse> HandleRequestAsync(TRequest request, RazorRequestContext context, CancellationToken cancellationToken)
+        public async Task<TResponse?> HandleRequestAsync(TRequest request, RazorRequestContext context, CancellationToken cancellationToken)
         {
             if (request is null)
             {
