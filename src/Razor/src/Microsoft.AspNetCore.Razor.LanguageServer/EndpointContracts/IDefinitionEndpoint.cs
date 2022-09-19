@@ -11,7 +11,7 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     [LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
-    internal interface IDefinitionEndpoint : IRazorRequestHandler<TextDocumentPositionParams, DefinitionResult?>,
+    internal interface IDefinitionEndpoint : IRazorRequestHandler<TextDocumentPositionParamsBridge, DefinitionResult?>,
         IRegistrationExtension
     {
     }

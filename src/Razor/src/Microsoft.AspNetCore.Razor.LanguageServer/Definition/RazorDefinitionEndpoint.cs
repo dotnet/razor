@@ -26,7 +26,7 @@ using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
-    internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, DefinitionResult?, DelegatedPositionParams>, IDefinitionEndpoint
+    internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, DefinitionResult?>, IDefinitionEndpoint
     {
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -44,8 +44,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         }
 
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
-
-        public override bool MutatesSolutionState => false;
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
