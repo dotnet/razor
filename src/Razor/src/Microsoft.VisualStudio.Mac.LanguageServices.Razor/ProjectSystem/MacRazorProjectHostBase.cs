@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -72,7 +71,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public DotNetProject DotNetProject { get; }
 
-        public HostProject HostProject { get; private set; }
+        public HostProject? HostProject { get; private set; }
 
         protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
 
@@ -100,7 +99,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Must be called inside the lock.
-        protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
+        protected async Task UpdateHostProjectUnsafeAsync(HostProject? newHostProject)
         {
             await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => UpdateHostProjectProjectSnapshotManagerDispatcher(newHostProject), CancellationToken.None).ConfigureAwait(false);
@@ -154,11 +153,11 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }, args, CancellationToken.None);
         }
 
-        private void UpdateHostProjectProjectSnapshotManagerDispatcher(object state)
+        private void UpdateHostProjectProjectSnapshotManagerDispatcher(object? state)
         {
             ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var newHostProject = (HostProject)state;
+            var newHostProject = (HostProject?)state;
 
             if (HostProject is null && newHostProject is null)
             {
@@ -208,7 +207,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Internal for testing
         internal static bool TryGetIntermediateOutputPath(
             IMSBuildEvaluatedPropertyCollection projectProperties,
-            out string path)
+            [NotNullWhen(returnValue: true)] out string? path)
         {
             if (!projectProperties.HasProperty(BaseIntermediateOutputPathPropertyName))
             {
@@ -265,7 +264,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             return true;
         }
 
-        private static string ResolveFallbackIntermediateOutputPath(IMSBuildEvaluatedPropertyCollection projectProperties, string intermediateOutputPathValue)
+        private static string? ResolveFallbackIntermediateOutputPath(IMSBuildEvaluatedPropertyCollection projectProperties, string intermediateOutputPathValue)
         {
             if (!projectProperties.HasProperty(MSBuildProjectDirectoryPropertyName))
             {

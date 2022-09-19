@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     // Well-Known Schema and property names defined by the ManagedProjectSystem
