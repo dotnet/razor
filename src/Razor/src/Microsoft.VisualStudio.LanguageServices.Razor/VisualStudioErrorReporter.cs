@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
@@ -47,15 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             }
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot project)
+        public override void ReportError(Exception exception, ProjectSnapshot? project)
         {
-            if (exception is null)
-            {
-                return;
-            }
-
             var activityLog = GetActivityLog();
-            if (activityLog != null)
+            if (activityLog is not null)
             {
                 var hr = activityLog.LogEntry(
                     (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
@@ -67,13 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public override void ReportError(Exception exception, Project workspaceProject)
         {
-            if (exception is null)
-            {
-                return;
-            }
-
             var activityLog = GetActivityLog();
-            if (activityLog != null)
+            if (activityLog is not null)
             {
                 var hr = activityLog.LogEntry(
                     (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
@@ -83,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             }
         }
 
-        private IVsActivityLog GetActivityLog()
+        private IVsActivityLog? GetActivityLog()
         {
             return _services.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
         }
