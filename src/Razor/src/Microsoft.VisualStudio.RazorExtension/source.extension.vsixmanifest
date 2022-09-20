@@ -34,11 +34,6 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.Language.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="MediatR.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.JsonRpc.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.LanguageProtocol.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.LanguageServer.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.LanguageServer.Shared.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.Binder.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
