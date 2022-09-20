@@ -7,12 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LanguageServerConstants = Microsoft.AspNetCore.Razor.LanguageServer.Common.LanguageServerConstants;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
@@ -49,8 +49,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             {
                 Items = Array.Empty<CompletionItem>(),
             };
+
             var requestResponseFactory = new StaticCompletionRequestResponseFactory(delegatedCompletionList);
             var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory);
+
             return provider;
         }
 

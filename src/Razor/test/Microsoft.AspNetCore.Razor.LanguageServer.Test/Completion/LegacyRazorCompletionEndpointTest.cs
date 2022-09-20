@@ -345,9 +345,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@");
             codeDocument.SetUnsupported();
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -358,9 +357,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Null(completionList);
@@ -374,9 +374,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -387,9 +386,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
 
@@ -417,9 +417,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@in");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -433,9 +432,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
                 },
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -460,9 +460,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -476,9 +475,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     TriggerKind = CompletionTriggerKind.TriggerCharacter,
                 },
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Empty(completionList.Items);
@@ -497,9 +497,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -513,9 +512,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
                 },
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -541,9 +541,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("<");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -554,9 +553,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "Test");
@@ -581,9 +581,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
             var codeDocument = CreateCodeDocument("<test  ");
             codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(
-                documentContextFactory, CompletionFactsService, CompletionListCache, LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
             var request = new VSCompletionParamsBridge()
             {
@@ -594,9 +593,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Position = new Position(0, 6),
                 Context = new VSInternalCompletionContext(),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
