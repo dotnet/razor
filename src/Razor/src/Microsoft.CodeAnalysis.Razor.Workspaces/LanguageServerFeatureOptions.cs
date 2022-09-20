@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public abstract bool SingleServerSupport { get; }
 
+        /// <summary>
+        /// This is a temporary workaround to account for the fact that both O# and Razor register handlers.
+        /// It can be removed once we switch over to CLaSP:
+        /// https://github.com/dotnet/razor-tooling/issues/6871
+        /// </summary>
         public abstract bool RegisterBuiltInFeatures { get; }
 
         public string GetRazorCSharpFilePath(string razorFilePath) => razorFilePath + CSharpVirtualDocumentSuffix;
