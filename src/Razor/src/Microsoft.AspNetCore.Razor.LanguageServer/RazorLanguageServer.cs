@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -31,6 +32,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
+using Microsoft.AspNetCore.Razor.LanguageServer.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
@@ -311,8 +313,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Get the DefaultSession for telemetry. This is set by VS with
                         // TelemetryService.SetDefaultSession and provides the correct
-                        // appinsights keys etc 
-                        TelemetryReporter.RegisterTelemetrySesssion(TelemetryService.DefaultSession);
+                        // appinsights keys etc
+                        services.AddSingleton<ITelemetryReporter>(provider =>
+                            new TelemetryReporter(ImmutableArray.Create(TelemetryService.DefaultSession), provider.GetRequiredService<ILoggerFactory>()));
                     }));
 
             try
