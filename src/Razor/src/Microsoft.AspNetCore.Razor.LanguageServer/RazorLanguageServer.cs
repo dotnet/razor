@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -29,8 +28,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly LanguageServerFeatureOptions? _featureOptions;
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
-
-    private readonly TaskCompletionSource<int> _tcs = new();
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
@@ -129,14 +126,4 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         return lspServices.GetRequiredService<T>();
     }
-
-    public override Task ExitAsync()
-    {
-        var exit = base.ExitAsync();
-
-        _tcs.TrySetResult(0);
-        return exit;
-    }
-
-    internal Task WaitForExit => _tcs.Task;
 }

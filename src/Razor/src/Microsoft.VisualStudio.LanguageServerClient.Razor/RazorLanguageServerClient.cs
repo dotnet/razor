@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = await RazorLanguageServerWrapper.CreateAsync(serverStream, serverStream, traceLevel, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions).ConfigureAwait(false);
+            _server = await RazorLanguageServerWrapper.Create(serverStream, serverStream, traceLevel, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions).ConfigureAwait(false);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
