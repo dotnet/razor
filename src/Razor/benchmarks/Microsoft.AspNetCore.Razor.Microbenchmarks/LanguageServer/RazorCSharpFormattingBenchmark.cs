@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -29,8 +28,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
     public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     {
         private string _filePath;
-
-        private RazorLanguageServerWrapper RazorLanguageServer { get; set; }
 
         private RazorFormattingService RazorFormattingService { get; set; }
 
@@ -52,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
         public async Task InitializeRazorCSharpFormattingAsync()
         {
-            await EnsureServicesInitializedAsync();
+            EnsureServicesInitialized();
 
             var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
             var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
@@ -137,15 +134,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             await RazorLanguageServer.DisposeAsync();
         }
 
-        private async Task EnsureServicesInitializedAsync()
+        private void EnsureServicesInitialized()
         {
-            if (RazorLanguageServerTask != null)
-            {
-                return;
-            }
-
-            RazorLanguageServer = await RazorLanguageServerTask;
-
             var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
             RazorFormattingService = languageServer.GetRequiredService<RazorFormattingService>();
         }

@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             RepoRoot = current.FullName;
 
             using var memoryStream = new MemoryStream();
-            RazorLanguageServerTask = RazorLanguageServerWrapper.CreateAsync(memoryStream, memoryStream, Trace.Off, configure: (collection) => {
+            RazorLanguageServer = RazorLanguageServerWrapper.Create(memoryStream, memoryStream, Trace.Off, configure: (collection) => {
                 collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
                 Builder(collection);
             });
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         protected string RepoRoot { get; }
 
-        private protected Task<RazorLanguageServerWrapper> RazorLanguageServerTask { get; }
+        private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
 
         internal DocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
         {

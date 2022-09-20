@@ -20,8 +20,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
    public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmarkBase
    {
-       private RazorLanguageServerWrapper RazorLanguageServer { get; set; }
-
        private DefaultRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
        private DocumentVersionCache VersionCache { get; set; }
@@ -45,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
        [GlobalSetup(Target = nameof(RazorSemanticTokensRangeScrollingAsync))]
        public async Task InitializeRazorSemanticAsync()
        {
-           await EnsureServicesInitializedAsync();
+           EnsureServicesInitialized();
 
            var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
            ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
@@ -125,14 +123,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             collection.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
        }
 
-       private async Task EnsureServicesInitializedAsync()
+       private void EnsureServicesInitialized()
        {
-           if (RazorLanguageServer != null)
-           {
-               return;
-           }
-
-           RazorLanguageServer = await RazorLanguageServerTask.ConfigureAwait(false);
            var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
            RazorSemanticTokenService = (languageServer.GetRequiredService<RazorSemanticTokensInfoService>() as TestRazorSemanticTokensInfoService)!;
            VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
