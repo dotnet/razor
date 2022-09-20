@@ -32,7 +32,7 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         _disposeLock = new object();
     }
 
-    public static async Task<RazorLanguageServerWrapper> CreateAsync(
+    public static RazorLanguageServerWrapper Create(
         Stream input,
         Stream output,
         Trace trace,
@@ -53,8 +53,6 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
             configure);
 
         var razorLanguageServer = new RazorLanguageServerWrapper(server);
-
-        await server.InitializeAsync();
         jsonRpc.StartListening();
 
         return razorLanguageServer;
@@ -95,8 +93,6 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
     {
         return _innerServer;
     }
-
-    internal Task WaitForExit => _innerServer.WaitForExit;
 
     public static ILspLogger GetLspLogger(LogLevel logLevel)
     {
