@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -41,6 +42,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Telemetry;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -306,6 +308,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
                         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
+
+                        // Get the DefaultSession for telemetry. This is set by VS with
+                        // TelemetryService.SetDefaultSession and provides the correct
+                        // appinsights keys etc 
+                        TelemetryReporter.RegisterTelemetrySesssion(TelemetryService.DefaultSession);
                     }));
 
             try
