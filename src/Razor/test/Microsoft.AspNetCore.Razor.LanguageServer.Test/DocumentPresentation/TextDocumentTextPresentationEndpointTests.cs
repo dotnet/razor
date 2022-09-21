@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
@@ -27,24 +26,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+            var documentContext = CreateDocumentContext(uri, codeDocument);
 
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync((WorkspaceEdit?)null);
+            var response = (WorkspaceEdit?)null;
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                TestLanguageServerFeatureOptions.Instance,
-                LoggerFactory);
+                TestLanguageServerFeatureOptions.Instance);
 
             var parameters = new TextPresentationParams()
             {
@@ -59,9 +53,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 },
                 Text = "Hi there"
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(parameters, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
 
             // Assert
             languageServer.Verify();
@@ -73,28 +68,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+            var documentContext = CreateDocumentContext(uri, codeDocument);
             var projectedRange = It.IsAny<Range>();
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
                 s.TryMapToProjectedDocumentRange(codeDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
 
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync((WorkspaceEdit?)null);
+            var response = (WorkspaceEdit?)null;
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                TestLanguageServerFeatureOptions.Instance,
-                LoggerFactory);
+                TestLanguageServerFeatureOptions.Instance);
 
             var parameters = new TextPresentationParams()
             {
@@ -109,9 +99,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 },
                 Text = "Hi there"
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(parameters, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
 
             // Assert
             languageServer.Verify();
@@ -123,26 +114,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+            var documentContext = CreateDocumentContext(uri, codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync((WorkspaceEdit?)null);
+            var response = (WorkspaceEdit?)null;
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                TestLanguageServerFeatureOptions.Instance,
-                LoggerFactory);
+                TestLanguageServerFeatureOptions.Instance);
 
             var parameters = new TextPresentationParams()
             {
@@ -157,9 +143,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 },
                 Text = "Hi there"
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(parameters, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -172,26 +159,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+            var documentContext = CreateDocumentContext(uri, codeDocument);
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WorkspaceEdit?>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new WorkspaceEdit());
+            var response = new WorkspaceEdit();
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var endpoint = new TextDocumentTextPresentationEndpoint(
-                documentContextFactory,
                 documentMappingService,
                 languageServer.Object,
-                TestLanguageServerFeatureOptions.Instance,
-                LoggerFactory);
+                TestLanguageServerFeatureOptions.Instance);
 
             var parameters = new TextPresentationParams()
             {
@@ -206,9 +188,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 },
                 Text = "Hi there"
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(parameters, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
