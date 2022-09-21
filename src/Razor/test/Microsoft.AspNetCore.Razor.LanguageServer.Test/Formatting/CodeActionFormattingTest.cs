@@ -28,7 +28,7 @@ input: @"
     }
 }
 ",
-codeActionEdits: new []
+codeActionEdits: new[]
 {
     Edit(7, 6, 7, 6, "System.Diagnostics;\r\nusing "),
     Edit(67, 0, 67, 8, ""),
