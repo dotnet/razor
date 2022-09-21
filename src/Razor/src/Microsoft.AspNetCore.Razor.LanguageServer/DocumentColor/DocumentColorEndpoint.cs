@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
@@ -13,8 +14,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
     internal class DocumentColorEndpoint : IDocumentColorEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
+        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer, LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (languageServer is null)
             {
@@ -22,10 +24,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
             }
 
             _languageServer = languageServer;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
             const string ServerCapabilities = "colorProvider";
             var options = new DocumentColorOptions();
 

@@ -54,6 +54,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            if (!LanguageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
             const string ServerCapability = "renameProvider";
             var options = new RenameOptions
             {

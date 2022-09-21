@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,6 +24,7 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
     private readonly RazorFormattingService _razorFormattingService;
     private readonly RazorDocumentMappingService _razorDocumentMappingService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
 
     private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
@@ -34,6 +36,7 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
         RazorFormattingService razorFormattingService,
         RazorDocumentMappingService razorDocumentMappingService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {
         if (documentContextFactory is null)
@@ -65,11 +68,17 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
         _razorFormattingService = razorFormattingService;
         _razorDocumentMappingService = razorDocumentMappingService;
         _optionsMonitor = optionsMonitor;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = loggerFactory.CreateLogger<RazorDocumentOnTypeFormattingEndpoint>();
     }
 
     public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
+        if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
+        {
+            return null;
+        }
+
         const string ServerCapability = "documentOnTypeFormattingProvider";
 
         return new RegistrationExtensionResult(ServerCapability,

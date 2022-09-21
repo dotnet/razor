@@ -649,7 +649,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 options.SupportsFileManipulation == true &&
                 options.SingleServerSupport == true &&
                 options.CSharpVirtualDocumentSuffix == ".g.cs" &&
-                options.HtmlVirtualDocumentSuffix == ".g.html"
+                options.HtmlVirtualDocumentSuffix == ".g.html" &&
+                options.RegisterBuiltInFeatures == true
                 , MockBehavior.Strict);
             var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri);
             var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);

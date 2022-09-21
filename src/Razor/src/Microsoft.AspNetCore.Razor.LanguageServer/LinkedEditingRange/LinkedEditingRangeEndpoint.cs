@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,10 +27,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
         internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
         private readonly DocumentContextFactory _documentContextFactory;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ILogger _logger;
 
         public LinkedEditingRangeEndpoint(
             DocumentContextFactory documentContextFactory,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
         {
             if (documentContextFactory is null)
@@ -43,11 +46,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             }
 
             _documentContextFactory = documentContextFactory;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
             const string ServerCapability = "linkedEditingRangeProvider";
             var option = new LinkedEditingRangeOptions { };
 
