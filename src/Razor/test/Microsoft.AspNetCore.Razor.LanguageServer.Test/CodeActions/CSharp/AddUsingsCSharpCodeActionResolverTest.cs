@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
