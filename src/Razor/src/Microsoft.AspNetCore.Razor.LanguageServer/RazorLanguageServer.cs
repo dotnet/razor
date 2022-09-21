@@ -41,6 +41,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _featureOptions = featureOptions;
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
+
+        Initialize();
     }
 
     protected override ILspServices ConstructLspServices()
