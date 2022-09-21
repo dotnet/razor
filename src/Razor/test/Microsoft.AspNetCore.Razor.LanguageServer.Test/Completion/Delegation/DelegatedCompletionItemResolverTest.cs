@@ -255,7 +255,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             return (completionList, provider.DelegatedParams);
         }
 
-        internal class TestDelegatedCompletionItemResolverServer : TestOmnisharpLanguageServer
+        internal class TestDelegatedCompletionItemResolverServer : TestLanguageServer
         {
             private readonly CompletionResolveRequestResponseFactory _requestHandler;
 

@@ -9,11 +9,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
-    internal class TestOmnisharpLanguageServer : ClientNotifierServiceBase
+    internal class TestLanguageServer : ClientNotifierServiceBase
     {
         private readonly IReadOnlyDictionary<string, Func<object?, Task<object>>> _requestResponseFactory;
 
-        public TestOmnisharpLanguageServer(Dictionary<string, Func<object?, Task<object>>> requestResponseFactory)
+        public TestLanguageServer(Dictionary<string, Func<object?, Task<object>>> requestResponseFactory)
         {
             _requestResponseFactory = requestResponseFactory;
         }
