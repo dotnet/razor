@@ -6,7 +6,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -20,9 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
-            var documentContextFactory = new TestDocumentContextFactory();
-            var completionEndpoint = new RazorCompletionEndpoint(
-                documentContextFactory, completionListProvider: null, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null);
             var request = new VSCompletionParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -32,9 +29,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Position = new Position(0, 1),
                 Context = new VSInternalCompletionContext(),
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+            var completionList = await Task.Run(() => completionEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
             Assert.Null(completionList);
