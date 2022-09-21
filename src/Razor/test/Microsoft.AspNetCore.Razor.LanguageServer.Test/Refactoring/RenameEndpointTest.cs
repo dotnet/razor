@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
@@ -365,13 +364,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             Assert.Equal(2, textDocumentEdit2.Edits.Length);
         }
 
-        private async Task<DocumentContext> GetDocumentContextAsync(Uri file)
-        {
-            var documentContext = await _documentContextFactory.TryCreateAsync(file, CancellationToken.None);
-
-            return documentContext;
-        }
-
         [Fact]
         public async Task Handle_Rename_DifferentDirectories()
         {
@@ -475,7 +467,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         {
             // Arrange
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
-            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingServiceMock
@@ -494,6 +485,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 NewName = "Test2"
             };
 
+            var documentContext = await GetDocumentContextAsync(request.TextDocument.Uri);
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
@@ -501,6 +493,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             // Assert
             Assert.Null(result);
+        }
+
+        private Task<DocumentContext> GetDocumentContextAsync(Uri file)
+        {
+            return _documentContextFactory.TryCreateAsync(file, CancellationToken.None);
         }
 
         private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)
