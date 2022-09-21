@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Sdk;
-using LanguageServerConstants = Microsoft.AspNetCore.Razor.LanguageServer.Common.LanguageServerConstants;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
