@@ -1,37 +1,36 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using InitializeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     internal class TestOmnisharpLanguageServer : ClientNotifierServiceBase
     {
-        private readonly IReadOnlyDictionary<string, Func<object, Task<object>>> _requestResponseFactory;
+        private readonly IReadOnlyDictionary<string, Func<object?, Task<object>>> _requestResponseFactory;
 
-        public TestOmnisharpLanguageServer(Dictionary<string, Func<object, Task<object>>> requestResponseFactory)
+        public TestOmnisharpLanguageServer(Dictionary<string, Func<object?, Task<object>>> requestResponseFactory)
         {
             _requestResponseFactory = requestResponseFactory;
         }
 
-        public override InitializeParams ClientSettings => throw new NotImplementedException();
+        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken) => Task.CompletedTask;
 
-        public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken) => Task.CompletedTask;
-
-        public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
-            return SendRequestAsync(method, @params: (object)null);
+            throw new NotImplementedException();
         }
 
-        public override async Task<IResponseRouterReturns> SendRequestAsync<TParams>(string method, TParams @params)
+        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             if (!_requestResponseFactory.TryGetValue(method, out var factory))
             {
@@ -39,27 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             }
 
             var result = await factory(@params);
-            return new TestResponseRouterReturns(result);
-        }
-
-        private class TestResponseRouterReturns : IResponseRouterReturns
-        {
-            private readonly object _result;
-
-            public TestResponseRouterReturns(object result)
-            {
-                _result = result;
-            }
-
-            public Task<Response> Returning<Response>(CancellationToken cancellationToken)
-            {
-                return Task.FromResult((Response)_result);
-            }
-
-            public Task ReturningVoid(CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+            return (TResponse)result;
         }
     }
 }

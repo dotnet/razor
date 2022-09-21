@@ -20,18 +20,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var codeDocument = TestRazorCodeDocument.CreateEmpty();
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+
+            var documentContext = CreateDocumentContext(uri, codeDocument);
             var formattingService = new DummyRazorFormattingService();
+
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                documentContextFactory, formattingService, optionsMonitor);
+                formattingService, optionsMonitor);
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(@params, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -44,16 +47,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                EmptyDocumentContextFactory, formattingService, optionsMonitor);
+            var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
             var uri = new Uri("file://path/test.razor");
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.Handle(@params, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -66,18 +69,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = TestRazorCodeDocument.CreateEmpty();
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+
+            var documentContext = CreateDocumentContext(uri, codeDocument);
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                documentContextFactory, formattingService, optionsMonitor);
+            var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(@params, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -89,12 +93,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                EmptyDocumentContextFactory, formattingService, optionsMonitor);
+            var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
             var @params = new DocumentRangeFormattingParamsBridge();
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.Handle(@params, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
