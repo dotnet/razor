@@ -69,6 +69,13 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         return jsonRpc;
     }
 
+    public Task WaitForExitAsync()
+    {
+        var lifeCycleManager = GetRequiredService<RazorLifeCycleManager>();
+
+        return lifeCycleManager.WaitForExit;
+    }
+
     internal T GetRequiredService<T>() where T : notnull
     {
         return _innerServer.GetRequiredService<T>();

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
@@ -49,7 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
         public event AsyncEventHandler<EventArgs>? StartAsync;
-        public event AsyncEventHandler<EventArgs>? StopAsync;
+        public event AsyncEventHandler<EventArgs>? StopAsync
+        {
+            add { }
+            remove { }
+        }
 
         [ImportingConstructor]
         public RazorLanguageServerClient(
@@ -141,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = await RazorLanguageServerWrapper.CreateAsync(serverStream, serverStream, traceLevel, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions).ConfigureAwait(false);
+            _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, traceLevel, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
