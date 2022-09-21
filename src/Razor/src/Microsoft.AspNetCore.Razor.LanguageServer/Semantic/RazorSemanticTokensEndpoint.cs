@@ -62,11 +62,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
-
             const string ServerCapability = "semanticTokensProvider";
 
             return new RegistrationExtensionResult(ServerCapability,

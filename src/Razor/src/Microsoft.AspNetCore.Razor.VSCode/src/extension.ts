@@ -13,6 +13,7 @@ import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
 import { ReportIssueCommand } from './Diagnostics/ReportIssueCommand';
 import { DocumentColorHandler } from './DocumentColor/DocumentColorHandler';
+import { RazorDocumentHighlightProvider } from './DocumentHighlight/RazorDocumentHighlightProvider';
 import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
 import { FoldingRangeHandler } from './Folding/FoldingRangeHandler';
 import { HostEventStream } from './HostEventStream';
@@ -132,6 +133,11 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServiceClient,
                 logger);
+            const documentHighlightProvider = new RazorDocumentHighlightProvider(
+                documentSynchronizer,
+                documentManager,
+                languageServiceClient,
+                logger);
 
             razorServerReadyHandler.register();
 
@@ -164,6 +170,9 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 vscodeType.languages.registerRenameProvider(
                     RazorLanguage.id,
                     renameProvider),
+                vscodeType.languages.registerDocumentHighlightProvider(
+                    RazorLanguage.id,
+                    documentHighlightProvider),
                 documentManager.register(),
                 csharpFeature.register(),
                 htmlFeature.register(),
