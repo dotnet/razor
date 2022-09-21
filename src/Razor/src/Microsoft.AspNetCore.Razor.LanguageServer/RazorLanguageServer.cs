@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.Editor.Razor;
 using StreamJsonRpc;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -31,7 +32,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        ILspLogger logger,
+        LoggerWrapper logger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer)
@@ -57,6 +58,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
 
         services.AddSingleton<ILspLogger>(_logger);
+        services.AddSingleton<ILogger>((LoggerWrapper)_logger);
         services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
 
         if (_projectSnapshotManagerDispatcher is null)
