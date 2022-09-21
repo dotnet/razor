@@ -1,59 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     {
-        protected static ILanguageServer LanguageServer
-        {
-            get
-            {
-                var initializeParams = new InitializeParams
-                {
-                    Capabilities = new ClientCapabilities
-                    {
-                        TextDocument = new TextDocumentClientCapabilities
-                        {
-                            Completion = new Supports<CompletionCapability>
-                            {
-                                Value = new CompletionCapability
-                                {
-                                    CompletionItem = new CompletionItemCapabilityOptions
-                                    {
-                                        SnippetSupport = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var languageServer = new Mock<ILanguageServer>(MockBehavior.Strict);
-                languageServer.SetupGet(server => server.ClientSettings)
-                    .Returns(initializeParams);
-
-                return languageServer.Object;
-            }
-        }
-
         [Fact]
         public void GetNearestAncestorTagInfo_MarkupElement()
         {
