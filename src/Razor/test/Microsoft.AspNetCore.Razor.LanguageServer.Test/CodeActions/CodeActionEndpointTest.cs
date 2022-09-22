@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -252,7 +252,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -293,7 +293,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -327,7 +327,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -369,7 +369,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -405,7 +405,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = true
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -451,7 +451,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
@@ -496,7 +496,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
             var selectionRange = new Range { Start = new Position(0, 5), End = new Position(0, 5) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
@@ -507,7 +507,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             // Act
-            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext, default);
+            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Assert
             Assert.NotNull(razorCodeActionContext);
@@ -534,7 +534,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
@@ -545,7 +545,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             // Act
-            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext, default);
+            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Assert
             Assert.NotNull(razorCodeActionContext);
@@ -576,14 +576,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
                 Context = new VSInternalCodeActionContext()
             };
 
-            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext, default);
+            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Act
             var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(context, default);
@@ -616,7 +616,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
@@ -626,7 +626,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             };
 
-            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext, default);
+            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Act
             var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(context, default);
@@ -728,7 +728,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class TestLanguageServer : ClientNotifierServiceBase
         {
-            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken) => Task.CompletedTask;
+            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+                => Task.CompletedTask;
 
             public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             {
