@@ -18,10 +18,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var expectedWorkspaceDirectory = "/testpath";
+#pragma warning disable CS0618 // Type or member is obsolete
             var clientSettings = new InitializeParams()
             {
                 RootPath = expectedWorkspaceDirectory
             };
+#pragma warning restore CS0618 // Type or member is obsolete
             var server = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
             server.Setup(m => m.GetInitializeParams()).Returns(clientSettings);
             var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server.Object);
@@ -44,11 +46,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Host = null,
                 Path = initialWorkspaceDirectory,
             };
+#pragma warning disable CS0618 // Type or member is obsolete
             var clientSettings = new InitializeParams()
             {
                 RootPath = "/somethingelse",
                 RootUri = uriBuilder.Uri,
             };
+#pragma warning restore CS0618 // Type or member is obsolete
             var server = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
             server.Setup(s => s.GetInitializeParams()).Returns(clientSettings);
             var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server.Object);
