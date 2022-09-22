@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 formattingService, documentMappingService, optionsMonitor);
-            var @params = new DocumentOnTypeFormattingParamsBridge { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
+            var @params = new DocumentOnTypeFormattingParams { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
@@ -57,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 formattingService, documentMappingService, optionsMonitor);
-            var @params = new DocumentOnTypeFormattingParamsBridge()
+            var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ".",
@@ -92,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 formattingService, documentMappingService, optionsMonitor);
-            var @params = new DocumentOnTypeFormattingParamsBridge()
+            var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ".",
@@ -128,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 formattingService, documentMappingService.Object, optionsMonitor);
-            var @params = new DocumentOnTypeFormattingParamsBridge()
+            var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = "}",
@@ -164,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 formattingService, documentMappingService.Object, optionsMonitor);
-            var @params = new DocumentOnTypeFormattingParamsBridge()
+            var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = "}",
@@ -199,7 +198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
                 formattingService, documentMappingService, optionsMonitor);
-            var @params = new DocumentOnTypeFormattingParamsBridge()
+            var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
                 Character = ".",

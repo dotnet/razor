@@ -57,6 +57,13 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             _configureServer(services);
         }
 
+        var serverManager = new DefaultClientNotifierService(_jsonRpc);
+        services.AddSingleton<ClientNotifierServiceBase>(serverManager);
+        if (_logger is LspLogger lspLogger)
+        {
+            lspLogger.Initialize(serverManager);
+        }
+
         services.AddSingleton<ILspLogger>(_logger);
         if (_logger is ILogger ilogger)
         {
@@ -79,7 +86,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
-        services.AddLifeCycleServices(this, _jsonRpc);
+        services.AddLifeCycleServices(this, serverManager);
 
         services.AddSemanticTokensServices();
         services.AddDocumentManagmentServices();

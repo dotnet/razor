@@ -130,10 +130,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
 
-            var endpoint = new RazorDefinitionEndpoint(DocumentContextFactory, searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new DefinitionParamsBridge
+            var request = new TextDocumentPositionParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -141,8 +141,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 },
                 Position = new Position(line, offset)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
-            return await endpoint.Handle(request, CancellationToken.None);
+            return await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
         }
     }
 }
