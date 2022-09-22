@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
@@ -16,10 +15,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using StreamJsonRpc;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -32,7 +32,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
-        LoggerWrapper logger,
+        ILspLogger logger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer)
@@ -58,7 +58,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
 
         services.AddSingleton<ILspLogger>(_logger);
-        services.AddSingleton<ILogger>((LoggerWrapper)_logger);
+        if (_logger is ILogger ilogger)
+        {
+            services.AddSingleton<ILogger>(ilogger);
+        }
+
         services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
 
         if (_projectSnapshotManagerDispatcher is null)

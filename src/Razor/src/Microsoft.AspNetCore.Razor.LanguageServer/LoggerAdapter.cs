@@ -7,11 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class LoggerWrapper : ILspLogger, ILogger
+// We unify the ILspLogger and ILogger systems here because the ILspLogger class does not match the ILogger class used by Razor,
+// but we did not want to migrate them all at once
+public class LoggerAdapter : ILspLogger, ILogger
 {
     private readonly ILogger _logger;
 
-    public LoggerWrapper(ILogger logger)
+    public LoggerAdapter(ILogger logger)
     {
         _logger = logger;
     }

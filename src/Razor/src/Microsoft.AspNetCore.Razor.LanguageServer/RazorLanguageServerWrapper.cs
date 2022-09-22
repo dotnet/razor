@@ -33,7 +33,7 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
     public static RazorLanguageServerWrapper Create(
         Stream input,
         Stream output,
-        LoggerWrapper razorLogger,
+        ILspLogger razorLogger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
         Action<IServiceCollection>? configure = null,
         LanguageServerFeatureOptions? featureOptions = null)
