@@ -145,7 +145,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, traceLevel, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
+            var logHubLogger = _loggerProvider.CreateLogger("Razor");
+            var razorLogger = new LoggerAdapter(logHubLogger);
+            _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLogger, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
@@ -159,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 logging.AddProvider(_loggerProvider);
             });
 
-            if (_vsHostWorkspaceServicesProvider != null)
+            if (_vsHostWorkspaceServicesProvider is not null)
             {
                 var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
                 serviceCollection.AddSingleton<HostServicesProvider>(wrapper);

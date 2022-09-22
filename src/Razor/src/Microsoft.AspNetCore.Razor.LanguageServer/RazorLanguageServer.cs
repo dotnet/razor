@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
@@ -16,7 +15,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using StreamJsonRpc;
 
@@ -41,6 +42,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _featureOptions = featureOptions;
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
+
+        Initialize();
     }
 
     protected override ILspServices ConstructLspServices()
@@ -55,6 +58,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
 
         services.AddSingleton<ILspLogger>(_logger);
+        if (_logger is ILogger ilogger)
+        {
+            services.AddSingleton<ILogger>(ilogger);
+        }
+
         services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
 
         if (_projectSnapshotManagerDispatcher is null)

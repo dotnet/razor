@@ -36,7 +36,9 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<ExitHandler<RazorRequestContext>>();
         services.AddHandler<ShutdownHandler<RazorRequestContext>>();
 
-        services.AddSingleton<ILifeCycleManager>(razorLanguageServer);
+        var razorLifeCycleManager = new RazorLifeCycleManager(razorLanguageServer);
+        services.AddSingleton<ILifeCycleManager>(razorLifeCycleManager);
+        services.AddSingleton<RazorLifeCycleManager>(razorLifeCycleManager);
         services.AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>();
         services.AddSingleton<IRequestContextFactory<RazorRequestContext>, RazorRequestContextFactory>();
 

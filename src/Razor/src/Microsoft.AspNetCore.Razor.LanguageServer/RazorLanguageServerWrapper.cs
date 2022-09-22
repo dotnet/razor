@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -35,19 +33,16 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
     public static RazorLanguageServerWrapper Create(
         Stream input,
         Stream output,
-        Trace trace,
+        ILspLogger razorLogger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
         Action<IServiceCollection>? configure = null,
         LanguageServerFeatureOptions? featureOptions = null)
     {
-        var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
         var jsonRpc = CreateJsonRpc(input, output);
-
-        var logger = GetLspLogger(logLevel);
 
         var server = new RazorLanguageServer(
             jsonRpc,
-            logger,
+            razorLogger,
             projectSnapshotManagerDispatcher,
             featureOptions,
             configure);
@@ -67,6 +62,13 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));
 
         return jsonRpc;
+    }
+
+    public Task WaitForExitAsync()
+    {
+        var lifeCycleManager = GetRequiredService<RazorLifeCycleManager>();
+
+        return lifeCycleManager.WaitForExit;
     }
 
     internal T GetRequiredService<T>() where T : notnull
@@ -92,10 +94,5 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
     internal RazorLanguageServer GetInnerLanguageServerForTesting()
     {
         return _innerServer;
-    }
-
-    public static ILspLogger GetLspLogger(LogLevel logLevel)
-    {
-        throw new NotImplementedException();
     }
 }

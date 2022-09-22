@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Uri = new Uri("C:/path/to/Page.razor")
                 }
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Uri = new Uri("C:/path/to/Page.razor")
                 }
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -175,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -214,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Uri = new Uri("C:/path/to/Page.razor")
                 }
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -252,7 +252,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
@@ -438,7 +438,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = JToken.FromObject(new WorkspaceEdit())
             };
 
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)

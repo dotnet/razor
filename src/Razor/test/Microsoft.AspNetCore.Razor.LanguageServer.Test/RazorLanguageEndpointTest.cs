@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -180,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Razor, response.Kind);
@@ -291,7 +291,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, response.Kind);
@@ -319,7 +319,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, response.Kind);
@@ -350,7 +350,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.HandleRequestAsync(request, requestContext, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, response.Kind);

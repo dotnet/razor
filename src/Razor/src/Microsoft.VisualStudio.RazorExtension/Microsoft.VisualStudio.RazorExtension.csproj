@@ -236,6 +236,7 @@
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.AspNetCore.Razor.Language.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CommonLanguageServerProtocol.Framework.dll" />
 
     <VSIXSourceItem Include="@(RazorNgendVSIXSourceItem)">
       <Ngen>$(Ngen)</Ngen>
