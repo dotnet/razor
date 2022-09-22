@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common
+namespace Microsoft.AspNetCore.Razor.Test.Common.Mef
 {
     public static class ExportProviderCache
     {
@@ -287,7 +287,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                     assemblyName.CodeBase = codeBasePath;
                 }
 
-                return this.LoadAssembly(assemblyName);
+                return LoadAssembly(assemblyName);
             }
         }
     }

@@ -10,7 +10,7 @@ using System.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common
+namespace Microsoft.AspNetCore.Razor.Test.Common.Mef
 {
     /// <summary>
     /// Represents a MEF composition used for testing.
@@ -47,13 +47,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 var hashCode = -744873704;
 
                 foreach (var assembly in _assemblies)
-                    hashCode = (hashCode * -1521134295) + assembly.GetHashCode();
+                    hashCode = hashCode * -1521134295 + assembly.GetHashCode();
 
                 foreach (var part in _parts)
-                    hashCode = (hashCode * -1521134295) + part.GetHashCode();
+                    hashCode = hashCode * -1521134295 + part.GetHashCode();
 
                 foreach (var excludedPartType in _excludedPartTypes)
-                    hashCode = (hashCode * -1521134295) + excludedPartType.GetHashCode();
+                    hashCode = hashCode * -1521134295 + excludedPartType.GetHashCode();
 
                 return hashCode;
             }
@@ -99,12 +99,12 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         }
 
 #if false
-        /// <summary>
-        /// Returns a new instance of <see cref="HostServices"/> for the composition. This will either be a MEF composition or VS MEF composition host,
-        /// depending on what layer the composition is for. Editor Features and VS layers use VS MEF composition while anything else uses System.Composition.
-        /// </summary>
-        public HostServices GetHostServices()
-            => VisualStudioMefHostServices.Create(ExportProviderFactory.CreateExportProvider());
+    /// <summary>
+    /// Returns a new instance of <see cref="HostServices"/> for the composition. This will either be a MEF composition or VS MEF composition host,
+    /// depending on what layer the composition is for. Editor Features and VS layers use VS MEF composition while anything else uses System.Composition.
+    /// </summary>
+    public HostServices GetHostServices()
+        => VisualStudioMefHostServices.Create(ExportProviderFactory.CreateExportProvider());
 #endif
 
         /// <summary>
@@ -209,10 +209,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         }
 
         public TestComposition WithParts(ImmutableHashSet<Type> parts)
-            => (parts == Parts) ? this : new TestComposition(Assemblies, parts, ExcludedPartTypes, Scope);
+            => parts == Parts ? this : new TestComposition(Assemblies, parts, ExcludedPartTypes, Scope);
 
         public TestComposition WithExcludedPartTypes(ImmutableHashSet<Type> excludedPartTypes)
-            => (excludedPartTypes == ExcludedPartTypes) ? this : new TestComposition(Assemblies, Parts, excludedPartTypes, Scope);
+            => excludedPartTypes == ExcludedPartTypes ? this : new TestComposition(Assemblies, Parts, excludedPartTypes, Scope);
 
         public TestComposition WithScope(string? scope)
             => scope == Scope ? this : new TestComposition(Assemblies, Parts, ExcludedPartTypes, scope);
