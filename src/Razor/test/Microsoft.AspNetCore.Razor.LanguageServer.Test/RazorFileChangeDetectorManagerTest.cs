@@ -3,12 +3,12 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -19,17 +19,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task InitializedAsync_StartsFileChangeDetectors()
         {
             // Arrange
-            var initialWorkspaceDirectory = "\\\\testpath";
+            var initialWorkspaceDirectory = "testpath";
+
+            var uriBuilder = new UriBuilder
+            {
+                Scheme = "file",
+                Host = null,
+                Path = initialWorkspaceDirectory
+            };
 
             var clientSettings = new InitializeParams()
             {
-                RootUri = new DocumentUri("file", authority: null, path: initialWorkspaceDirectory, query: null, fragment: null),
+                RootUri = uriBuilder.Uri,
             };
-            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
-            languageServer.SetupGet(s => s.ClientSettings)
+            var languageServer = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
+            languageServer.Setup(s => s.GetInitializeParams())
                 .Returns(clientSettings);
             var detector1 = new Mock<IFileChangeDetector>(MockBehavior.Strict);
-            var expectedWorkspaceDirectory = "/" + initialWorkspaceDirectory;
+            var expectedWorkspaceDirectory = $"\\\\{initialWorkspaceDirectory}";
             detector1.Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
@@ -56,11 +63,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var expectedWorkspaceDirectory = "\\\\testpath";
             var clientSettings = new InitializeParams()
             {
-                RootUri = new DocumentUri("file", authority: null, path: expectedWorkspaceDirectory, query: null, fragment: null),
+                RootUri = new Uri(expectedWorkspaceDirectory),
             };
-            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
+            var languageServer = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
             languageServer
-                .SetupGet(s => s.ClientSettings)
+                .Setup(s => s.GetInitializeParams())
                 .Returns(clientSettings);
 
             var detector = new Mock<IFileChangeDetector>(MockBehavior.Strict);
