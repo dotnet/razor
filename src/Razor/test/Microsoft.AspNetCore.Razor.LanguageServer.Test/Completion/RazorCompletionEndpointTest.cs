@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
             var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {

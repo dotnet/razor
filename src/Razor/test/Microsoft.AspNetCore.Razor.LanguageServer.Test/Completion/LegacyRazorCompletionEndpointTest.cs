@@ -348,7 +348,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -377,7 +377,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -420,7 +420,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -463,7 +463,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -500,7 +500,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -544,7 +544,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -584,7 +584,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
             completionEndpoint.GetRegistration(ClientCapabilities);
-            var request = new VSCompletionParamsBridge()
+            var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
