@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -13,22 +11,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
     internal class RazorMapToDocumentRangesParams : IEquatable<RazorMapToDocumentRangesParams>
     {
-        public RazorLanguageKind Kind { get; set; }
+        public RazorLanguageKind Kind { get; init; }
 
-        public Uri RazorDocumentUri { get; set; }
+        public required Uri RazorDocumentUri { get; init; }
 
-        public Range[] ProjectedRanges { get; set; }
+        public required Range[] ProjectedRanges { get; init; }
 
-        public LanguageServerMappingBehavior MappingBehavior { get; set; }
+        public LanguageServerMappingBehavior MappingBehavior { get; init; }
 
-        public bool Equals(RazorMapToDocumentRangesParams other)
+        public bool Equals(RazorMapToDocumentRangesParams? other)
         {
             return
                 other is not null &&
                 Kind == other.Kind &&
                 RazorDocumentUri == other.RazorDocumentUri &&
                 MappingBehavior == other.MappingBehavior &&
-                Enumerable.SequenceEqual(ProjectedRanges, other.ProjectedRanges);
+                ProjectedRanges.SequenceEqual(other.ProjectedRanges);
         }
 
         public override bool Equals(object obj)

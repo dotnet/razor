@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     called = true;
                 });
 
-            var projectionProvider = GetMockProjectionProvider(new ProjectionResult() { LanguageKind = RazorLanguageKind.Html });
+            var projectionProvider = GetMockProjectionProvider(new ProjectionResult() { Uri = null, Position = null, LanguageKind = RazorLanguageKind.Html });
             var documentMappingProvider = GetMockDocumentMappingProvider(expectedEdit);
 
             var renameHandler = new RenameHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);

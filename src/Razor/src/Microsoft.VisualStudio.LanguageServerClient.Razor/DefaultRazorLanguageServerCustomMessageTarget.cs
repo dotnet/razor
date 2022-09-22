@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
-                request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
+                request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
                 request.HostDocumentVersion.Value,
                 state: null);
         }
@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
-                request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
+                request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
                 request.HostDocumentVersion.Value,
                 state: null);
         }
@@ -919,7 +919,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var provisionalChange = new VisualStudioTextChange(request.ProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
+                var provisionalChange = new VisualStudioTextChange(provisionalTextEdit, virtualDocumentSnapshot.Snapshot);
                 UpdateVirtualDocument(provisionalChange, request.ProjectedKind, request.HostDocument.Version, documentSnapshot.Uri);
 
                 // We want the delegation to continue on the captured context because we're currently on the `main` thread and we need to get back to the

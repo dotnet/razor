@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -91,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -278,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedLocations.ToArray();
         }
 
-        private static object FilterReferenceDisplayText(object referenceText)
+        private static object? FilterReferenceDisplayText(object? referenceText)
         {
             const string CodeBehindObjectPrefix = "__o = ";
             const string CodeBehindBackingFieldSuffix = "k__BackingField";
@@ -330,10 +328,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private class SerializableReferenceParams : TextDocumentPositionParams
         {
             [DataMember(Name = "context")]
-            public ReferenceContext Context { get; set; }
+            public required ReferenceContext Context { get; init; }
 
             [DataMember(Name = "partialResultToken")]
-            public string PartialResultToken { get; set; }
+            public required string PartialResultToken { get; init; }
         }
     }
 }

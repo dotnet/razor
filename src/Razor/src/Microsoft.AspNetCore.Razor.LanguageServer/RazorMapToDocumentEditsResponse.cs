@@ -7,8 +7,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorMapToDocumentEditsResponse
     {
-        public required TextEdit[] TextEdits { get; set; }
+        public required TextEdit[] TextEdits { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        public int? HostDocumentVersion { get; init; }
     }
 }

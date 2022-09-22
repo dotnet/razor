@@ -10,12 +10,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
     internal class RazorMapToDocumentRangesParams : IRequest<RazorMapToDocumentRangesResponse>
     {
-        public RazorLanguageKind Kind { get; set; }
+        public RazorLanguageKind Kind { get; init; }
 
-        public required Uri RazorDocumentUri { get; set; }
+        public required Uri RazorDocumentUri { get; init; }
 
-        public required Range[] ProjectedRanges { get; set; }
+        public required Range[] ProjectedRanges { get; init; }
 
-        public MappingBehavior MappingBehavior { get; set; }
+        public MappingBehavior MappingBehavior { get; init; }
     }
 }

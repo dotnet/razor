@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -41,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override VirtualDocumentSnapshot CurrentSnapshot => _currentSnapshot;
 
-        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
+        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
         {
             if (changes is null)
             {
@@ -64,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return _currentSnapshot;
         }
 
-        protected abstract T GetUpdatedSnapshot(object state);
+        protected abstract T GetUpdatedSnapshot(object? state);
 
         [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/4801")]
         public override void Dispose()

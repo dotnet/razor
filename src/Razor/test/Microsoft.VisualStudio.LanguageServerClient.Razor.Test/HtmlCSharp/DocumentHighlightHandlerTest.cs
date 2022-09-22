@@ -174,6 +174,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = GetMockProjectionProvider(projectionResult);

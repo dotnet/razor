@@ -11,10 +11,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
     internal class RazorDiagnosticsParams : IRequest<RazorDiagnosticsResponse>
     {
-        public RazorLanguageKind Kind { get; set; }
+        public RazorLanguageKind Kind { get; init; }
 
-        public required Uri RazorDocumentUri { get; set; }
+        public required Uri RazorDocumentUri { get; init; }
 
-        public required VSDiagnostic[] Diagnostics { get; set; }
+        public required VSDiagnostic[] Diagnostics { get; init; }
     }
 }

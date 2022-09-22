@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.Extensions.Internal;
@@ -13,13 +11,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
     internal class RazorDiagnosticsResponse : IEquatable<RazorDiagnosticsResponse>
     {
-        public Diagnostic[] Diagnostics { get; set; }
+        public Diagnostic[]? Diagnostics { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        public int? HostDocumentVersion { get; init; }
 
-        public bool Equals(RazorDiagnosticsResponse other)
+        public bool Equals(RazorDiagnosticsResponse? other)
         {
-            return Enumerable.SequenceEqual(Diagnostics, other.Diagnostics) &&
+            return
+                other is not null &&
+                Diagnostics.SequenceEqual(other.Diagnostics) &&
                 HostDocumentVersion == other.HostDocumentVersion;
         }
 
