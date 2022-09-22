@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public RazorLanguageEndpointTest()
         {
             MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-
         }
 
         private RazorDocumentMappingService MappingService { get; }
