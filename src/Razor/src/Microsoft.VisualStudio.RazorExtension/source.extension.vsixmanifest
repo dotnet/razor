@@ -34,6 +34,7 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.Language.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CommonLanguageServerProtocol.Framework.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.Binder.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
