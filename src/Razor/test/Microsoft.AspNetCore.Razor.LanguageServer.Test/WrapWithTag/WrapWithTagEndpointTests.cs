@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParamsBridge>(), It.IsAny<CancellationToken>()))
+                .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(response);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 languageServer.Object,
                 documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParamsBridge>(), It.IsAny<CancellationToken>()))
+                .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(response);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 languageServer.Object,
                 documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = missingUri })
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = missingUri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParamsBridge(new TextDocumentIdentifier { Uri = uri })
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
             {
                 Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };

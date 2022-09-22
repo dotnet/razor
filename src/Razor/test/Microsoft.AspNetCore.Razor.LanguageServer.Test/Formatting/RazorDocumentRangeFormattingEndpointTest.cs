@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
                 formattingService, optionsMonitor);
-            var @params = new DocumentRangeFormattingParamsBridge()
+            var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
             var uri = new Uri("file://path/test.razor");
-            var @params = new DocumentRangeFormattingParamsBridge()
+            var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
-            var @params = new DocumentRangeFormattingParamsBridge()
+            var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
             };
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
-            var @params = new DocumentRangeFormattingParamsBridge();
+            var @params = new DocumentRangeFormattingParams();
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act

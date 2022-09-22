@@ -111,6 +111,15 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             return documentFound ? TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument, hostDocumentVersion: 1337) : null;
         }
 
+        internal static string GetString(SourceText sourceText)
+        {
+            var sourceChars = new char[sourceText.Length];
+            sourceText.CopyTo(0, sourceChars, 0, sourceText.Length);
+            var sourceString = new string(sourceChars);
+
+            return sourceString;
+        }
+
         internal static DocumentContextFactory CreateDocumentContextFactory(
             Uri documentPath,
             RazorCodeDocument codeDocument,
