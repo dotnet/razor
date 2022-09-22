@@ -24,8 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private readonly AdhocWorkspaceFactory _workspaceFactory;
-        private readonly RazorFormattingService _razorFormattingService;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
 
         public OnAutoInsertEndpoint(
@@ -33,13 +31,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
-            AdhocWorkspaceFactory workspaceFactory,
-            RazorFormattingService razorFormattingService,
             ILoggerFactory loggerFactory)
             : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<OnAutoInsertEndpoint>())
         {
-            _workspaceFactory = workspaceFactory ?? throw new ArgumentNullException(nameof(workspaceFactory));
-            _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
             _onAutoInsertProviders = onAutoInsertProvider?.ToList() ?? throw new ArgumentNullException(nameof(onAutoInsertProvider));
         }
@@ -98,7 +92,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            using (var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, _workspaceFactory))
+            var workspaceFactory = requestContext.GetRequiredService<AdhocWorkspaceFactory>();
+            using (var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, workspaceFactory))
             {
                 for (var i = 0; i < applicableProviders.Count; i++)
                 {
@@ -164,14 +159,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             // For C# we run the edit through our formatting engine
             var edits = new[] { delegatedResponse.TextEdit };
 
+            var razorFormattingService = requestContext.GetRequiredService<RazorFormattingService>();
             TextEdit[] mappedEdits;
             if (delegatedResponse.TextEditFormat == InsertTextFormat.Snippet)
             {
-                mappedEdits = await _razorFormattingService.FormatSnippetAsync(documentContext.Identifier.Uri, documentContext.Snapshot, projection.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false);
+                mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext.Identifier.Uri, documentContext.Snapshot, projection.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                mappedEdits = await _razorFormattingService.FormatOnTypeAsync(documentContext.Identifier.Uri, documentContext.Snapshot, projection.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
+                mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext.Identifier.Uri, documentContext.Snapshot, projection.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
             }
 
             if (mappedEdits.Length != 1)
