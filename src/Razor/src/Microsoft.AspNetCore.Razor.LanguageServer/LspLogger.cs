@@ -74,35 +74,37 @@ internal class LspLogger : ILspLogger, ILogger
         _ = _serviceBase.SendNotificationAsync(Methods.WindowLogMessageName, @params, CancellationToken.None);
     }
 
+    // Not doing anything for now.
+    public void LogStartContext(string message, params object[] @params)
+    {
+    }
+
+    // Not doing anything for now.
     public void LogEndContext(string message, params object[] @params)
     {
-        throw new NotImplementedException();
     }
 
     public void LogError(string message, params object[] @params)
     {
-        throw new NotImplementedException();
+#pragma warning disable CA2254 // Template should be a static expression
+        ((ILogger)this).LogError(message, @params);
     }
 
     public void LogException(Exception exception, string? message = null, params object[] @params)
     {
-        throw new NotImplementedException();
+        ((ILogger)this).LogError(exception, message, @params);
     }
 
     public void LogInformation(string message, params object[] @params)
     {
-        throw new NotImplementedException();
-    }
-
-    public void LogStartContext(string message, params object[] @params)
-    {
-        throw new NotImplementedException();
+        ((ILogger)this).LogInformation(message, @params);
     }
 
     public void LogWarning(string message, params object[] @params)
     {
-        throw new NotImplementedException();
+        ((ILogger)this).LogWarning(message, @params);
     }
+#pragma warning restore CA2254 // Template should be a static expression
 
     private class Disposable : IDisposable
     {
