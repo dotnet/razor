@@ -3,7 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
@@ -13,17 +13,15 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RazorDocumentSynchronizationEndpointTest : LanguageServerTestBase
+    public class RazorDidChangeTextDocumentEndpointTest : LanguageServerTestBase
     {
-        private static DocumentContextFactory DocumentContextFactory => Mock.Of<DocumentContextFactory>(MockBehavior.Strict);
-
         private static RazorProjectService ProjectService => Mock.Of<RazorProjectService>(MockBehavior.Strict);
 
         [Fact]
         public void ApplyContentChanges_SingleChange()
         {
             // Arrange
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, ProjectService, LoggerFactory);
+            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, ProjectService);
             var sourceText = SourceText.From("Hello World");
             var change = new TextDocumentContentChangeEvent()
             {
@@ -37,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
 
             // Act
-            var result = endpoint.ApplyContentChanges(new[] { change }, sourceText);
+            var result = endpoint.ApplyContentChanges(new[] { change }, sourceText, Logger);
 
             // Assert
             var resultString = GetString(result);
@@ -48,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ApplyContentChanges_MultipleChanges()
         {
             // Arrange
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, ProjectService, LoggerFactory);
+            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, ProjectService);
             var sourceText = SourceText.From("Hello World");
             var changes = new[] {
                 new TextDocumentContentChangeEvent()
@@ -90,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
 
             // Act
-            var result = endpoint.ApplyContentChanges(changes, sourceText);
+            var result = endpoint.ApplyContentChanges(changes, sourceText, Logger);
 
             // Assert
             var resultString = GetString(result);
@@ -116,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Assert.Equal(documentPath.OriginalString, path);
                     Assert.Equal(1337, version);
                 });
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, documentContextFactory, projectService.Object, LoggerFactory);
+            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, projectService.Object);
             var change = new TextDocumentContentChangeEvent()
             {
                 Range = new Range
@@ -127,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RangeLength = 0,
                 Text = "</p>"
             };
-            var request = new DidChangeTextDocumentParamsBridge()
+            var request = new DidChangeTextDocumentParams()
             {
                 ContentChanges = new TextDocumentContentChangeEvent[] { change },
                 TextDocument = new VersionedTextDocumentIdentifier()
@@ -136,79 +134,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Version = 1337,
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await Task.Run(() => endpoint.Handle(request, default));
+            await endpoint.HandleNotificationAsync(request, requestContext, default);
 
             // Assert
             projectService.VerifyAll();
-        }
-
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public async Task Handle_DidOpenTextDocument_AddsDocument()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
-                .Callback<string, SourceText, int>((path, text, version) =>
-                {
-                    var resultString = GetString(text);
-                    Assert.Equal("hello", resultString);
-                    Assert.Equal(documentPath, path);
-                    Assert.Equal(1337, version);
-                });
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, projectService.Object, LoggerFactory);
-            var request = new DidOpenTextDocumentParamsBridge()
-            {
-                TextDocument = new TextDocumentItem()
-                {
-                    Text = "hello",
-                    Uri = new Uri(documentPath),
-                    Version = 1337,
-                }
-            };
-
-            // Act
-            await Task.Run(() => endpoint.Handle(request, default));
-
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public async Task Handle_DidCloseTextDocument_ClosesDocument()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
-                .Callback<string>((path) => Assert.Equal(documentPath, path));
-            var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentContextFactory, projectService.Object, LoggerFactory);
-            var request = new DidCloseTextDocumentParamsBridge()
-            {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = new Uri(documentPath)
-                }
-            };
-
-            // Act
-            await Task.Run(() => endpoint.Handle(request, default));
-
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        private static string GetString(SourceText sourceText)
-        {
-            var sourceChars = new char[sourceText.Length];
-            sourceText.CopyTo(0, sourceChars, 0, sourceText.Length);
-            var sourceString = new string(sourceChars);
-
-            return sourceString;
         }
     }
 }
