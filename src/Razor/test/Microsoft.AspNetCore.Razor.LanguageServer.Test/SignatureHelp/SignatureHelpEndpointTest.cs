@@ -87,7 +87,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
                 },
                 Position = new Position(line, offset)
             };
-            var requestContext = CreateRazorRequestContext(documentContext: null);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);

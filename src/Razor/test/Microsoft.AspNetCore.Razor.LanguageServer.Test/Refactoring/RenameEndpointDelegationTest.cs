@@ -72,7 +72,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Position = new Position(line, offset),
                 NewName = newName
             };
-            var requestContext = CreateRazorRequestContext(documentContext: null);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);

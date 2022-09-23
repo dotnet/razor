@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             return CreateDocumentContextFactory(documentPath, codeDocument);
         }
 
-        internal static DocumentContext? CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument, bool documentFound = true)
+        internal static DocumentContext? CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument, [NotNullWhen(true)] bool documentFound = true)
         {
             return documentFound ? TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument, hostDocumentVersion: 1337) : null;
         }
