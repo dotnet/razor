@@ -45,6 +45,7 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Logging.Abstractions.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="System.IO.Pipelines.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="System.Runtime.CompilerServices.Unsafe.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="System.Threading.Channels.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />

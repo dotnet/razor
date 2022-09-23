@@ -29,6 +29,7 @@
         <Import assembly="Microsoft.Extensions.Logging.Abstractions.dll" />
         <Import assembly="System.IO.Pipelines.dll" />
         <Import assembly="System.Runtime.CompilerServices.Unsafe.dll" />
+        <Import assembly="System.Threading.Channels.dll" />
     -->
   </Runtime>
   <Dependencies>
