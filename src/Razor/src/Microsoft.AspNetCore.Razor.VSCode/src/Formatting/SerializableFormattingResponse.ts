@@ -3,16 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { SerializableTextEdit } from './SerializableTextEdit';
+import { SerializableTextEdit } from './../RPC/SerializableTextEdit';
 
 export class SerializableFormattingResponse {
-    public readonly edits: SerializableTextEdit[];
-
-    constructor(edits?: SerializableTextEdit[]) {
-        if (edits == null) {
-            this.edits = new Array<SerializableTextEdit>();
-        } else {
-            this.edits = edits;
-        }
+    constructor(
+        public readonly edits?: SerializableTextEdit[]) {
     }
 }
