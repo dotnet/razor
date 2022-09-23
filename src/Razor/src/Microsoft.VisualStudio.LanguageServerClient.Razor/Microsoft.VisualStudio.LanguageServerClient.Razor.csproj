@@ -28,8 +28,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" />
 
-    <!-- This reference is required for the HtmlCSharp Language server to ensure that we get the proper version of packages
-    when we load in the WebTools stuff-->
+    <!-- These references is required for the Html Language server via WebTools-->
     <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="$(OmniSharpExtensionsLanguageProtocolPackageVersion)" />
     <!--
       Pinning packages to avoid misaligned reference CI failures.
