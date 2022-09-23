@@ -104,7 +104,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var sourceText = "<p>";
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, sourceText);
+            var codeDocument = CreateCodeDocument(sourceText);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
                 .Callback<string, SourceText, int>((path, text, version) =>
@@ -134,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Version = 1337,
                 }
             };
-            var requestContext = CreateRazorRequestContext(documentContext: null);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
             await endpoint.HandleNotificationAsync(request, requestContext, default);
