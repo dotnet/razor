@@ -15,7 +15,7 @@ import { convertTextEditToSerializable, SerializableTextEdit } from '../RPC/Seri
 export class FormattingHandler {
     private static readonly provideFormattingEndpoint = 'textDocument/formatting';
     private formattingRequestType: RequestType<SerializableFormattingParams, SerializableFormattingResponse, any> = new RequestType(FormattingHandler.provideFormattingEndpoint);
-    private emptyFormattingResponse: SerializableFormattingResponse = new SerializableFormattingResponse();
+    private emptyFormattingResponse = new SerializableFormattingResponse();
 
     constructor(
         private readonly documentManager: RazorDocumentManager,
