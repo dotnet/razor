@@ -8,9 +8,9 @@ import { RequestType } from 'vscode-languageclient';
 import { RazorDocumentManager } from '../RazorDocumentManager';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
 import { RazorLogger } from '../RazorLogger';
-import { SerializableFormattingParams } from '../RPC/SerializableFormattingParams';
-import { SerializableFormattingResponse } from '../RPC/SerializableFormattingResponse';
 import { convertTextEditToSerializable, SerializableTextEdit } from '../RPC/SerializableTextEdit';
+import { SerializableFormattingParams } from './SerializableFormattingParams';
+import { SerializableFormattingResponse } from './SerializableFormattingResponse';
 
 export class FormattingHandler {
     private static readonly provideFormattingEndpoint = 'textDocument/formatting';

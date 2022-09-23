@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { SerializableTextDocumentIdentifier } from './SerializableTextDocumentIdentifier';
+import { SerializableTextDocumentIdentifier } from './../RPC/SerializableTextDocumentIdentifier';
 
 export interface SerializableFormattingParams {
     textDocument: SerializableTextDocumentIdentifier;
