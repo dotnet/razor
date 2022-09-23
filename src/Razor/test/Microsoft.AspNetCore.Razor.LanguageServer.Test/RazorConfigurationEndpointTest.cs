@@ -3,10 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 
@@ -31,11 +31,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var optionsMonitor = new TestRazorLSPOptionsMonitor(ConfigurationService, Cache);
-            var endpoint = new RazorConfigurationEndpoint(optionsMonitor, LoggerFactory);
-            var request = new DidChangeConfigurationParamsBridge();
+            var endpoint = new RazorConfigurationEndpoint(optionsMonitor);
+            var request = new DidChangeConfigurationParams();
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await endpoint.Handle(request, CancellationToken.None);
+            await endpoint.HandleNotificationAsync(request, requestContext, CancellationToken.None);
 
             // Assert
             Assert.True(optionsMonitor.Called, "UpdateAsync was not called.");

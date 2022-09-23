@@ -30,6 +30,7 @@ using Microsoft.WebTools.Languages.Shared.Editor.Text;
 using Microsoft.WebTools.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using Xunit;
 using FormattingOptions = Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions;
 
@@ -95,7 +96,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
             var initialContent = generatedHtml;
             var snapshotVersionFromLSP = 0;
-            Assert.IsAssignableFrom<ITextSnapshot>(bufferManager.GetType().GetMethod("CreateBuffer").Invoke(bufferManager, new object[] { documentUri, contentTypeName, initialContent, snapshotVersionFromLSP }));
+            var oSharpDocUri = DocumentUri.From(documentUri);
+            Assert.IsAssignableFrom<ITextSnapshot>(bufferManager.GetType().GetMethod("CreateBuffer").Invoke(bufferManager, new object[] { oSharpDocUri, contentTypeName, initialContent, snapshotVersionFromLSP }));
 
             var requestType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.ContainedLanguage.ApplyFormatEditsParamForOmniSharp", throwOnError: true);
             var serializedValue = $@"{{
@@ -104,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         ""TabSize"": {@params.Options.TabSize},
         ""IndentSize"": {@params.Options.TabSize}
     }},
-    ""Uri"": ""file:///{@params.TextDocument.Uri}"",
+    ""Uri"": ""{@params.TextDocument.Uri}"",
     ""GeneratedChanges"": [
     ]
 }}

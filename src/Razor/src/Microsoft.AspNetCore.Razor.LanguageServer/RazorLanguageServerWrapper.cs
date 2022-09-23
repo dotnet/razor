@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -28,6 +29,19 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
 
         _innerServer = innerServer;
         _disposeLock = new object();
+    }
+
+    public static RazorLanguageServerWrapper Create(
+        Stream input,
+        Stream output,
+        Trace trace,
+        ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
+        Action<IServiceCollection>? configure = null,
+        LanguageServerFeatureOptions? featureOptions = null)
+    {
+        var logger = new LspLogger(trace);
+
+        return Create(input, output, logger, projectSnapshotManagerDispatcher, configure, featureOptions);
     }
 
     public static RazorLanguageServerWrapper Create(

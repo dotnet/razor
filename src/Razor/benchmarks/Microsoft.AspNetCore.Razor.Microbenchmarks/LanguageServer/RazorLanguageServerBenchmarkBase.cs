@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
@@ -30,7 +32,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             RepoRoot = current.FullName;
 
             using var memoryStream = new MemoryStream();
-            RazorLanguageServer = RazorLanguageServerWrapper.Create(memoryStream, memoryStream, Trace.Off, configure: (collection) => {
+            var logger = new NoopLogger();
+            RazorLanguageServer = RazorLanguageServerWrapper.Create(memoryStream, memoryStream, logger, configure: (collection) => {
                 collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
                 Builder(collection);
             });
@@ -81,6 +84,47 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        private class NoopLogger : ILspLogger, ILogger
+        {
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+            }
+
+            public void LogEndContext(string message, params object[] @params)
+            {
+            }
+
+            public void LogError(string message, params object[] @params)
+            {
+            }
+
+            public void LogException(Exception exception, string message = null, params object[] @params)
+            {
+            }
+
+            public void LogInformation(string message, params object[] @params)
+            {
+            }
+
+            public void LogStartContext(string message, params object[] @params)
+            {
+            }
+
+            public void LogWarning(string message, params object[] @params)
+            {
             }
         }
     }

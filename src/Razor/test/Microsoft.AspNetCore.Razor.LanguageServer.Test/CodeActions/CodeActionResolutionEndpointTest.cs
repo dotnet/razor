@@ -151,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, requestContext, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, requestContext, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -226,7 +226,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, requestContext, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -264,7 +264,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, requestContext, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
