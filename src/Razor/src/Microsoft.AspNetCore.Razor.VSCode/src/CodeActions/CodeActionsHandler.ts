@@ -13,7 +13,6 @@ import { SerializableCodeActionParams } from '../RPC/SerializableCodeActionParam
 import { convertRangeFromSerializable } from '../RPC/SerializableRange';
 
 export class CodeActionsHandler {
-
     private static readonly provideCodeActionsEndpoint = 'razor/provideCodeActions';
     private codeActionRequestType: RequestType<SerializableCodeActionParams, RazorCodeAction[], any> = new RequestType(CodeActionsHandler.provideCodeActionsEndpoint);
     private emptyCodeActionResponse: RazorCodeAction[] = [];

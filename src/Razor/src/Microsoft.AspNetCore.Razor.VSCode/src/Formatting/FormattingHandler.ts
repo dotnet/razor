@@ -13,7 +13,6 @@ import { SerializableFormattingResponse } from '../RPC/SerializableFormattingRes
 import { convertTextEditToSerializable, SerializableTextEdit } from '../RPC/SerializableTextEdit';
 
 export class FormattingHandler {
-
     private static readonly provideFormattingEndpoint = 'textDocument/formatting';
     private formattingRequestType: RequestType<SerializableFormattingParams, SerializableFormattingResponse, any> = new RequestType(FormattingHandler.provideFormattingEndpoint);
     private emptyFormattingResponse: SerializableFormattingResponse = new SerializableFormattingResponse();
