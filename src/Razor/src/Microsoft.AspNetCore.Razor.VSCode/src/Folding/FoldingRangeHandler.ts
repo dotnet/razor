@@ -13,8 +13,7 @@ export class FoldingRangeHandler {
     private static readonly provideFoldingRange = 'razor/foldingRange';
     private foldingRangeRequestType: RequestType<SerializableFoldingRangeParams, SerializableFoldingRangeResponse, any> = new RequestType(FoldingRangeHandler.provideFoldingRange);
 
-    constructor(private readonly serverClient: RazorLanguageServerClient) {
-    }
+    constructor(private readonly serverClient: RazorLanguageServerClient) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises

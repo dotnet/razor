@@ -10,8 +10,7 @@ export class RazorServerReadyHandler {
     private static readonly razorServerReadyEndpoint = 'razor/serverReady';
     private razorServerReadyHandlerType: RequestType<void, void, any> = new RequestType(RazorServerReadyHandler.razorServerReadyEndpoint);
 
-    constructor(private readonly serverClient: RazorLanguageServerClient) {
-    }
+    constructor(private readonly serverClient: RazorLanguageServerClient) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
