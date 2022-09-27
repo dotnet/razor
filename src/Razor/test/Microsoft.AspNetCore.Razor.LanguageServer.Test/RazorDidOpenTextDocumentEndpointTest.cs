@@ -10,11 +10,17 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorDidOpenTextDocumentEndpointTest : LanguageServerTestBase
     {
+        public RazorDidOpenTextDocumentEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         // This is more of an integration test to validate that all the pieces work together
         [Fact]
         public async Task Handle_DidOpenTextDocument_AddsDocument()

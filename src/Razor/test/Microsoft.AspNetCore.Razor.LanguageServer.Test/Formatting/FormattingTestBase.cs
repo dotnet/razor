@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -24,7 +23,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json;
@@ -45,11 +43,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
         private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
-        public FormattingTestBase(ITestOutputHelper output)
+        public FormattingTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             TestProjectPath = GetProjectDirectory();
             FilePathNormalizer = new FilePathNormalizer();
-            LoggerFactory = new FormattingTestLoggerFactory(output);
 
             ILoggerExtensions.TestOnlyLoggingEnabled = true;
         }
@@ -57,8 +55,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public static string? TestProjectPath { get; private set; }
 
         protected FilePathNormalizer FilePathNormalizer { get; }
-
-        protected ILoggerFactory LoggerFactory { get; }
 
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
@@ -98,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
 
             // Act
-            var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
+            var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, DisposalToken);
 
             // Assert
             var edited = ApplyEdits(source, edits);
@@ -131,7 +127,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri(path);
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
+            var mappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
             var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
@@ -142,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             // Act
-            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, CancellationToken.None);
+            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
 
             // Assert
             var edited = ApplyEdits(razorSourceText, edits);
@@ -209,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             // Act
-            var edits = await formattingService.FormatCodeActionAsync(uri, documentSnapshot, languageKind, codeActionEdits, options, CancellationToken.None);
+            var edits = await formattingService.FormatCodeActionAsync(uri, documentSnapshot, languageKind, codeActionEdits, options, DisposalToken);
 
             // Assert
             var edited = ApplyEdits(razorSourceText, edits);
@@ -261,9 +258,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var importsSourceText = SourceText.From(DefaultImports);
             var importsDocument = importsSourceText.GetRazorSourceDocument(importsPath, importsPath);
             var importsSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
-            importsSnapshot.Setup(d => d.GetTextAsync()).Returns(Task.FromResult(importsSourceText));
-            importsSnapshot.Setup(d => d.FilePath).Returns(importsPath);
-            importsSnapshot.Setup(d => d.TargetPath).Returns(importsPath);
+            importsSnapshot
+                .Setup(d => d.GetTextAsync())
+                .ReturnsAsync(importsSourceText);
+            importsSnapshot
+                .Setup(d => d.FilePath)
+                .Returns(importsPath);
+            importsSnapshot
+                .Setup(d => d.TargetPath)
+                .Returns(importsPath);
 
             var projectEngine = RazorProjectEngine.Create(builder =>
             {
@@ -279,13 +282,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
-            documentSnapshot.Setup(d => d.GetImports()).Returns(new[] { importsSnapshot.Object });
-            documentSnapshot.Setup(d => d.Project.GetProjectEngine()).Returns(projectEngine);
-            documentSnapshot.Setup(d => d.FilePath).Returns(path);
-            documentSnapshot.Setup(d => d.TargetPath).Returns(path);
-            documentSnapshot.Setup(d => d.Project.TagHelpers).Returns(tagHelpers);
-            documentSnapshot.Setup(d => d.FileKind).Returns(fileKind);
+            documentSnapshot
+                .Setup(d => d.GetGeneratedOutputAsync())
+                .ReturnsAsync(codeDocument);
+            documentSnapshot
+                .Setup(d => d.GetImports())
+                .Returns(new[] { importsSnapshot.Object });
+            documentSnapshot
+                .Setup(d => d.Project.GetProjectEngine())
+                .Returns(projectEngine);
+            documentSnapshot
+                .Setup(d => d.FilePath)
+                .Returns(path);
+            documentSnapshot
+                .Setup(d => d.TargetPath)
+                .Returns(path);
+            documentSnapshot
+                .Setup(d => d.Project.TagHelpers)
+                .Returns(tagHelpers);
+            documentSnapshot
+                .Setup(d => d.FileKind)
+                .Returns(fileKind);
 
             return (codeDocument, documentSnapshot.Object);
         }

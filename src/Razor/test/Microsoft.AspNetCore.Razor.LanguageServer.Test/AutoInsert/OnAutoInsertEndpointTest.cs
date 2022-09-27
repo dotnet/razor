@@ -17,12 +17,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
     {
-        public OnAutoInsertEndpointTest()
+        public OnAutoInsertEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 
@@ -51,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateOnAutoInsertRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -92,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateOnAutoInsertRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -135,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateOnAutoInsertRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -170,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -204,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -238,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -271,7 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateOnAutoInsertRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -391,7 +393,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             lspServices
                 .Setup(l => l.GetRequiredService<AdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
             lspServices
-                .Setup(l => l.GetRequiredService<RazorFormattingService>()).Returns(TestRazorFormattingService.Instance);
+                .Setup(l => l.GetRequiredService<RazorFormattingService>()).Returns(TestRazorFormattingService.CreateWithFullSupport());
 
             var requestContext = CreateRazorRequestContext(documentContext, lspServices: lspServices.Object);
 
@@ -422,12 +424,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     InsertSpaces = true
                 },
             };
-            var documentContext = await DocumentContextFactory.TryCreateAsync(@params.TextDocument.Uri, CancellationToken.None);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(@params.TextDocument.Uri, DisposalToken);
 
             var requestContext = CreateOnAutoInsertRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);

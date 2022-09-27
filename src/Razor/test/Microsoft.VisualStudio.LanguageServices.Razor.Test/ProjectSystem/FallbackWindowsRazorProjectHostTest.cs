@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.ProjectSystem;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
 using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ItemReference;
 
@@ -18,52 +19,49 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class FallbackWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
-        public FallbackWindowsRazorProjectHostTest()
+        private readonly ItemCollection _referenceItems;
+        private readonly TestProjectSnapshotManager _projectManager;
+        private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+        private readonly ItemCollection _contentItems;
+        private readonly ItemCollection _noneItems;
+
+        public FallbackWindowsRazorProjectHostTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
+            _projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
 
             var projectConfigurationFilePathStore = new Mock<ProjectConfigurationFilePathStore>(MockBehavior.Strict);
             projectConfigurationFilePathStore.Setup(s => s.Remove(It.IsAny<string>())).Verifiable();
-            ProjectConfigurationFilePathStore = projectConfigurationFilePathStore.Object;
+            _projectConfigurationFilePathStore = projectConfigurationFilePathStore.Object;
 
-            ReferenceItems = new ItemCollection(ManagedProjectSystemSchema.ResolvedCompilationReference.SchemaName);
-            ContentItems = new ItemCollection(ManagedProjectSystemSchema.ContentItem.SchemaName);
-            NoneItems = new ItemCollection(ManagedProjectSystemSchema.NoneItem.SchemaName);
+            _referenceItems = new ItemCollection(ManagedProjectSystemSchema.ResolvedCompilationReference.SchemaName);
+            _contentItems = new ItemCollection(ManagedProjectSystemSchema.ContentItem.SchemaName);
+            _noneItems = new ItemCollection(ManagedProjectSystemSchema.NoneItem.SchemaName);
         }
-
-        private ItemCollection ReferenceItems { get; }
-
-        private TestProjectSnapshotManager ProjectManager { get; }
-
-        private ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore { get; }
-
-        private ItemCollection ContentItems { get; }
-
-        private ItemCollection NoneItems { get; }
 
         [Fact]
         public void GetChangedAndRemovedDocuments_ReturnsChangedContentAndNoneItems()
         {
             // Arrange
             var afterChangeContentItems = new ItemCollection(ManagedProjectSystemSchema.ContentItem.SchemaName);
-            ContentItems.Item("Index.cshtml", new Dictionary<string, string>()
+            _contentItems.Item("Index.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "NewIndex.cshtml",
                 [ItemReference.FullPathPropertyName] = "C:\\From\\Index.cshtml",
             });
             var afterChangeNoneItems = new ItemCollection(ManagedProjectSystemSchema.NoneItem.SchemaName);
-            NoneItems.Item("About.cshtml", new Dictionary<string, string>()
+            _noneItems.Item("About.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "NewAbout.cshtml",
                 [ItemReference.FullPathPropertyName] = "C:\\From\\About.cshtml",
             });
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var changes = new TestProjectChangeDescription[]
             {
-                 afterChangeContentItems.ToChange(ContentItems.ToSnapshot()),
-                 afterChangeNoneItems.ToChange(NoneItems.ToSnapshot()),
+                 afterChangeContentItems.ToChange(_contentItems.ToSnapshot()),
+                 afterChangeNoneItems.ToChange(_noneItems.ToSnapshot()),
             };
             var update = services.CreateUpdate(changes).Value;
 
@@ -89,23 +87,23 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void GetCurrentDocuments_ReturnsContentAndNoneItems()
         {
             // Arrange
-            ContentItems.Item("Index.cshtml", new Dictionary<string, string>()
+            _contentItems.Item("Index.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "NewIndex.cshtml",
                 [ItemReference.FullPathPropertyName] = "C:\\From\\Index.cshtml",
             });
-            NoneItems.Item("About.cshtml", new Dictionary<string, string>()
+            _noneItems.Item("About.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "NewAbout.cshtml",
                 [ItemReference.FullPathPropertyName] = "C:\\From\\About.cshtml",
             });
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var changes = new TestProjectChangeDescription[]
             {
-                 ContentItems.ToChange(),
-                 NoneItems.ToChange(),
+                 _contentItems.ToChange(),
+                 _noneItems.ToChange(),
             };
             var update = services.CreateUpdate(changes).Value;
 
@@ -132,23 +130,23 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void GetCurrentDocuments_IgnoresDotRazorFiles()
         {
             // Arrange
-            ContentItems.Item("Index.razor", new Dictionary<string, string>()
+            _contentItems.Item("Index.razor", new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "NewIndex.razor",
                 [ItemReference.FullPathPropertyName] = "C:\\From\\Index.razor",
             });
-            NoneItems.Item("About.razor", new Dictionary<string, string>()
+            _noneItems.Item("About.razor", new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "NewAbout.razor",
                 [ItemReference.FullPathPropertyName] = "C:\\From\\About.razor",
             });
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var changes = new TestProjectChangeDescription[]
             {
-                 ContentItems.ToChange(),
-                 NoneItems.ToChange(),
+                 _contentItems.ToChange(),
+                 _noneItems.ToChange(),
             };
             var update = services.CreateUpdate(changes).Value;
 
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "Index.cshtml",
@@ -185,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = "C:\\Path\\site.css",
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\Path\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "site.html",
@@ -227,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var expectedPath = "C:\\Path\\Index.cshtml";
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = expectedPath,
@@ -250,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var expectedTargetPath = "C:\\Path\\To\\Index.cshtml";
             var services = new TestProjectSystemServices("C:\\Path\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "Index.cshtml",
@@ -274,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var expectedTargetPath = "C:\\Path\\To\\Index.cshtml";
             var services = new TestProjectSystemServices("C:\\Path\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "Index.cshtml",
@@ -297,14 +295,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             // Act & Assert
             await host.LoadAsync();
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await host.DisposeAsync();
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
@@ -313,14 +311,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact] // This can happen if the .xaml files aren't included correctly.
@@ -333,55 +331,55 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_ReadsProperties_InitializesProject()
         {
             // Arrange
-            ReferenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
-            ContentItems.Item("Index.cshtml", new Dictionary<string, string>()
+            _referenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
+            _contentItems.Item("Index.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = "C:\\Path\\Index.cshtml",
             });
-            NoneItems.Item("About.cshtml", new Dictionary<string, string>()
+            _noneItems.Item("About.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = "C:\\Path\\About.cshtml",
             });
 
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
-                 ContentItems.ToChange(),
-                 NoneItems.ToChange(),
+                 _referenceItems.ToChange(),
+                 _contentItems.ToChange(),
+                 _noneItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
             {
                 AssemblyVersion = new Version(2, 0), // Mock for reading the assembly's version
             };
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("C:\\Path\\Test.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_2_0, snapshot.Configuration);
 
@@ -391,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 filePath => Assert.Equal("C:\\Path\\About.cshtml", filePath));
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
@@ -400,90 +398,90 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
+                 _referenceItems.ToChange(),
             };
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_AssemblyFoundButCannotReadVersion_DoesNotIniatializeProject()
         {
             // Arrange
-            ReferenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
+            _referenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
 
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
+                 _referenceItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_UpdateProject_Succeeds()
         {
             // Arrange
-            ReferenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
+            _referenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
             var afterChangeContentItems = new ItemCollection(ManagedProjectSystemSchema.ContentItem.SchemaName);
-            ContentItems.Item("Index.cshtml", new Dictionary<string, string>()
+            _contentItems.Item("Index.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = "C:\\Path\\Index.cshtml",
             });
 
             var initialChanges = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
-                 ContentItems.ToChange(),
+                 _referenceItems.ToChange(),
+                 _contentItems.ToChange(),
             };
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
-                 afterChangeContentItems.ToChange(ContentItems.ToSnapshot()),
+                 _referenceItems.ToChange(),
+                 afterChangeContentItems.ToChange(_contentItems.ToSnapshot()),
             };
 
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(initialChanges)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("C:\\Path\\Test.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_2_0, snapshot.Configuration);
             var filePath = Assert.Single(snapshot.DocumentFilePaths);
@@ -494,41 +492,41 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 2
-            snapshot = Assert.Single(ProjectManager.Projects);
+            snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("C:\\Path\\Test.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_1_0, snapshot.Configuration);
             Assert.Empty(snapshot.DocumentFilePaths);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_VersionRemoved_DeinitializesProject()
         {
             // Arrange
-            ReferenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
+            _referenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
 
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
+                 _referenceItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("Test.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_2_0, snapshot.Configuration);
 
@@ -537,43 +535,43 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 2
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_AfterDispose_IgnoresUpdate()
         {
             // Arrange
-            ReferenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
-            ContentItems.Item("Index.cshtml", new Dictionary<string, string>()
+            _referenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
+            _contentItems.Item("Index.cshtml", new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = "C:\\Path\\Index.cshtml",
             });
 
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
-                 ContentItems.ToChange(),
+                 _referenceItems.ToChange(),
+                 _contentItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("C:\\Path\\Test.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_2_0, snapshot.Configuration);
             var filePath = Assert.Single(snapshot.DocumentFilePaths);
@@ -583,42 +581,42 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(async () => await host.DisposeAsync());
 
             // Assert - 2
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 3
             host.AssemblyVersion = new Version(1, 1);
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 3
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectRenamed_RemovesHostProject_CopiesConfiguration()
         {
             // Arrange
-            ReferenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
+            _referenceItems.Item("c:\\nuget\\Microsoft.AspNetCore.Mvc.razor.dll");
 
             var changes = new TestProjectChangeDescription[]
             {
-                 ReferenceItems.ToChange(),
+                 _referenceItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager)
             {
                 AssemblyVersion = new Version(2, 0), // Mock for reading the assembly's version
             };
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("Test.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_2_0, snapshot.Configuration);
 
@@ -627,12 +625,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(async () => await host.OnProjectRenamingAsync());
 
             // Assert - 1
-            snapshot = Assert.Single(ProjectManager.Projects);
+            snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal("Test2.csproj", snapshot.FilePath);
             Assert.Same(FallbackRazorConfiguration.MVC_2_0, snapshot.Configuration);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         private class TestFallbackRazorProjectHost : FallbackWindowsRazorProjectHost

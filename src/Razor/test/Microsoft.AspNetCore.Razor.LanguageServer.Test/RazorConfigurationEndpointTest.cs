@@ -9,34 +9,35 @@ using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorConfigurationEndpointTest : LanguageServerTestBase
     {
-        public RazorConfigurationEndpointTest()
+        private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
+        private readonly RazorConfigurationService _configurationService;
+
+        public RazorConfigurationEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var services = new ServiceCollection().AddOptions();
-            Cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
+            _cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
 
-            ConfigurationService = Mock.Of<RazorConfigurationService>(MockBehavior.Strict);
+            _configurationService = Mock.Of<RazorConfigurationService>(MockBehavior.Strict);
         }
-
-        private IOptionsMonitorCache<RazorLSPOptions> Cache { get; }
-
-        private RazorConfigurationService ConfigurationService { get; }
 
         [Fact]
         public async Task Handle_UpdatesOptions()
         {
             // Arrange
-            var optionsMonitor = new TestRazorLSPOptionsMonitor(ConfigurationService, Cache);
+            var optionsMonitor = new TestRazorLSPOptionsMonitor(_configurationService, _cache);
             var endpoint = new RazorConfigurationEndpoint(optionsMonitor);
             var request = new DidChangeConfigurationParams();
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await endpoint.HandleNotificationAsync(request, requestContext, CancellationToken.None);
+            await endpoint.HandleNotificationAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.True(optionsMonitor.Called, "UpdateAsync was not called.");
@@ -44,7 +45,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
         {
-            public TestRazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache) : base(configurationService, cache)
+            public TestRazorLSPOptionsMonitor(
+                RazorConfigurationService configurationService,
+                IOptionsMonitorCache<RazorLSPOptions> cache)
+                : base(configurationService, cache)
             {
             }
 

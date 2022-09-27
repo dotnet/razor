@@ -7,24 +7,26 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    public class DirectiveAttributeTransitionCompletionItemProviderTest
+    public class DirectiveAttributeTransitionCompletionItemProviderTest : TestBase
     {
-        public DirectiveAttributeTransitionCompletionItemProviderTest()
+        private static readonly RazorCompletionItem s_transitionCompletionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
+
+        private readonly TagHelperDocumentContext _tagHelperDocumentContext;
+        private readonly DirectiveAttributeTransitionCompletionItemProvider _provider;
+
+        public DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            TagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
-            Provider = new DirectiveAttributeTransitionCompletionItemProvider();
+            _tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
+            _provider = new DirectiveAttributeTransitionCompletionItemProvider();
         }
-
-        private TagHelperDocumentContext TagHelperDocumentContext { get; }
-
-        private DirectiveAttributeTransitionCompletionItemProvider Provider { get; }
-
-        private static RazorCompletionItem TransitionCompletionItem => DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
         [Fact]
         public void IsValidCompletionPoint_AtPrefixLeadingEdge_ReturnsFalse()
@@ -135,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 7, "<input  />", FileKinds.Legacy);
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -148,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 50, "<input  />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -161,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 2, "<input  />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -174,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 8, "<input @ />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -187,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 8, "<input /" + Environment.NewLine);
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -200,11 +202,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 7, "<input  />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
-            Assert.Same(item, TransitionCompletionItem);
+            Assert.Same(item, s_transitionCompletionItem);
         }
 
         [Fact]
@@ -214,11 +216,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 7, "<input />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
-            Assert.Same(item, TransitionCompletionItem);
+            Assert.Same(item, s_transitionCompletionItem);
         }
 
         [Fact]
@@ -228,11 +230,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 7, "<input ></input>");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
-            Assert.Same(item, TransitionCompletionItem);
+            Assert.Same(item, s_transitionCompletionItem);
         }
 
         [Fact]
@@ -242,7 +244,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 7, "<input src=\"xyz\" />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -255,7 +257,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 16, "<input src=\"xyz\" />");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -268,7 +270,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 9, "<svg xml: ></svg>");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             Assert.Empty(result);
@@ -281,11 +283,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 7, "<input   @{");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
-            Assert.Same(item, TransitionCompletionItem);
+            Assert.Same(item, s_transitionCompletionItem);
         }
 
         [Fact]
@@ -295,11 +297,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var context = CreateContext(absoluteIndex: 5, "<svg  xml:base=\"d\"></svg>");
 
             // Act
-            var result = Provider.GetCompletionItems(context);
+            var result = _provider.GetCompletionItems(context);
 
             // Assert
             var item = Assert.Single(result);
-            Assert.Same(item, TransitionCompletionItem);
+            Assert.Same(item, s_transitionCompletionItem);
         }
 
         private static RazorSyntaxTree GetSyntaxTree(string text, string fileKind = null)
@@ -318,7 +320,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var syntaxTree = GetSyntaxTree(documentContent, fileKind);
             var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
             var owner = syntaxTree.Root.LocateOwner(queryableChange);
-            var context = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, TagHelperDocumentContext);
+            var context = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, _tagHelperDocumentContext);
             return context;
         }
     }

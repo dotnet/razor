@@ -15,11 +15,17 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
     public class RazorDirectiveAttributeCompletionSourceTest : ProjectSnapshotManagerDispatcherTestBase
     {
+        public RazorDirectiveAttributeCompletionSourceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task GetDescriptionAsync_NoDescriptionData_ReturnsEmptyString()
         {
@@ -29,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var completionItem = new CompletionItem("@random", completionSessionSource);
 
             // Act
-            var result = await source.GetDescriptionAsync(session: null, completionItem, CancellationToken.None);
+            var result = await source.GetDescriptionAsync(session: null, completionItem, DisposalToken);
 
             // Assert
             Assert.Equal(string.Empty, result);
@@ -54,7 +60,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             completionItem.Properties.AddProperty(RazorDirectiveAttributeCompletionSource.DescriptionKey, description);
 
             // Act
-            var result = await source.GetDescriptionAsync(session: null, completionItem, CancellationToken.None);
+            var result = await source.GetDescriptionAsync(session: null, completionItem, DisposalToken);
 
             // Assert
             Assert.Equal(expectedResult, result);
@@ -71,7 +77,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var expectedApplicableToSpan = new SnapshotSpan(snapshot, new Span(1, 4));
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(expectedApplicableToSpan, result.ApplicableToSpan);
@@ -92,7 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var triggerLocation = new SnapshotPoint(snapshot, 1);
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(CompletionStartData.DoesNotParticipateInCompletion, result);
@@ -108,7 +114,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var triggerLocation = new SnapshotPoint(snapshot, 1);
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(CompletionStartData.DoesNotParticipateInCompletion, result);
@@ -124,7 +130,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var triggerLocation = new SnapshotPoint(snapshot, 9);
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(CompletionStartData.DoesNotParticipateInCompletion, result);
@@ -140,7 +146,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var triggerLocation = new SnapshotPoint(emptySnapshot, 0);
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(CompletionStartData.DoesNotParticipateInCompletion, result);
@@ -156,7 +162,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var triggerLocation = new SnapshotPoint(snapshot, 0);
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(CompletionStartData.DoesNotParticipateInCompletion, result);
@@ -174,7 +180,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             for (var i = 0; i < snapshot.Length; i++)
             {
                 var triggerLocation = new SnapshotPoint(snapshot, i);
-                var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+                var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
                 Assert.Equal(CompletionStartData.DoesNotParticipateInCompletion, result);
             }
         }
@@ -190,7 +196,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var expectedApplicableToSpan = new SnapshotSpan(snapshot, new Span(8, 4));
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(expectedApplicableToSpan, result.ApplicableToSpan);
@@ -207,7 +213,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var expectedApplicableToSpan = new SnapshotSpan(snapshot, new Span(8, 4));
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(expectedApplicableToSpan, result.ApplicableToSpan);
@@ -224,7 +230,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var expectedApplicableToSpan = new SnapshotSpan(snapshot, new Span(13, 6));
 
             // Act
-            var result = source.InitializeCompletion(trigger, triggerLocation, CancellationToken.None);
+            var result = source.InitializeCompletion(trigger, triggerLocation, DisposalToken);
 
             // Assert
             Assert.Equal(expectedApplicableToSpan, result.ApplicableToSpan);

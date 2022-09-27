@@ -3,15 +3,22 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultProjectPathProviderTest
+    public class DefaultProjectPathProviderTest : TestBase
     {
+        public DefaultProjectPathProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryGetProjectPath_NullLiveShareProjectPathProvider_UsesProjectService()
         {

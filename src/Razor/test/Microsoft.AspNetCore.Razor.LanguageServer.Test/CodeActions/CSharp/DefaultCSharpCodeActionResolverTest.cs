@@ -20,12 +20,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
     {
-        private static readonly CodeAction s_defaultResolvedCodeAction = new CodeAction()
+        private static readonly CodeAction s_defaultResolvedCodeAction = new()
         {
             Title = "ResolvedCodeAction",
             Data = JToken.FromObject(new object()),
@@ -57,6 +58,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             Title = "Unresolved Code Action"
         };
+
+        public DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public async Task ResolveAsync_ReturnsResolvedCodeAction()

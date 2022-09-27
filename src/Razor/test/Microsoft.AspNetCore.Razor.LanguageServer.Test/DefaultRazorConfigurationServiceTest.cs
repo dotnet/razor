@@ -10,11 +10,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
     {
+        public DefaultRazorConfigurationServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task GetLatestOptionsAsync_ReturnsExpectedOptions()
         {
@@ -47,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
-            var options = await configurationService.GetLatestOptionsAsync(CancellationToken.None);
+            var options = await configurationService.GetLatestOptionsAsync(DisposalToken);
 
             // Assert
             Assert.Equal(expectedOptions, options);
@@ -61,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
-            var options = await configurationService.GetLatestOptionsAsync(CancellationToken.None);
+            var options = await configurationService.GetLatestOptionsAsync(DisposalToken);
 
             // Assert
             Assert.Null(options);
@@ -75,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
-            var options = await configurationService.GetLatestOptionsAsync(CancellationToken.None);
+            var options = await configurationService.GetLatestOptionsAsync(DisposalToken);
 
             // Assert
             Assert.Null(options);
@@ -185,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 languageServer
                     .Setup(l => l.SendRequestAsync<ConfigurationParams, IResult>("workspace/configuration", It.IsAny<ConfigurationParams>(), It.IsAny<CancellationToken>()))
-                    .Returns(Task.FromResult(result));
+                    .ReturnsAsync(result);
             }
 
             return languageServer.Object;

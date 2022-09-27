@@ -6,22 +6,22 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class TestRazorFormattingService
     {
-        public static readonly RazorFormattingService Instance = CreateWithFullSupport(TestRazorCodeDocument.CreateEmpty());
-
         private TestRazorFormattingService()
         {
         }
 
-        public static RazorFormattingService CreateWithFullSupport(RazorCodeDocument codeDocument, ILoggerFactory? loggerFactory = null)
+        public static RazorFormattingService CreateWithFullSupport(RazorCodeDocument? codeDocument = null, ILoggerFactory? loggerFactory = null)
         {
-            loggerFactory ??= TestLoggerFactory.Instance;
+            codeDocument ??= TestRazorCodeDocument.CreateEmpty();
+            loggerFactory ??= NullLoggerFactory.Instance;
+
             var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
 
             var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);

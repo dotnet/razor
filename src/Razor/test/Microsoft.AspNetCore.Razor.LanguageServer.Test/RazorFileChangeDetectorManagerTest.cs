@@ -37,11 +37,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Returns(clientSettings);
             var detector1 = new Mock<IFileChangeDetector>(MockBehavior.Strict);
             var expectedWorkspaceDirectory = $"\\\\{initialWorkspaceDirectory}";
-            detector1.Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
+            detector1
+                .Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
             var detector2 = new Mock<IFileChangeDetector>(MockBehavior.Strict);
-            detector2.Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
+            detector2
+                .Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
             var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(languageServer.Object);

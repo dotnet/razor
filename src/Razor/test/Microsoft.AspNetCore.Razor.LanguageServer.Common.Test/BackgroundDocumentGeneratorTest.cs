@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
@@ -18,23 +19,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     // the only thing in here is threading.
     public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
     {
-        public BackgroundDocumentGeneratorTest()
+        private readonly HostDocument[] _documents;
+        private readonly HostProject _hostProject1;
+        private readonly HostProject _hostProject2;
+
+        public BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Documents = new HostDocument[]
+            _documents = new HostDocument[]
             {
                 new HostDocument("c:/Test1/Index.cshtml", "Index.cshtml"),
                 new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
             };
 
-            HostProject1 = new HostProject("c:/Test1/Test1.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            HostProject2 = new HostProject("c:/Test2/Test2.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            _hostProject1 = new HostProject("c:/Test1/Test1.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            _hostProject2 = new HostProject("c:/Test2/Test2.csproj", RazorConfiguration.Default, "TestRootNamespace");
         }
-
-        private HostDocument[] Documents { get; }
-
-        private HostProject HostProject1 { get; }
-
-        private HostProject HostProject2 { get; }
 
         [Fact]
         public async Task Queue_ProcessesNotifications_AndGoesBackToSleep()
@@ -43,14 +43,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
-                projectManager.DocumentAdded(HostProject1, Documents[1], null);
-            }, CancellationToken.None);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+                projectManager.DocumentAdded(_hostProject1, _documents[1], null);
+            }, DisposalToken);
 
             var project = await Dispatcher.RunOnDispatcherThreadAsync(
-                () => projectManager.GetLoadedProject(HostProject1.FilePath), CancellationToken.None);
+                () => projectManager.GetLoadedProject(_hostProject1.FilePath), DisposalToken);
 
             var queue = new TestBackgroundDocumentGenerator(Dispatcher)
             {
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             // Act & Assert
             await Dispatcher.RunOnDispatcherThreadAsync(
-                () => queue.Enqueue(project.GetDocument(Documents[0].FilePath)), CancellationToken.None);
+                () => queue.Enqueue(project.GetDocument(_documents[0].FilePath)), DisposalToken);
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -85,14 +85,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
-                projectManager.DocumentAdded(HostProject1, Documents[1], null);
-            }, CancellationToken.None);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+                projectManager.DocumentAdded(_hostProject1, _documents[1], null);
+            }, DisposalToken);
 
             var project = await Dispatcher.RunOnDispatcherThreadAsync(
-                () => projectManager.GetLoadedProject(HostProject1.FilePath), CancellationToken.None);
+                () => projectManager.GetLoadedProject(_hostProject1.FilePath), DisposalToken);
 
             var queue = new TestBackgroundDocumentGenerator(Dispatcher)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             // Act & Assert
             await Dispatcher.RunOnDispatcherThreadAsync(
-                () => queue.Enqueue(project.GetDocument(Documents[0].FilePath)), CancellationToken.None);
+                () => queue.Enqueue(project.GetDocument(_documents[0].FilePath)), DisposalToken);
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             Assert.False(queue.HasPendingNotifications, "Worker should have taken all notifications");
 
             await Dispatcher.RunOnDispatcherThreadAsync(
-                () => queue.Enqueue(project.GetDocument(Documents[1].FilePath)), CancellationToken.None);
+                () => queue.Enqueue(project.GetDocument(_documents[1].FilePath)), DisposalToken);
             Assert.True(queue.HasPendingNotifications); // Now we should see the worker restart when it finishes.
 
             // Allow work to complete, which should restart the timer.
@@ -146,7 +146,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private class TestBackgroundDocumentGenerator : BackgroundDocumentGenerator
         {
-            public TestBackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher)
+            public TestBackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+                : base(projectSnapshotManagerDispatcher)
             {
             }
         }

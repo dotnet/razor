@@ -19,14 +19,32 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
-        private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly ClientNotifierServiceBase _languageServer;
+
+        public CodeActionEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _documentMappingService = Mock.Of<RazorDocumentMappingService>(
+                s => s.TryMapToProjectedDocumentRange(
+                    It.IsAny<RazorCodeDocument>(),
+                    It.IsAny<Range>(),
+                    out It.Ref<Range>.IsAny) == false,
+                MockBehavior.Strict);
+
+            _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
+                l => l.SupportsFileManipulation == true,
+                MockBehavior.Strict);
+
+            _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        }
 
         [Fact]
         public async Task Handle_NoDocument()

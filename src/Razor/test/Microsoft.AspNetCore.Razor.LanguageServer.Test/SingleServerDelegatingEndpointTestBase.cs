@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
@@ -35,13 +36,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal TestLanguageServer LanguageServer { get; private set; }
         internal RazorDocumentMappingService DocumentMappingService { get; private set; }
 
+        protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         protected async Task CreateLanguageServerAsync(RazorCodeDocument codeDocument, string razorFilePath)
         {
             var realLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
 
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var csharpDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath(razorFilePath));
-            var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, new ServerCapabilities(), razorSpanMappingService: null).ConfigureAwait(false);
+            var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText,
+                csharpDocumentUri,
+                new ServerCapabilities(),
+                razorSpanMappingService: null,
+                DisposalToken);
+
+            AddDisposable(csharpServer);
+
             await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
 
             DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
@@ -49,9 +63,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 options.SupportsFileManipulation == true &&
                 options.SingleServerSupport == true &&
                 options.CSharpVirtualDocumentSuffix == realLanguageServerFeatureOptions.CSharpVirtualDocumentSuffix &&
-                options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix
-                , MockBehavior.Strict);
-            LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri);
+                options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+                MockBehavior.Strict);
+            LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
             DocumentMappingService = new DefaultRazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
         }
 
@@ -59,13 +73,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             private readonly CSharpTestLspServer _csharpServer;
             private readonly Uri _csharpDocumentUri;
+            private readonly CancellationToken _cancellationToken;
 
             public int RequestCount;
 
-            public TestLanguageServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri)
+            public TestLanguageServer(
+                CSharpTestLspServer csharpServer,
+                Uri csharpDocumentUri,
+                CancellationToken cancellationToken)
             {
                 _csharpServer = csharpServer;
                 _csharpDocumentUri = csharpDocumentUri;
+                _cancellationToken = cancellationToken;
             }
 
             public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -102,7 +121,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, DefinitionResult?>(Methods.TextDocumentDefinitionName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, DefinitionResult?>(
+                    Methods.TextDocumentDefinitionName,
+                    delegatedRequest,
+                    _cancellationToken);
 
                 return result;
             }
@@ -119,7 +141,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, ImplementationResult>(Methods.TextDocumentImplementationName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, ImplementationResult>(
+                    Methods.TextDocumentImplementationName,
+                    delegatedRequest,
+                    _cancellationToken);
 
                 return result;
             }
@@ -136,7 +161,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition,
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(Methods.TextDocumentSignatureHelpName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(
+                    Methods.TextDocumentSignatureHelpName,
+                    delegatedRequest,
+                    _cancellationToken);
 
                 return result;
             }
@@ -154,7 +182,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     NewName = delegatedParams.NewName,
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(
+                    Methods.TextDocumentRenameName,
+                    delegatedRequest,
+                    _cancellationToken);
 
                 return result;
             }
@@ -173,7 +204,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Options = delegatedParams.Options
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(VSInternalMethods.OnAutoInsertName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
+                    VSInternalMethods.OnAutoInsertName,
+                    delegatedRequest,
+                    _cancellationToken);
 
                 return result;
             }
@@ -200,7 +234,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Range = delegatedParams.ProjectedRange,
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, Range>(VSInternalMethods.TextDocumentValidateBreakableRangeName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, Range>(
+                    VSInternalMethods.TextDocumentValidateBreakableRangeName, delegatedRequest, _cancellationToken);
 
                 return result;
             }

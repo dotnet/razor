@@ -6,11 +6,17 @@
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
     public class DefaultDotNetProjectHostTest : ProjectSnapshotManagerDispatcherTestBase
     {
+        public DefaultDotNetProjectHostTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void UpdateRazorHostProject_UnsupportedProjectNoops()
         {

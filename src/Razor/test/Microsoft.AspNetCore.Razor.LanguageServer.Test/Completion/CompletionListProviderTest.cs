@@ -11,66 +11,66 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class CompletionListProviderTest : LanguageServerTestBase
     {
-        public CompletionListProviderTest()
+        private const string SharedTriggerCharacter = "@";
+        private const string CompletionList2OnlyTriggerCharacter = "<";
+        private readonly VSInternalCompletionList _completionList1;
+        private readonly VSInternalCompletionList _completionList2;
+        private readonly RazorCompletionListProvider _razorCompletionProvider;
+        private readonly DelegatedCompletionListProvider _delegatedCompletionProvider;
+        private readonly VSInternalCompletionContext _completionContext;
+        private readonly DocumentContext _documentContext;
+        private readonly VSInternalClientCapabilities _clientCapabilities;
+
+        public CompletionListProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            CompletionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
-            CompletionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
-            RazorCompletionProvider = new TestRazorCompletionListProvider(CompletionList1, new[] { SharedTriggerCharacter, });
-            DelegatedCompletionProvider = new TestDelegatedCompletionListProvider(CompletionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
+            _completionList1 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
+            _completionList2 = new VSInternalCompletionList() { Items = Array.Empty<CompletionItem>() };
+            _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, new[] { SharedTriggerCharacter, }, LoggerFactory);
+            _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
+            _completionContext = new VSInternalCompletionContext();
+            _documentContext = TestDocumentContext.From("C:/path/to/file.cshtml");
+            _clientCapabilities = new VSInternalClientCapabilities();
         }
-
-        private string SharedTriggerCharacter => "@";
-
-        private string CompletionList2OnlyTriggerCharacter => "<";
-
-        private VSInternalCompletionList CompletionList1 { get; }
-
-        private VSInternalCompletionList CompletionList2 { get; }
-
-        private RazorCompletionListProvider RazorCompletionProvider { get; }
-
-        private DelegatedCompletionListProvider DelegatedCompletionProvider { get; }
-
-        private VSInternalCompletionContext CompletionContext { get; } = new VSInternalCompletionContext();
-
-        private DocumentContext DocumentContext => TestDocumentContext.From("C:/path/to/file.cshtml");
-
-        private VSInternalClientCapabilities ClientCapabilities = new VSInternalClientCapabilities();
 
         [Fact]
         public async Task MultipleCompletionLists_Merges()
         {
             // Arrange
-            var provider = new CompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
+            var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 0, _completionContext, _documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            Assert.NotSame(CompletionList1, completionList);
-            Assert.NotSame(CompletionList2, completionList);
+            Assert.NotSame(_completionList1, completionList);
+            Assert.NotSame(_completionList2, completionList);
         }
 
         [Fact]
         public async Task MultipleCompletionLists_DifferentCommitCharacters_OnlyCallsApplicable()
         {
             // Arrange
-            var provider = new CompletionListProvider(RazorCompletionProvider, DelegatedCompletionProvider);
-            CompletionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
-            CompletionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
+            var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider);
+            _completionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
+            _completionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 0, CompletionContext, DocumentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 0, _completionContext, _documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            Assert.Same(CompletionList2, completionList);
+            Assert.Same(_completionList2, completionList);
         }
 
         private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
@@ -101,8 +101,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             private readonly VSInternalCompletionList _completionList;
 
-            public TestRazorCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
-                : base(null, null, TestLoggerFactory.Instance)
+            public TestRazorCompletionListProvider(
+                VSInternalCompletionList completionList,
+                IEnumerable<string> triggerCharacters,
+                ILoggerFactory loggerFactory)
+                : base(null, null, loggerFactory)
             {
                 _completionList = completionList;
                 TriggerCharacters = triggerCharacters.ToImmutableHashSet();

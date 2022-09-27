@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -24,6 +24,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     [UseExportProvider]
     public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
+        public DefaultRazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         #region CSharp
         [Fact]
         public async Task GetSemanticTokens_CSharp_RazorIfNotReady()
@@ -672,7 +677,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var documentContext = documentContexts.Peek();
 
             // Act
-            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, DisposalToken);
 
             // Assert
             AssertSemanticTokensMatchesBaseline(tokens?.Data);
@@ -685,12 +690,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
                 .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
-                    RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(csharpTokens));
+                    RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
+                    It.IsAny<SemanticTokensParams>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(csharpTokens);
 
             var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, LoggerFactory);
-            var loggingFactory = TestLoggerFactory.Instance;
 
             var testClient = new TestClient();
             var errorReporter = new LanguageServerErrorReporter(LoggerFactory);

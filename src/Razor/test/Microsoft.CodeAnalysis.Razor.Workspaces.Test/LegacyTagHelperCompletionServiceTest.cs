@@ -10,11 +10,17 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class LegacyTagHelperCompletionServiceTest
+    public class LegacyTagHelperCompletionServiceTest : TestBase
     {
+        public LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
         public void GetAttributeCompletions_OnlyIndexerNamePrefix()

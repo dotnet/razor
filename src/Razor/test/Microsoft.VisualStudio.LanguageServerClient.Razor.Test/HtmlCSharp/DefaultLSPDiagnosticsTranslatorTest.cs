@@ -14,11 +14,17 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DefaultLSPDiagnosticsTranslatorTest : HandlerTestBase
     {
+        public DefaultLSPDiagnosticsTranslatorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task ProcessDiagnosticsAsync_ReturnsResponse()
         {
@@ -29,13 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(ri => ri.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
-                It.IsAny<ITextBuffer>(),
-                LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
-                RazorLSPConstants.RazorLanguageServerName,
-                It.IsAny<RazorDiagnosticsParams>(),
-                It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvocationResponse<RazorDiagnosticsResponse>("TestLanguageClient", response)));
+            requestInvoker
+                .Setup(ri => ri.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
+                    It.IsAny<ITextBuffer>(),
+                    LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
+                    RazorLSPConstants.RazorLanguageServerName,
+                    It.IsAny<RazorDiagnosticsParams>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ReinvocationResponse<RazorDiagnosticsResponse>("TestLanguageClient", response));
             var documentUri = new Uri("file://C:/path/to/file.razor");
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, new TestLSPDocumentSnapshot(documentUri, version: 0, "The content"));
@@ -46,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 RazorLanguageKind.CSharp,
                 documentUri,
                 Array.Empty<Diagnostic>(),
-                CancellationToken.None).ConfigureAwait(false);
+                DisposalToken);
 
             // Assert
             Assert.Equal(5, diagnosticsResponse.HostDocumentVersion);

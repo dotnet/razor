@@ -15,11 +15,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
     public class WrapWithTagEndpointTest : LanguageServerTestBase
     {
+        public WrapWithTagEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_Html_ReturnsResult()
         {
@@ -47,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -81,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -109,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -137,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -163,9 +169,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var uri = new Uri("file://path.razor");
             var factory = CreateDocumentContextFactory(uri, input);
-            var context = await factory.TryCreateAsync(uri, CancellationToken.None);
+            var context = await factory.TryCreateAsync(uri, DisposalToken);
             Assert.NotNull(context);
-            var inputSourceText = await context!.GetSourceTextAsync(CancellationToken.None);
+            var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
 
             var computedEdits = new TextEdit[]
             {
@@ -186,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 }
             };
 
-            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, CancellationToken.None);
+            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
             Assert.Same(computedEdits, edits);
 
             var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
@@ -212,9 +218,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var uri = new Uri("file://path.razor");
             var factory = CreateDocumentContextFactory(uri, input);
-            var context = await factory.TryCreateAsync(uri, CancellationToken.None);
+            var context = await factory.TryCreateAsync(uri, DisposalToken);
             Assert.NotNull(context);
-            var inputSourceText = await context!.GetSourceTextAsync(CancellationToken.None);
+            var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
 
             var computedEdits = new TextEdit[]
             {
@@ -236,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 }
             };
 
-            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, CancellationToken.None);
+            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
             Assert.NotSame(computedEdits, edits);
 
             var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
@@ -262,9 +268,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             var uri = new Uri("file://path.razor");
             var factory = CreateDocumentContextFactory(uri, input);
-            var context = await factory.TryCreateAsync(uri, CancellationToken.None);
+            var context = await factory.TryCreateAsync(uri, DisposalToken);
             Assert.NotNull(context);
-            var inputSourceText = await context!.GetSourceTextAsync(CancellationToken.None);
+            var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
 
             var computedEdits = new TextEdit[]
             {
@@ -286,7 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 }
             };
 
-            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, CancellationToken.None);
+            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
             Assert.NotSame(computedEdits, edits);
 
             var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));

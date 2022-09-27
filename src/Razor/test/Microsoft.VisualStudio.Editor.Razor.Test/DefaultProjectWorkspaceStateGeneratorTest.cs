@@ -12,44 +12,43 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public DefaultProjectWorkspaceStateGeneratorTest()
+        private readonly IReadOnlyList<TagHelperDescriptor> _resolvableTagHelpers;
+        private readonly Workspace _workspace;
+        private readonly Project _workspaceProject;
+        private readonly DefaultProjectSnapshot _projectSnapshot;
+        private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
+
+        public DefaultProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var tagHelperResolver = new TestTagHelperResolver();
             tagHelperResolver.TagHelpers.Add(TagHelperDescriptorBuilder.Create("ResolvableTagHelper", "TestAssembly").Build());
-            ResolvableTagHelpers = tagHelperResolver.TagHelpers;
+            _resolvableTagHelpers = tagHelperResolver.TagHelpers;
             var workspaceServices = new List<IWorkspaceService>() { tagHelperResolver };
             var testServices = TestServices.Create(workspaceServices, Enumerable.Empty<ILanguageService>());
-            Workspace = TestWorkspace.Create(testServices);
+            _workspace = TestWorkspace.Create(testServices);
+            AddDisposable(_workspace);
             var projectId = ProjectId.CreateNewId("Test");
-            var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
+            var solution = _workspace.CurrentSolution.AddProject(ProjectInfo.Create(
                 projectId,
                 VersionStamp.Default,
                 "Test",
                 "Test",
                 LanguageNames.CSharp,
                 TestProjectData.SomeProject.FilePath));
-            WorkspaceProject = solution.GetProject(projectId);
-            ProjectSnapshot = new DefaultProjectSnapshot(ProjectState.Create(Workspace.Services, TestProjectData.SomeProject));
-            ProjectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(new[]
+            _workspaceProject = solution.GetProject(projectId);
+            _projectSnapshot = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, TestProjectData.SomeProject));
+            _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(new[]
             {
                 TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
             }, default);
         }
-
-        private IReadOnlyList<TagHelperDescriptor> ResolvableTagHelpers { get; }
-
-        private Workspace Workspace { get; }
-
-        private Project WorkspaceProject { get; }
-
-        private DefaultProjectSnapshot ProjectSnapshot { get; }
-
-        private ProjectWorkspaceState ProjectWorkspaceStateWithTagHelpers { get; }
 
         [UIFact]
         public void Dispose_MakesUpdateNoop()
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
                 // Act
                 stateGenerator.Dispose();
-                stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
+                stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
                 // Assert
                 Assert.Empty(stateGenerator.Updates);
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
                 // Act
-                stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
+                stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
                 // Assert
                 var update = Assert.Single(stateGenerator.Updates);
@@ -92,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
-                stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
+                stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
                 var initialUpdate = stateGenerator.Updates.Single().Value;
 
                 // Act
-                stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
+                stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
                 // Assert
                 Assert.True(initialUpdate.Cts.IsCancellationRequested);
@@ -110,19 +109,19 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
-                var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
+                var projectManager = new TestProjectSnapshotManager(Dispatcher, _workspace);
                 stateGenerator.Initialize(projectManager);
-                projectManager.ProjectAdded(ProjectSnapshot.HostProject);
-                projectManager.ProjectWorkspaceStateChanged(ProjectSnapshot.FilePath, ProjectWorkspaceStateWithTagHelpers);
+                projectManager.ProjectAdded(_projectSnapshot.HostProject);
+                projectManager.ProjectWorkspaceStateChanged(_projectSnapshot.FilePath, _projectWorkspaceStateWithTagHelpers);
 
                 // Act
-                stateGenerator.Update(workspaceProject: null, ProjectSnapshot, CancellationToken.None);
+                stateGenerator.Update(workspaceProject: null, _projectSnapshot, DisposalToken);
 
                 // Jump off the UI thread so the background work can complete.
                 await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
                 // Assert
-                var newProjectSnapshot = projectManager.GetLoadedProject(ProjectSnapshot.FilePath);
+                var newProjectSnapshot = projectManager.GetLoadedProject(_projectSnapshot.FilePath);
                 Assert.Empty(newProjectSnapshot.TagHelpers);
             }
         }
@@ -134,19 +133,19 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
-                var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
+                var projectManager = new TestProjectSnapshotManager(Dispatcher, _workspace);
                 stateGenerator.Initialize(projectManager);
-                projectManager.ProjectAdded(ProjectSnapshot.HostProject);
+                projectManager.ProjectAdded(_projectSnapshot.HostProject);
 
                 // Act
-                stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
+                stateGenerator.Update(_workspaceProject, _projectSnapshot, DisposalToken);
 
                 // Jump off the UI thread so the background work can complete.
                 await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
                 // Assert
-                var newProjectSnapshot = projectManager.GetLoadedProject(ProjectSnapshot.FilePath);
-                Assert.Equal(ResolvableTagHelpers, newProjectSnapshot.TagHelpers);
+                var newProjectSnapshot = projectManager.GetLoadedProject(_projectSnapshot.FilePath);
+                Assert.Equal(_resolvableTagHelpers, newProjectSnapshot.TagHelpers);
             }
         }
     }

@@ -7,12 +7,19 @@ using System;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class FallbackConfigurationProviderTest : OmniSharpTestBase
     {
-        public Version MvcAssemblyVersion { get; } = Version.Parse("2.1.0");
+        private readonly Version _mvcAssemblyVersion;
+
+        public FallbackConfigurationProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _mvcAssemblyVersion = Version.Parse("2.1.0");
+        }
 
         [Fact]
         public void TryResolveConfiguration_NoCoreCapability_ReturnsFalse()
@@ -21,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var projectCapabilities = Array.Empty<string>();
             var projectInstance = new ProjectInstance(ProjectRootElement.Create());
             var context = new ProjectConfigurationProviderContext(projectCapabilities, projectInstance);
-            var provider = new TestLegacyConfigurationProvider(MvcAssemblyVersion);
+            var provider = new TestLegacyConfigurationProvider(_mvcAssemblyVersion);
 
             // Act
             var result = provider.TryResolveConfiguration(context, out var configuration);
@@ -42,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             };
             var projectInstance = new ProjectInstance(ProjectRootElement.Create());
             var context = new ProjectConfigurationProviderContext(projectCapabilities, projectInstance);
-            var provider = new TestLegacyConfigurationProvider(MvcAssemblyVersion);
+            var provider = new TestLegacyConfigurationProvider(_mvcAssemblyVersion);
 
             // Act
             var result = provider.TryResolveConfiguration(context, out var configuration);
@@ -57,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             // Arrange
             var context = BuildContext("/some/path/to/some.dll");
-            var provider = new TestLegacyConfigurationProvider(MvcAssemblyVersion);
+            var provider = new TestLegacyConfigurationProvider(_mvcAssemblyVersion);
 
             // Act
             var result = provider.TryResolveConfiguration(context, out var configuration);
@@ -87,8 +94,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             // Arrange
             var context = BuildContext("/some/path/to/some.dll", "/another/path/to/" + FallbackConfigurationProvider.MvcAssemblyFileName);
-            var provider = new TestLegacyConfigurationProvider(MvcAssemblyVersion);
-            var expectedConfiguration = FallbackRazorConfiguration.SelectConfiguration(MvcAssemblyVersion);
+            var provider = new TestLegacyConfigurationProvider(_mvcAssemblyVersion);
+            var expectedConfiguration = FallbackRazorConfiguration.SelectConfiguration(_mvcAssemblyVersion);
 
             // Act
             var result = provider.TryResolveConfiguration(context, out var projectConfiguration);

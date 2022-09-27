@@ -5,33 +5,35 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultLSPDocumentTest
+    public class DefaultLSPDocumentTest : TestBase
     {
-        public DefaultLSPDocumentTest()
+        private readonly Uri _uri;
+        private readonly IContentType _notInertContentType;
+
+        public DefaultLSPDocumentTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Uri = new Uri("C:/path/to/file.razor__virtual.cs");
-            NotInertContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType("inert") == false, MockBehavior.Strict);
+            _uri = new Uri("C:/path/to/file.razor__virtual.cs");
+            _notInertContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType("inert") == false, MockBehavior.Strict);
         }
-
-        private Uri Uri { get; }
-
-        private IContentType NotInertContentType { get; }
 
         [Fact]
         public void InertTextBuffer_DoesNotCreateSnapshot()
         {
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-            textBuffer.ChangeContentType(NotInertContentType, editTag: null);
-            using var document = new DefaultLSPDocument(Uri, textBuffer, virtualDocuments: Array.Empty<VirtualDocument>());
+            textBuffer.ChangeContentType(_notInertContentType, editTag: null);
+            using var document = new DefaultLSPDocument(_uri, textBuffer, virtualDocuments: Array.Empty<VirtualDocument>());
             var originalSnapshot = document.CurrentSnapshot;
             textBuffer.ChangeContentType(TestInertContentType.Instance, editTag: null);
 
@@ -50,8 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-            textBuffer.ChangeContentType(NotInertContentType, editTag: null);
-            using var document = new DefaultLSPDocument(Uri, textBuffer, virtualDocuments: Array.Empty<VirtualDocument>());
+            textBuffer.ChangeContentType(_notInertContentType, editTag: null);
+            using var document = new DefaultLSPDocument(_uri, textBuffer, virtualDocuments: Array.Empty<VirtualDocument>());
             var originalSnapshot = document.CurrentSnapshot;
 
             // Act
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
             var virtualDocument = new TestVirtualDocument();
-            using var document = new DefaultLSPDocument(Uri, textBuffer, new[] { virtualDocument });
+            using var document = new DefaultLSPDocument(_uri, textBuffer, new[] { virtualDocument });
             var changes = Array.Empty<ITextChange>();
             var originalSnapshot = document.CurrentSnapshot;
 

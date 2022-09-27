@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
@@ -23,18 +24,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         private readonly Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)> _uriToVersionAndCodeDocumentMap;
         private readonly DefaultRazorDocumentMappingService _documentMappingService;
 
-        public TestLSPDocumentMappingProvider()
+        public TestLSPDocumentMappingProvider(ILoggerFactory loggerFactory)
         {
             _uriToVersionAndCodeDocumentMap = new();
-            _documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
+            _documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
         }
 
         public int TextEditRemapCount { get; set; } = 0;
 
-        public TestLSPDocumentMappingProvider(Dictionary<Uri, (int, RazorCodeDocument)> uriToVersionAndCodeDocumentMap)
+        public TestLSPDocumentMappingProvider(Dictionary<Uri, (int, RazorCodeDocument)> uriToVersionAndCodeDocumentMap, ILoggerFactory loggerFactory)
         {
             _uriToVersionAndCodeDocumentMap = uriToVersionAndCodeDocumentMap;
-            _documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
+            _documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
         }
 
         public override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(

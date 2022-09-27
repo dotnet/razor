@@ -12,17 +12,19 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 {
     [UseExportProvider]
-    public class RazorIntegrationTestBase
+    public class RazorIntegrationTestBase : TestBase
     {
         internal const string ArbitraryWindowsPath = "x:\\dir\\subdir\\Test";
         internal const string ArbitraryMacLinuxPath = "/dir/subdir/Test";
@@ -58,7 +60,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             CSharpParseOptions = new CSharpParseOptions(LanguageVersion.Preview);
         }
 
-        public RazorIntegrationTestBase()
+        public RazorIntegrationTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             AdditionalSyntaxTrees = new List<SyntaxTree>();
             AdditionalRazorItems = new List<RazorProjectItem>();

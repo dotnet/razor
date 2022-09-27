@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 {
@@ -36,7 +37,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         private readonly RenameEndpoint _endpoint;
         private DocumentContextFactory _documentContextFactory;
 
-        public RenameEndpointTest()
+        public RenameEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             _endpoint = CreateEndpoint();
         }
@@ -61,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -85,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -136,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -160,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -184,7 +186,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -208,7 +210,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -232,7 +234,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -256,7 +258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -329,7 +331,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -383,7 +385,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -426,15 +428,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServerMock
                 .Setup(c => c.SendRequestAsync<IDelegatedParams, WorkspaceEdit>(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(delegatedEdit));
+                .ReturnsAsync(delegatedEdit);
 
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingServiceMock
                 .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-                .Returns(Protocol.RazorLanguageKind.CSharp);
+                .Returns(RazorLanguageKind.CSharp);
             documentMappingServiceMock
                 .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(delegatedEdit));
+                .ReturnsAsync(delegatedEdit);
 
             var projectedPosition = new Position(1, 1);
             var projectedIndex = 1;
@@ -457,7 +459,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Same(delegatedEdit, result);
@@ -490,7 +492,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -498,7 +500,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
         private Task<DocumentContext> GetDocumentContextAsync(Uri file)
         {
-            return _documentContextFactory.TryCreateAsync(file, CancellationToken.None);
+            return _documentContextFactory.TryCreateAsync(file, DisposalToken);
         }
 
         private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)
@@ -648,7 +650,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
-            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, _documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);
+            var endpoint = new RenameEndpoint(
+                projectSnapshotManagerDispatcher,
+                _documentContextFactory,
+                searchEngine,
+                projectSnapshotManagerAccessor,
+                languageServerFeatureOptions,
+                documentMappingService,
+                languageServer,
+                LoggerFactory);
+
             return endpoint;
         }
     }

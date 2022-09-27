@@ -6,17 +6,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Moq;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Xunit;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -25,7 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly RazorVSInternalCodeAction[] _supportedCodeActions;
         private readonly RazorVSInternalCodeAction[] _supportedImplicitExpressionCodeActions;
 
-        public DefaultCSharpCodeActionProviderTest()
+        public DefaultCSharpCodeActionProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             _supportedCodeActions = DefaultCSharpCodeActionProvider
                 .SupportedDefaultCodeActionNames

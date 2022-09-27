@@ -6,11 +6,17 @@
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultWorkspaceEditorSettingsTest : ProjectSnapshotManagerDispatcherTestBase
     {
+        public DefaultWorkspaceEditorSettingsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void InitialSettingsAreEditorSettingsManagerDefault()
         {

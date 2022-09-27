@@ -7,11 +7,17 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
     {
+        public DefaultDocumentVersionCacheTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void MarkAsLatestVersion_UntrackedDocument_Noops()
         {

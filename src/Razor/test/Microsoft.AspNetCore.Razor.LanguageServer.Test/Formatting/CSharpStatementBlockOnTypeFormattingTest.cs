@@ -11,8 +11,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CSharpStatementBlockOnTypeFormattingTest : FormattingTestBase
     {
-        public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper output)
-            : base(output)
+        public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 

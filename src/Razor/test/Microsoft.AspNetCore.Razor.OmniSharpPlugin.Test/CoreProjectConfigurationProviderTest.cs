@@ -7,11 +7,17 @@ using System;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class CoreProjectConfigurationProviderTest : OmniSharpTestBase
     {
+        public CoreProjectConfigurationProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void HasRazorCoreCapability_NoCapabilities_ReturnsFalse()
         {

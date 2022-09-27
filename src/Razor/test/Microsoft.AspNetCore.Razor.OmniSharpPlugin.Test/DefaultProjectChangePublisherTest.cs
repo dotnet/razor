@@ -8,12 +8,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class DefaultProjectChangePublisherTest : OmniSharpTestBase
     {
+        public DefaultProjectChangePublisherTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Theory]
         [InlineData(OmniSharpProjectChangeKind.DocumentAdded)]
         [InlineData(OmniSharpProjectChangeKind.DocumentRemoved)]
@@ -147,10 +153,10 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var publisher = new TestProjectChangePublisher(LoggerFactory);
             publisher.Initialize(snapshotManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectAdded(hostProject));
 
             // Act & Assert
-            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectRemoved(hostProject));
         }
 
         private class TestProjectChangePublisher : DefaultProjectChangePublisher
