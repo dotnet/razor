@@ -45,7 +45,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation
             }
 
             // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
-
             return colorPresentation;
         }
     }
