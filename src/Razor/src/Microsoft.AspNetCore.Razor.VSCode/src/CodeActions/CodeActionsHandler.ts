@@ -20,8 +20,7 @@ export class CodeActionsHandler {
     constructor(
         private readonly documentManager: RazorDocumentManager,
         private readonly serverClient: RazorLanguageServerClient,
-        private readonly logger: RazorLogger) {
-    }
+        private readonly logger: RazorLogger) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
