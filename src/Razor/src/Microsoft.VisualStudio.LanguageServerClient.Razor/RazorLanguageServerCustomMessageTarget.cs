@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
@@ -78,6 +79,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Called by the Razor Language Server to provide document colors from the platform.
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<IReadOnlyList<ColorInformation>> ProvideHtmlDocumentColorAsync(DocumentColorParams documentColorParams, CancellationToken cancellationToken);
+
+        // Called by the Razor Language Server to provide color presentation from the platform.
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(ColorPresentationParams documentColorParams, CancellationToken cancellationToken);
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<RazorFoldingRangeResponse?> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken);
