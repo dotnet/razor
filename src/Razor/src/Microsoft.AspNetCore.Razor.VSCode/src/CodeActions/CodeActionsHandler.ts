@@ -13,7 +13,6 @@ import { SerializableCodeActionParams } from '../RPC/SerializableCodeActionParam
 import { convertRangeFromSerializable } from '../RPC/SerializableRange';
 
 export class CodeActionsHandler {
-
     private static readonly provideCodeActionsEndpoint = 'razor/provideCodeActions';
     private codeActionRequestType: RequestType<SerializableCodeActionParams, RazorCodeAction[], any> = new RequestType(CodeActionsHandler.provideCodeActionsEndpoint);
     private emptyCodeActionResponse: RazorCodeAction[] = [];
@@ -21,8 +20,7 @@ export class CodeActionsHandler {
     constructor(
         private readonly documentManager: RazorDocumentManager,
         private readonly serverClient: RazorLanguageServerClient,
-        private readonly logger: RazorLogger) {
-    }
+        private readonly logger: RazorLogger) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises

@@ -9,8 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     internal class RazorDocumentRangeFormattingResponse
     {
-#pragma warning disable CA1819 // Properties should not return arrays
         public TextEdit[] Edits { get; set; }
-#pragma warning restore CA1819 // Properties should not return arrays
     }
 }

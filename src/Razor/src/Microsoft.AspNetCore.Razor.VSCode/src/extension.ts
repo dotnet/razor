@@ -16,6 +16,7 @@ import { DocumentColorHandler } from './DocumentColor/DocumentColorHandler';
 import { RazorDocumentHighlightProvider } from './DocumentHighlight/RazorDocumentHighlightProvider';
 import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
 import { FoldingRangeHandler } from './Folding/FoldingRangeHandler';
+import { FormattingHandler } from './Formatting/FormattingHandler';
 import { HostEventStream } from './HostEventStream';
 import { RazorHtmlFeature } from './Html/RazorHtmlFeature';
 import { IEventEmitterFactory } from './IEventEmitterFactory';
@@ -90,6 +91,10 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServerClient,
                 logger);
             const foldingRangeHandler = new FoldingRangeHandler(languageServerClient);
+            const formattingHandler = new FormattingHandler(
+                documentManager,
+                languageServerClient,
+                logger);
             const razorServerReadyHandler = new RazorServerReadyHandler(languageServerClient);
 
             const completionItemProvider = new RazorCompletionItemProvider(
@@ -191,6 +196,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             codeActionHandler.register();
             documentColorHandler.register();
             foldingRangeHandler.register();
+            formattingHandler.register();
             semanticTokenHandler.register();
         });
 

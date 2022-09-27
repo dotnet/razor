@@ -18,8 +18,7 @@ export class SemanticTokensRangeHandler {
         new SemanticTokensResponse(new Array<number>(), ''),
         null);
 
-    constructor(private readonly serverClient: RazorLanguageServerClient) {
-    }
+    constructor(private readonly serverClient: RazorLanguageServerClient) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
