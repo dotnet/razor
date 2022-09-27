@@ -9,6 +9,7 @@ import { ExtensionContext } from 'vscode';
 import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
 import { CodeActionsHandler } from './CodeActions/CodeActionsHandler';
 import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
+import { ColorPresentationHandler } from './ColorPresentation/ColorPresentationHandler';
 import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
 import { ReportIssueCommand } from './Diagnostics/ReportIssueCommand';
@@ -86,6 +87,10 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServerClient,
                 logger);
             const semanticTokenHandler = new SemanticTokensRangeHandler(languageServerClient);
+            const colorPresentationHandler = new ColorPresentationHandler(
+                documentManager,
+                languageServerClient,
+                logger);
             const documentColorHandler = new DocumentColorHandler(
                 documentManager,
                 languageServerClient,
@@ -194,6 +199,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             razorFormattingFeature.register();
             razorCodeActionRunner.register();
             codeActionHandler.register();
+            colorPresentationHandler.register();
             documentColorHandler.register();
             foldingRangeHandler.register();
             formattingHandler.register();

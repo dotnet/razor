@@ -19,6 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorProvideHtmlDocumentColorEndpoint = "razor/provideHtmlDocumentColor";
 
+        public const string RazorProvideHtmlColorPresentationEndpoint = "razor/provideHtmlColorPresentation";
+
         public const string RazorServerReadyEndpoint = "razor/serverReady";
 
         public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
