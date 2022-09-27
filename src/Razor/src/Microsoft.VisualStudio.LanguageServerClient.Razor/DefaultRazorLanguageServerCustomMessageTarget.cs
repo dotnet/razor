@@ -488,7 +488,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentColorParams));
             }
 
-            var htmlDoc = GetHtmlDocumentSnapshsot(documentColorParams.TextDocument.Uri);
+            var htmlDoc = GetHtmlDocumentSnapshot(documentColorParams.TextDocument.Uri);
             if (htmlDoc is null)
             {
                 return Array.Empty<ColorInformation>();
@@ -533,7 +533,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return csharpDoc;
         }
 
-        private HtmlVirtualDocumentSnapshot? GetHtmlDocumentSnapshsot(Uri uri)
+        private HtmlVirtualDocumentSnapshot? GetHtmlDocumentSnapshot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
             var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));
@@ -735,7 +735,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             }
 
-            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
+            var htmlDocument = GetHtmlDocumentSnapshot(foldingRangeParams.TextDocument.Uri);
             var htmlRanges = new List<FoldingRange>();
             var htmlTask = Task.CompletedTask;
             if (htmlDocument is not null)
