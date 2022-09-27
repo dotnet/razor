@@ -20,8 +20,7 @@ export class DocumentColorHandler {
     constructor(
         private readonly documentManager: RazorDocumentManager,
         private readonly serverClient: RazorLanguageServerClient,
-        private readonly logger: RazorLogger) {
-    }
+        private readonly logger: RazorLogger) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
@@ -34,7 +33,7 @@ export class DocumentColorHandler {
         documentColorParams: SerializableDocumentColorParams,
         cancellationToken: vscode.CancellationToken) {
         try {
-            const razorDocumentUri = vscode.Uri.parse(`${documentColorParams.textDocument.uri}`, true);
+            const razorDocumentUri = vscode.Uri.parse(documentColorParams.textDocument.uri, true);
             const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
             if (razorDocument === undefined) {
                 this.logger.logWarning(`Could not find Razor document ${razorDocumentUri}; returning empty color information.`);
