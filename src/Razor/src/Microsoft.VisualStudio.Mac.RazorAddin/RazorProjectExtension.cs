@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,7 +15,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
     {
         private readonly object _lock = new();
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         public RazorProjectExtension()
         {

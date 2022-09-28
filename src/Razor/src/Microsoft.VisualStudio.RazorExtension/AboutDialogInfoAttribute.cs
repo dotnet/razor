@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using System.Reflection;
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.RazorExtension
         }
 
         // This is a resource ID it should start with #
-        public string IconResourceID { get; set; }
+        public string? IconResourceID { get; set; }
 
         private string GetKeyName()
         {
@@ -44,23 +42,21 @@ namespace Microsoft.VisualStudio.RazorExtension
             var attribute = typeof(AboutDialogInfoAttribute).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
             var version = attribute?.InformationalVersion;
 
-            using (var key = context.CreateKey(GetKeyName()))
+            using var key = context.CreateKey(GetKeyName());
+            key.SetValue(null, _nameId);
+            key.SetValue("Package", Guid.Parse(_packageGuid).ToString("B", CultureInfo.InvariantCulture));
+            key.SetValue("ProductDetails", _detailsId);
+            key.SetValue("UseInterface", false);
+            key.SetValue("UseVSProductID", false);
+
+            if (version != null)
             {
-                key.SetValue(null, _nameId);
-                key.SetValue("Package", Guid.Parse(_packageGuid).ToString("B", CultureInfo.InvariantCulture));
-                key.SetValue("ProductDetails", _detailsId);
-                key.SetValue("UseInterface", false);
-                key.SetValue("UseVSProductID", false);
+                key.SetValue("PID", version);
+            }
 
-                if (version != null)
-                {
-                    key.SetValue("PID", version);
-                }
-
-                if (IconResourceID != null)
-                {
-                    key.SetValue("LogoID", IconResourceID);
-                }
+            if (IconResourceID != null)
+            {
+                key.SetValue("LogoID", IconResourceID);
             }
         }
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         private class SerializedProjectSnapshot : ProjectSnapshot
         {
-            public SerializedProjectSnapshot(string filePath, RazorConfiguration configuration, string rootNamespace)
+            public SerializedProjectSnapshot(string filePath, RazorConfiguration? configuration, string? rootNamespace)
             {
                 FilePath = filePath;
                 Configuration = configuration;
@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 Version = VersionStamp.Default;
             }
 
-            public override RazorConfiguration Configuration { get; }
+            public override RazorConfiguration? Configuration { get; }
 
             public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
             public override string FilePath { get; }
 
-            public override string RootNamespace { get; }
+            public override string? RootNamespace { get; }
 
             public override VersionStamp Version { get; }
 

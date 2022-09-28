@@ -112,6 +112,12 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         // Folding Range Providers
         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
 
+        // Get the DefaultSession for telemetry. This is set by VS with
+        // TelemetryService.SetDefaultSession and provides the correct
+        // appinsights keys etc
+        services.AddSingleton<ITelemetryReporter>(provider =>
+            new TelemetryReporter(ImmutableArray.Create(TelemetryService.DefaultSession), provider.GetRequiredService<ILoggerFactory>()));
+
         AddHandlers(services);
 
         var lspServices = new LspServices(services);

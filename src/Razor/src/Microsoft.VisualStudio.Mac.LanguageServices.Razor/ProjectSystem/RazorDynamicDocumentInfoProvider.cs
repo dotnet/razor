@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _dynamicFileInfoProvider.Updated += InnerUpdated;
         }
 
-        public event Action<DocumentInfo> Updated;
+        public event Action<DocumentInfo>? Updated;
 
         public DocumentInfo GetDynamicDocumentInfo(ProjectId projectId, string projectFilePath, string filePath)
         {
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     throw new ArgumentNullException(nameof(current));
                 }
 
-                Current = current;
+                _current = current;
                 Lock = new object();
             }
 
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 lock (Lock)
                 {
-                    return $"{Current.FilePath} - {Current.TextLoader.GetType()}";
+                    return $"{Current.FilePath} - {(Current.TextLoader is null ? "null" : Current.TextLoader.GetType())}";
                 }
             }
         }

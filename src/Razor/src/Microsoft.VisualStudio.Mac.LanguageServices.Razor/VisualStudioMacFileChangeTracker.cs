@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,7 +15,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private readonly string _normalizedFilePath;
         private bool _listening;
 
-        public override event EventHandler<FileChangeEventArgs> Changed;
+        public override event EventHandler<FileChangeEventArgs>? Changed;
 
         public VisualStudioMacFileChangeTracker(
             string filePath,

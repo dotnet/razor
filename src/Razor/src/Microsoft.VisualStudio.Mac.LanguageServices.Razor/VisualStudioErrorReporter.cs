@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -42,7 +40,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 exception);
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot project)
+        public override void ReportError(Exception exception, ProjectSnapshot? project)
         {
             if (exception is null)
             {

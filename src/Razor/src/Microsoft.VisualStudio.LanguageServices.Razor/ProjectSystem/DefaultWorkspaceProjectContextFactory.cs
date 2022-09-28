@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 // Temporary code until we get access to these APIs
 #if WORKSPACE_PROJECT_CONTEXT_FACTORY
 
@@ -30,11 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         private class WorkspaceProjectContext : IWorkspaceProjectContext
         {
-            public string DisplayName { get; set; }
-            public string ProjectFilePath { get; set; }
+            public string? DisplayName { get; set; }
+            public string? ProjectFilePath { get; set; }
             public Guid Guid { get; set; }
             public bool LastDesignTimeBuildSucceeded { get; set; }
-            public string BinOutputPath { get; set; }
+            public string? BinOutputPath { get; set; }
 
             public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
             {
@@ -56,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
             {
             }
 
-            public void AddDynamicSourceFile(string filePath, IEnumerable<string> folderNames = null)
+            public void AddDynamicSourceFile(string filePath, IEnumerable<string>? folderNames = null)
             {
             }
 

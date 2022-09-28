@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken = default)
             => RazorBrokeredServiceImplementation.RunServiceAsync(cancellationToken => GetTagHelpersCoreAsync(solutionInfo, projectHandle, factoryTypeName, cancellationToken), cancellationToken);
 
-        public ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, int lastResultId, CancellationToken cancellationToken)
+        public ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, int lastResultId, CancellationToken cancellationToken)
             => RazorBrokeredServiceImplementation.RunServiceAsync(cancellationToken => GetTagHelpersDeltaCoreAsync(solutionInfo, projectHandle, factoryTypeName, lastResultId, cancellationToken), cancellationToken);
 
-        private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken)
+        private async ValueTask<TagHelperResolutionResult> GetTagHelpersCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, CancellationToken cancellationToken)
         {
             if (projectHandle is null)
             {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             return resolutionResult;
         }
 
-        public async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, int lastResultId, CancellationToken cancellationToken)
+        public async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, int lastResultId, CancellationToken cancellationToken)
         {
             var tagHelperResolutionResult = await GetTagHelpersCoreAsync(solutionInfo, projectHandle, factoryTypeName, cancellationToken).ConfigureAwait(false);
             var currentTagHelpers = tagHelperResolutionResult.Descriptors;

@@ -77,7 +77,7 @@
     <MicrosoftVisualStudioShellPackagesVersion>17.2.32330.158</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.3.133-preview</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.4.0-2.22424.2</RoslynPackageVersion>
-    <VisualStudioLanguageServerProtocolVersion>17.4.1004-preview</VisualStudioLanguageServerProtocolVersion>
+    <VisualStudioLanguageServerProtocolVersion>17.4.1008-preview</VisualStudioLanguageServerProtocolVersion>
     <MicrosoftNetCompilersToolsetVersion>4.4.0-1.final</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.4.0-3.22463.10</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
   </PropertyGroup>
@@ -111,6 +111,7 @@
     <MicrosoftVisualStudioInteropPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioInteropPackageVersion>
     <MicrosoftInternalVisualStudioInteropPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioInteropPackageVersion>
     <MicrosoftVisualStudioRpcContractsPackageVersion>17.3.3-alpha</MicrosoftVisualStudioRpcContractsPackageVersion>
+    <MicrosoftVisualStudioTelemetryVersion>16.4.137</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTextDataPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextDataPackageVersion>
     <MicrosoftVisualStudioTextImplementationPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextImplementationPackageVersion>
     <MicrosoftVisualStudioTextLogicPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextLogicPackageVersion>

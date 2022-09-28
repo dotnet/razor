@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -26,7 +25,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _liveShareProjectPathProvider = liveShareProjectPathProvider;
         }
 
-        public override bool TryGetProjectPath(ITextBuffer textBuffer, out string filePath)
+        public override bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
         {
             if (textBuffer is null)
             {

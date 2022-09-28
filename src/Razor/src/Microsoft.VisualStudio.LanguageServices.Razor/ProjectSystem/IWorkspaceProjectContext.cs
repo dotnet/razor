@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 // Temporary code until we get access to these APIs
 #if WORKSPACE_PROJECT_CONTEXT_FACTORY
 
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Files.
         void AddSourceFile(string filePath, bool isInCurrentContext, IEnumerable<string> folderNames, SourceCodeKind sourceCodeKind);
-        void AddDynamicSourceFile(string filePath, IEnumerable<string> folderNames = null);
+        void AddDynamicSourceFile(string filePath, IEnumerable<string>? folderNames = null);
         void RemoveSourceFile(string filePath);
         void RemoveDynamicSourceFile(string filePath);
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
