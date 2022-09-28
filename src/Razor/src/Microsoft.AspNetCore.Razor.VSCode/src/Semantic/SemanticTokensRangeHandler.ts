@@ -31,8 +31,10 @@ export class SemanticTokensRangeHandler {
         semanticTokensParams: SerializableSemanticTokensParams,
         cancellationToken: vscode.CancellationToken): Promise<ProvideSemanticTokensResponse> {
 
-        // This is currently a No-Op because we don't have a way to get the semantic tokens from CSharp.
-        // Other functions accomplish this with `vscode.execute<Blank>Provider`, but that doesn't exiset for Semantic Tokens yet because it's still not an official part of the spec.
+        // This is currently a no-op since (1) the default C# semantic tokens experience is already powerful and
+        // (2) there seems to be an issue with the semantic tokens execute command - possibly either O# not
+        // returning tokens, or an issue with the command itself:
+        // https://github.com/dotnet/razor-tooling/issues/6922
         return this.emptySemanticTokensResponse;
     }
 }
