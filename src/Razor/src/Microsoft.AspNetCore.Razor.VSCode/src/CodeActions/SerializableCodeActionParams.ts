@@ -3,8 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { SerializableRange } from './SerializableRange';
-import { SerializableTextDocumentIdentifier } from './SerializableTextDocumentIdentifier';
+import { SerializableRange } from '../RPC/SerializableRange';
+import { SerializableTextDocumentIdentifier } from '../RPC/SerializableTextDocumentIdentifier';
 
 export interface SerializableCodeActionParams {
     textDocument: SerializableTextDocumentIdentifier;

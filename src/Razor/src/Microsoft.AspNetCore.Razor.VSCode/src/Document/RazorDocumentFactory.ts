@@ -4,13 +4,13 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
-import { CSharpProjectedDocumentContentProvider } from './CSharp/CSharpProjectedDocumentContentProvider';
-import { HtmlProjectedDocument } from './Html/HtmlProjectedDocument';
-import { HtmlProjectedDocumentContentProvider } from './Html/HtmlProjectedDocumentContentProvider';
+import { CSharpProjectedDocument } from '../CSharp/CSharpProjectedDocument';
+import { CSharpProjectedDocumentContentProvider } from '../CSharp/CSharpProjectedDocumentContentProvider';
+import { HtmlProjectedDocument } from '../Html/HtmlProjectedDocument';
+import { HtmlProjectedDocumentContentProvider } from '../Html/HtmlProjectedDocumentContentProvider';
+import { virtualCSharpSuffix, virtualHtmlSuffix } from '../RazorConventions';
+import { getUriPath } from '../UriPaths';
 import { IRazorDocument } from './IRazorDocument';
-import { virtualCSharpSuffix, virtualHtmlSuffix } from './RazorConventions';
-import { getUriPath } from './UriPaths';
 
 export function createDocument(uri: vscode.Uri) {
     const csharpDocument = createProjectedCSharpDocument(uri);

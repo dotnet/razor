@@ -4,18 +4,18 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
-import { HtmlProjectedDocument } from './Html/HtmlProjectedDocument';
+import { CSharpProjectedDocument } from '../CSharp/CSharpProjectedDocument';
+import { HtmlProjectedDocument } from '../Html/HtmlProjectedDocument';
+import { RazorLanguage } from '../RazorLanguage';
+import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
+import { RazorLogger } from '../RazorLogger';
+import { UpdateBufferRequest } from '../RPC/UpdateBufferRequest';
+import { getUriPath } from '../UriPaths';
 import { IRazorDocument } from './IRazorDocument';
 import { IRazorDocumentChangeEvent } from './IRazorDocumentChangeEvent';
 import { IRazorDocumentManager } from './IRazorDocumentManager';
 import { RazorDocumentChangeKind } from './RazorDocumentChangeKind';
 import { createDocument } from './RazorDocumentFactory';
-import { RazorLanguage } from './RazorLanguage';
-import { RazorLanguageServerClient } from './RazorLanguageServerClient';
-import { RazorLogger } from './RazorLogger';
-import { UpdateBufferRequest } from './RPC/UpdateBufferRequest';
-import { getUriPath } from './UriPaths';
 
 export class RazorDocumentManager implements IRazorDocumentManager {
     private readonly razorDocuments: { [hostDocumentPath: string]: IRazorDocument } = {};

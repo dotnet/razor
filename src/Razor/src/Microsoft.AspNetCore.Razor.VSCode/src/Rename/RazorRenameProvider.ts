@@ -4,12 +4,12 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { RazorDocumentManager } from './RazorDocumentManager';
-import { RazorDocumentSynchronizer } from './RazorDocumentSynchronizer';
-import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
-import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
-import { RazorLogger } from './RazorLogger';
-import { LanguageKind } from './RPC/LanguageKind';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
+import { RazorDocumentSynchronizer } from '../Document/RazorDocumentSynchronizer';
+import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
+import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
+import { RazorLogger } from '../RazorLogger';
+import { LanguageKind } from '../RPC/LanguageKind';
 
 export class RazorRenameProvider
     extends RazorLanguageFeatureBase

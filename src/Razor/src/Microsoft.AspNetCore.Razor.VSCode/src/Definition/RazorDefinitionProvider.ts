@@ -4,9 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { getRazorDocumentUri, isRazorHtmlFile } from './RazorConventions';
-import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
-import { LanguageKind } from './RPC/LanguageKind';
+import { getRazorDocumentUri, isRazorHtmlFile } from '../RazorConventions';
+import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
+import { LanguageKind } from '../RPC/LanguageKind';
 
 export class RazorDefinitionProvider
     extends RazorLanguageFeatureBase

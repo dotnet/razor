@@ -4,16 +4,14 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { CancellationToken } from 'vscode-jsonrpc';
+import { RazorDocumentChangeKind } from '../Document/RazorDocumentChangeKind';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
+import { RazorDocumentSynchronizer } from '../Document/RazorDocumentSynchronizer';
+import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
+import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
+import { RazorLogger } from '../RazorLogger';
+import { LanguageKind } from '../RPC/LanguageKind';
 import { RazorCodeLens } from './RazorCodeLens';
-import { RazorDocumentChangeKind } from './RazorDocumentChangeKind';
-import { RazorDocumentManager } from './RazorDocumentManager';
-import { RazorDocumentSynchronizer } from './RazorDocumentSynchronizer';
-import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
-import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
-import { RazorLogger } from './RazorLogger';
-import { LanguageKind } from './RPC/LanguageKind';
-
 export class RazorCodeLensProvider
     extends RazorLanguageFeatureBase
     implements vscode.CodeLensProvider {
@@ -93,7 +91,7 @@ export class RazorCodeLensProvider
         }
     }
 
-    private async resolveRazorCodeLens(codeLens: RazorCodeLens, token: CancellationToken): Promise<vscode.CodeLens> {
+    private async resolveRazorCodeLens(codeLens: RazorCodeLens, token: vscode.CancellationToken): Promise<vscode.CodeLens> {
         // Initialize with default values.
         codeLens.command = {
             title: '',

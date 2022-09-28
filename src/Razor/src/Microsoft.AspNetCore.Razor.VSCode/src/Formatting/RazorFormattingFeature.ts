@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { CancellationToken, RequestType } from 'vscode-languageclient';
-import { RazorDocumentManager } from './RazorDocumentManager';
-import { RazorLanguageServerClient } from './RazorLanguageServerClient';
-import { RazorLogger } from './RazorLogger';
-import { LanguageKind } from './RPC/LanguageKind';
-import { RazorDocumentRangeFormattingRequest } from './RPC/RazorDocumentRangeFormattingRequest';
-import { RazorDocumentRangeFormattingResponse } from './RPC/RazorDocumentRangeFormattingResponse';
-import { convertRangeFromSerializable } from './RPC/SerializableRange';
-import { convertTextEditToSerializable } from './RPC/SerializableTextEdit';
+import { RequestType } from 'vscode-languageclient';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
+import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
+import { RazorLogger } from '../RazorLogger';
+import { LanguageKind } from '../RPC/LanguageKind';
+import { convertRangeFromSerializable } from '../RPC/SerializableRange';
+import { convertTextEditToSerializable } from '../RPC/SerializableTextEdit';
+import { RazorDocumentRangeFormattingRequest } from './RazorDocumentRangeFormattingRequest';
+import { RazorDocumentRangeFormattingResponse } from './RazorDocumentRangeFormattingResponse';
 
 export class RazorFormattingFeature {
 
@@ -32,7 +32,7 @@ export class RazorFormattingFeature {
             async (request, token) => this.handleRangeFormatting(request, token));
     }
 
-    private async handleRangeFormatting(request: RazorDocumentRangeFormattingRequest, token: CancellationToken) {
+    private async handleRangeFormatting(request: RazorDocumentRangeFormattingRequest, token: vscode.CancellationToken) {
         if (request.kind === LanguageKind.Razor) {
             // We shouldn't attempt to format the actual Razor document here.
             // Doing so could potentially lead to an infinite loop.

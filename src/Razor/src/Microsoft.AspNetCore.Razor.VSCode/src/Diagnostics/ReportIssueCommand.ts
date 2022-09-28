@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RazorDocumentManager } from '../RazorDocumentManager';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { RazorLogger } from '../RazorLogger';
 import { api } from '../vscodeAdapter';
 import * as vscode from '../vscodeAdapter';

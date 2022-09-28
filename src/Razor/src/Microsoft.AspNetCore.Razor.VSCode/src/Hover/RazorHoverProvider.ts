@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
+import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
 
 export class RazorHoverProvider
     extends RazorLanguageFeatureBase
