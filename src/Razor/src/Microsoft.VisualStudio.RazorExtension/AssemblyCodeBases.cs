@@ -3,6 +3,11 @@
 
 using Microsoft.VisualStudio.Shell;
 
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\MediatR.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.JsonRpc.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.LanguageProtocol.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.LanguageServer.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.LanguageServer.Shared.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CommonLanguageServerProtocol.Framework.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Options.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Primitives.dll")]
