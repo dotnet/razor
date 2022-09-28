@@ -19,8 +19,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             return
                 other is not null &&
-                Diagnostics.SequenceEqual(other.Diagnostics) &&
+                DiagnosticsEqual(Diagnostics, other.Diagnostics) &&
                 HostDocumentVersion == other.HostDocumentVersion;
+        }
+
+        private static bool DiagnosticsEqual(Diagnostic[]? left, Diagnostic[]? right)
+        {
+            var leftIsNull = left is null;
+            var rightIsNull = right is null;
+
+            // Both are null -> equal
+            if (leftIsNull && rightIsNull)
+            {
+                return true;
+            }
+            // On of is null -> not equal
+            else if (leftIsNull || rightIsNull)
+            {
+                return false;
+            }
+
+            return left.SequenceEqual(right);
         }
 
         public override bool Equals(object obj)
