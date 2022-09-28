@@ -4,13 +4,13 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
+import { RazorDocumentSynchronizer } from '../Document/RazorDocumentSynchronizer';
+import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
+import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
+import { RazorLogger } from '../RazorLogger';
+import { getUriPath } from '../UriPaths';
 import { ProvisionalCompletionOrchestrator } from './ProvisionalCompletionOrchestrator';
-import { RazorDocumentManager } from './RazorDocumentManager';
-import { RazorDocumentSynchronizer } from './RazorDocumentSynchronizer';
-import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
-import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
-import { RazorLogger } from './RazorLogger';
-import { getUriPath } from './UriPaths';
 
 export class RazorCompletionItemProvider
     extends RazorLanguageFeatureBase

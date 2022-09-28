@@ -4,15 +4,14 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-
-import { CSharpProjectedDocumentContentProvider } from './CSharp/CSharpProjectedDocumentContentProvider';
-import { HtmlProjectedDocumentContentProvider } from './Html/HtmlProjectedDocumentContentProvider';
-import { IProjectedDocument } from './IProjectedDocument';
+import { CSharpProjectedDocumentContentProvider } from '../CSharp/CSharpProjectedDocumentContentProvider';
+import { HtmlProjectedDocumentContentProvider } from '../Html/HtmlProjectedDocumentContentProvider';
+import { IProjectedDocument } from '../Projection/IProjectedDocument';
+import { RazorLogger } from '../RazorLogger';
+import { getUriPath } from '../UriPaths';
 import { IRazorDocumentChangeEvent } from './IRazorDocumentChangeEvent';
 import { RazorDocumentChangeKind } from './RazorDocumentChangeKind';
 import { RazorDocumentManager } from './RazorDocumentManager';
-import { RazorLogger } from './RazorLogger';
-import { getUriPath } from './UriPaths';
 
 export class RazorDocumentSynchronizer {
     private readonly synchronizations: { [uri: string]: SynchronizationContext[] } = {};

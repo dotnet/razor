@@ -6,8 +6,8 @@
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
-import { SerializableFoldingRangeParams } from '../RPC/SerializableFoldingRangeParams';
-import { SerializableFoldingRangeResponse } from '../RPC/SerializableFoldingRangeResponse';
+import { SerializableFoldingRangeParams } from './SerializableFoldingRangeParams';
+import { SerializableFoldingRangeResponse } from './SerializableFoldingRangeResponse';
 
 export class FoldingRangeHandler {
     private static readonly provideFoldingRange = 'razor/foldingRange';

@@ -4,9 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { IRazorDocumentChangeEvent } from '../IRazorDocumentChangeEvent';
-import { RazorDocumentChangeKind } from '../RazorDocumentChangeKind';
-import { RazorDocumentManager } from '../RazorDocumentManager';
+import { IRazorDocumentChangeEvent } from '../Document/IRazorDocumentChangeEvent';
+import { RazorDocumentChangeKind } from '../Document/RazorDocumentChangeKind';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { getUriPath } from '../UriPaths';
 
 export class CSharpPreviewPanel {

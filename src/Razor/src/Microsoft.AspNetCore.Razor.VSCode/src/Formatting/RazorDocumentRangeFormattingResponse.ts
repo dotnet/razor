@@ -3,11 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
-import { LanguageKind } from './RPC/LanguageKind';
+import { SerializableTextEdit } from '../RPC/SerializableTextEdit';
 
-export interface ProjectionResult {
-    uri: vscode.Uri;
-    position: vscode.Position;
-    languageKind: LanguageKind;
+export class RazorDocumentRangeFormattingResponse {
+    constructor(public readonly edits: SerializableTextEdit[]) {
+    }
 }

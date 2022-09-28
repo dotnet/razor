@@ -5,12 +5,12 @@
 
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
-import { RazorDocumentManager } from '../RazorDocumentManager';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
 import { RazorLogger } from '../RazorLogger';
-import { RazorCodeAction } from '../RPC/RazorCodeAction';
-import { SerializableCodeActionParams } from '../RPC/SerializableCodeActionParams';
 import { convertRangeFromSerializable } from '../RPC/SerializableRange';
+import { RazorCodeAction } from './RazorCodeAction';
+import { SerializableCodeActionParams } from './SerializableCodeActionParams';
 
 export class CodeActionsHandler {
     private static readonly provideCodeActionsEndpoint = 'razor/provideCodeActions';

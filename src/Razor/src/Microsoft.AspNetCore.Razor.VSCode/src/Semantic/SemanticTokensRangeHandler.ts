@@ -6,9 +6,9 @@
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
-import { SerializableSemanticTokensParams } from '../RPC/SerializableSemanticTokensParams';
 import { ProvideSemanticTokensResponse } from './ProvideSemanticTokensResponse';
 import { SemanticTokensResponse } from './SemanticTokensResponse';
+import { SerializableSemanticTokensParams } from './SerializableSemanticTokensParams';
 
 export class SemanticTokensRangeHandler {
     private static readonly getSemanticTokensRangeEndpoint = 'razor/provideSemanticTokensRange';

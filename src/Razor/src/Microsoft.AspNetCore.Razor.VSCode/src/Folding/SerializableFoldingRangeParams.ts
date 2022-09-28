@@ -3,10 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { SerializableRange } from './SerializableRange';
-import { SerializableTextDocumentIdentifier } from './SerializableTextDocumentIdentifier';
+import { integer } from 'vscode-languageserver-types';
+import { SerializableTextDocumentIdentifier } from '../RPC/SerializableTextDocumentIdentifier';
 
-export interface SerializableSemanticTokensParams {
+export interface SerializableFoldingRangeParams {
+    hostDocumentVersion: integer;
     textDocument: SerializableTextDocumentIdentifier;
-    range: SerializableRange;
 }

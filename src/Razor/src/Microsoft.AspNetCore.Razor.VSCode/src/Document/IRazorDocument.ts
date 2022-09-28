@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { IProjectedDocument } from './IProjectedDocument';
+import { IProjectedDocument } from '../Projection/IProjectedDocument';
 
 export interface IRazorDocument {
     readonly path: string;

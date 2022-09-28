@@ -4,8 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { LanguageKind } from './LanguageKind';
-import { SerializableRange } from './SerializableRange';
+import { LanguageKind } from '../RPC/LanguageKind';
+import { SerializableRange } from '../RPC/SerializableRange';
 
 export interface RazorDocumentRangeFormattingRequest {
     kind: LanguageKind;

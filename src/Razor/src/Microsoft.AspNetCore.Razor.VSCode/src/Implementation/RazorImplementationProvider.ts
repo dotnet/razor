@@ -4,8 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
-import { LanguageKind } from './RPC/LanguageKind';
+import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
+import { LanguageKind } from '../RPC/LanguageKind';
 
 export class RazorImplementationProvider
     extends RazorLanguageFeatureBase

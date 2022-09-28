@@ -4,15 +4,15 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
-import { CSharpProjectedDocumentContentProvider } from './CSharp/CSharpProjectedDocumentContentProvider';
-import { ProjectionResult } from './ProjectionResult';
+import { CSharpProjectedDocument } from '../CSharp/CSharpProjectedDocument';
+import { CSharpProjectedDocumentContentProvider } from '../CSharp/CSharpProjectedDocumentContentProvider';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
+import { ProjectionResult } from '../Projection/ProjectionResult';
+import { RazorLanguage } from '../RazorLanguage';
+import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
+import { RazorLogger } from '../RazorLogger';
+import { LanguageKind } from '../RPC/LanguageKind';
 import { RazorCompletionItemProvider } from './RazorCompletionItemProvider';
-import { RazorDocumentManager } from './RazorDocumentManager';
-import { RazorLanguage } from './RazorLanguage';
-import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
-import { RazorLogger } from './RazorLogger';
-import { LanguageKind } from './RPC/LanguageKind';
 
 export class ProvisionalCompletionOrchestrator {
     private provisionalDotsMayBeActive = false;

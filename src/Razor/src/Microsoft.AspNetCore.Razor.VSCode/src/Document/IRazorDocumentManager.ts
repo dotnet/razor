@@ -3,9 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as vscode from '../vscodeAdapter';
 import { IRazorDocument } from './IRazorDocument';
 import { IRazorDocumentChangeEvent } from './IRazorDocumentChangeEvent';
-import * as vscode from './vscodeAdapter';
 
 export interface IRazorDocumentManager {
     readonly onChange: vscode.Event<IRazorDocumentChangeEvent>;
