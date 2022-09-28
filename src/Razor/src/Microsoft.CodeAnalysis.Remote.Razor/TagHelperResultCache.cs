@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             _projectResultCache = new MemoryCache<string, ProjectResultCacheEntry>(sizeLimit: 50);
         }
 
-        public bool TryGet(string projectFilePath, int resultId, out IReadOnlyCollection<TagHelperDescriptor>? cachedTagHelpers)
+        public bool TryGet(string projectFilePath, int resultId, [NotNullWhen(returnValue: true)] out IReadOnlyCollection<TagHelperDescriptor>? cachedTagHelpers)
         {
             if (!_projectResultCache.TryGetValue(projectFilePath, out var cachedResult))
             {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _cookiesByDocument = new Dictionary<DocumentKey, uint>();
         }
 
-        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
+        protected override ITextBuffer? GetTextBufferForOpenDocument(string filePath)
         {
             if (filePath is null)
             {
@@ -185,7 +183,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public void DocumentClosed(uint cookie, string exceptFilePath = null)
+        public void DocumentClosed(uint cookie, string? exceptFilePath = null)
         {
             JoinableTaskContext.AssertUIThread();
 
@@ -202,7 +200,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 // We we might see multiple documents open for a cookie (due to linked files), but only one of them
                 // has been renamed. In that case, we just process the change that we know about.
                 var filePaths = new HashSet<string>(documents.Select(d => d.DocumentFilePath));
-                filePaths.Remove(exceptFilePath);
+
+                // `Remove` can correctly handle the case when the incoming value is null without any exceptions.
+                // The method is just not properly annotated for it,
+                // so we can suppress the warning here
+                filePaths.Remove(exceptFilePath!); 
 
                 foreach (var filePath in filePaths)
                 {

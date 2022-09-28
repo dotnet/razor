@@ -41,11 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         private bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
         {
-            if (hierarchy is null)
-            {
-                return false;
-            }
-
             try
             {
                 var hasCapability = hierarchy.IsCapabilityMatch(capability);

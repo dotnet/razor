@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -18,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     [ExportWorkspaceServiceFactory(typeof(FileChangeTrackerFactory), ServiceLayer.Host)]
     internal class VisualStudioFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
     {
-        private readonly IVsAsyncFileChangeEx _fileChangeService;
+        private readonly IVsAsyncFileChangeEx? _fileChangeService;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
@@ -56,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             var errorReporter = workspaceServices.GetRequiredService<ErrorReporter>();
-            return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
+            return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService!, _projectSnapshotManagerDispatcher, _joinableTaskContext);
         }
     }
 }

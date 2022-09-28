@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -51,7 +49,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
-
             _workspace = workspace;
         }
 

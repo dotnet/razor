@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Razor;
@@ -23,11 +21,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly JoinableTaskContext _joinableTaskContext;
 
         // Internal for testing
-        internal JoinableTask<uint> _fileChangeAdviseTask;
-        internal JoinableTask _fileChangeUnadviseTask;
-        internal JoinableTask _fileChangedTask;
+        internal JoinableTask<uint>? _fileChangeAdviseTask;
+        internal JoinableTask? _fileChangeUnadviseTask;
+        internal JoinableTask? _fileChangedTask;
 
-        public override event EventHandler<FileChangeEventArgs> Changed;
+        public override event EventHandler<FileChangeEventArgs>? Changed;
 
         public VisualStudioFileChangeTracker(
             string filePath,
@@ -74,7 +72,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (_fileChangeAdviseTask != null)
+            if (_fileChangeAdviseTask is not null)
             {
                 // Already listening
                 return;

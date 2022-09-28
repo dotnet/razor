@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -10,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class HostProject
     {
-        public HostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
+        public HostProject(string projectFilePath, RazorConfiguration razorConfiguration, string? rootNamespace)
         {
             if (projectFilePath is null)
             {
@@ -31,6 +29,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public string FilePath { get; }
 
-        public string RootNamespace { get; }
+        public string? RootNamespace { get; }
     }
 }
