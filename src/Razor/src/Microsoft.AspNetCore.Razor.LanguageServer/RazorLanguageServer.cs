@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -30,6 +32,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
+using Microsoft.AspNetCore.Razor.LanguageServer.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
@@ -41,6 +44,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Telemetry;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -306,6 +310,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
                         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
+
+                        // Get the DefaultSession for telemetry. This is set by VS with
+                        // TelemetryService.SetDefaultSession and provides the correct
+                        // appinsights keys etc
+                        services.AddSingleton<ITelemetryReporter>(provider =>
+                            new TelemetryReporter(ImmutableArray.Create(TelemetryService.DefaultSession), provider.GetRequiredService<ILoggerFactory>()));
                     }));
 
             try

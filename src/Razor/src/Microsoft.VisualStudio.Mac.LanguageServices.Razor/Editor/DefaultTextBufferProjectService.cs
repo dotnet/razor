@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -42,7 +40,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
             _projectCapabilityResolver = projectCapabilityResolver;
         }
 
-        public override object GetHostProject(ITextBuffer textBuffer)
+        public override object? GetHostProject(ITextBuffer textBuffer)
         {
             if (textBuffer is null)
             {
@@ -59,7 +57,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
             return hostProject;
         }
 
-        public override object GetHostProject(string documentFilePath)
+        public override object? GetHostProject(string documentFilePath)
         {
             var projectsContainingFilePath = IdeApp.Workspace.GetProjectsContainingFile(documentFilePath);
             foreach (var project in projectsContainingFilePath)

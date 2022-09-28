@@ -50,13 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
         }
 
-        public override bool IsLSPEditorAvailable(string documentFilePath, object hierarchy)
+        public override bool IsLSPEditorAvailable(string documentFilePath, object? hierarchy)
         {
-            if (documentFilePath is null)
-            {
-                return false;
-            }
-
             if (!IsLSPEditorAvailable())
             {
                 return false;

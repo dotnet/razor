@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly AsyncSemaphore _lock;
 
-        private ProjectSnapshotManagerBase _projectManager;
+        private ProjectSnapshotManagerBase? _projectManager;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
         protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
 
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _projectManager = projectManager;
         }
 
-        protected HostProject Current { get; private set; }
+        protected HostProject? Current { get; private set; }
 
         protected IUnconfiguredProjectCommonServices CommonServices { get; }
 
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 await ExecuteWithLockAsync(async () =>
                 {
-                    if (Current != null)
+                    if (Current is not null)
                     {
                         await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     }
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // FilePath.
             await ExecuteWithLockAsync(async () =>
             {
-                if (Current != null)
+                if (Current is not null)
                 {
                     var old = Current;
                     var oldDocuments = _currentDocuments.Values.ToArray();
@@ -165,10 +164,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (_projectManager is null)
-            {
-                _projectManager = (ProjectSnapshotManagerBase)_workspace.Services.GetLanguageServices(RazorLanguage.Name).GetRequiredService<ProjectSnapshotManager>();
-            }
+            _projectManager ??= (ProjectSnapshotManagerBase)_workspace.Services.GetLanguageServices(RazorLanguage.Name).GetRequiredService<ProjectSnapshotManager>();
 
             return _projectManager;
         }
@@ -182,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             UpdateProjectUnsafe(null);
         }
 
-        protected void UpdateProjectUnsafe(HostProject project)
+        protected void UpdateProjectUnsafe(HostProject? project)
         {
             var projectManager = GetProjectManager();
             if (Current is null && project is null)
@@ -268,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return DisposeAsync();
         }
 
-        private async Task UnconfiguredProject_ProjectRenamingAsync(object sender, ProjectRenamedEventArgs args)
+        private async Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
         {
             await OnProjectRenamingAsync().ConfigureAwait(false);
         }
@@ -276,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Internal for testing
         internal static bool TryGetIntermediateOutputPath(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out string path)
+            [NotNullWhen(returnValue: true)] out string? path)
         {
             if (!state.TryGetValue(ConfigurationGeneralSchemaName, out var rule))
             {
@@ -329,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return true;
         }
 
-        private static string ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
+        private static string? ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
         {
             if (!rule.Properties.TryGetValue(MSBuildProjectDirectoryPropertyName, out var projectDirectory))
             {
