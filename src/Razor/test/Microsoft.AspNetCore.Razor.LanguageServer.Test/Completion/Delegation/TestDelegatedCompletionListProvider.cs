@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             : base(
                 responseRewriters,
                 new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance),
-                new TestOmnisharpLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
+                new TestLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
                 {
                     [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,
                 }),

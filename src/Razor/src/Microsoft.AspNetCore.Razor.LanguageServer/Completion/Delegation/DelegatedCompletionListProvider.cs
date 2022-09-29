@@ -77,8 +77,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 projection.LanguageKind,
                 completionContext,
                 provisionalTextEdit);
-            var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorCompletionEndpointName, delegatedParams).ConfigureAwait(false);
-            var delegatedResponse = await delegatedRequest.Returning<VSInternalCompletionList?>(cancellationToken).ConfigureAwait(false);
+            var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
+                LanguageServerConstants.RazorCompletionEndpointName,
+                delegatedParams,
+                cancellationToken).ConfigureAwait(false);
 
             if (delegatedResponse is null)
             {

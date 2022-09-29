@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-internal abstract class RazorProximityExpressionsParams
+internal class RazorProximityExpressionsParams
 {
     public Uri Uri { get; set; }
 

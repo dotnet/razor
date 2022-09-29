@@ -13,19 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorDocumentRangeFormattingEndpoint : IVSDocumentRangeFormattingEndpoint
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
         public RazorDocumentRangeFormattingEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorFormattingService razorFormattingService,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor)
         {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
 
             if (razorFormattingService is null)
             {
@@ -37,26 +31,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(optionsMonitor));
             }
 
-            _documentContextFactory = documentContextFactory;
             _razorFormattingService = razorFormattingService;
             _optionsMonitor = optionsMonitor;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public bool MutatesSolutionState => false;
+
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "documentRangeFormattingProvider";
 
-            return new RegistrationExtensionResult(ServerCapability, new DocumentRangeFormattingOptions());
+            return new RegistrationExtensionResult(ServerCapability, new SumType<bool, DocumentRangeFormattingOptions>(new DocumentRangeFormattingOptions()));
         }
 
-        public async Task<TextEdit[]?> Handle(DocumentRangeFormattingParamsBridge request, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request)
+        {
+            return request.TextDocument;
+        }
+
+        public async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
             {
                 return null;
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var documentContext = requestContext.DocumentContext;
             if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
                 return null;

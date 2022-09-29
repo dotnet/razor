@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,40 +26,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
         // Internal for testing only.
         internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly ILogger _logger;
 
-        public LinkedEditingRangeEndpoint(
-            DocumentContextFactory documentContextFactory,
-            ILoggerFactory loggerFactory)
+        public LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
         {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
-
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _documentContextFactory = documentContextFactory;
             _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public bool MutatesSolutionState => false;
+
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "linkedEditingRangeProvider";
-            var option = new LinkedEditingRangeOptions { };
+            var option = new SumType<bool, LinkedEditingRangeOptions>(new LinkedEditingRangeOptions { });
 
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        public async Task<LinkedEditingRanges?> Handle(
-            LinkedEditingRangeParamsBridge request,
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request)
+        {
+            return request.TextDocument;
+        }
+
+        public async Task<LinkedEditingRanges?> HandleRequestAsync(
+            LinkedEditingRangeParams request,
+            RazorRequestContext requestContext,
             CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var documentContext = requestContext.DocumentContext;
             if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", request.TextDocument.Uri);

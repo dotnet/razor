@@ -33,20 +33,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             "IDE0005_gen", // Using directive is unnecessary
         };
 
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
+        public bool MutatesSolutionState { get; } = false;
+
         public RazorDiagnosticsEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
-
             if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
@@ -57,12 +52,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _documentContextFactory = documentContextFactory;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorDiagnosticsEndpoint>();
         }
 
-        public async Task<RazorDiagnosticsResponse> Handle(RazorDiagnosticsParams request, CancellationToken cancellationToken)
+        public async Task<RazorDiagnosticsResponse> HandleRequestAsync(RazorDiagnosticsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -74,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.RazorDocumentUri, cancellationToken).ConfigureAwait(false);
+            var documentContext = requestContext.DocumentContext;
 
             if (documentContext is null)
             {
@@ -486,7 +480,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             // semi-intelligent way.
 
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var owner = syntaxTree.GetOwner(sourceText, diagnosticRange, _logger);
+            var owner = syntaxTree.GetOwner(sourceText, diagnosticRange, logger: _logger);
 
             switch (owner?.Kind)
             {
@@ -574,6 +568,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             }
 
             return true;
+        }
+
+        public TextDocumentIdentifier GetTextDocumentIdentifier(RazorDiagnosticsParams request)
+        {
+            return new TextDocumentIdentifier
+            {
+                Uri = request.RazorDocumentUri
+            };
         }
     }
 }

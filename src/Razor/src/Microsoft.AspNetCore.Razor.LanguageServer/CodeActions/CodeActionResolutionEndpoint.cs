@@ -21,6 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
         private readonly ILogger _logger;
 
+        public bool MutatesSolutionState => false;
+
         public CodeActionResolutionEndpoint(
             IEnumerable<RazorCodeActionResolver> razorCodeActionResolvers,
             IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
@@ -47,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
-        public async Task<CodeAction> Handle(CodeActionBridge request, CancellationToken cancellationToken)
+        public async Task<CodeAction> HandleRequestAsync(CodeAction request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (request is null)
             {

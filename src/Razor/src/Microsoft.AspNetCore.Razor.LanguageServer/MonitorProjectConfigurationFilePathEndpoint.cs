@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -26,6 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ConcurrentDictionary<string, (string ConfigurationDirectory, IFileChangeDetector Detector)> _outputPathMonitors;
         private readonly object _disposeLock;
         private bool _disposed;
+
+        public bool MutatesSolutionState => false;
 
         public MonitorProjectConfigurationFilePathEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -50,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _disposeLock = new object();
         }
 
-        public async Task<Unit> Handle(MonitorProjectConfigurationFilePathParams request, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MonitorProjectConfigurationFilePathParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -61,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 if (_disposed)
                 {
-                    return Unit.Value;
+                    return;
                 }
             }
 
@@ -70,13 +72,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _logger.LogInformation("'null' configuration path provided. Stopping custom configuration monitoring for project '{0}'.", request.ProjectFilePath);
                 RemoveMonitor(request.ProjectFilePath);
 
-                return Unit.Value;
+                return;
             }
 
             if (!request.ConfigurationFilePath.EndsWith(_languageServerFeatureOptions.ProjectConfigurationFileName, StringComparison.Ordinal))
             {
                 _logger.LogError("Invalid configuration file path provided for project '{0}': '{1}'", request.ProjectFilePath, request.ConfigurationFilePath);
-                return Unit.Value;
+                return;
             }
 
             var configurationDirectory = Path.GetDirectoryName(request.ConfigurationFilePath);
@@ -99,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 // Configuration directory is already in the workspace directory. We already monitor everything in the workspace directory.
-                return Unit.Value;
+                return;
             }
 
             if (previousMonitorExists)
@@ -109,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     _logger.LogInformation("Already tracking configuration directory for project '{0}'.", request.ProjectFilePath);
 
                     // Already tracking the requested configuration output path for this project
-                    return Unit.Value;
+                    return;
                 }
 
                 _logger.LogInformation("Project configuration output path has changed. Stopping existing monitor for project '{0}' so we can restart it with a new directory.", request.ProjectFilePath);
@@ -123,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 // There's a concurrent request going on for this specific project. To avoid calling "StartAsync" twice we return early.
                 // Note: This is an extremely edge case race condition that should in practice never happen due to how long it takes to calculate project state changes
-                return Unit.Value;
+                return;
             }
 
             _logger.LogInformation("Starting new configuration monitor for project '{0}' for directory '{1}'.", request.ProjectFilePath, configurationDirectory);
@@ -133,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 // Request was cancelled while starting the detector. Need to stop it so we don't leak.
                 entry.Detector.Stop();
-                return Unit.Value;
+                return;
             }
 
             if (!_outputPathMonitors.ContainsKey(request.ProjectFilePath))
@@ -141,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // This can happen if there were multiple concurrent requests to "remove" and "update" file change detectors for the same project path.
                 // In that case we need to stop the detector to ensure we don't leak.
                 entry.Detector.Stop();
-                return Unit.Value;
+                return;
             }
 
             lock (_disposeLock)
@@ -152,8 +154,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     entry.Detector.Stop();
                 }
             }
-
-            return Unit.Value;
         }
 
         private void RemoveMonitor(string projectFilePath)

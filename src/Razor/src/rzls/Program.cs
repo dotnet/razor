@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -44,12 +45,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            var server = await RazorLanguageServer.CreateAsync(
+            var server = RazorLanguageServerWrapper.Create(
                 Console.OpenStandardInput(),
                 Console.OpenStandardOutput(),
                 trace);
-            await server.InitializedAsync(CancellationToken.None);
-            await server.WaitForExit;
+            await server.WaitForExitAsync();
         }
     }
 }

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
@@ -14,26 +13,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
     internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<TextPresentationParams>, ITextDocumentTextPresentationHandler
     {
         public TextDocumentTextPresentationEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             ClientNotifierServiceBase languageServer,
-            LanguageServerFeatureOptions languageServerFeatureOptions,
-            ILoggerFactory loggerFactory)
-            : base(documentContextFactory,
-                 razorDocumentMappingService,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
+            : base(razorDocumentMappingService,
                  languageServer,
-                 languageServerFeatureOptions,
-                 loggerFactory.CreateLogger<TextDocumentTextPresentationEndpoint>())
+                 languageServerFeatureOptions)
         {
         }
 
         public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint;
 
-        public override RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public override RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_textPresentationProvider";
 
             return new RegistrationExtensionResult(AssociatedServerCapability, options: true);
+        }
+
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(TextPresentationParams request)
+        {
+            return request.TextDocument;
         }
 
         protected override IRazorPresentationParams CreateRazorRequestParameters(TextPresentationParams request)
@@ -44,7 +44,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 Text = request.Text
             };
 
-        protected override Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, TextPresentationParams request, CancellationToken cancellationToken)
+        protected override Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(
+            RazorLanguageKind languageKind,
+            TextPresentationParams request,
+            CancellationToken cancellationToken)
         {
             // We don't do anything special with text
             return Task.FromResult<WorkspaceEdit?>(null);
