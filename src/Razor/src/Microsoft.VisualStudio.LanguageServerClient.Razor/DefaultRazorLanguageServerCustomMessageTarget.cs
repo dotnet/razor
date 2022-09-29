@@ -1083,11 +1083,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             };
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalValidateBreakableRangeParams, Range?>(
-               delegationDetails.Value.TextBuffer,
-               VSInternalMethods.TextDocumentValidateBreakableRangeName,
-               delegationDetails.Value.LanguageServerName,
-               validateBreakpointRangeParams,
-               cancellationToken).ConfigureAwait(false);
+                delegationDetails.Value.TextBuffer,
+                VSInternalMethods.TextDocumentValidateBreakableRangeName,
+                delegationDetails.Value.LanguageServerName,
+                validateBreakpointRangeParams,
+                cancellationToken).ConfigureAwait(false);
             return response?.Response;
         }
 

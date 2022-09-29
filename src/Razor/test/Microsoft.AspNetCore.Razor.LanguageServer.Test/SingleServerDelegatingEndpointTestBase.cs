@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new NotImplementedException();
             }
 
-            private async Task<IResponseRouterReturns> HandleValidateBreakpointRangeAsync<T>(T @params)
+            private async Task<Range> HandleValidateBreakpointRangeAsync<T>(T @params)
             {
                 var delegatedParams = Assert.IsType<DelegatedValidateBreakpointRangeParams>(@params);
                 var delegatedRequest = new VSInternalValidateBreakableRangeParams()
@@ -201,7 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var result = await _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, Range>(VSInternalMethods.TextDocumentValidateBreakableRangeName, delegatedRequest, CancellationToken.None);
 
-                return new TestResponseRouterReturn(result);
+                return result;
             }
         }
     }

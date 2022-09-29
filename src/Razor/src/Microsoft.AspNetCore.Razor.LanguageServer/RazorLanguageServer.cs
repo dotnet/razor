@@ -142,7 +142,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddHandler<RazorProximityExpressionsEndpoint>();
             services.AddRegisteringHandler<DocumentColorEndpoint>();
             services.AddRegisteringHandler<FoldingRangeEndpoint>();
-            services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>()
+            services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>();
         }
     }
 

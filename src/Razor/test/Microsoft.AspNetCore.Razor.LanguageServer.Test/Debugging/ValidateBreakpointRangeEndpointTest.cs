@@ -10,11 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
@@ -110,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
         {
             await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-            var endpoint = new ValidateBreakpointRangeEndpoint(DocumentContextFactory, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new ValidateBreakpointRangeEndpoint(DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
 
             var request = new ValidateBreakpointRangeParamsBridge
             {
@@ -121,7 +124,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 Range = breakpointSpan.AsRange(codeDocument.GetSourceText())
             };
 
-            return await endpoint.Handle(request, CancellationToken.None);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+            var requestContext = CreateValidateBreakpointRangeRequestContext(documentContext);
+
+            return await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+        }
+
+        private RazorRequestContext CreateValidateBreakpointRangeRequestContext(DocumentContext documentContext)
+        {
+            var lspServices = new Mock<ILspServices>(MockBehavior.Strict);
+            //lspServices
+            //    .Setup(l => l.GetRequiredService<AdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
+            //lspServices
+            //    .Setup(l => l.GetRequiredService<RazorFormattingService>()).Returns(TestRazorFormattingService.Instance);
+
+            var requestContext = CreateRazorRequestContext(documentContext, lspServices: lspServices.Object);
+
+            return requestContext;
         }
     }
 }

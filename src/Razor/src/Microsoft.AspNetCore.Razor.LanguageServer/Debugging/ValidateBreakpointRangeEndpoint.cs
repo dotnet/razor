@@ -18,12 +18,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public ValidateBreakpointRangeEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<ValidateBreakpointRangeEndpoint>())
+            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<ValidateBreakpointRangeEndpoint>())
         {
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
@@ -32,20 +31,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName;
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "_vs_breakableRangeProvider";
 
             return new RegistrationExtensionResult(ServerCapability, true);
         }
 
-        protected override Task<Range?> TryHandleAsync(ValidateBreakpointRangeParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<Range?> TryHandleAsync(ValidateBreakpointRangeParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             // no such thing as Razor breakpoints (yet?!)
             return Task.FromResult<Range?>(null);
         }
 
-        protected async override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ValidateBreakpointRangeParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected async override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ValidateBreakpointRangeParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
         {
             // only C# supports breakpoints
             if (projection.LanguageKind != RazorLanguageKind.CSharp)
@@ -53,6 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 return null;
             }
 
+            var documentContext = razorRequestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, request.Range, out var projectedRange))
@@ -66,16 +66,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 projection.LanguageKind);
         }
 
-        protected async override Task<Range?> HandleDelegatedResponseAsync(Range? response, ValidateBreakpointRangeParamsBridge originalRequest, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected async override Task<Range?> HandleDelegatedResponseAsync(Range? delegatedResponse, ValidateBreakpointRangeParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
-            if (response is null)
+            if (delegatedResponse is null)
             {
                 return null;
             }
 
+            var documentContext = requestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response, out var projectedRange))
+            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, delegatedResponse, out var projectedRange))
             {
                 return projectedRange;
             }

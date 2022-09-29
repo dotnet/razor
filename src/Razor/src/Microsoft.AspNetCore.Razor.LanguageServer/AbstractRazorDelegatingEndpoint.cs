@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var delegatedParams = await CreateDelegatedParams(request, context, projection, cancellationToken);
+            var delegatedParams = await CreateDelegatedParamsAsync(request, context, projection, cancellationToken);
 
             if (delegatedParams is null)
             {
