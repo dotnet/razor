@@ -82,6 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => await HandleRenameAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
                 };
 
@@ -184,6 +185,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
+            }
+
+            private async Task<IResponseRouterReturns> HandleValidateBreakpointRangeAsync<T>(T @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedValidateBreakpointRangeParams>(@params);
+                var delegatedRequest = new VSInternalValidateBreakableRangeParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Range = delegatedParams.ProjectedRange,
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, Range>(VSInternalMethods.TextDocumentValidateBreakableRangeName, delegatedRequest, CancellationToken.None);
+
+                return new TestResponseRouterReturn(result);
             }
         }
     }
