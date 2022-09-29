@@ -130,8 +130,8 @@ export class HtmlPreviewPanel {
     </script>
 </head>
 <body>
-    <p>Host document file path<strong>${hostDocumentFilePath}</strong></p>
-    <p>Virtual document file path<strong>${virtualDocumentFilePath}</strong></p>
+    <p>Host document file path: <strong>${hostDocumentFilePath}</strong></p>
+    <p>Virtual document file path: <strong>${virtualDocumentFilePath}</strong></p>
     <p><button onclick="copy()">Copy HTML</button></p>
     <hr />
     <pre>${content}</pre>
