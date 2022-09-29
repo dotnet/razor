@@ -6,15 +6,14 @@
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
-import { SerializableFoldingRangeParams } from '../RPC/SerializableFoldingRangeParams';
-import { SerializableFoldingRangeResponse } from '../RPC/SerializableFoldingRangeResponse';
+import { SerializableFoldingRangeParams } from './SerializableFoldingRangeParams';
+import { SerializableFoldingRangeResponse } from './SerializableFoldingRangeResponse';
 
 export class FoldingRangeHandler {
     private static readonly provideFoldingRange = 'razor/foldingRange';
     private foldingRangeRequestType: RequestType<SerializableFoldingRangeParams, SerializableFoldingRangeResponse, any> = new RequestType(FoldingRangeHandler.provideFoldingRange);
 
-    constructor(private readonly serverClient: RazorLanguageServerClient) {
-    }
+    constructor(private readonly serverClient: RazorLanguageServerClient) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises

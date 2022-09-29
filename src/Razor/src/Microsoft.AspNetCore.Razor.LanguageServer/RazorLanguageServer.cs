@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -161,6 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorBreakpointSpanEndpoint>()
                     .WithHandler<RazorProximityExpressionsEndpoint>()
                     .WithHandler<DocumentColorEndpoint>()
+                    .WithHandler<ColorPresentationEndpoint>()
                     .WithHandler<FoldingRangeEndpoint>()
                     .WithHandler<TextDocumentTextPresentationEndpoint>()
                     .WithHandler<TextDocumentUriPresentationEndpoint>()

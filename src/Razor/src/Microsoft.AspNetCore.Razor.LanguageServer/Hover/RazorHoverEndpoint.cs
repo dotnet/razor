@@ -35,8 +35,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            const string AssociatedServerCapability = "hoverProvider";
             _clientCapabilities = clientCapabilities;
+
+            if (!LanguageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
+            const string AssociatedServerCapability = "hoverProvider";
 
             var registrationOptions = new HoverOptions()
             {

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -15,11 +16,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorFormattingService _razorFormattingService;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
         public RazorDocumentFormattingEndpoint(
             DocumentContextFactory documentContextFactory,
             RazorFormattingService razorFormattingService,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor)
         {
             if (documentContextFactory is null)
@@ -39,11 +42,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             _documentContextFactory = documentContextFactory;
             _razorFormattingService = razorFormattingService;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _optionsMonitor = optionsMonitor;
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
             const string ServerCapability = "documentFormattingProvider";
 
             return new RegistrationExtensionResult(ServerCapability, new DocumentFormattingOptions());

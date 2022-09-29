@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -488,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentColorParams));
             }
 
-            var htmlDoc = GetHtmlDocumentSnapshsot(documentColorParams.TextDocument.Uri);
+            var htmlDoc = GetHtmlDocumentSnapshot(documentColorParams.TextDocument.Uri);
             if (htmlDoc is null)
             {
                 return Array.Empty<ColorInformation>();
@@ -515,6 +516,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return colorInformation;
         }
 
+        public override async Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(ColorPresentationParams colorPresentationParams, CancellationToken cancellationToken)
+        {
+            if (colorPresentationParams is null)
+            {
+                throw new ArgumentNullException(nameof(colorPresentationParams));
+            }
+
+            var htmlDoc = GetHtmlDocumentSnapshot(colorPresentationParams.TextDocument.Uri);
+            if (htmlDoc is null)
+            {
+                return Array.Empty<ColorPresentation>();
+            }
+
+            colorPresentationParams.TextDocument.Uri = htmlDoc.Uri;
+            var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<ColorPresentationParams, ColorPresentation[]>(
+                htmlTextBuffer,
+                ColorPresentationEndpoint.ColorPresentationMethodName,
+                colorPresentationParams,
+                cancellationToken).ConfigureAwait(false);
+
+            var colorPresentation = new List<ColorPresentation>();
+            await foreach (var response in requests)
+            {
+                if (response.Response is not null)
+                {
+                    colorPresentation.AddRange(response.Response);
+                }
+            }
+
+            return colorPresentation;
+        }
+
         private CSharpVirtualDocumentSnapshot? GetCSharpDocumentSnapshsot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
@@ -533,7 +567,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return csharpDoc;
         }
 
-        private HtmlVirtualDocumentSnapshot? GetHtmlDocumentSnapshsot(Uri uri)
+        private HtmlVirtualDocumentSnapshot? GetHtmlDocumentSnapshot(Uri uri)
         {
             var normalizedString = uri.GetAbsoluteOrUNCPath();
             var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));
@@ -735,7 +769,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             }
 
-            var htmlDocument = GetHtmlDocumentSnapshsot(foldingRangeParams.TextDocument.Uri);
+            var htmlDocument = GetHtmlDocumentSnapshot(foldingRangeParams.TextDocument.Uri);
             var htmlRanges = new List<FoldingRange>();
             var htmlTask = Task.CompletedTask;
             if (htmlDocument is not null)

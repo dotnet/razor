@@ -4,8 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { Trace } from 'vscode-jsonrpc';
 import { RazorLogger } from '../RazorLogger';
+import { Trace } from '../Trace';
 import { ReportIssueCreator } from './ReportIssueCreator';
 import { ReportIssueDataCollector } from './ReportIssueDataCollector';
 import { ReportIssueDataCollectorFactory } from './ReportIssueDataCollectorFactory';

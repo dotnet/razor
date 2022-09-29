@@ -48,6 +48,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            if (!LanguageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
             const string ServerCapability = "definitionProvider";
             var option = new DefinitionOptions();
 

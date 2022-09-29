@@ -5,34 +5,35 @@
 
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
-import { RazorDocumentManager } from '../RazorDocumentManager';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
 import { RazorLogger } from '../RazorLogger';
-import { SerializableTextDocumentIdentifier } from '../RPC/SerializableTextDocumentIdentifier';
+import { convertRangeToSerializable } from '../RPC/SerializableRange';
+import { SerializableColorInformation } from './SerializableColorInformation';
+import { SerializableDocumentColorParams } from './SerializableDocumentColorParams';
 
 export class DocumentColorHandler {
     private static readonly provideHtmlDocumentColorEndpoint = 'razor/provideHtmlDocumentColor';
-    private documentColorRequestType: RequestType<SerializableTextDocumentIdentifier, vscode.ColorInformation[], any> = new RequestType(DocumentColorHandler.provideHtmlDocumentColorEndpoint);
-    private emptyColorInformationResponse: vscode.ColorInformation[] = [];
+    private documentColorRequestType: RequestType<SerializableDocumentColorParams, SerializableColorInformation[], any> = new RequestType(DocumentColorHandler.provideHtmlDocumentColorEndpoint);
+    private emptyColorInformationResponse: SerializableColorInformation[] = [];
 
     constructor(
         private readonly documentManager: RazorDocumentManager,
         private readonly serverClient: RazorLanguageServerClient,
-        private readonly logger: RazorLogger) {
-    }
+        private readonly logger: RazorLogger) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
-        this.serverClient.onRequestWithParams<SerializableTextDocumentIdentifier, vscode.ColorInformation[], any>(
+        this.serverClient.onRequestWithParams<SerializableDocumentColorParams, SerializableColorInformation[], any>(
             this.documentColorRequestType,
-            async (request: SerializableTextDocumentIdentifier, token: vscode.CancellationToken) => this.provideHtmlDocumentColors(request, token));
+            async (request: SerializableDocumentColorParams, token: vscode.CancellationToken) => this.provideHtmlDocumentColors(request, token));
     }
 
     private async provideHtmlDocumentColors(
-        documentColorParams: SerializableTextDocumentIdentifier,
+        documentColorParams: SerializableDocumentColorParams,
         cancellationToken: vscode.CancellationToken) {
         try {
-            const razorDocumentUri = vscode.Uri.parse(`vscode:${documentColorParams.uri}`, true);
+            const razorDocumentUri = vscode.Uri.parse(documentColorParams.textDocument.uri, true);
             const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
             if (razorDocument === undefined) {
                 this.logger.logWarning(`Could not find Razor document ${razorDocumentUri}; returning empty color information.`);
@@ -41,25 +42,22 @@ export class DocumentColorHandler {
 
             const virtualHtmlUri = razorDocument.htmlDocument.uri;
 
-            const commands = await vscode.commands.executeCommand<vscode.Command[]>(
+            const colorInformation = await vscode.commands.executeCommand<vscode.ColorInformation[]>(
                 'vscode.executeDocumentColorProvider',
-                virtualHtmlUri) as vscode.Command[];
+                virtualHtmlUri);
 
-            if (commands.length === 0) {
-                return this.emptyColorInformationResponse;
+            const serializableColorInformation = new Array<SerializableColorInformation>();
+            for (const color of colorInformation) {
+                const serializableRange = convertRangeToSerializable(color.range);
+                const serializableColor = new SerializableColorInformation(serializableRange, color.color);
+                serializableColorInformation.push(serializableColor);
             }
 
-            return commands.map(c => this.commandAsCodeAction(c));
+            return serializableColorInformation;
         } catch (error) {
             this.logger.logWarning(`${DocumentColorHandler.provideHtmlDocumentColorEndpoint} failed with ${error}`);
         }
 
         return this.emptyColorInformationResponse;
-    }
-
-    // TO-DO: Fill in the below method:
-    // https://github.com/dotnet/razor-tooling/issues/6806
-    private commandAsCodeAction(command: vscode.Command): vscode.ColorInformation {
-        return { } as vscode.ColorInformation;
     }
 }

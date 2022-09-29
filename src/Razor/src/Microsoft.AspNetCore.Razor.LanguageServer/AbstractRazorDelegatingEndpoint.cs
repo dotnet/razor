@@ -19,9 +19,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         where TRequest : ITextDocumentPositionParams, IRequest<TResponse?>
     {
         private readonly DocumentContextFactory _documentContextFactory;
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
+
+        protected readonly LanguageServerFeatureOptions LanguageServerFeatureOptions;
         protected readonly ILogger Logger;
 
         protected AbstractRazorDelegatingEndpoint(
@@ -32,10 +33,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ILogger logger)
         {
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-            _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
 
+            LanguageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -70,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         /// <summary>
         /// Returns true if the configuration supports this operation being handled, otherwise returns false. Use to
-        /// handle cases where <see cref="LanguageServerFeatureOptions"/> other than <see cref="LanguageServerFeatureOptions.SingleServerSupport"/>
+        /// handle cases where <see cref="CodeAnalysis.Razor.Workspaces.LanguageServerFeatureOptions"/> other than <see cref="LanguageServerFeatureOptions.SingleServerSupport"/>
         /// need to be checked to validate that the operation can be done.
         /// </summary>
         protected virtual bool IsSupported() => true;
@@ -110,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return response;
             }
 
-            if (!_languageServerFeatureOptions.SingleServerSupport)
+            if (!LanguageServerFeatureOptions.SingleServerSupport)
             {
                 return default;
             }

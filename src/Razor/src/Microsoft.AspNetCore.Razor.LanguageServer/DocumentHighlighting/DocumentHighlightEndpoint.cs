@@ -30,6 +30,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
+            if (!LanguageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
+
             const string ServerCapability = "documentHighlightProvider";
             var options = new DocumentHighlightOptions
             {

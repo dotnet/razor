@@ -25,8 +25,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new DummyRazorFormattingService();
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
-                EmptyDocumentContextFactory, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                EmptyDocumentContextFactory, formattingService, documentMappingService, optionsMonitor, languageServerFeatureOptions, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParamsBridge { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
 
             // Act
@@ -51,8 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new DummyRazorFormattingService();
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
-                documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                documentResolver, formattingService, documentMappingService, optionsMonitor, languageServerFeatureOptions, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -83,8 +85,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new DummyRazorFormattingService();
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
-                documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                documentResolver, formattingService, documentMappingService, optionsMonitor, languageServerFeatureOptions, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -116,8 +119,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
-                documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+                documentResolver, formattingService, documentMappingService.Object, optionsMonitor, languageServerFeatureOptions, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -149,8 +153,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
-                documentResolver, formattingService, documentMappingService.Object, optionsMonitor, LoggerFactory);
+                documentResolver, formattingService, documentMappingService.Object, optionsMonitor, languageServerFeatureOptions, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -181,8 +186,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = new DummyRazorFormattingService();
             var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentResolver, LoggerFactory);
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
-                documentResolver, formattingService, documentMappingService, optionsMonitor, LoggerFactory);
+                documentResolver, formattingService, documentMappingService, optionsMonitor, languageServerFeatureOptions, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, },

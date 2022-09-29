@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,9 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly ILogger _logger;
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public RazorSemanticTokensEndpoint(
             RazorSemanticTokensInfoService semanticTokensInfoService,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
         {
             if (semanticTokensInfoService is null)
@@ -32,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             _semanticTokensInfoService = semanticTokensInfoService;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 

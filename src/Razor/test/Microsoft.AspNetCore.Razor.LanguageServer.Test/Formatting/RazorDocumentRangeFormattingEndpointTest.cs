@@ -23,8 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                documentContextFactory, formattingService, optionsMonitor);
+                documentContextFactory, formattingService, optionsMonitor, languageServerFeatureOptions);
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -44,8 +45,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                EmptyDocumentContextFactory, formattingService, optionsMonitor);
+                EmptyDocumentContextFactory, formattingService, optionsMonitor, languageServerFeatureOptions);
             var uri = new Uri("file://path/test.razor");
             var @params = new DocumentRangeFormattingParamsBridge()
             {
@@ -69,8 +71,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                documentContextFactory, formattingService, optionsMonitor);
+                documentContextFactory, formattingService, optionsMonitor, languageServerFeatureOptions);
             var @params = new DocumentRangeFormattingParamsBridge()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -89,8 +92,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var formattingService = new DummyRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
+            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
             var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                EmptyDocumentContextFactory, formattingService, optionsMonitor);
+                EmptyDocumentContextFactory, formattingService, optionsMonitor, languageServerFeatureOptions);
             var @params = new DocumentRangeFormattingParamsBridge();
 
             // Act

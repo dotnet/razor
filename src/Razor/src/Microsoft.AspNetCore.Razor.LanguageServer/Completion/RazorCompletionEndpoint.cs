@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,23 +18,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly ILogger _logger;
         private readonly DocumentContextFactory _documentContextFactory;
         private readonly CompletionListProvider _completionListProvider;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorCompletionEndpoint(
             DocumentContextFactory documentContextFactory,
             CompletionListProvider completionListProvider,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
         {
             _documentContextFactory = documentContextFactory;
             _completionListProvider = completionListProvider;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
         }
 
         public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "completionProvider";
-
             _clientCapabilities = clientCapabilities;
+
+            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
+            {
+                return null;
+            }
 
             var registrationOptions = new CompletionOptions()
             {
