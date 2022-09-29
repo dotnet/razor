@@ -34,10 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// The delegated object to send to the <see cref="CustomMessageTarget"/>
-        /// </summary>
-        protected abstract IDelegatedParams? CreateDelegatedParams(TRequest request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken);
+        protected virtual bool OnlySingleServer { get; } = true;
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -50,6 +47,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         protected abstract string CustomMessageTarget { get; }
 
         public bool MutatesSolutionState { get; } = false;
+
+        /// <summary>
+        /// The delegated object to send to the <see cref="CustomMessageTarget"/>
+        /// </summary>
+        protected abstract Task<IDelegatedParams?> CreateDelegatedParamsAsync(TRequest request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken);
 
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
@@ -105,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return response;
             }
 
-            if (!_languageServerFeatureOptions.SingleServerSupport)
+            if (OnlySingleServer && !_languageServerFeatureOptions.SingleServerSupport)
             {
                 return default;
             }
@@ -117,7 +119,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var delegatedParams = CreateDelegatedParams(request, context, projection, cancellationToken);
+            var delegatedParams = await CreateDelegatedParams(request, context, projection, cancellationToken);
+
             if (delegatedParams is null)
             {
                 // I guess they don't want to delegate... fine then!
