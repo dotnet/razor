@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -94,6 +95,12 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeTransitionCompletionItemProvider>();
         services.AddSingleton<RazorCompletionItemProvider, MarkupTransitionCompletionItemProvider>();
         services.AddSingleton<RazorCompletionItemProvider, TagHelperCompletionProvider>();
+    }
+
+    public static void AddDiagnosticServices(this IServiceCollection services)
+    {
+        services.AddHandler<RazorTranslateDiagnosticsEndpoint>();
+        services.AddRegisteringHandler<RazorPullDiagnosticsEndpoint>();
     }
 
     public static void AddHoverServices(this IServiceCollection services)

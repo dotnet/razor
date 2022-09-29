@@ -29,7 +29,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, DefinitionResult?>, IDefinitionEndpoint
 {
     private readonly RazorComponentSearchEngine _componentSearchEngine;
-    private readonly RazorDocumentMappingService _documentMappingService;
 
     public RazorDefinitionEndpoint(
         RazorComponentSearchEngine componentSearchEngine,
@@ -40,7 +39,6 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorDefinitionEndpoint>())
     {
         _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
@@ -53,8 +51,13 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
         return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
     {
+        if (projection is null)
+        {
+            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(RazorDefinitionEndpoint)}.");
+        }
+
         requestContext.Logger.LogInformation("Starting go-to-def endpoint request.");
         var documentContext = requestContext.GetRequiredDocumentContext();
 
@@ -99,8 +102,13 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
         };
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
     {
+        if (projection is null)
+        {
+            return Task.FromResult<IDelegatedParams?>(default);
+        }
+
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
@@ -108,9 +116,9 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
                 projection.LanguageKind));
     }
 
-    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
     {
-        if (response is null)
+        if (response is null || projection is null)
         {
             return null;
         }

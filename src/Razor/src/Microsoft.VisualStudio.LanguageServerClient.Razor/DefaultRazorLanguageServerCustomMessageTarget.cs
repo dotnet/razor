@@ -1046,6 +1046,39 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
+    public override async Task<IEnumerable<VSInternalDiagnosticReport>?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
+    {
+        var (synchronized, csharpVirtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            request.HostDocument.Version,
+            request.HostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+        if (!synchronized)
+        {
+            return null;
+        }
+
+        var csharpRequest = new VSInternalDocumentDiagnosticsParams
+        {
+            TextDocument = new TextDocumentIdentifier
+            {
+                Uri = csharpVirtualDocument.Uri,
+            },
+        };
+        var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+            csharpVirtualDocument.Snapshot.TextBuffer,
+            VSInternalMethods.DocumentPullDiagnosticName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            csharpRequest,
+            cancellationToken).ConfigureAwait(false);
+
+        if (csharpResponse is null)
+        {
+            return default;
+        }
+
+        return csharpResponse.Response;
+    }
+
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);

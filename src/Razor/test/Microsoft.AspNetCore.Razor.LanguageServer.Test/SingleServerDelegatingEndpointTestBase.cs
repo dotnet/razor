@@ -50,7 +50,10 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
         var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText,
             csharpDocumentUri,
-            new ServerCapabilities(),
+            new VSInternalServerCapabilities
+            {
+                SupportsDiagnosticRequests = true,
+            },
             razorSpanMappingService: null,
             DisposalToken);
 
