@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -218,15 +217,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction = null)
         {
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<CodeAction>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(resolvedCodeAction ?? s_defaultResolvedCodeAction));
+            var response = resolvedCodeAction ?? s_defaultResolvedCodeAction;
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>()))
-                .Returns(Task.FromResult(responseRouterReturns.Object));
+                .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             return languageServer.Object;
         }

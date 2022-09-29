@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -13,6 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     internal class SemanticTokensRefreshEndpoint : ISemanticTokensRefreshEndpoint
     {
         private readonly WorkspaceSemanticTokensRefreshPublisher _semanticTokensRefreshPublisher;
+
+        public bool MutatesSolutionState { get; } = false;
 
         public SemanticTokensRefreshEndpoint(WorkspaceSemanticTokensRefreshPublisher semanticTokensRefreshPublisher)
         {
@@ -24,15 +25,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _semanticTokensRefreshPublisher = semanticTokensRefreshPublisher;
         }
 
-        public Task<Unit> Handle(SemanticTokensRefreshParamsBridge request, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(SemanticTokensRefreshParams request, RazorRequestContext context, CancellationToken cancellationToken)
         {
             // We have to invalidate the tokens cache since it may no longer be up to date.
             _semanticTokensRefreshPublisher.EnqueueWorkspaceSemanticTokensRefresh();
 
-            return Unit.Task;
+            return Task.CompletedTask;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "workspace.semanticTokens";
 

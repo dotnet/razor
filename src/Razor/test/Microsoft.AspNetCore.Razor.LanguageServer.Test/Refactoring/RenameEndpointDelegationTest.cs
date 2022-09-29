@@ -72,9 +72,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Position = new Position(line, offset),
                 NewName = newName
             };
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
 
             // Assert
             var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(e => e.AsTextChange(codeDocument.GetSourceText()));

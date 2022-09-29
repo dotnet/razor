@@ -38,8 +38,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Options = context.Options
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+            var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
+                Common.LanguageServerConstants.RazorDocumentFormattingEndpoint,
+                @params,
+                cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
@@ -64,8 +66,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 HostDocumentVersion = documentVersion.Value,
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+            var result = await _server.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
+                Common.LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint,
+                @params,
+                cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }

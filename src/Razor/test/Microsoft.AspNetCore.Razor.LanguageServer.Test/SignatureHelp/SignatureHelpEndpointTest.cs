@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
 
             await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-            var endpoint = new SignatureHelpEndpoint(DocumentContextFactory, LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new SignatureHelpEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, TestLoggerFactory.Instance);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new SignatureHelpParamsBridge
@@ -87,9 +87,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
                 },
                 Position = new Position(line, offset)
             };
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
 
             // Assert
             if (signatures.Length == 0)

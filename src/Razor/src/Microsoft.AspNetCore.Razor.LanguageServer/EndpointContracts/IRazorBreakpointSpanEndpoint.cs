@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
+using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-[Parallel, Method(LanguageServerConstants.RazorBreakpointSpanEndpoint)]
-internal interface IRazorBreakpointSpanEndpoint : IJsonRpcRequestHandler<RazorBreakpointSpanParamsBridge, RazorBreakpointSpanResponse?>
+[LanguageServerEndpoint(LanguageServerConstants.RazorBreakpointSpanEndpoint)]
+internal interface IRazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<RazorBreakpointSpanParams, RazorBreakpointSpanResponse?>,
+    ITextDocumentIdentifierHandler<RazorBreakpointSpanParams, Uri>
 {
 }

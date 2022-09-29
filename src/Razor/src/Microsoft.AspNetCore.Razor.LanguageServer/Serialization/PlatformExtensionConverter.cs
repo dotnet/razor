@@ -58,4 +58,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
         }
     }
 }
-
