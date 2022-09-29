@@ -7,40 +7,29 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
-    internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IJsonRpcRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
-        where TParams : IPresentationParams, IRequest<WorkspaceEdit?>
+    internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
+        where TParams : IPresentationParams
     {
-        protected internal readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _razorDocumentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        protected readonly ILogger _logger;
 
         protected AbstractTextDocumentPresentationEndpointBase(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             ClientNotifierServiceBase languageServer,
-            LanguageServerFeatureOptions languageServerFeatureOptions,
-            ILogger logger)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
-            if (documentContextFactory is null)
-            {
-                throw new ArgumentNullException(nameof(documentContextFactory));
-            }
-
             if (razorDocumentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(razorDocumentMappingService));
@@ -56,29 +45,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 throw new ArgumentNullException(nameof(languageServerFeatureOptions));
             }
 
-            if (logger is null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            _documentContextFactory = documentContextFactory;
             _razorDocumentMappingService = razorDocumentMappingService;
             _languageServer = languageServer;
             _languageServerFeatureOptions = languageServerFeatureOptions;
-            _logger = logger;
         }
 
         public abstract string EndpointName { get; }
 
-        public abstract RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities);
+        public bool MutatesSolutionState => false;
+
+        public abstract RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities);
 
         protected abstract IRazorPresentationParams CreateRazorRequestParameters(TParams request);
 
         protected abstract Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, TParams request, CancellationToken cancellationToken);
 
-        public async Task<WorkspaceEdit?> Handle(TParams request, CancellationToken cancellationToken)
+        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(TParams request);
+
+        public async Task<WorkspaceEdit?> HandleRequestAsync(TParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var documentContext = requestContext.DocumentContext;
             if (documentContext is null)
             {
                 return null;
@@ -89,12 +75,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                _logger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
+                requestContext.LspLogger.LogWarning("Failed to retrieve generated output for document {request.TextDocument.Uri}.", request.TextDocument.Uri);
                 return null;
             }
 
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (request.Range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex) != true)
+            if (request.Range.Start.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex) != true)
             {
                 return null;
             }
@@ -109,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             if (languageKind is not (RazorLanguageKind.CSharp or RazorLanguageKind.Html))
             {
-                _logger.LogInformation("Unsupported language {languageKind}.", languageKind);
+                requestContext.LspLogger.LogInformation("Unsupported language {languageKind}.", languageKind);
                 return null;
             }
 
@@ -129,8 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
                 requestParams.Range = projectedRange;
             }
 
-            var delegatedRequest = await _languageServer.SendRequestAsync(EndpointName, requestParams).ConfigureAwait(false);
-            var response = await delegatedRequest.Returning<WorkspaceEdit?>(cancellationToken).ConfigureAwait(false);
+            var response = await _languageServer.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(EndpointName, requestParams, cancellationToken).ConfigureAwait(false);
             if (response is null)
             {
                 return null;

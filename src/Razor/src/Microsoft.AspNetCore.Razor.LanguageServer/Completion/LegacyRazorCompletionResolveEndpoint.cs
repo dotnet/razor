@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -20,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     // The intention of this class is to temporarily exist as a snapshot in time for our pre-existing completion experience.
     // It will eventually be removed in favor of the non-Legacy variant at which point we'll also remove the feature flag
     // for this legacy version.
-    internal class LegacyRazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint
+    internal class LegacyRazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint, IOnInitialized
     {
         private readonly ILogger _logger;
         private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
@@ -32,6 +33,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         // Guid is magically generated and doesn't mean anything. O# magic.
         public Guid Id => new("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
+
+        public bool MutatesSolutionState => false;
 
         public LegacyRazorCompletionResolveEndpoint(
             LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
@@ -65,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _completionListCache = completionListCache;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             _completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
             _clientCapabilities = clientCapabilities;
@@ -73,13 +76,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionSupportedKinds = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat;
             _documentationKind = completionSupportedKinds?.Contains(MarkupKind.Markdown) == true ? MarkupKind.Markdown : MarkupKind.PlainText;
 
-            return null;
+            return Task.CompletedTask;
         }
 
-        public Task<VSInternalCompletionItem> Handle(VSCompletionItemBridge completionItemBridge, CancellationToken cancellationToken)
+        public Task<VSInternalCompletionItem> HandleRequestAsync(VSInternalCompletionItem completionItem, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
-            VSInternalCompletionItem completionItem = completionItemBridge;
-
             if (!completionItem.TryGetCompletionListResultIds(out var resultIds))
             {
                 // Couldn't resolve.

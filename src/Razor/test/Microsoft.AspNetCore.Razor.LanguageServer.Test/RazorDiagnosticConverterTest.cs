@@ -6,13 +6,11 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-
     public class RazorDiagnosticConverterTest
     {
         [Fact]
@@ -64,9 +62,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var sourceSpan = new SourceSpan(3, 0, 3, 4);
             var sourceText = SourceText.From("Hello World");
-            var expectedRange = new Range(
-                new Position(0, 3),
-                new Position(0, 7));
+            var expectedRange = new Range
+            {
+                Start = new Position(0, 3),
+                End = new Position(0, 7)
+            };
 
             // Act
             var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
@@ -81,9 +81,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var sourceText = SourceText.From(string.Empty);
             var sourceSpan = new SourceSpan(5, 0, 5, 4);
-            var expectedRange = new Range(
-                new Position(0, 0),
-                new Position(0, 0));
+            var expectedRange = new Range
+            {
+                Start = new Position(0, 0),
+                End = new Position(0, 0)
+            };
 
             // Act
             var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
@@ -98,9 +100,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var sourceText = SourceText.From("Hello World");
             var sourceSpan = new SourceSpan(sourceText.Length + 5, 0, sourceText.Length + 5, 4);
-            var expectedRange = new Range(
-                new Position(0, 10),
-                new Position(0, 10));
+            var expectedRange = new Range
+            {
+                Start = new Position(0, 10),
+                End = new Position(0, 10)
+            };
 
             // Act
             var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
@@ -115,9 +119,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var sourceText = SourceText.From("Hello World");
             var sourceSpan = new SourceSpan(6, 0, 6, 15);
-            var expectedRange = new Range(
-                new Position(0, 6),
-                new Position(0, 10));
+            var expectedRange = new Range
+            {
+                Start = new Position(0, 6),
+                End = new Position(0, 10)
+            };
 
             // Act
             var range = RazorDiagnosticConverter.ConvertSpanToRange(sourceSpan, sourceText);
