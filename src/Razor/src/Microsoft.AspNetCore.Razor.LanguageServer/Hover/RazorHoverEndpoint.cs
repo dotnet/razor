@@ -49,13 +49,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = razorRequestContext.GetRequiredDocumentContext();
-            return new DelegatedPositionParams(
+            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
-                    projection.LanguageKind);
+                    projection.LanguageKind));
         }
 
         /// <inheritdoc/>

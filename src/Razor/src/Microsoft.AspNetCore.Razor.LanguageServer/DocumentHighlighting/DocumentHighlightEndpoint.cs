@@ -49,14 +49,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
         }
 
         /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
-            return new DelegatedPositionParams(
+            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
-                    projection.LanguageKind);
+                    projection.LanguageKind));
         }
+
         /// <inheritdoc/>
         protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
