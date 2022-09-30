@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
@@ -10,7 +8,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     // A noop implementation for non-ide cases
     internal class DefaultFileChangeTracker : FileChangeTracker
     {
-        public override event EventHandler<FileChangeEventArgs> Changed
+        public override event EventHandler<FileChangeEventArgs>? Changed
         {
             // Do nothing (the handlers would never be used anyway)
             add { }

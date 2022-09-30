@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return hostProject;
         }
 
-        public override object GetHostProject(string documentFilePath)
+        public override object? GetHostProject(string documentFilePath)
         {
             _documentTable.FindDocument(documentFilePath, out var hierarchy, out _, out _);
 

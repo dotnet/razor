@@ -28,8 +28,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            var fileChangeTracker = new VisualStudioMacFileChangeTracker(filePath, _projectSnapshotManagerDispatcher);
-            return fileChangeTracker;
+            return new VisualStudioMacFileChangeTracker(filePath, _projectSnapshotManagerDispatcher);
         }
     }
 }

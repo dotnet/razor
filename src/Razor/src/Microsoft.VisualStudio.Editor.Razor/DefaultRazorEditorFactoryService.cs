@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text;
 
@@ -15,7 +14,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(RazorEditorFactoryService))]
     internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
     {
-        private static readonly object s_razorTextBufferInitializationKey = new object();
+        private static readonly object s_razorTextBufferInitializationKey = new();
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
 
         [ImportingConstructor]
@@ -29,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _workspaceAccessor = workspaceAccessor;
         }
 
-        public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
+        public override bool TryGetDocumentTracker(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioDocumentTracker? documentTracker)
         {
             if (textBuffer is null)
             {
@@ -49,7 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker))
+            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker!))
             {
                 Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
                 return false;
@@ -58,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return true;
         }
 
-        public override bool TryGetParser(ITextBuffer textBuffer, out VisualStudioRazorParser parser)
+        public override bool TryGetParser(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out VisualStudioRazorParser? parser)
         {
             if (textBuffer is null)
             {
@@ -78,7 +77,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out parser))
+            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out parser!))
             {
                 Debug.Fail("Parser should have been stored on the text buffer during initialization.");
                 return false;
@@ -87,7 +86,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return true;
         }
 
-        internal override bool TryGetSmartIndenter(ITextBuffer textBuffer, out BraceSmartIndenter braceSmartIndenter)
+        internal override bool TryGetSmartIndenter(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out BraceSmartIndenter? braceSmartIndenter)
         {
             if (textBuffer is null)
             {
@@ -107,7 +106,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            if (!textBuffer.Properties.TryGetProperty(typeof(BraceSmartIndenter), out braceSmartIndenter))
+            if (!textBuffer.Properties.TryGetProperty(typeof(BraceSmartIndenter), out braceSmartIndenter!))
             {
                 Debug.Fail("Brace smart indenter should have been stored on the text buffer during initialization.");
                 return false;
@@ -136,7 +135,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var parserFactory = razorLanguageServices.GetRequiredService<VisualStudioRazorParserFactory>();
             var braceSmartIndenterFactory = razorLanguageServices.GetRequiredService<BraceSmartIndenterFactory>();
 
-            var tracker = documentTrackerFactory.Create(textBuffer);
+            var tracker = documentTrackerFactory.Create(textBuffer)!;
             textBuffer.Properties[typeof(VisualStudioDocumentTracker)] = tracker;
 
             var parser = parserFactory.Create(tracker);

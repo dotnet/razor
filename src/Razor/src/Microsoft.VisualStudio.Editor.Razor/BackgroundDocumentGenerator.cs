@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -26,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
         private readonly HashSet<string> _suppressedDocuments;
-        private ProjectSnapshotManagerBase _projectManager;
-        private Timer _timer;
+        private ProjectSnapshotManagerBase? _projectManager;
+        private Timer? _timer;
         private bool _solutionIsClosing;
 
         [ImportingConstructor]
@@ -67,40 +65,37 @@ namespace Microsoft.CodeAnalysis.Razor
         public bool IsScheduledOrRunning => _timer != null;
 
         // Used in unit tests to ensure we can control when background work starts.
-        public ManualResetEventSlim BlockBackgroundWorkStart { get; set; }
+        public ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
 
         // Used in unit tests to ensure we can know when background work finishes.
-        public ManualResetEventSlim NotifyBackgroundWorkStarting { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundWorkStarting { get; set; }
 
         // Used in unit tests to ensure we can know when background has captured its current workload.
-        public ManualResetEventSlim NotifyBackgroundCapturedWorkload { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundCapturedWorkload { get; set; }
 
         // Used in unit tests to ensure we can control when background work completes.
-        public ManualResetEventSlim BlockBackgroundWorkCompleting { get; set; }
+        public ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
 
         // Used in unit tests to ensure we can know when background work finishes.
-        public ManualResetEventSlim NotifyBackgroundWorkCompleted { get; set; }
+        public ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
 
         // Used in unit tests to ensure we can know when errors are reported
-        public ManualResetEventSlim NotifyErrorBeingReported { get; set; }
+        public ManualResetEventSlim? NotifyErrorBeingReported { get; set; }
 
         private void OnStartingBackgroundWork()
         {
-            if (BlockBackgroundWorkStart != null)
+            if (BlockBackgroundWorkStart is not null)
             {
                 BlockBackgroundWorkStart.Wait();
                 BlockBackgroundWorkStart.Reset();
             }
 
-            if (NotifyBackgroundWorkStarting != null)
-            {
-                NotifyBackgroundWorkStarting.Set();
-            }
+            NotifyBackgroundWorkStarting?.Set();
         }
 
         private void OnCompletingBackgroundWork()
         {
-            if (BlockBackgroundWorkCompleting != null)
+            if (BlockBackgroundWorkCompleting is not null)
             {
                 BlockBackgroundWorkCompleting.Wait();
                 BlockBackgroundWorkCompleting.Reset();
@@ -109,26 +104,17 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void OnCompletedBackgroundWork()
         {
-            if (NotifyBackgroundWorkCompleted != null)
-            {
-                NotifyBackgroundWorkCompleted.Set();
-            }
+            NotifyBackgroundWorkCompleted?.Set();
         }
 
         private void OnBackgroundCapturedWorkload()
         {
-            if (NotifyBackgroundCapturedWorkload != null)
-            {
-                NotifyBackgroundCapturedWorkload.Set();
-            }
+            NotifyBackgroundCapturedWorkload?.Set();
         }
 
         private void OnErrorBeingReported()
         {
-            if (NotifyErrorBeingReported != null)
-            {
-                NotifyErrorBeingReported.Set();
-            }
+            NotifyErrorBeingReported?.Set();
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
@@ -181,11 +167,8 @@ namespace Microsoft.CodeAnalysis.Razor
         protected virtual void StartWorker()
         {
             // Access to the timer is protected by the lock in Enqueue and in Timer_Tick
-            if (_timer is null)
-            {
-                // Timer will fire after a fixed delay, but only once.
-                _timer = NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, Delay, Timeout.InfiniteTimeSpan);
-            }
+            // Timer will fire after a fixed delay, but only once.
+            _timer ??= NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, Delay, Timeout.InfiniteTimeSpan);
         }
 
         private void Timer_Tick()
@@ -195,6 +178,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private async Task TimerTickAsync()
         {
+            Assumes.NotNull(_timer);
+
             try
             {
                 // Timer is stopped.
@@ -259,6 +244,8 @@ namespace Microsoft.CodeAnalysis.Razor
             }
             catch (Exception ex)
             {
+                Assumes.NotNull(_projectManager);
+
                 // This is something totally unexpected, let's just send it over to the workspace.
                 await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _projectManager.ReportError(ex),
@@ -270,6 +257,8 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             OnErrorBeingReported();
 
+            Assumes.NotNull(_projectManager);
+
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex, project),
                 CancellationToken.None);
@@ -277,6 +266,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)
         {
+            Assumes.NotNull(_projectManager);
+
             lock (_suppressedDocuments)
             {
                 if (_projectManager.IsDocumentOpen(document.FilePath))
@@ -318,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 case ProjectChangeKind.ProjectAdded:
                     {
-                        var projectSnapshot = e.Newer;
+                        var projectSnapshot = e.Newer!;
                         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
                         {
                             Enqueue(projectSnapshot, projectSnapshot.GetDocument(documentFilePath));
@@ -328,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     }
                 case ProjectChangeKind.ProjectChanged:
                     {
-                        var projectSnapshot = e.Newer;
+                        var projectSnapshot = e.Newer!;
                         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
                         {
                             Enqueue(projectSnapshot, projectSnapshot.GetDocument(documentFilePath));
@@ -340,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 case ProjectChangeKind.DocumentAdded:
                 case ProjectChangeKind.DocumentChanged:
                     {
-                        var project = e.Newer;
+                        var project = e.Newer!;
                         var document = project.GetDocument(e.DocumentFilePath);
 
                         Enqueue(project, document);
@@ -356,9 +347,9 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         // For removals use the old snapshot to find the removed document, so we can figure out
                         // what the imports were in the new snapshot.
-                        var document = e.Older.GetDocument(e.DocumentFilePath);
+                        var document = e.Older!.GetDocument(e.DocumentFilePath);
 
-                        foreach (var relatedDocument in e.Newer.GetRelatedDocuments(document))
+                        foreach (var relatedDocument in e.Newer!.GetRelatedDocuments(document))
                         {
                             Enqueue(e.Newer, relatedDocument);
                         }

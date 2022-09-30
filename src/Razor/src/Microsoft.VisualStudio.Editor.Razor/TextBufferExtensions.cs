@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -38,8 +36,7 @@ namespace Microsoft.VisualStudio.Text
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            var matchesContentType = textBuffer.ContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
-            return matchesContentType;
+            return textBuffer.ContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
         }
     }
 }

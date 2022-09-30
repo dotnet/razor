@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
     /// </summary>
     internal class RazorSyntaxNode : IEnumerable<RazorSyntaxNode>
     {
-        private SyntaxNode _node;
+        private readonly SyntaxNode _node;
 
         public int SpanStart => _node.SpanStart;
 
@@ -37,19 +37,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
             Children = new RazorSyntaxNodeList(_node.ChildNodes());
         }
 
-        public IEnumerator<RazorSyntaxNode> GetEnumerator()
-        {
-            return Children.GetEnumerator();
-        }
+        public IEnumerator<RazorSyntaxNode> GetEnumerator() => Children.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public override string ToString()
-        {
-            return _node.ToString();
-        }
+        public override string ToString() => _node.ToString();
     }
 }

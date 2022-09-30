@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,24 +28,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
         /// <summary>
         /// Fired on the main thread.
         /// </summary>
-        public event EventHandler<BackgroundParserResultsReadyEventArgs> ResultsReady;
+        public event EventHandler<BackgroundParserResultsReadyEventArgs>? ResultsReady;
 
-        public bool IsIdle
-        {
-            get { return _main.IsIdle; }
-        }
+        public bool IsIdle => _main.IsIdle;
 
-        public void Start()
-        {
-            _bg.Start();
-        }
+        public void Start() => _bg.Start();
 
-        public void Cancel()
-        {
-            _main.Cancel();
-        }
+        public void Cancel() => _main.Cancel();
 
-        public ChangeReference QueueChange(SourceChange change, ITextSnapshot snapshot)
+        public ChangeReference QueueChange(SourceChange? change, ITextSnapshot snapshot)
         {
             var changeReference = new ChangeReference(change, snapshot);
             _main.QueueChange(changeReference);
@@ -60,10 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _main.Dispose();
         }
 
-        public IDisposable SynchronizeMainThreadState()
-        {
-            return _main.Lock();
-        }
+        public IDisposable SynchronizeMainThreadState() => _main.Lock();
 
         protected virtual void OnResultsReady(BackgroundParserResultsReadyEventArgs args)
         {
@@ -112,8 +98,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private class MainThreadState : ThreadStateBase, IDisposable
         {
             private readonly CancellationTokenSource _cancelSource = new();
-            private ManualResetEventSlim _hasParcel = new(false);
-            private CancellationTokenSource _currentParcelCancelSource;
+            private ManualResetEventSlim? _hasParcel = new(false);
+            private CancellationTokenSource? _currentParcelCancelSource;
 
             private readonly object _disposeLock = new();
             private readonly object _stateLock = new();
@@ -125,12 +111,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 SetThreadId(Environment.CurrentManagedThreadId);
             }
 
-            public event EventHandler<BackgroundParserResultsReadyEventArgs> ResultsReady;
+            public event EventHandler<BackgroundParserResultsReadyEventArgs>? ResultsReady;
 
-            public CancellationToken CancelToken
-            {
-                get { return _cancelSource.Token; }
-            }
+            public CancellationToken CancelToken => _cancelSource.Token;
 
             public bool IsIdle
             {
@@ -162,13 +145,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 lock (_stateLock)
                 {
                     // CurrentParcel token source is not null ==> There's a parse underway
-                    if (_currentParcelCancelSource != null)
-                    {
-                        _currentParcelCancelSource.Cancel();
-                    }
+                    _currentParcelCancelSource?.Cancel();
 
                     _changes.Add(change);
-                    _hasParcel.Set();
+                    _hasParcel?.Set();
                 }
             }
 
@@ -202,7 +182,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                     try
                     {
-                        _hasParcel.Reset();
+                        _hasParcel?.Reset();
                     }
                     catch (Exception)
                     {
@@ -226,7 +206,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 lock (_stateLock)
                 {
                     // Clear the current parcel cancellation source
-                    if (_currentParcelCancelSource != null)
+                    if (_currentParcelCancelSource is not null)
                     {
                         _currentParcelCancelSource.Dispose();
                         _currentParcelCancelSource = null;
@@ -261,14 +241,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                         _disposed = true;
 
-                        if (_currentParcelCancelSource != null)
+                        if (_currentParcelCancelSource is not null)
                         {
                             _currentParcelCancelSource.Dispose();
                             _currentParcelCancelSource = null;
                         }
 
                         _cancelSource.Dispose();
-                        _hasParcel.Dispose();
+                        _hasParcel?.Dispose();
                         _hasParcel = null;
                     }
                 }
@@ -285,8 +265,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             private readonly Thread _backgroundThread;
             private CancellationToken _shutdownToken;
             private readonly RazorProjectEngine _projectEngine;
-            private RazorSyntaxTree _currentSyntaxTree;
-            private IList<ChangeReference> _previouslyDiscarded = new List<ChangeReference>();
+            private IList<ChangeReference>? _previouslyDiscarded = new List<ChangeReference>();
 
             public BackgroundThread(MainThreadState main, RazorProjectEngine projectEngine, string filePath, string projectDirectory, string fileKind)
             {
@@ -328,25 +307,23 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         {
                             try
                             {
-                                BackgroundParserResultsReadyEventArgs args = null;
+                                BackgroundParserResultsReadyEventArgs? args = null;
                                 using (var linkedCancel = CancellationTokenSource.CreateLinkedTokenSource(_shutdownToken, parcel.CancelToken))
                                 {
                                     if (!linkedCancel.IsCancellationRequested)
                                     {
                                         // Collect ALL changes
-                                        var allChanges = _previouslyDiscarded != null
+                                        var allChanges = _previouslyDiscarded is not null
                                             ? Enumerable.Concat(_previouslyDiscarded, parcel.Changes).ToList()
                                             : parcel.Changes.ToList();
                                         var finalChange = allChanges.Last();
 
-                                        var results = ParseChange(finalChange.Snapshot, linkedCancel.Token);
+                                        var results = ParseChange(finalChange.Snapshot);
 
-                                        if (results != null && !linkedCancel.IsCancellationRequested)
+                                        if (results is not null && !linkedCancel.IsCancellationRequested)
                                         {
                                             // Clear discarded changes list
                                             _previouslyDiscarded = null;
-
-                                            _currentSyntaxTree = results.GetSyntaxTree();
 
                                             // Build Arguments
                                             args = new BackgroundParserResultsReadyEventArgs(finalChange, results);
@@ -359,7 +336,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                                     }
                                 }
 
-                                if (args != null)
+                                if (args is not null)
                                 {
                                     _main.ReturnParcel(args);
                                 }
@@ -385,7 +362,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 }
             }
 
-            private RazorCodeDocument ParseChange(ITextSnapshot snapshot, CancellationToken token)
+            private RazorCodeDocument ParseChange(ITextSnapshot snapshot)
             {
                 EnsureOnThread();
 
@@ -399,7 +376,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 if (filePath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    filePath = filePath.Substring(projectDirectory.Length);
+                    filePath = filePath[projectDirectory.Length..];
                 }
 
                 if (filePath.Length > 1)
@@ -433,13 +410,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         internal class ChangeReference
         {
-            public ChangeReference(SourceChange change, ITextSnapshot snapshot)
+            public ChangeReference(SourceChange? change, ITextSnapshot snapshot)
             {
                 Change = change;
                 Snapshot = snapshot;
             }
 
-            public SourceChange Change { get; }
+            public SourceChange? Change { get; }
 
             public ITextSnapshot Snapshot { get; }
         }

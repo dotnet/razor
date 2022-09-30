@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     It.IsAny<Action<RazorProjectEngineBuilder>>()) == engine, MockBehavior.Strict);
         }
 
-        private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
+        private static JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
 
         private ProjectSnapshot ProjectSnapshot { get; }
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -12,7 +10,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal class RazorSyntaxTreePartialParser
     {
-        private SyntaxNode _lastChangeOwner;
+        private SyntaxNode? _lastChangeOwner;
         private bool _lastResultProvisional;
 
         public RazorSyntaxTreePartialParser(RazorSyntaxTree syntaxTree)
@@ -56,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var result = PartialParseResultInternal.Rejected;
 
             // Try the last change owner
-            if (_lastChangeOwner != null)
+            if (_lastChangeOwner is not null)
             {
                 var editHandler = _lastChangeOwner.GetSpanContext()?.EditHandler ?? SpanEditHandler.CreateDefault();
                 if (editHandler.OwnsChange(_lastChangeOwner, change))
@@ -80,7 +78,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // Last change owner couldn't accept this, so we must do a full reparse
                 result = PartialParseResultInternal.Rejected;
             }
-            else if (_lastChangeOwner != null)
+            else if (_lastChangeOwner is not null)
             {
                 var editHandler = _lastChangeOwner.GetSpanContext()?.EditHandler ?? SpanEditHandler.CreateDefault();
                 var editResult = editHandler.ApplyChange(_lastChangeOwner, change);
