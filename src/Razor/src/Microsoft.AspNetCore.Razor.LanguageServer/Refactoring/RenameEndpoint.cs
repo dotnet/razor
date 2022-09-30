@@ -63,10 +63,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return new RegistrationExtensionResult(ServerCapability, new SumType<bool, RenameOptions>(options));
         }
 
-        /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;
 
-        /// <inheritdoc/>
         protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
@@ -88,18 +86,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         protected override bool IsSupported()
             => _languageServerFeatureOptions.SupportsFileManipulation;
 
-        /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(RenameParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(RenameParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
-            return new DelegatedRenameParams(
+            return Task.FromResult<IDelegatedParams?>(new DelegatedRenameParams(
                     documentContext.Identifier,
                     projection.Position,
                     projection.LanguageKind,
-                    request.NewName);
+                    request.NewName));
         }
 
-        /// <inheritdoc/>
         protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, RenameParamsBridge request, RazorRequestContext reqeuestContext, Projection projection, CancellationToken cancellationToken)
         {
             if (response is null)

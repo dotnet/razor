@@ -14,9 +14,9 @@ internal class RazorInitializeEndpoint : IRazorDocumentlessRequestHandler<Initia
 {
     public bool MutatesSolutionState { get; } = true;
 
-    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        var capabilitiesManager = context.GetRequiredService<IInitializeManager<InitializeParams, InitializeResult>>();
+        var capabilitiesManager = requestContext.GetRequiredService<IInitializeManager<InitializeParams, InitializeResult>>();
 
         capabilitiesManager.SetInitializeParams(request);
         var serverCapabilities = capabilitiesManager.GetInitializeResult();

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -70,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
         private async Task VerifySignatureHelpAsync(string input, params string[] signatures)
         {
             // Arrange
-            TestFileMarkupParser.GetPositionAndSpans(input, out var output, out int cursorPosition, out ImmutableArray<TextSpan> spans);
+            TestFileMarkupParser.GetPositionAndSpans(input, out var output, out int cursorPosition, out ImmutableArray<TextSpan> _);
             var codeDocument = CreateCodeDocument(output);
             var razorFilePath = "C:/path/to/file.razor";
 

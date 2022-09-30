@@ -11,8 +11,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         [IdeFact]
         public async Task CSharp_DocumentationComments()
         {
-            var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
-
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
