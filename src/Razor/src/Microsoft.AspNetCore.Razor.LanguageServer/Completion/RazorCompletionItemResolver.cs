@@ -132,5 +132,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
     }
 }
-
-

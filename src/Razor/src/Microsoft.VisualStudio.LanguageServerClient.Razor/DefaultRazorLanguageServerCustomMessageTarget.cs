@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
 
-        private const string RazorReadyFeature = "Razor-Initialization";
-
         [ImportingConstructor]
         public DefaultRazorLanguageServerCustomMessageTarget(
             LSPDocumentManager documentManager,

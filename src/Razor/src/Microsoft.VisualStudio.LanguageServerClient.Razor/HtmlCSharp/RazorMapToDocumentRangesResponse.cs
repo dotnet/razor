@@ -3,7 +3,6 @@
 
 #nullable disable
 
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
