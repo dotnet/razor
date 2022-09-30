@@ -23,6 +23,9 @@ internal class RazorInitializedEndpoint : INotificationHandler<InitializedParams
         var fileChangeDetectorManager = requestContext.LspServices.GetRequiredService<RazorFileChangeDetectorManager>();
         await fileChangeDetectorManager.InitializedAsync();
         var clientCapabilities = capabilitiesManager.GetInitializeParams().Capabilities.ToVSInternalClientCapabilities();
+        var serverCapabilities = capabilitiesManager.GetInitializeResult().Capabilities;
+
+        RazorLanguageServerCapability.AddTo(serverCapabilities);
 
         foreach (var onStartedItem in onStartedItems)
         {
