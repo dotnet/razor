@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -22,9 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument, documentFound: false);
             var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
             var request = new LinkedEditingRangeParams
             {
