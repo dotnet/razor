@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -17,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorConstants.RazorLSPContentTypeName)]
     internal class HtmlVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
-        private static IContentType s_htmlLSPContentType;
+        private static IContentType? s_htmlLSPContentType;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
@@ -36,10 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             get
             {
-                if (s_htmlLSPContentType is null)
-                {
-                    s_htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName);
-                }
+                s_htmlLSPContentType ??= ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName);
 
                 return s_htmlLSPContentType;
             }

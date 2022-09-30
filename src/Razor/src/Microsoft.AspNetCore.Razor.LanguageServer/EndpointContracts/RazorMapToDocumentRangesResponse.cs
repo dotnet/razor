@@ -7,8 +7,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
     // Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse
     internal class RazorMapToDocumentRangesResponse
     {
-        public required Range[] Ranges { get; set; }
+        public required Range[] Ranges { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        public int? HostDocumentVersion { get; init; }
     }
 }

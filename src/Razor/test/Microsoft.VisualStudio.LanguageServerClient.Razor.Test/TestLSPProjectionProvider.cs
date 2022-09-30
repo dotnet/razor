@@ -65,9 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // No C# projection, return original position
             var defaultProjection = new ProjectionResult
             {
-                LanguageKind = languageKind,
+                Uri = null,
                 Position = position,
                 PositionIndex = absoluteIndex,
+                LanguageKind = languageKind,
                 HostDocumentVersion = documentSnapshot.Version
             };
 

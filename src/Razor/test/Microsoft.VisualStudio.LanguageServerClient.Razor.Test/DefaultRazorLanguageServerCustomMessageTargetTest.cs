@@ -51,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var request = new UpdateBufferRequest()
             {
                 HostDocumentFilePath = "C:/path/to/file.razor",
+                Changes = null
             };
 
             // Act & Assert

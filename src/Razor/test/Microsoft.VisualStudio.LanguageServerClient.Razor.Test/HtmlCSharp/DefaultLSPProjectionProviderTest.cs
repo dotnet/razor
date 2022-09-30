@@ -43,7 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var response = new RazorLanguageQueryResponse()
             {
-                Kind = RazorLanguageKind.Razor
+                Kind = RazorLanguageKind.Razor,
+                Position = null
             };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker

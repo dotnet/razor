@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -60,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         protected abstract IContentType LanguageContentType { get; }
 
-        public override bool TryCreateFor(ITextBuffer hostDocumentBuffer, out VirtualDocument virtualDocument)
+        public override bool TryCreateFor(ITextBuffer hostDocumentBuffer, [NotNullWhen(returnValue: true)] out VirtualDocument? virtualDocument)
         {
             if (hostDocumentBuffer is null)
             {
@@ -119,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <summary>
         /// Returns additional properties (if any) to set on the language text buffer prior to language server init
         /// </summary>
-        protected virtual IReadOnlyDictionary<object, object> LanguageBufferProperties => null;
+        protected virtual IReadOnlyDictionary<object, object>? LanguageBufferProperties => null;
 
         /// <summary>
         /// Returns supported host document content type name (i.e. host document content type for which this factory can create virtual documents)

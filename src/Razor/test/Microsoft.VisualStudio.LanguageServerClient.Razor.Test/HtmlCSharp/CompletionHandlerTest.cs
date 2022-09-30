@@ -132,6 +132,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
@@ -170,6 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
@@ -341,6 +345,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
@@ -596,6 +602,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
@@ -716,6 +724,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.CSharp,
             };
 
@@ -784,8 +794,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = cursorPosition,
                 LanguageKind = RazorLanguageKind.Html,
-                Position = cursorPosition
             };
 
             // Act
@@ -822,6 +833,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.CSharp,
             };
 
@@ -868,8 +881,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = cursorPosition,
                 LanguageKind = RazorLanguageKind.Html,
-                Position = cursorPosition
             };
 
             // Act
@@ -936,8 +950,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = cursorPosition,
                 LanguageKind = RazorLanguageKind.Html,
-                Position = cursorPosition
             };
 
             // Act
@@ -1005,8 +1020,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = cursorPosition,
                 LanguageKind = RazorLanguageKind.Html,
-                Position = cursorPosition
             };
 
             // Act

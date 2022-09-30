@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         protected override string HostDocumentContentTypeName => RazorConstants.RazorLSPContentTypeName;
         protected override string LanguageFileNameSuffix => _languageServerFeatureOptions.CSharpVirtualDocumentSuffix;
-        protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => s_languageBufferProperties;
+        protected override IReadOnlyDictionary<object, object>? LanguageBufferProperties => s_languageBufferProperties;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new CSharpVirtualDocument(uri, textBuffer);
 
         private class RemoteContentDefinitionType : IContentType

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -101,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return new ExcerptResultInternal(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
         }
 
-        private async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(
+        private static async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(
             TextSpan razorSpan,
             TextSpan excerptSpan,
             TextSpan generatedSpan,

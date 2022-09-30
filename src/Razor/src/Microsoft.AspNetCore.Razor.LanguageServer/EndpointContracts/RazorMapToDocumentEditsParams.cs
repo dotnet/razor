@@ -9,14 +9,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     internal class RazorMapToDocumentEditsParams
     {
-        public RazorLanguageKind Kind { get; set; }
+        public RazorLanguageKind Kind { get; init; }
 
-        public required Uri RazorDocumentUri { get; set; }
+        public required Uri RazorDocumentUri { get; init; }
 
-        public required TextEdit[] ProjectedTextEdits { get; set; }
+        public required TextEdit[] ProjectedTextEdits { get; init; }
 
-        public TextEditKind TextEditKind { get; set; }
+        public TextEditKind TextEditKind { get; init; }
 
-        public required FormattingOptions FormattingOptions { get; set; }
+        public required FormattingOptions FormattingOptions { get; init; }
     }
 }

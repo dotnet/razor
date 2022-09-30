@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -14,26 +12,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
     internal class RazorMapToDocumentEditsParams : IEquatable<RazorMapToDocumentEditsParams>
     {
-        public RazorLanguageKind Kind { get; set; }
+        public RazorLanguageKind Kind { get; init; }
 
-        public Uri RazorDocumentUri { get; set; }
+        public required Uri RazorDocumentUri { get; init; }
 
-        public TextEdit[] ProjectedTextEdits { get; set; }
+        public required TextEdit[] ProjectedTextEdits { get; init; }
 
-        public TextEditKind TextEditKind { get; set; }
+        public TextEditKind TextEditKind { get; init; }
 
-        public FormattingOptions FormattingOptions { get; set; }
+        public required FormattingOptions? FormattingOptions { get; init; }
 
         // Everything below this is for testing purposes only.
-        public bool Equals(RazorMapToDocumentEditsParams other)
+        public bool Equals(RazorMapToDocumentEditsParams? other)
         {
-            if (object.ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
             return
-                other != null &&
+                other is not null &&
                 Kind == other.Kind &&
                 RazorDocumentUri == other.RazorDocumentUri &&
                 Enumerable.SequenceEqual(ProjectedTextEdits?.Select(p => p.NewText), other.ProjectedTextEdits?.Select(p => p.NewText)) &&
@@ -56,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return hash;
         }
 
-        private bool IsEqual(FormattingOptions other)
+        private bool IsEqual(FormattingOptions? other)
         {
             if (FormattingOptions is null || other is null)
             {
@@ -66,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return
                 FormattingOptions.InsertSpaces == other.InsertSpaces &&
                 FormattingOptions.TabSize == other.TabSize &&
-                (object.ReferenceEquals(FormattingOptions.OtherOptions, other.OtherOptions) ||
-                (FormattingOptions.OtherOptions != null && other.OtherOptions != null &&
+                (ReferenceEquals(FormattingOptions.OtherOptions, other.OtherOptions) ||
+                (FormattingOptions.OtherOptions is not null && other.OtherOptions is not null &&
                 FormattingOptions.OtherOptions.OrderBy(k => k.Key).SequenceEqual(other.OtherOptions.OrderBy(k => k.Key))));
         }
     }

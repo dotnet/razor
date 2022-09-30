@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.Extensions.Logging;
 
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             try
             {
@@ -54,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                         break;
                     case LogLevel.Error:
                     case LogLevel.Critical:
-                        _logWriter.TraceError("[{0}] {1} {2}", _categoryName, formattedResult, exception);
+                        _logWriter.TraceError("[{0}] {1} {2}", _categoryName, formattedResult, exception!);
                         break;
                 }
             }
