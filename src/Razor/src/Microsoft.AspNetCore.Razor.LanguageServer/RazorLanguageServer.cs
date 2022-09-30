@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Telemetry;
@@ -121,6 +122,9 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         // appinsights keys etc
         services.AddSingleton<ITelemetryReporter>(provider =>
             new TelemetryReporter(ImmutableArray.Create(TelemetryService.DefaultSession), provider.GetRequiredService<ILoggerFactory>()));
+
+        // Defaults: For when the caller hasn't provided them through the `configure` action.
+        services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
 
         AddHandlers(services);
 
