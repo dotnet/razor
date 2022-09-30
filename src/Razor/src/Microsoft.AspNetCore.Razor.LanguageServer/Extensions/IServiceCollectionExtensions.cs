@@ -41,6 +41,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>();
         services.AddSingleton<IRequestContextFactory<RazorRequestContext>, RazorRequestContextFactory>();
 
+        services.AddSingleton<IRegistrationExtension, RazorLanguageServerCapability>();
+
         services.AddSingleton<IOnInitialized>(serverManager);
     }
 
