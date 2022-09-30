@@ -30,7 +30,7 @@ internal class RazorDidOpenTextDocumentEndpoint : IVSDidOpenTextDocumentEndpoint
         return request.TextDocument.Uri;
     }
 
-    public async Task HandleNotificationAsync(DidOpenTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(DidOpenTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         var sourceText = SourceText.From(request.TextDocument.Text);
 

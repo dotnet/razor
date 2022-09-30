@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             return Task.FromResult<Range?>(null);
         }
 
-        protected async override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ValidateBreakpointRangeParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected async override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ValidateBreakpointRangeParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             // only C# supports breakpoints
             if (projection.LanguageKind != RazorLanguageKind.CSharp)
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 return null;
             }
 
-            var documentContext = razorRequestContext.GetRequiredDocumentContext();
+            var documentContext = requestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, request.Range, out var projectedRange))

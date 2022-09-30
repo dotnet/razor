@@ -18,9 +18,9 @@ internal class RazorDidSaveTextDocumentEndpoint : IVSDidSaveTextDocumentEndpoint
         return request.TextDocument;
     }
 
-    public Task HandleNotificationAsync(DidSaveTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(DidSaveTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        context.LspLogger.LogInformation($"Saved Document {request.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
+        requestContext.LspLogger.LogInformation($"Saved Document {request.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
 
         return Task.CompletedTask;
     }
