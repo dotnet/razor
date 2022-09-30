@@ -45,10 +45,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return new RegistrationExtensionResult(AssociatedServerCapability, new SumType<bool, HoverOptions>(registrationOptions));
         }
 
-        /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-        /// <inheritdoc/>
         protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
@@ -58,7 +56,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     projection.LanguageKind));
         }
 
-        /// <inheritdoc/>
         protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
@@ -75,7 +72,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
         }
 
-        /// <inheritdoc/>
         protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             if (response?.Range is null)
