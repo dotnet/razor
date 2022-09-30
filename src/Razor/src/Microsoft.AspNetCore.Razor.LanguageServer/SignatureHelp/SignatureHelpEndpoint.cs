@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
         {
         }
 
-        /// <inheritdoc />
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
@@ -39,7 +38,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        /// <inheritdoc />
         protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();

@@ -54,12 +54,12 @@ internal class RazorDidChangeTextDocumentEndpoint : IVSDidChangeTextDocumentEndp
         return request.TextDocument;
     }
 
-    public async Task HandleNotificationAsync(DidChangeTextDocumentParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(DidChangeTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        var documentContext = context.GetRequiredDocumentContext();
+        var documentContext = requestContext.GetRequiredDocumentContext();
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
-        sourceText = ApplyContentChanges(request.ContentChanges, sourceText, context.Logger);
+        sourceText = ApplyContentChanges(request.ContentChanges, sourceText, requestContext.Logger);
 
         await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
             () => _projectService.UpdateDocument(documentContext.FilePath, sourceText, request.TextDocument.Version),

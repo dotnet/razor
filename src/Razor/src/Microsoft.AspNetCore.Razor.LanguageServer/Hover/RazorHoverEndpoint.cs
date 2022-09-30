@@ -45,23 +45,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return new RegistrationExtensionResult(AssociatedServerCapability, new SumType<bool, HoverOptions>(registrationOptions));
         }
 
-        /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-        /// <inheritdoc/>
-        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
-            var documentContext = razorRequestContext.GetRequiredDocumentContext();
+            var documentContext = requestContext.GetRequiredDocumentContext();
             return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
                     projection.LanguageKind));
         }
 
-        /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
-            var documentContext = razorRequestContext.GetRequiredDocumentContext();
+            var documentContext = requestContext.GetRequiredDocumentContext();
             // HTML can still sometimes be handled by razor. For example hovering over
             // a component tag like <Counter /> will still be in an html context
             if (projection.LanguageKind == RazorLanguageKind.CSharp)
@@ -75,15 +72,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
         }
 
-        /// <inheritdoc/>
-        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken)
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             if (response?.Range is null)
             {
                 return response;
             }
 
-            var documentContext = razorRequestContext.GetRequiredDocumentContext();
+            var documentContext = requestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))

@@ -3,7 +3,6 @@
 
 #nullable disable
 
-
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     internal class RazorBreakpointSpanResponse
