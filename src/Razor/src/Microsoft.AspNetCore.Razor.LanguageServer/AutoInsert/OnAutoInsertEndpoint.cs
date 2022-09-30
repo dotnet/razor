@@ -112,28 +112,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return null;
         }
 
-        protected override IDelegatedParams? CreateDelegatedParams(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
             if (projection.LanguageKind == RazorLanguageKind.Html &&
                !s_htmlAllowedTriggerCharacters.Contains(request.Character))
             {
                 Logger.LogInformation("Inapplicable HTML trigger char {request.Character}.", request.Character);
-                return null;
+                return Task.FromResult<IDelegatedParams?>(null);
             }
             else if (projection.LanguageKind == RazorLanguageKind.CSharp &&
                 !s_cSharpAllowedTriggerCharacters.Contains(request.Character))
             {
                 Logger.LogInformation("Inapplicable C# trigger char {request.Character}.", request.Character);
-                return null;
+                return Task.FromResult<IDelegatedParams?>(null);
             }
 
-            return new DelegatedOnAutoInsertParams(
+            return Task.FromResult<IDelegatedParams?>(new DelegatedOnAutoInsertParams(
                 documentContext.Identifier,
                 projection.Position,
                 projection.LanguageKind,
                 request.Character,
-                request.Options);
+                request.Options));
         }
 
         protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleDelegatedResponseAsync(

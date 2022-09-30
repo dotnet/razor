@@ -1065,6 +1065,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response?.Response;
         }
 
+        public override async Task<Range?> ValidateBreakpointRangeAsync(DelegatedValidateBreakpointRangeParams request, CancellationToken cancellationToken)
+        {
+            var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (delegationDetails is null)
+            {
+                return default;
+            }
+
+            var validateBreakpointRangeParams = new VSInternalValidateBreakableRangeParams
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = delegationDetails.Value.ProjectedUri,
+                },
+                Range = request.ProjectedRange
+            };
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalValidateBreakableRangeParams, Range?>(
+                delegationDetails.Value.TextBuffer,
+                VSInternalMethods.TextDocumentValidateBreakableRangeName,
+                delegationDetails.Value.LanguageServerName,
+                validateBreakpointRangeParams,
+                cancellationToken).ConfigureAwait(false);
+            return response?.Response;
+        }
+
         public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
             => DelegateTextDocumentPositionRequestAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
 

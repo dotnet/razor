@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -39,13 +40,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
         }
 
         /// <inheritdoc />
-        protected override IDelegatedParams CreateDelegatedParams(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
-            return new DelegatedPositionParams(
+            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
-                    projection.LanguageKind);
+                    projection.LanguageKind));
         }
     }
 }
