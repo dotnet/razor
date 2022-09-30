@@ -20,7 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
             // Arrange
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var uri = new Uri("file://path/test.razor");
             var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
             var request = new LinkedEditingRangeParams
