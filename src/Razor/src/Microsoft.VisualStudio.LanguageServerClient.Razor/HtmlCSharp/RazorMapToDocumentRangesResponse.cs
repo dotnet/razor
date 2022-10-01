@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [DataContract]
     internal class RazorMapToDocumentRangesResponse
     {
-        [DataMember(Name = "Ranges")]
+        [DataMember(Name = "ranges")]
         public required Range[] Ranges { get; init; }
 
         [DataMember(Name = "hostDocumentVersion")]
