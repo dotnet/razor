@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         [DataMember(Name = "mappingBehavior")]
         public LanguageServerMappingBehavior MappingBehavior { get; init; }
-=
+
         public bool Equals(RazorMapToDocumentRangesParams? other)
         {
             return
