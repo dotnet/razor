@@ -37,10 +37,19 @@ namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
             Children = new RazorSyntaxNodeList(_node.ChildNodes());
         }
 
-        public IEnumerator<RazorSyntaxNode> GetEnumerator() => Children.GetEnumerator();
+        public IEnumerator<RazorSyntaxNode> GetEnumerator()
+        {
+            return Children.GetEnumerator();
+        }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
 
-        public override string ToString() => _node.ToString();
+        public override string ToString()
+        {
+            return _node.ToString();
+        }
     }
 }

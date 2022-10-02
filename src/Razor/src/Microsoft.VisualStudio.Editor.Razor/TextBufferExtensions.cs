@@ -36,7 +36,8 @@ namespace Microsoft.VisualStudio.Text
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            return textBuffer.ContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
+            var matchesContentType = textBuffer.ContentType.IsOfType(RazorConstants.RazorLSPContentTypeName);
+            return matchesContentType;
         }
     }
 }

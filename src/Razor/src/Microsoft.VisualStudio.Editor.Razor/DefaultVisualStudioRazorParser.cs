@@ -51,8 +51,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // For testing only
         [Obsolete("Testing Only")]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal DefaultVisualStudioRazorParser(RazorCodeDocument codeDocument) => _codeDocument = codeDocument;
+        internal DefaultVisualStudioRazorParser(RazorCodeDocument codeDocument)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        {
+            _codeDocument = codeDocument;
+        }
 
         public DefaultVisualStudioRazorParser(
             JoinableTaskContext joinableTaskContext,
@@ -410,9 +413,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
         }
 
-        private void OnNotifyUIIdle() => NotifyUIIdleStart?.Set();
+        private void OnNotifyUIIdle()
+        {
+            NotifyUIIdleStart?.Set();
+        }
 
-        private void OnStartingBackgroundIdleWork() => BlockBackgroundIdleWork?.Wait();
+        private void OnStartingBackgroundIdleWork()
+        {
+            BlockBackgroundIdleWork?.Wait();
+        }
 
         private void Timer_Tick()
         {
@@ -606,7 +615,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public RazorEngine? Engine { get; set; }
 
-            public IReadOnlyList<TagHelperDescriptor>? GetDescriptors() => _tagHelpers;
+            public IReadOnlyList<TagHelperDescriptor>? GetDescriptors()
+            {
+                return _tagHelpers;
+            }
         }
 
         // Internal for testing

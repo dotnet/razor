@@ -77,6 +77,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         private void OnChanged()
-            => Changed?.Invoke(this, new EditorSettingsChangedEventArgs(Current));
+        {
+            var args = new EditorSettingsChangedEventArgs(Current);
+            Changed?.Invoke(this, args);
+        }
     }
 }

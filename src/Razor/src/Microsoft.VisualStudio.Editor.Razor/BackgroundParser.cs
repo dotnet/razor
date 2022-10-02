@@ -30,11 +30,20 @@ namespace Microsoft.VisualStudio.Editor.Razor
         /// </summary>
         public event EventHandler<BackgroundParserResultsReadyEventArgs>? ResultsReady;
 
-        public bool IsIdle => _main.IsIdle;
+        public bool IsIdle
+        {
+            get { return _main.IsIdle; }
+        }
 
-        public void Start() => _bg.Start();
+        public void Start()
+        {
+            _bg.Start();
+        }
 
-        public void Cancel() => _main.Cancel();
+        public void Cancel()
+        {
+            _main.Cancel();
+        }
 
         public ChangeReference QueueChange(SourceChange? change, ITextSnapshot snapshot)
         {
@@ -49,7 +58,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _main.Dispose();
         }
 
-        public IDisposable SynchronizeMainThreadState() => _main.Lock();
+        public IDisposable SynchronizeMainThreadState()
+        {
+            return _main.Lock();
+        }
 
         protected virtual void OnResultsReady(BackgroundParserResultsReadyEventArgs args)
         {
@@ -113,7 +125,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public event EventHandler<BackgroundParserResultsReadyEventArgs>? ResultsReady;
 
-            public CancellationToken CancelToken => _cancelSource.Token;
+            public CancellationToken CancelToken
+            {
+                get { return _cancelSource.Token; }
+            }
 
             public bool IsIdle
             {

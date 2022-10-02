@@ -24,6 +24,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }

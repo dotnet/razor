@@ -303,9 +303,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         }
 
         private static bool IsInvalidAttributeDelimiter(char currentCharacter)
-            => currentCharacter == '<' || currentCharacter == '>' || currentCharacter == '\'' || currentCharacter == '"' || currentCharacter == '/';
+        {
+            return currentCharacter == '<' || currentCharacter == '>' || currentCharacter == '\'' || currentCharacter == '"' || currentCharacter == '/';
+        }
 
         private static bool IsValidDirectiveAttributeCharacter(char currentCharacter)
-            => char.IsLetter(currentCharacter) || currentCharacter == '-';
+        {
+            return char.IsLetter(currentCharacter) || currentCharacter == '-';
+        }
     }
 }

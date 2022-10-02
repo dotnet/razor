@@ -134,10 +134,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                         // TryGetDocument and Dispose need to be run on the UI thread
                         await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
 
-                        // This class 'owns' the document entry so it's safe for us to dispose it.
                         if (DocumentManager.TryGetDocument(
                             new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
                         {
+                            // This class 'owns' the document entry so it's safe for us to dispose it.
                             document.Dispose();
                         }
 
