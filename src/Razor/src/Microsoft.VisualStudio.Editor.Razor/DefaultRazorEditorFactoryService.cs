@@ -135,7 +135,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var parserFactory = razorLanguageServices.GetRequiredService<VisualStudioRazorParserFactory>();
             var braceSmartIndenterFactory = razorLanguageServices.GetRequiredService<BraceSmartIndenterFactory>();
 
-            var tracker = documentTrackerFactory.Create(textBuffer)!;
+            var tracker = documentTrackerFactory.Create(textBuffer);
+            Assumes.NotNull(tracker);
             textBuffer.Properties[typeof(VisualStudioDocumentTracker)] = tracker;
 
             var parser = parserFactory.Create(tracker);
