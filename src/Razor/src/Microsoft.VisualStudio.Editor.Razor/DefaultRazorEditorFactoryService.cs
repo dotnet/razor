@@ -48,7 +48,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker!))
+            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker) ||
+                documentTracker is null)
             {
                 Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
                 return false;
