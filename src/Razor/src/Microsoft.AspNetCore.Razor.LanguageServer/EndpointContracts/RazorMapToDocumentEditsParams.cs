@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     // Note: This type should be kept in sync with the one in Razor.HtmlCSharp assembly.
+    [DataContract]
     internal class RazorMapToDocumentEditsParams
     {
         [DataMember(Name = "kind")]

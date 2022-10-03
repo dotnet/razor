@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         [DataMember(Name = "razorDocumentUri")]
         public required Uri RazorDocumentUri { get; init; }
 
-        [DataMember(Name = "projectedRanges")]]
+        [DataMember(Name = "projectedRanges")]
         public required Range[] ProjectedRanges { get; init; }
 
         [DataMember(Name = "mappingBehavior")]
