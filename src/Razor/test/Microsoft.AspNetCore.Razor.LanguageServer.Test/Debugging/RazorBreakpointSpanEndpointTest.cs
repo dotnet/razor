@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 {
@@ -59,18 +58,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p>@DateTime.Now</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParamsBridge()
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0)
             };
             codeDocument.SetUnsupported();
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);
@@ -83,18 +83,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParamsBridge()
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0)
             };
             var expectedRange = new Range { Start = new Position(1, 5), End = new Position(1, 19) };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(expectedRange, response!.Range);
@@ -108,17 +109,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 
             var codeDocument = CreateCodeDocument(@"
 <p>@{var abc;}</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParamsBridge()
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0)
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);
@@ -131,17 +133,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p></p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParamsBridge()
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0)
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);
@@ -157,17 +160,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@{
     var abc = 123;
 }</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParamsBridge()
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0)
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);
@@ -183,17 +187,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 
     var abc = 123;
 }</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorBreakpointSpanParamsBridge()
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
                 Position = new Position(2, 0)
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);

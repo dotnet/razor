@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
@@ -22,7 +19,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     internal class RazorDocumentControllerExtension : DocumentControllerExtension
     {
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
-        private VisualStudioMacEditorDocumentManager _editorDocumentManager;
+        private VisualStudioMacEditorDocumentManager? _editorDocumentManager;
 
         public RazorDocumentControllerExtension()
         {
@@ -42,7 +39,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
             _editorDocumentManager = workspace.Services.GetRequiredService<EditorDocumentManager>() as VisualStudioMacEditorDocumentManager;
 
-            Debug.Assert(_editorDocumentManager != null);
+            Assumes.NotNull(_editorDocumentManager);
 
             _editorDocumentManager.HandleDocumentOpened(filePath, textBuffer);
 

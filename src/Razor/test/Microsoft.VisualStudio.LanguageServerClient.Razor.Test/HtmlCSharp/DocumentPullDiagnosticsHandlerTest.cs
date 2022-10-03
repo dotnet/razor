@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {

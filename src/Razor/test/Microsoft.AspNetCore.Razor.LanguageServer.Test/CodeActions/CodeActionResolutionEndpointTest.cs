@@ -39,14 +39,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Uri = new Uri("C:/path/to/Page.razor")
                 }
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var razorCodeAction = await codeActionEndpoint.Handle(request, default);
+            var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(razorCodeAction.Edit);
@@ -71,14 +72,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var razorCodeAction = await codeActionEndpoint.Handle(request, default);
+            var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(razorCodeAction.Edit);
@@ -105,14 +107,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var razorCodeAction = await codeActionEndpoint.Handle(request, default);
+            var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(razorCodeAction.Edit);
@@ -136,18 +139,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Uri = new Uri("C:/path/to/Page.razor")
                 }
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
 #if DEBUG
             // Act & Assert (Throws due to debug assert on no Razor.Test resolver)
-            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -171,18 +175,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
 #if DEBUG
             // Act & Assert (Throws due to debug assert on no resolver registered for CSharp.Test)
-            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -209,18 +214,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Uri = new Uri("C:/path/to/Page.razor")
                 }
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
 #if DEBUG
             // Act & Assert (Throws due to debug assert on no resolver registered for Razor.Test)
-            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -246,18 +252,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
             };
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
 #if DEBUG
             // Act & Assert (Throws due to debug asserts)
-            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+            await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.HandleRequestAsync(request, requestContext, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
+            var resolvedCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -431,14 +438,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = JToken.FromObject(new WorkspaceEdit())
             };
 
-            var request = new CodeActionBridge()
+            var request = new CodeAction()
             {
                 Title = "Valid request",
                 Data = JToken.FromObject(requestParams)
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var razorCodeAction = await codeActionEndpoint.Handle(request, default);
+            var razorCodeAction = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(razorCodeAction.Edit);

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -94,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 InsertSpaces = insertSpaces,
             };
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
 
             // Act
             var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
@@ -130,10 +131,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = new Uri(path);
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
+            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,

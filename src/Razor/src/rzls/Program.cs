@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -46,12 +45,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            var server = await RazorLanguageServer.CreateAsync(
+            var server = RazorLanguageServerWrapper.Create(
                 Console.OpenStandardInput(),
                 Console.OpenStandardOutput(),
                 trace);
-            await server.InitializedAsync(CancellationToken.None);
-            await server.WaitForExit;
+            await server.WaitForExitAsync();
         }
     }
 }

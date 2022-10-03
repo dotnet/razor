@@ -189,6 +189,7 @@
 
   <ItemGroup>
     <!-- Don't trim this list. It is used to feed into the binding redirects -->
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Common\Microsoft.AspNetCore.Razor.Common.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
@@ -231,7 +232,8 @@
     <PackageReference Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
 
-    <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
+    <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself
+    We don't actual use it, but for now WebTools depends on it. -->
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
 
     <!--
@@ -249,6 +251,7 @@
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.AspNetCore.Razor.Language.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CommonLanguageServerProtocol.Framework.dll" />
 
     <VSIXSourceItem Include="@(RazorNgendVSIXSourceItem)">
       <Ngen>$(Ngen)</Ngen>

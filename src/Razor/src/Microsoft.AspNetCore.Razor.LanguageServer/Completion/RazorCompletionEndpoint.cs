@@ -7,29 +7,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class RazorCompletionEndpoint : IVSCompletionEndpoint
     {
-        private readonly ILogger _logger;
-        private readonly DocumentContextFactory _documentContextFactory;
-        private readonly AggregateCompletionListProvider _completionListProvider;
+        private readonly CompletionListProvider _completionListProvider;
         private VSInternalClientCapabilities? _clientCapabilities;
 
-        public RazorCompletionEndpoint(
-            DocumentContextFactory documentContextFactory,
-            AggregateCompletionListProvider completionListProvider,
-            ILoggerFactory loggerFactory)
+        public RazorCompletionEndpoint(CompletionListProvider completionListProvider)
         {
-            _documentContextFactory = documentContextFactory;
             _completionListProvider = completionListProvider;
-            _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public bool MutatesSolutionState => false;
+
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "completionProvider";
 
@@ -45,21 +39,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        public async Task<VSInternalCompletionList?> Handle(VSCompletionParamsBridge request, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request)
         {
-            var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
+            return request.TextDocument;
+        }
 
-            if (request.Context is null)
+        public async Task<VSInternalCompletionList?> HandleRequestAsync(CompletionParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.DocumentContext;
+
+            if (request.Context is null || documentContext is null)
             {
                 return null;
             }
 
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!request.Position.TryGetAbsoluteIndex(sourceText, _logger, out var hostDocumentIndex))
+            if (!request.Position.TryGetAbsoluteIndex(sourceText, requestContext.Logger, out var hostDocumentIndex))
             {
                 return null;
             }

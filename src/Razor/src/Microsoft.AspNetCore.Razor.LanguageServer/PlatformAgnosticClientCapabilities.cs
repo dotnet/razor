@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {

@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -14,9 +11,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 
@@ -65,8 +61,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var codeDocument = CreateCodeDocument(SingleDiagnosticCollection);
             processedOpenDocument.With(codeDocument);
             // ILanguageServerDocument
-            var languageServerDocument = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict).Object;
-            Mock.Get(languageServerDocument).Setup(d => d.SendNotification(It.IsAny<IRequest>())).Verifiable();
+            var languageServerDocument = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict).Object;
+            Mock.Get(languageServerDocument).Setup(d => d.SendNotificationAsync(
+                "textDocument/publishDiagnostics",
+                It.IsAny<PublishDiagnosticParams>(),
+                It.IsAny<CancellationToken>())).Returns(Task.CompletedTask).Verifiable();
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServerDocument, LoggerFactory)
             {
                 BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true),
@@ -95,19 +94,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var processedOpenDocument = TestDocumentSnapshot.Create(OpenedDocument.FilePath);
             var codeDocument = CreateCodeDocument(SingleDiagnosticCollection);
             processedOpenDocument.With(codeDocument);
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
-            languageServer.Setup(server => server.SendNotification(It.IsAny<IRequest>())).Callback<IRequest>((@params) =>
-            {
-                var diagnosticParams = (PublishDiagnosticsParams)@params;
-                Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), diagnosticParams.Uri.ToUri().AbsolutePath);
-                    var diagnostic = Assert.Single(diagnosticParams.Diagnostics);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer.Setup(server => server.SendNotificationAsync("textDocument/publishDiagnostics", It.IsAny<PublishDiagnosticParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationToken) =>
+                {
+                    Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
+                    var diagnostic = Assert.Single(@params.Diagnostics);
                     var razorDiagnostic = SingleDiagnosticCollection[0];
                     processedOpenDocument.TryGetText(out var sourceText);
                     var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
                     Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
                     Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
                     Assert.Equal(expectedDiagnostic.Range, diagnostic.Range);
-                });
+                }).Returns(Task.CompletedTask);
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
             {
                 publisher.Initialize(ProjectManager);
@@ -127,19 +126,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var processedOpenDocument = TestDocumentSnapshot.Create(OpenedDocument.FilePath);
             var codeDocument = CreateCodeDocument(SingleDiagnosticCollection);
             processedOpenDocument.With(codeDocument);
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
-            languageServer.Setup(server => server.SendNotification(It.IsAny<IRequest>())).Callback<IRequest>((@params) =>
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer.Setup(server => server.SendNotificationAsync("textDocument/publishDiagnostics", It.IsAny<PublishDiagnosticParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationTokne) =>
                 {
-                    var diagnosticParams = (PublishDiagnosticsParams)@params;
-                    Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), diagnosticParams.Uri.ToUri().AbsolutePath);
-                    var diagnostic = Assert.Single(diagnosticParams.Diagnostics);
+                    Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
+                    var diagnostic = Assert.Single(@params.Diagnostics);
                     var razorDiagnostic = SingleDiagnosticCollection[0];
                     processedOpenDocument.TryGetText(out var sourceText);
                     var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
                     Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
                     Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
                     Assert.Equal(expectedDiagnostic.Range, diagnostic.Range);
-                });
+                }).Returns(Task.CompletedTask);
 
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
             {
@@ -158,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task PublishDiagnosticsAsync_NoopsIfDiagnosticsAreSameAsPreviousPublish()
         {
             // Arrange
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             var processedOpenDocument = TestDocumentSnapshot.Create(OpenedDocument.FilePath);
             var codeDocument = CreateCodeDocument(SingleDiagnosticCollection);
             processedOpenDocument.With(codeDocument);
@@ -176,13 +175,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ClearClosedDocuments_ClearsDiagnosticsForClosedDocument()
         {
             // Arrange
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
-            languageServer.Setup(server =>server.SendNotification(It.IsAny<IRequest>())).Callback<IRequest>((@params) =>
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer.Setup(server => server.SendNotificationAsync("textDocument/publishDiagnostics", It.IsAny<PublishDiagnosticParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationToken) =>
             {
-                var diagnosticParams = (PublishDiagnosticsParams)@params;
-                Assert.Equal(ClosedDocument.FilePath.TrimStart('/'), diagnosticParams.Uri.ToUri().AbsolutePath);
-                Assert.Empty(diagnosticParams.Diagnostics);
-            });
+                Assert.Equal(ClosedDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
+                Assert.Empty(@params.Diagnostics);
+            }).Returns(Task.CompletedTask);
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
             {
                 publisher.PublishedDiagnostics[ClosedDocument.FilePath] = SingleDiagnosticCollection;
@@ -200,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ClearClosedDocuments_NoopsIfDocumentIsStillOpen()
         {
             // Arrange
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
             {
                 publisher.PublishedDiagnostics[OpenedDocument.FilePath] = SingleDiagnosticCollection;
@@ -215,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ClearClosedDocuments_NoopsIfDocumentIsClosedButNoDiagnostics()
         {
             // Arrange
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
             {
                 publisher.PublishedDiagnostics[ClosedDocument.FilePath] = EmptyDiagnostics;
@@ -230,7 +229,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ClearClosedDocuments_RestartsTimerIfDocumentsStillOpen()
         {
             // Arrange
-            var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
             {
                 publisher.PublishedDiagnostics[ClosedDocument.FilePath] = EmptyDiagnostics;
@@ -258,7 +257,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             public TestRazorDiagnosticsPublisher(
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                ITextDocumentLanguageServer languageServer,
+                ClientNotifierServiceBase languageServer,
                 ILoggerFactory loggerFactory) : base(projectSnapshotManagerDispatcher, languageServer, loggerFactory)
             {
                 // The diagnostics publisher by default will wait 2 seconds until publishing diagnostics. For testing purposes we redcuce

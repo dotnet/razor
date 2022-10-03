@@ -16,24 +16,23 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
 {
-    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<ImplementationParamsBridge, ImplementationResult>, IImplementationEndpoint
+    internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, ImplementationResult>, IImplementationEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public ImplementationEndpoint(
-            DocumentContextFactory documentContextFactory,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<ImplementationEndpoint>())
+            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<ImplementationEndpoint>())
         {
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName;
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "implementationProvider";
             var option = new ImplementationOptions();
@@ -41,13 +40,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
             return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-        protected override IDelegatedParams CreateDelegatedParams(ImplementationParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
-            => new DelegatedPositionParams(
+        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            return new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
                     projection.LanguageKind);
+        }
 
-        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             // Not using .TryGetXXX because this does the null check for us too
             if (delegatedResponse.Value is Location[] locations)

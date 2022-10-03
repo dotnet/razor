@@ -8,15 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using Moq;
 using Xunit;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -43,8 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -53,8 +51,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
             var expectedRange = new Range { Start = new Position(0, 4), End = new Position(0, 16) };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -75,8 +75,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -84,8 +84,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RazorDocumentUri = documentPath,
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -106,8 +108,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -115,8 +117,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RazorDocumentUri = documentPath,
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -137,8 +141,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(4, 12),
                         new SourceSpan(10, 12))
                 });
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -146,8 +150,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RazorDocumentUri = documentPath,
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -161,8 +167,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -170,8 +176,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RazorDocumentUri = documentPath,
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -185,8 +193,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Razor,
@@ -194,8 +202,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RazorDocumentUri = documentPath,
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -217,8 +227,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(10, 12))
                 });
             codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -226,8 +236,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RazorDocumentUri = documentPath,
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.NotNull(response);
@@ -241,16 +253,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@{}");
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
                 Position = new Position(0, 1),
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Razor, response.Kind);
@@ -265,16 +279,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<s");
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
                 Position = new Position(0, 2),
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, response.Kind);
@@ -292,16 +308,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 "@",
                 "/* CSharp */",
                 new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
                 Position = new Position(0, 1),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.CSharp, response.Kind);
@@ -321,16 +338,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 "/* CSharp */",
                 new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
             codeDocument.SetUnsupported();
-            var documentResolver = CreateDocumentContextFactory(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageEndpoint(documentResolver, MappingService, Mock.Of<RazorFormattingService>(MockBehavior.Strict), LoggerFactory);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
                 Position = new Position(0, 1),
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var response = await Task.Run(() => languageEndpoint.Handle(request, default));
+            var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(RazorLanguageKind.Html, response.Kind);

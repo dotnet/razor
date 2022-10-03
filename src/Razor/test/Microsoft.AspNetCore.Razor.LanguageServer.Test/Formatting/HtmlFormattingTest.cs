@@ -1586,9 +1586,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     """,
                 expected: """
                     @page "Goo"
-                    
+
                     <div></div>
-                    
+
                     <button
                     @functions {
                      void M() { }
@@ -1642,9 +1642,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await RunFormattingTestAsync(
                 input: """
                     @page "Goo"
-                    
+
                     [|      <div></div>|]
-                    
+
                     <button
                     @functions {
                      void M() { }
@@ -1652,15 +1652,100 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     """,
                 expected: """
                     @page "Goo"
-                    
+
                     <div></div>
-                    
+
                     <button
                     @functions {
                      void M() { }
                     }
                     """,
                 allowDiagnostics: true);
+        }
+
+        [Fact]
+        public async Task FormatIndentedElementAttributes()
+        {
+            await RunFormattingTestAsync(
+                input: """
+                    Welcome.
+
+                    <div class="goo"
+                     align="center">
+                    </div>
+
+                    <SurveyPrompt Title="How is Blazor working for you?"
+                     Color="Red" />
+
+                    @if (true)
+                    {
+                    <div class="goo"
+                     align="center">
+                    </div>
+
+                    <SurveyPrompt Title="How is Blazor working for you?"
+                       Color="Red" />
+
+                       <tag attr1="value1"
+                       attr2="value2"
+                       attr3="value3"
+                       />
+
+                       @if (true)
+                       {
+                       @if (true)
+                       {
+                       @if(true)
+                       {
+                       <table width="10"
+                       height="10"
+                       cols="3"
+                       rows="3">
+                       </table>
+                       }
+                       }
+                       }
+                    }
+                    """,
+                expected: """
+                    Welcome.
+
+                    <div class="goo"
+                         align="center">
+                    </div>
+
+                    <SurveyPrompt Title="How is Blazor working for you?"
+                                  Color="Red" />
+
+                    @if (true)
+                    {
+                        <div class="goo"
+                             align="center">
+                        </div>
+
+                        <SurveyPrompt Title="How is Blazor working for you?"
+                                      Color="Red" />
+
+                        <tag attr1="value1"
+                             attr2="value2"
+                             attr3="value3" />
+
+                        @if (true)
+                        {
+                            @if (true)
+                            {
+                                @if (true)
+                                {
+                                    <table width="10"
+                                           height="10"
+                                           cols="3"
+                                           rows="3">
+                                    </table>
+                                }
+                            }
+                        }
+                    }
+                    """);
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
