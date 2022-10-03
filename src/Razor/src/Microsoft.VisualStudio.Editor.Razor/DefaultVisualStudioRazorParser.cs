@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     _codeDocumentRequests.Add(request);
                 }
 
-                return request.Task;
+                return request.Task!;
             }
         }
 
