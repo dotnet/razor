@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
@@ -24,7 +25,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     {
         private static readonly AsyncLocal<string> s_directoryPath = new();
 
-        protected RazorBaselineIntegrationTestBase(bool? generateBaselines = null)
+        protected RazorBaselineIntegrationTestBase(ITestOutputHelper testOutput, bool? generateBaselines = null)
+            : base(testOutput)
         {
             TestProjectRoot = TestProject.GetProjectDirectory(GetType());
 

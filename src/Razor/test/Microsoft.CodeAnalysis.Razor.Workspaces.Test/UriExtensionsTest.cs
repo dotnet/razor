@@ -3,12 +3,19 @@
 
 using System;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    public class UriExtensionsTest
+    public class UriExtensionsTest : TestBase
     {
+        public UriExtensionsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [OSSkipConditionFact(new[] { "OSX", "Linux" })]
         public void GetAbsoluteOrUNCPath_AbsolutePath_ReturnsAbsolutePath()
         {

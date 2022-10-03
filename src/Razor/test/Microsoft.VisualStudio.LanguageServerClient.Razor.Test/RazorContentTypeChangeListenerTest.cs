@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -13,30 +14,42 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class RazorContentTypeChangeListenerTest
+    public class RazorContentTypeChangeListenerTest : TestBase
     {
-        public RazorContentTypeChangeListenerTest()
+        private readonly IContentType _nonRazorContentType;
+        private readonly IContentType _razorContentType;
+        private readonly ITextBuffer _razorBuffer;
+        private readonly ITextDocument _razorTextDocument;
+        private readonly ITextBuffer _disposedRazorBuffer;
+
+        public RazorContentTypeChangeListenerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            NonRazorContentType = Mock.Of<IContentType>(c => c.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
-            RazorContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(RazorConstants.RazorLSPContentTypeName) == true, MockBehavior.Strict);
-            RazorBuffer ??= Mock.Of<ITextBuffer>(buffer => buffer.ContentType == RazorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
-            DisposedRazorBuffer ??= Mock.Of<ITextBuffer>(buffer => buffer.ContentType == NonRazorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
-            RazorTextDocument = Mock.Of<ITextDocument>(td => td.TextBuffer == RazorBuffer && td.FilePath == "C:/path/to/file.razor", MockBehavior.Strict);
+            _nonRazorContentType = Mock.Of<IContentType>(
+                c => c.IsOfType(It.IsAny<string>()) == false,
+                MockBehavior.Strict);
+
+            _razorContentType = Mock.Of<IContentType>(
+                c => c.IsOfType(RazorConstants.RazorLSPContentTypeName) == true,
+                MockBehavior.Strict);
+
+            _razorBuffer ??= Mock.Of<ITextBuffer>(
+                b => b.ContentType == _razorContentType && b.Properties == new PropertyCollection(),
+                MockBehavior.Strict);
+
+            _disposedRazorBuffer ??= Mock.Of<ITextBuffer>(
+                b => b.ContentType == _nonRazorContentType && b.Properties == new PropertyCollection(),
+                MockBehavior.Strict);
+
+            _razorTextDocument = Mock.Of<ITextDocument>(
+                td => td.TextBuffer == _razorBuffer && td.FilePath == "C:/path/to/file.razor",
+                MockBehavior.Strict);
         }
-
-        private IContentType NonRazorContentType { get; }
-
-        private IContentType RazorContentType { get; }
-
-        private ITextBuffer RazorBuffer { get; }
-
-        private ITextDocument RazorTextDocument { get; }
-
-        private ITextBuffer DisposedRazorBuffer { get; }
 
         [Fact]
         public void RazorBufferCreated_TracksDocument()
@@ -48,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var listener = CreateListener(lspDocumentManager.Object);
 
             // Act
-            listener.RazorBufferCreated(RazorBuffer);
+            listener.RazorBufferCreated(_razorBuffer);
 
             // Assert
             lspDocumentManager.VerifyAll();
@@ -65,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var listener = CreateListener(lspDocumentManager.Object, featureDetector);
 
             // Act & Assert
-            listener.RazorBufferCreated(RazorBuffer);
+            listener.RazorBufferCreated(_razorBuffer);
         }
 
         [Fact]
@@ -78,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var listener = CreateListener(lspDocumentManager.Object);
 
             // Act
-            listener.RazorBufferDisposed(DisposedRazorBuffer);
+            listener.RazorBufferDisposed(_disposedRazorBuffer);
 
             // Assert
             lspDocumentManager.VerifyAll();
@@ -99,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, fileActionType);
 
             // Act & Assert
-            listener.TextDocument_FileActionOccurred(RazorTextDocument, args);
+            listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
         }
 
         [Fact]
@@ -115,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
 
             // Act & Assert
-            listener.TextDocument_FileActionOccurred(RazorBuffer, args);
+            listener.TextDocument_FileActionOccurred(_razorBuffer, args);
         }
 
         [Fact]
@@ -164,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
 
             // Act
-            listener.TextDocument_FileActionOccurred(RazorTextDocument, args);
+            listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
 
             // Assert
             lspDocumentManager.VerifyAll();
@@ -175,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            var fileToContentTypeService = Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == NonRazorContentType, MockBehavior.Strict);
+            var fileToContentTypeService = Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _nonRazorContentType, MockBehavior.Strict);
             var tracked = false;
             var untracked = false;
             lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
@@ -190,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
 
             // Act
-            listener.TextDocument_FileActionOccurred(RazorTextDocument, args);
+            listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
 
             // Assert
             lspDocumentManager.VerifyAll();
@@ -206,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
             lspEditorFeatureDetector ??= Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable(It.IsAny<string>(), null) == true && detector.IsRemoteClient() == false, MockBehavior.Strict);
-            fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == RazorContentType, MockBehavior.Strict);
+            fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType, MockBehavior.Strict);
             var textManager = new Mock<IVsTextManager2>(MockBehavior.Strict);
             textManager.Setup(m => m.GetUserPreferences2(null, null, It.IsAny<LANGPREFERENCES2[]>(), null)).Returns(VSConstants.E_NOTIMPL);
             var listener = new RazorContentTypeChangeListener(

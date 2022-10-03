@@ -13,23 +13,34 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
-        public DefaultProjectSnapshotManagerTest()
+        private readonly HostDocument[] _documents;
+        private readonly HostProject _hostProject;
+        private readonly HostProject _hostProjectWithConfigurationChange;
+        private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
+        private readonly TestTagHelperResolver _tagHelperResolver;
+        private readonly TestProjectSnapshotManager _projectManager;
+        private readonly SourceText _sourceText;
+
+        public DefaultProjectSnapshotManagerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var someTagHelpers = new List<TagHelperDescriptor>
             {
                 TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build()
             };
-            TagHelperResolver = new TestTagHelperResolver()
+
+            _tagHelperResolver = new TestTagHelperResolver()
             {
                 TagHelpers = someTagHelpers,
             };
 
-            Documents = new HostDocument[]
+            _documents = new HostDocument[]
             {
                 TestProjectData.SomeProjectFile1,
                 TestProjectData.SomeProjectFile2,
@@ -41,29 +52,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 TestProjectData.SomeProjectComponentFile2,
             };
 
-            HostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-            HostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+            _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+            _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
 
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
+            _projectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
 
-            ProjectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(TagHelperResolver.TagHelpers, default);
+            _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(_tagHelperResolver.TagHelpers, default);
 
-            SourceText = SourceText.From("Hello world");
+            _sourceText = SourceText.From("Hello world");
         }
-
-        private HostDocument[] Documents { get; }
-
-        private HostProject HostProject { get; }
-
-        private HostProject HostProjectWithConfigurationChange { get; }
-
-        private ProjectWorkspaceState ProjectWorkspaceStateWithTagHelpers { get; }
-
-        private TestTagHelperResolver TagHelperResolver { get; }
-
-        private TestProjectSnapshotManager ProjectManager { get; }
-
-        private SourceText SourceText { get; }
 
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
@@ -72,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.Add(TagHelperResolver);
+            services.Add(_tagHelperResolver);
         }
 
         [UIFact]
@@ -97,81 +94,81 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void DocumentAdded_AddsDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            Assert.Collection(snapshot.DocumentFilePaths.OrderBy(f => f), d => Assert.Equal(Documents[0].FilePath, d));
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            Assert.Collection(snapshot.DocumentFilePaths.OrderBy(f => f), d => Assert.Equal(_documents[0].FilePath, d));
 
-            Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentAdded, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void DocumentAdded_AddsDocument_Legacy()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Collection(
                 snapshot.DocumentFilePaths.OrderBy(f => f),
                 d =>
                 {
-                    Assert.Equal(Documents[0].FilePath, d);
+                    Assert.Equal(_documents[0].FilePath, d);
                     Assert.Equal(FileKinds.Legacy, snapshot.GetDocument(d).FileKind);
                 });
 
-            Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentAdded, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void DocumentAdded_AddsDocument_Component()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[3], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[3], null);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Collection(
                 snapshot.DocumentFilePaths.OrderBy(f => f),
                 d =>
                 {
-                    Assert.Equal(Documents[3].FilePath, d);
+                    Assert.Equal(_documents[3].FilePath, d);
                     Assert.Equal(FileKinds.Component, snapshot.GetDocument(d).FileKind);
                 });
 
-            Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentAdded, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void DocumentAdded_IgnoresDuplicate()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            Assert.Collection(snapshot.DocumentFilePaths.OrderBy(f => f), d => Assert.Equal(Documents[0].FilePath, d));
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            Assert.Collection(snapshot.DocumentFilePaths.OrderBy(f => f), d => Assert.Equal(_documents[0].FilePath, d));
 
-            Assert.Null(ProjectManager.ListenersNotifiedOf);
+            Assert.Null(_projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
@@ -180,10 +177,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Null(snapshot);
         }
 
@@ -191,14 +188,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task DocumentAdded_NullLoader_HasEmptyText()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             var document = snapshot.GetDocument(snapshot.DocumentFilePaths.Single());
 
             var text = await document.GetTextAsync();
@@ -209,16 +206,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task DocumentAdded_WithLoader_LoadesText()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             var expected = SourceText.From("Hello");
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
+            _projectManager.DocumentAdded(_hostProject, _documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             var document = snapshot.GetDocument(snapshot.DocumentFilePaths.Single());
 
             var actual = await document.GetTextAsync();
@@ -229,17 +226,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void DocumentAdded_CachesTagHelpers()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceStateWithTagHelpers);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+            _projectManager.Reset();
 
-            var originalTagHelpers = ProjectManager.GetSnapshot(HostProject).TagHelpers;
+            var originalTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            var newTagHelpers = ProjectManager.GetSnapshot(HostProject).TagHelpers;
+            var newTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
             Assert.Same(originalTagHelpers, newTagHelpers);
         }
 
@@ -247,17 +244,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void DocumentAdded_CachesProjectEngine()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             var projectEngine = snapshot.GetProjectEngine();
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
-            snapshot = ProjectManager.GetSnapshot(HostProject);
+            snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Same(projectEngine, snapshot.GetProjectEngine());
         }
 
@@ -265,40 +262,40 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void DocumentRemoved_RemovesDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.DocumentAdded(HostProject, Documents[1], null);
-            ProjectManager.DocumentAdded(HostProject, Documents[2], null);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[1], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[2], null);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentRemoved(HostProject, Documents[1]);
+            _projectManager.DocumentRemoved(_hostProject, _documents[1]);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Collection(
                 snapshot.DocumentFilePaths.OrderBy(f => f),
-                d => Assert.Equal(Documents[2].FilePath, d),
-                d => Assert.Equal(Documents[0].FilePath, d));
+                d => Assert.Equal(_documents[2].FilePath, d),
+                d => Assert.Equal(_documents[0].FilePath, d));
 
-            Assert.Equal(ProjectChangeKind.DocumentRemoved, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentRemoved, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void DocumentRemoved_IgnoresNotFoundDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentRemoved(HostProject, Documents[0]);
+            _projectManager.DocumentRemoved(_hostProject, _documents[0]);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Empty(snapshot.DocumentFilePaths);
 
-            Assert.Null(ProjectManager.ListenersNotifiedOf);
+            Assert.Null(_projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
@@ -307,10 +304,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            ProjectManager.DocumentRemoved(HostProject, Documents[0]);
+            _projectManager.DocumentRemoved(_hostProject, _documents[0]);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Null(snapshot);
         }
 
@@ -318,20 +315,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void DocumentRemoved_CachesTagHelpers()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceStateWithTagHelpers);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.DocumentAdded(HostProject, Documents[1], null);
-            ProjectManager.DocumentAdded(HostProject, Documents[2], null);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[1], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[2], null);
+            _projectManager.Reset();
 
-            var originalTagHelpers = ProjectManager.GetSnapshot(HostProject).TagHelpers;
+            var originalTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
 
             // Act
-            ProjectManager.DocumentRemoved(HostProject, Documents[1]);
+            _projectManager.DocumentRemoved(_hostProject, _documents[1]);
 
             // Assert
-            var newTagHelpers = ProjectManager.GetSnapshot(HostProject).TagHelpers;
+            var newTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
             Assert.Same(originalTagHelpers, newTagHelpers);
         }
 
@@ -339,88 +336,88 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void DocumentRemoved_CachesProjectEngine()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.DocumentAdded(HostProject, Documents[1], null);
-            ProjectManager.DocumentAdded(HostProject, Documents[2], null);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[1], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[2], null);
+            _projectManager.Reset();
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             var projectEngine = snapshot.GetProjectEngine();
 
             // Act
-            ProjectManager.DocumentRemoved(HostProject, Documents[1]);
+            _projectManager.DocumentRemoved(_hostProject, _documents[1]);
 
             // Assert
-            snapshot = ProjectManager.GetSnapshot(HostProject);
+            snapshot = _projectManager.GetSnapshot(_hostProject);
             Assert.Same(projectEngine, snapshot.GetProjectEngine());
         }
         [UIFact]
         public async Task DocumentOpened_UpdatesDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.DocumentOpened(HostProject.FilePath, Documents[0].FilePath, SourceText);
+            _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.DocumentChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            var text = await snapshot.GetDocument(Documents[0].FilePath).GetTextAsync();
-            Assert.Same(SourceText, text);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            var text = await snapshot.GetDocument(_documents[0].FilePath).GetTextAsync();
+            Assert.Same(_sourceText, text);
 
-            Assert.True(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
+            Assert.True(_projectManager.IsDocumentOpen(_documents[0].FilePath));
         }
 
         [UIFact]
         public async Task DocumentClosed_UpdatesDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.DocumentOpened(HostProject.FilePath, Documents[0].FilePath, SourceText);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+            _projectManager.Reset();
 
             var expected = SourceText.From("Hi");
             var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
-            Assert.True(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
+            Assert.True(_projectManager.IsDocumentOpen(_documents[0].FilePath));
 
             // Act
-            ProjectManager.DocumentClosed(HostProject.FilePath, Documents[0].FilePath, TextLoader.From(textAndVersion));
+            _projectManager.DocumentClosed(_hostProject.FilePath, _documents[0].FilePath, TextLoader.From(textAndVersion));
 
             // Assert
-            Assert.Equal(ProjectChangeKind.DocumentChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            var text = await snapshot.GetDocument(Documents[0].FilePath).GetTextAsync();
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            var text = await snapshot.GetDocument(_documents[0].FilePath).GetTextAsync();
             Assert.Same(expected, text);
-            Assert.False(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
+            Assert.False(_projectManager.IsDocumentOpen(_documents[0].FilePath));
         }
 
         [UIFact]
         public async Task DocumentClosed_AcceptsChange()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.Reset();
 
             var expected = SourceText.From("Hi");
             var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
             // Act
-            ProjectManager.DocumentClosed(HostProject.FilePath, Documents[0].FilePath, TextLoader.From(textAndVersion));
+            _projectManager.DocumentClosed(_hostProject.FilePath, _documents[0].FilePath, TextLoader.From(textAndVersion));
 
             // Assert
-            Assert.Equal(ProjectChangeKind.DocumentChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            var text = await snapshot.GetDocument(Documents[0].FilePath).GetTextAsync();
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            var text = await snapshot.GetDocument(_documents[0].FilePath).GetTextAsync();
             Assert.Same(expected, text);
         }
 
@@ -428,21 +425,21 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task DocumentChanged_Snapshot_UpdatesDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.DocumentOpened(HostProject.FilePath, Documents[0].FilePath, SourceText);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+            _projectManager.Reset();
 
             var expected = SourceText.From("Hi");
 
             // Act
-            ProjectManager.DocumentChanged(HostProject.FilePath, Documents[0].FilePath, expected);
+            _projectManager.DocumentChanged(_hostProject.FilePath, _documents[0].FilePath, expected);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.DocumentChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            var text = await snapshot.GetDocument(Documents[0].FilePath).GetTextAsync();
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            var text = await snapshot.GetDocument(_documents[0].FilePath).GetTextAsync();
             Assert.Same(expected, text);
         }
 
@@ -450,22 +447,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task DocumentChanged_Loader_UpdatesDocument()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
-            ProjectManager.DocumentOpened(HostProject.FilePath, Documents[0].FilePath, SourceText);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+            _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+            _projectManager.Reset();
 
             var expected = SourceText.From("Hi");
             var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
             // Act
-            ProjectManager.DocumentChanged(HostProject.FilePath, Documents[0].FilePath, TextLoader.From(textAndVersion));
+            _projectManager.DocumentChanged(_hostProject.FilePath, _documents[0].FilePath, TextLoader.From(textAndVersion));
 
             // Assert
-            Assert.Equal(ProjectChangeKind.DocumentChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
-            var text = await snapshot.GetDocument(Documents[0].FilePath).GetTextAsync();
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
+            var text = await snapshot.GetDocument(_documents[0].FilePath).GetTextAsync();
             Assert.Same(expected, text);
         }
 
@@ -475,56 +472,56 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            ProjectManager.ProjectAdded(HostProject);
+            _projectManager.ProjectAdded(_hostProject);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.ProjectAdded, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.ProjectAdded, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_ProjectWorkspaceState_NotifiesListeners()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.ProjectConfigurationChanged(HostProjectWithConfigurationChange);
+            _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceStateWithTagHelpers);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.ProjectConfigurationChanged(HostProjectWithConfigurationChange);
+            _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_DoesNotCacheProjectEngine()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
-            var snapshot = ProjectManager.GetSnapshot(HostProject);
+            var snapshot = _projectManager.GetSnapshot(_hostProject);
             var projectEngine = snapshot.GetProjectEngine();
 
             // Act
-            ProjectManager.ProjectConfigurationChanged(HostProjectWithConfigurationChange);
+            _projectManager.ProjectConfigurationChanged(_hostProjectWithConfigurationChange);
 
             // Assert
-            snapshot = ProjectManager.GetSnapshot(HostProjectWithConfigurationChange);
+            snapshot = _projectManager.GetSnapshot(_hostProjectWithConfigurationChange);
             Assert.NotSame(projectEngine, snapshot.GetProjectEngine());
         }
 
@@ -534,28 +531,28 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            ProjectManager.ProjectConfigurationChanged(HostProject);
+            _projectManager.ProjectConfigurationChanged(_hostProject);
 
             // Assert
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
-            Assert.Null(ProjectManager.ListenersNotifiedOf);
+            Assert.Null(_projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void ProjectRemoved_RemovesProject_NotifiesListeners()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.ProjectRemoved(HostProject);
+            _projectManager.ProjectRemoved(_hostProject);
 
             // Assert
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
-            Assert.Equal(ProjectChangeKind.ProjectRemoved, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.ProjectRemoved, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
@@ -564,41 +561,41 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceStateWithTagHelpers);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
 
             // Assert
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
-            Assert.Null(ProjectManager.ListenersNotifiedOf);
+            Assert.Null(_projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void ProjectWorkspaceStateChanged_WithHostProject_FirstTime_NotifiesListenters()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceStateWithTagHelpers);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
         public void WorkspaceProjectChanged_WithHostProject_NotifiesListenters()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceState.Default);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, ProjectWorkspaceState.Default);
+            _projectManager.Reset();
 
             // Act
-            ProjectManager.ProjectWorkspaceStateChanged(HostProject.FilePath, ProjectWorkspaceStateWithTagHelpers);
+            _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
         }
 
         [UIFact]
@@ -606,26 +603,26 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var listenerNotifications = new List<ProjectChangeKind>();
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
-            ProjectManager.Changed += (sender, args) =>
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
+            _projectManager.Changed += (sender, args) =>
             {
                 // These conditions will result in a triply nested change notification of Add -> Change -> Remove all within the .Change chain.
 
                 if (args.Kind == ProjectChangeKind.DocumentAdded)
                 {
-                    ProjectManager.DocumentOpened(HostProject.FilePath, Documents[0].FilePath, SourceText);
+                    _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
                 }
                 else if (args.Kind == ProjectChangeKind.DocumentChanged)
                 {
-                    ProjectManager.DocumentRemoved(HostProject, Documents[0]);
+                    _projectManager.DocumentRemoved(_hostProject, _documents[0]);
                 }
             };
-            ProjectManager.Changed += (sender, args) => listenerNotifications.Add(args.Kind);
-            ProjectManager.NotifyChangedEvents = true;
+            _projectManager.Changed += (sender, args) => listenerNotifications.Add(args.Kind);
+            _projectManager.NotifyChangedEvents = true;
 
             // Act
-            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+            _projectManager.DocumentAdded(_hostProject, _documents[0], null);
 
             // Assert
             Assert.Equal(new[] { ProjectChangeKind.DocumentAdded, ProjectChangeKind.DocumentChanged, ProjectChangeKind.DocumentRemoved }, listenerNotifications);
@@ -635,20 +632,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void SolutionClosing_ProjectChangedEventsCorrect()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject);
-            ProjectManager.Reset();
+            _projectManager.ProjectAdded(_hostProject);
+            _projectManager.Reset();
 
-            ProjectManager.Changed += (sender, args) => Assert.True(args.SolutionIsClosing);
-            ProjectManager.NotifyChangedEvents = true;
+            _projectManager.Changed += (sender, args) => Assert.True(args.SolutionIsClosing);
+            _projectManager.NotifyChangedEvents = true;
 
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
 
             // Act
-            ProjectManager.SolutionClosed();
-            ProjectManager.DocumentAdded(HostProject, Documents[0], textLoader.Object);
+            _projectManager.SolutionClosed();
+            _projectManager.DocumentAdded(_hostProject, _documents[0], textLoader.Object);
 
             // Assert
-            Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
+            Assert.Equal(ProjectChangeKind.DocumentAdded, _projectManager.ListenersNotifiedOf);
             textLoader.Verify(d => d.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never());
         }
 

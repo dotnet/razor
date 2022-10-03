@@ -13,26 +13,37 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class ProjectStateTest : WorkspaceTestBase
     {
-        public ProjectStateTest()
+        private readonly HostDocument[] _documents;
+        private readonly HostProject _hostProject;
+        private readonly HostProject _hostProjectWithConfigurationChange;
+        private readonly ProjectWorkspaceState _projectWorkspaceState;
+        private TestTagHelperResolver _tagHelperResolver;
+        private readonly List<TagHelperDescriptor> _someTagHelpers;
+        private readonly Func<Task<TextAndVersion>> _textLoader;
+        private readonly SourceText _text;
+
+        public ProjectStateTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            HostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-            HostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-            ProjectWorkspaceState = new ProjectWorkspaceState(new[]
+            _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+            _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+            _projectWorkspaceState = new ProjectWorkspaceState(new[]
             {
                 TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
             }, default);
 
-            SomeTagHelpers = new List<TagHelperDescriptor>
+            _someTagHelpers = new List<TagHelperDescriptor>
             {
                 TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build()
             };
 
-            Documents = new HostDocument[]
+            _documents = new HostDocument[]
             {
                 TestProjectData.SomeProjectFile1,
                 TestProjectData.SomeProjectFile2,
@@ -41,30 +52,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 TestProjectData.AnotherProjectNestedFile3,
             };
 
-            Text = SourceText.From("Hello, world!");
-            TextLoader = () => Task.FromResult(TextAndVersion.Create(Text, VersionStamp.Create()));
+            _text = SourceText.From("Hello, world!");
+            _textLoader = () => Task.FromResult(TextAndVersion.Create(_text, VersionStamp.Create()));
         }
-
-        private HostDocument[] Documents { get; }
-
-        private HostProject HostProject { get; }
-
-        private HostProject HostProjectWithConfigurationChange { get; }
-
-        private ProjectWorkspaceState ProjectWorkspaceState { get; }
-
-        private TestTagHelperResolver TagHelperResolver { get; set; }
-
-        private List<TagHelperDescriptor> SomeTagHelpers { get; }
-
-        private Func<Task<TextAndVersion>> TextLoader { get; }
-
-        private SourceText Text { get; }
 
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
-            TagHelperResolver = new TestTagHelperResolver();
-            services.Add(TagHelperResolver);
+            _tagHelperResolver = new TestTagHelperResolver();
+            services.Add(_tagHelperResolver);
         }
 
         protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
@@ -76,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void GetImportDocumentTargetPaths_DoesNotIncludeCurrentImport()
         {
             // Arrange
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
 
             // Act
             var paths = state.GetImportDocumentTargetPaths(TestProjectData.SomeProjectComponentImportFile1);
@@ -91,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
 
             // Assert
             Assert.Empty(state.Documents);
@@ -102,17 +97,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_AddHostDocument_ToEmpty()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
 
             // Act
-            var state = original.WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader);
+            var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
 
             Assert.Collection(
                 state.Documents.OrderBy(kvp => kvp.Key),
-                d => Assert.Same(Documents[0], d.Value.HostDocument));
+                d => Assert.Same(_documents[0], d.Value.HostDocument));
             Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         }
 
@@ -120,13 +115,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task ProjectState_AddHostDocument_DocumentIsEmpty()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
 
             // Act
-            var state = original.WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader);
+            var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
 
             // Assert
-            var text = await state.Documents[Documents[0].FilePath].GetTextAsync();
+            var text = await state.Documents[_documents[0].FilePath].GetTextAsync();
             Assert.Equal(0, text.Length);
         }
 
@@ -134,21 +129,21 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_AddHostDocument_ToProjectWithDocuments()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader);
+            var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
 
             Assert.Collection(
                 state.Documents.OrderBy(kvp => kvp.Key),
-                d => Assert.Same(Documents[2], d.Value.HostDocument),
-                d => Assert.Same(Documents[0], d.Value.HostDocument),
-                d => Assert.Same(Documents[1], d.Value.HostDocument));
+                d => Assert.Same(_documents[2], d.Value.HostDocument),
+                d => Assert.Same(_documents[0], d.Value.HostDocument),
+                d => Assert.Same(_documents[1], d.Value.HostDocument));
             Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         }
 
@@ -158,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
 
             // Act
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -197,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_AddHostDocument_TracksImports_AddImportFile()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -240,16 +235,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_AddHostDocument_RetainsComputedState()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
             var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
             // Act
-            var state = original.WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader);
+            var state = original.WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
 
             // Assert
             var actualTagHelpers = state.TagHelpers;
@@ -259,20 +254,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.Same(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
-            Assert.Same(original.Documents[Documents[2].FilePath], state.Documents[Documents[2].FilePath]);
+            Assert.Same(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
+            Assert.Same(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
         }
 
         [Fact]
         public void ProjectState_AddHostDocument_DuplicateNoops()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithAddedHostDocument(new HostDocument(Documents[1].FilePath, "SomePath.cshtml"), DocumentState.EmptyLoader);
+            var state = original.WithAddedHostDocument(new HostDocument(_documents[1].FilePath, "SomePath.cshtml"), DocumentState.EmptyLoader);
 
             // Assert
             Assert.Same(original, state);
@@ -282,18 +277,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task ProjectState_WithChangedHostDocument_Loader()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithChangedHostDocument(Documents[1], TextLoader);
+            var state = original.WithChangedHostDocument(_documents[1], _textLoader);
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
 
-            var text = await state.Documents[Documents[1].FilePath].GetTextAsync();
-            Assert.Same(Text, text);
+            var text = await state.Documents[_documents[1].FilePath].GetTextAsync();
+            Assert.Same(_text, text);
 
             Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         }
@@ -302,18 +297,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task ProjectState_WithChangedHostDocument_Snapshot()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithChangedHostDocument(Documents[1], Text, VersionStamp.Create());
+            var state = original.WithChangedHostDocument(_documents[1], _text, VersionStamp.Create());
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
 
-            var text = await state.Documents[Documents[1].FilePath].GetTextAsync();
-            Assert.Same(Text, text);
+            var text = await state.Documents[_documents[1].FilePath].GetTextAsync();
+            Assert.Same(_text, text);
 
             Assert.Equal(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         }
@@ -322,16 +317,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_WithChangedHostDocument_Loader_RetainsComputedState()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
             var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
             // Act
-            var state = original.WithChangedHostDocument(Documents[1], TextLoader);
+            var state = original.WithChangedHostDocument(_documents[1], _textLoader);
 
             // Assert
             var actualTagHelpers = state.TagHelpers;
@@ -341,23 +336,23 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
         }
 
         [Fact]
         public void ProjectState_WithChangedHostDocument_Snapshot_RetainsComputedState()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
             var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
             // Act
-            var state = original.WithChangedHostDocument(Documents[1], Text, VersionStamp.Create());
+            var state = original.WithChangedHostDocument(_documents[1], _text, VersionStamp.Create());
 
             // Assert
             var actualTagHelpers = state.TagHelpers;
@@ -367,19 +362,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
         }
 
         [Fact]
         public void ProjectState_WithChangedHostDocument_Loader_NotFoundNoops()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithChangedHostDocument(Documents[0], TextLoader);
+            var state = original.WithChangedHostDocument(_documents[0], _textLoader);
 
             // Assert
             Assert.Same(original, state);
@@ -389,12 +384,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_WithChangedHostDocument_Snapshot_NotFoundNoops()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithChangedHostDocument(Documents[0], Text, VersionStamp.Create());
+            var state = original.WithChangedHostDocument(_documents[0], _text, VersionStamp.Create());
 
             // Assert
             Assert.Same(original, state);
@@ -404,19 +399,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_RemoveHostDocument_FromProjectWithDocuments()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithRemovedHostDocument(Documents[1]);
+            var state = original.WithRemovedHostDocument(_documents[1]);
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
 
             Assert.Collection(
                 state.Documents.OrderBy(kvp => kvp.Key),
-                d => Assert.Same(Documents[2], d.Value.HostDocument));
+                d => Assert.Same(_documents[2], d.Value.HostDocument));
 
             Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         }
@@ -425,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_RemoveHostDocument_TracksImports()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -465,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_RemoveHostDocument_TracksImports_RemoveAllDocuments()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectFile2, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectNestedFile3, DocumentState.EmptyLoader)
@@ -487,16 +482,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_RemoveHostDocument_RetainsComputedState()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
             var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
             // Act
-            var state = original.WithRemovedHostDocument(Documents[2]);
+            var state = original.WithRemovedHostDocument(_documents[2]);
 
             // Assert
             var actualTagHelpers = state.TagHelpers;
@@ -506,19 +501,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.Same(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
+            Assert.Same(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
         }
 
         [Fact]
         public void ProjectState_RemoveHostDocument_NotFoundNoops()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithRemovedHostDocument(Documents[0]);
+            var state = original.WithRemovedHostDocument(_documents[0]);
 
             // Assert
             Assert.Same(original, state);
@@ -528,22 +523,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_WithHostProject_ConfigurationChange_UpdatesConfigurationState()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
             var originalProjectWorkspaceStateVersion = original.ConfigurationVersion;
 
-            TagHelperResolver.TagHelpers = SomeTagHelpers;
+            _tagHelperResolver.TagHelpers = _someTagHelpers;
 
             // Act
-            var state = original.WithHostProject(HostProjectWithConfigurationChange);
+            var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
-            Assert.Same(HostProjectWithConfigurationChange, state.HostProject);
+            Assert.Same(_hostProjectWithConfigurationChange, state.HostProject);
 
             var actualTagHelpers = state.TagHelpers;
             var actualProjectWorkspaceStateVersion = state.ConfigurationVersion;
@@ -552,8 +547,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
-            Assert.NotSame(original.Documents[Documents[2].FilePath], state.Documents[Documents[2].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
 
             Assert.NotEqual(original.DocumentCollectionVersion, state.DocumentCollectionVersion);
         }
@@ -562,9 +557,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_WithHostProject_RootNamespaceChange_UpdatesConfigurationState()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
             var hostProjectWithRootNamespaceChange = new HostProject(
                 original.HostProject.FilePath,
                 original.HostProject.Configuration,
@@ -574,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _ = original.TagHelpers;
             _ = original.ConfigurationVersion;
 
-            TagHelperResolver.TagHelpers = SomeTagHelpers;
+            _tagHelperResolver.TagHelpers = _someTagHelpers;
 
             // Act
             var state = original.WithHostProject(hostProjectWithRootNamespaceChange);
@@ -587,15 +582,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_WithHostProject_NoConfigurationChange_Noops()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             _ = original.ProjectWorkspaceStateVersion;
 
             // Act
-            var state = original.WithHostProject(HostProject);
+            var state = original.WithHostProject(_hostProject);
 
             // Assert
             Assert.Same(original, state);
@@ -608,18 +603,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var callCount = 0;
 
             var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-            documents[Documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, Documents[1], onConfigurationChange: () => callCount++);
-            documents[Documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, Documents[2], onConfigurationChange: () => callCount++);
+            documents[_documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[1], onConfigurationChange: () => callCount++);
+            documents[_documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[2], onConfigurationChange: () => callCount++);
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
 
             // Act
-            var state = original.WithHostProject(HostProjectWithConfigurationChange);
+            var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
-            Assert.Same(HostProjectWithConfigurationChange, state.HostProject);
+            Assert.Same(_hostProjectWithConfigurationChange, state.HostProject);
             Assert.Equal(2, callCount);
         }
 
@@ -627,11 +622,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectState_WithHostProject_ResetsImportedDocuments()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original = original.WithAddedHostDocument(TestProjectData.SomeProjectFile1, DocumentState.EmptyLoader);
 
             // Act
-            var state = original.WithHostProject(HostProjectWithConfigurationChange);
+            var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
             // Assert
             var importMap = Assert.Single(state.ImportsToRelatedDocuments);
@@ -644,9 +639,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var emptyProjectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
-            var original = ProjectState.Create(Workspace.Services, HostProject, emptyProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, emptyProjectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
@@ -667,17 +662,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
-            Assert.NotSame(original.Documents[Documents[2].FilePath], state.Documents[Documents[2].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
         }
 
         [Fact]
         public void ProjectState_WithProjectWorkspaceState_Added()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, null)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, null)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
@@ -699,23 +694,23 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
         }
 
         [Fact]
         public void ProjectState_WithProjectWorkspaceState_Changed()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
             var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-            var changed = new ProjectWorkspaceState(ProjectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
+            var changed = new ProjectWorkspaceState(_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
 
             // Act
             var state = original.WithProjectWorkspaceState(changed);
@@ -732,17 +727,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, actualTagHelpers);
             Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
-            Assert.NotSame(original.Documents[Documents[2].FilePath], state.Documents[Documents[2].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
         }
 
         [Fact]
         public void ProjectState_WithProjectWorkspaceState_Changed_TagHelpersChanged()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             var originalTagHelpers = original.TagHelpers;
@@ -751,7 +746,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var changed = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
 
             // Now create some tag helpers
-            TagHelperResolver.TagHelpers = SomeTagHelpers;
+            _tagHelperResolver.TagHelpers = _someTagHelpers;
 
             // Act
             var state = original.WithProjectWorkspaceState(changed);
@@ -769,17 +764,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
             Assert.Equal(state.Version, actualProjectWorkspaceStateVersion);
 
-            Assert.NotSame(original.Documents[Documents[1].FilePath], state.Documents[Documents[1].FilePath]);
-            Assert.NotSame(original.Documents[Documents[2].FilePath], state.Documents[Documents[2].FilePath]);
+            Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
+            Assert.NotSame(original.Documents[_documents[2].FilePath], state.Documents[_documents[2].FilePath]);
         }
 
         [Fact]
         public void ProjectState_WithProjectWorkspaceState_IdenticalState_Caches()
         {
             // Arrange
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
 
             // Force init
             _ = original.TagHelpers;
@@ -788,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var changed = new ProjectWorkspaceState(original.TagHelpers, original.CSharpLanguageVersion);
 
             // Now create some tag helpers
-            TagHelperResolver.TagHelpers = SomeTagHelpers;
+            _tagHelperResolver.TagHelpers = _someTagHelpers;
 
             // Act
             var state = original.WithProjectWorkspaceState(changed);
@@ -804,10 +799,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var callCount = 0;
 
             var documents = ImmutableDictionary.CreateBuilder<string, DocumentState>(FilePathComparer.Instance);
-            documents[Documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, Documents[1], onProjectWorkspaceStateChange: () => callCount++);
-            documents[Documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, Documents[2], onProjectWorkspaceStateChange: () => callCount++);
+            documents[_documents[1].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[1], onProjectWorkspaceStateChange: () => callCount++);
+            documents[_documents[2].FilePath] = TestDocumentState.Create(Workspace.Services, _documents[2], onProjectWorkspaceStateChange: () => callCount++);
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
 
             var changed = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
@@ -851,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     TestProjectData.SomeProjectNestedFile3.FilePath,
                     TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
             original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -894,7 +889,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     TestProjectData.SomeProjectNestedFile3.FilePath,
                     TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
             original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -940,7 +935,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     TestProjectData.SomeProjectNestedFile3.FilePath,
                     TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
             original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
@@ -986,12 +981,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     TestProjectData.SomeProjectNestedFile3.FilePath,
                     TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
             original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 
             // Act
-            var state = original.WithChangedHostDocument(document5, Text, VersionStamp.Create());
+            var state = original.WithChangedHostDocument(document5, _text, VersionStamp.Create());
 
             // Assert
             Assert.NotEqual(original.Version, state.Version);
@@ -1032,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     TestProjectData.SomeProjectNestedFile3.FilePath,
                     TestProjectData.AnotherProjectNestedFile4.FilePath));
 
-            var original = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState);
+            var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
             original.Documents = documents.ToImmutable();
             original.ImportsToRelatedDocuments = importsToRelatedDocuments.ToImmutable();
 

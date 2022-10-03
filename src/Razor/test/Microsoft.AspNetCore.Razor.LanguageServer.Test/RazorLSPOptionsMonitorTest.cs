@@ -5,30 +5,35 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RazorLSPOptionsMonitorTest
+    public class RazorLSPOptionsMonitorTest : TestBase
     {
-        public RazorLSPOptionsMonitorTest()
+        private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
+
+        public RazorLSPOptionsMonitorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var services = new ServiceCollection().AddOptions();
-            Cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
+            _cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
         }
-
-        private IOptionsMonitorCache<RazorLSPOptions> Cache { get; }
 
         [Fact]
         public async Task UpdateAsync_Invokes_OnChangeRegistration()
         {
             // Arrange
             var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true, insertSpaces: true, tabSize: 4);
-            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync(CancellationToken.None) == Task.FromResult(expectedOptions), MockBehavior.Strict);
-            var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
+            var configService = Mock.Of<RazorConfigurationService>(
+                f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
+                MockBehavior.Strict);
+            var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
             var called = false;
 
             // Act & Assert
@@ -37,7 +42,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 called = true;
                 Assert.Same(expectedOptions, options);
             });
-            await optionsMonitor.UpdateAsync(CancellationToken.None);
+
+            await optionsMonitor.UpdateAsync(DisposalToken);
             Assert.True(called, "Registered callback was not called.");
         }
 
@@ -46,13 +52,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true, insertSpaces: true, tabSize: 4);
-            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync(CancellationToken.None) == Task.FromResult(expectedOptions), MockBehavior.Strict);
-            var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
+            var configService = Mock.Of<RazorConfigurationService>(
+                f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
+                MockBehavior.Strict);
+            var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
             var called = false;
             var onChangeToken = optionsMonitor.OnChange(options => called = true);
 
             // Act 1
-            await optionsMonitor.UpdateAsync(CancellationToken.None);
+            await optionsMonitor.UpdateAsync(DisposalToken);
 
             // Assert 1
             Assert.True(called, "Registered callback was not called.");
@@ -60,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Act 2
             called = false;
             onChangeToken.Dispose();
-            await optionsMonitor.UpdateAsync(CancellationToken.None);
+            await optionsMonitor.UpdateAsync(DisposalToken);
 
             // Assert 2
             Assert.False(called, "Registered callback called even after dispose.");
@@ -71,13 +79,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var configService = new Mock<RazorConfigurationService>(MockBehavior.Strict).Object;
-            Mock.Get(configService).Setup(s => s.GetLatestOptionsAsync(CancellationToken.None)).ReturnsAsync(value: null);
-            var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
+            Mock.Get(configService)
+                .Setup(s => s.GetLatestOptionsAsync(DisposalToken))
+                .ReturnsAsync(value: null);
+            var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
             var called = false;
             var onChangeToken = optionsMonitor.OnChange(options => called = true);
 
             // Act
-            await optionsMonitor.UpdateAsync(CancellationToken.None);
+            await optionsMonitor.UpdateAsync(DisposalToken);
 
             // Assert
             Assert.False(called, "Registered callback called even when GetLatestOptionsAsync() returns null.");

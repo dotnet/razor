@@ -112,9 +112,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 }}
 ";
             var request = JsonConvert.DeserializeObject(serializedValue, requestType);
-            var resultTask = (Task)applyFormatEditsHandler.GetType().GetRuntimeMethod("Handle", new Type[] { requestType, typeof(CancellationToken) }).Invoke(applyFormatEditsHandler, new object[] { request, CancellationToken.None });
-            var result = resultTask.GetType().GetProperty(nameof(Task<int>.Result)).GetValue(resultTask);
-            var rawTextChanges = result.GetType().GetProperty("TextChanges").GetValue(result);
+
+            var resultTask = (Task)applyFormatEditsHandler.GetType()
+                .GetRuntimeMethod(
+                    name: "Handle",
+                    parameters: new[] { requestType, typeof(CancellationToken) })
+                .Invoke(
+                    obj: applyFormatEditsHandler,
+                    parameters: new object[] { request, CancellationToken.None });
+
+            var result = resultTask.GetType()
+                .GetProperty(nameof(Task<int>.Result))
+                .GetValue(resultTask);
+
+            var rawTextChanges = result.GetType()
+                .GetProperty("TextChanges")
+                .GetValue(result);
+
             var serializedTextChanges = JsonConvert.SerializeObject(rawTextChanges, Newtonsoft.Json.Formatting.Indented);
             var textChanges = JsonConvert.DeserializeObject<HtmlFormatterTextEdit[]>(serializedTextChanges);
             response.Edits = textChanges.Select(change => change.AsTextEdit(SourceText.From(generatedHtml))).ToArray();

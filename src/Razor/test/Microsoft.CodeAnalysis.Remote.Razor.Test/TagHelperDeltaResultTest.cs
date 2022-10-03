@@ -7,11 +7,17 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor
 {
     public class TagHelperDeltaResultTest : TagHelperDescriptorTestBase
     {
+        public TagHelperDeltaResultTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Apply_Noop()
         {

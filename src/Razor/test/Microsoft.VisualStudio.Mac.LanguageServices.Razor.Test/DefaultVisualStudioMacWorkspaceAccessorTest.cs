@@ -3,15 +3,22 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class DefaultVisualStudioMacWorkspaceAccessorTest
+    public class DefaultVisualStudioMacWorkspaceAccessorTest : TestBase
     {
+        public DefaultVisualStudioMacWorkspaceAccessorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryGetWorkspace_NoHostProject_ReturnsFalse()
         {

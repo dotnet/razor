@@ -12,11 +12,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
     public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
     {
+        public TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_Html_MakesRequest()
         {
@@ -56,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
             // Assert
             languageServer.Verify();
@@ -102,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
             // Assert
             languageServer.Verify();
@@ -146,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -191,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(parameters, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);

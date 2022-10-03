@@ -4,13 +4,20 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class SourceTextDifferTest
+    public class SourceTextDifferTest : TestBase
     {
+        public SourceTextDifferTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Theory]
         [InlineData("asdf", ";lkj")]
         [InlineData("asdf", ";asd")]

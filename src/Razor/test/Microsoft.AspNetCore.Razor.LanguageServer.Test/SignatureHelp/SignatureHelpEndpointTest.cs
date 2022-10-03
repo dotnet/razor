@@ -5,21 +5,25 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
 {
     public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
     {
+        public SignatureHelpEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_SingleServer_CSharpSignature()
         {
@@ -75,7 +79,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
 
             await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-            var endpoint = new SignatureHelpEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new SignatureHelpEndpoint(
+                LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new SignatureHelpParamsBridge
@@ -86,12 +91,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
                 },
                 Position = new Position(line, offset)
             };
-            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
 
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             if (signatures.Length == 0)

@@ -11,11 +11,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class ProjectFileChangeDetectorTest : LanguageServerTestBase
     {
+        public ProjectFileChangeDetectorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task StartAsync_NotifiesListenersOfExistingProjectFiles()
         {
@@ -73,7 +79,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 CancellationTokenSource cancellationTokenSource,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectFileChangeListener> listeners,
-                IReadOnlyList<string> existingprojectFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingprojectFiles)
+                : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;

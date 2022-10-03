@@ -12,7 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
     internal class TestLoggerProvider : HTMLCSharpLanguageServerLogHubLoggerProvider
     {
-        public TestLoggerProvider() : base(new HTMLCSharpLanguageServerLogHubLoggerProviderFactory(new TestRazorLogHubTraceProvider()))
+        public TestLoggerProvider()
+            : base(new HTMLCSharpLanguageServerLogHubLoggerProviderFactory(
+                new TestRazorLogHubTraceProvider()))
         {
         }
 

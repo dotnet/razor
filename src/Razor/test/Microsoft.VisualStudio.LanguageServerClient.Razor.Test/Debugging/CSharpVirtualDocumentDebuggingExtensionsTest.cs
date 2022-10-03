@@ -6,16 +6,23 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
-    public class CSharpVirtualDocumentDebuggingExtensionsTest
+    public class CSharpVirtualDocumentDebuggingExtensionsTest : TestBase
     {
+        public CSharpVirtualDocumentDebuggingExtensionsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task GetCSharpSyntaxTreeAsync_InWorkspace_ReusesSyntaxTree()
         {
@@ -37,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var virtualDocumentSnapshot = (CSharpVirtualDocumentSnapshot)virtualDocument.CurrentSnapshot;
 
             // Act
-            var syntaxTree = await virtualDocumentSnapshot.GetCSharpSyntaxTreeAsync(workspace, CancellationToken.None);
+            var syntaxTree = await virtualDocumentSnapshot.GetCSharpSyntaxTreeAsync(workspace, DisposalToken);
 
             // Assert
             var diagnostics = syntaxTree.GetDiagnostics();
@@ -57,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var virtualDocumentSnapshot = (CSharpVirtualDocumentSnapshot)virtualDocument.CurrentSnapshot;
 
             // Act
-            var syntaxTree = await virtualDocumentSnapshot.GetCSharpSyntaxTreeAsync(workspace, CancellationToken.None);
+            var syntaxTree = await virtualDocumentSnapshot.GetCSharpSyntaxTreeAsync(workspace, DisposalToken);
 
             // Assert
             var diagnostics = syntaxTree.GetDiagnostics();
@@ -76,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var virtualDocumentSnapshot = (CSharpVirtualDocumentSnapshot)virtualDocument.CurrentSnapshot;
 
             // Act
-            var syntaxTree = await virtualDocumentSnapshot.GetCSharpSyntaxTreeAsync(workspace: null, CancellationToken.None);
+            var syntaxTree = await virtualDocumentSnapshot.GetCSharpSyntaxTreeAsync(workspace: null, DisposalToken);
 
             // Assert
             var diagnostics = syntaxTree.GetDiagnostics();

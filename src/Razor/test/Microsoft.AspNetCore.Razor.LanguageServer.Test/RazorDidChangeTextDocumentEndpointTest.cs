@@ -10,18 +10,25 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorDidChangeTextDocumentEndpointTest : LanguageServerTestBase
     {
-        private static RazorProjectService ProjectService => Mock.Of<RazorProjectService>(MockBehavior.Strict);
+        private readonly RazorProjectService _projectService;
+
+        public RazorDidChangeTextDocumentEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _projectService = Mock.Of<RazorProjectService>(MockBehavior.Strict);
+        }
 
         [Fact]
         public void ApplyContentChanges_SingleChange()
         {
             // Arrange
-            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, ProjectService);
+            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, _projectService);
             var sourceText = SourceText.From("Hello World");
             var change = new TextDocumentContentChangeEvent()
             {
@@ -46,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ApplyContentChanges_MultipleChanges()
         {
             // Arrange
-            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, ProjectService);
+            var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, _projectService);
             var sourceText = SourceText.From("Hello World");
             var changes = new[] {
                 new TextDocumentContentChangeEvent()

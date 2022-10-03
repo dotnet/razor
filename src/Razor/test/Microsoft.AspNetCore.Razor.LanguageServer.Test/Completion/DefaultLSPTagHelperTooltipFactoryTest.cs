@@ -6,11 +6,18 @@
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Xunit;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
-    public class DefaultLSPTagHelperTooltipFactoryTest
+    public class DefaultLSPTagHelperTooltipFactoryTest : TestBase
     {
+        public DefaultLSPTagHelperTooltipFactoryTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void CleanSummaryContent_Markup_ReplacesSeeCrefs()
         {

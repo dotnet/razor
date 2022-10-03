@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
@@ -26,6 +27,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     public class RazorDefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
     {
+        public RazorDefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_SingleServer_CSharp_Method()
         {
@@ -125,10 +131,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
 
             var razorUri = new Uri(razorFilePath);
-            var documentContext = await DocumentContextFactory.TryCreateAsync(razorUri, CancellationToken.None);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(razorUri, DisposalToken);
             var requestContext = CreateRazorRequestContext(documentContext);
 
-            var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new TextDocumentPositionParamsBridge
@@ -140,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 Position = new Position(line, offset)
             };
 
-            return await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
         }
     }
 }

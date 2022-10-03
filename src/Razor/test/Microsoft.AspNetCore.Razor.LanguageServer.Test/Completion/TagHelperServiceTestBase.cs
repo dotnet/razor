@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using Xunit.Abstractions;
 using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.LanguageServerTagHelperCompletionService;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
@@ -23,7 +24,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         protected const string CSHtmlFile = "test.cshtml";
         protected const string RazorFile = "test.razor";
 
-        public TagHelperServiceTestBase()
+        protected TagHelperDescriptor[] DefaultTagHelpers { get; }
+        protected RazorTagHelperCompletionService RazorTagHelperCompletionService { get; }
+        internal HtmlFactsService HtmlFactsService { get; }
+        protected TagHelperFactsService TagHelperFactsService { get; }
+
+        public TagHelperServiceTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var builder1 = TagHelperDescriptorBuilder.Create("Test1TagHelper", "TestAssembly");
             builder1.TagMatchingRule(rule => rule.TagName = "test1");
@@ -190,14 +197,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             TagHelperFactsService = new DefaultTagHelperFactsService();
             RazorTagHelperCompletionService = new DefaultRazorTagHelperCompletionService(TagHelperFactsService);
         }
-
-        protected TagHelperDescriptor[] DefaultTagHelpers { get; }
-
-        protected RazorTagHelperCompletionService RazorTagHelperCompletionService { get; }
-
-        internal HtmlFactsService HtmlFactsService { get; }
-
-        protected TagHelperFactsService TagHelperFactsService { get; }
 
         internal static RazorCodeDocument CreateCodeDocument(string text, bool isRazorFile, params TagHelperDescriptor[] tagHelpers)
         {

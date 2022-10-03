@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
@@ -20,10 +20,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
     {
         private readonly CompletionRequestResponseFactory _completionFactory;
 
-        private TestDelegatedCompletionListProvider(DelegatedCompletionResponseRewriter[] responseRewriters, CompletionRequestResponseFactory completionFactory)
+        private TestDelegatedCompletionListProvider(
+            DelegatedCompletionResponseRewriter[] responseRewriters,
+            CompletionRequestResponseFactory completionFactory,
+            ILoggerFactory loggerFactory)
             : base(
                 responseRewriters,
-                new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance),
+                new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory),
                 new TestLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
                 {
                     [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,
@@ -33,24 +36,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             _completionFactory = completionFactory;
         }
 
-        public static TestDelegatedCompletionListProvider Create(params DelegatedCompletionResponseRewriter[] responseRewriters) =>
-            Create(delegatedCompletionList: null, responseRewriters: responseRewriters);
+        public static TestDelegatedCompletionListProvider Create(
+            ILoggerFactory loggerFactory,
+            params DelegatedCompletionResponseRewriter[] responseRewriters) =>
+            Create(delegatedCompletionList: null, loggerFactory, responseRewriters: responseRewriters);
 
-        public static TestDelegatedCompletionListProvider Create(CSharpTestLspServer csharpServer, params DelegatedCompletionResponseRewriter[] responseRewriters)
+        public static TestDelegatedCompletionListProvider Create(
+            CSharpTestLspServer csharpServer,
+            ILoggerFactory loggerFactory,
+            CancellationToken cancellationToken,
+            params DelegatedCompletionResponseRewriter[] responseRewriters)
         {
-            var requestResponseFactory = new DelegatedCSharpCompletionRequestResponseFactory(csharpServer);
-            var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory);
+            var requestResponseFactory = new DelegatedCSharpCompletionRequestResponseFactory(csharpServer, cancellationToken);
+            var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory, loggerFactory);
             return provider;
         }
 
-        public static TestDelegatedCompletionListProvider Create(VSInternalCompletionList delegatedCompletionList, params DelegatedCompletionResponseRewriter[] responseRewriters)
+        public static TestDelegatedCompletionListProvider Create(
+            VSInternalCompletionList delegatedCompletionList,
+            ILoggerFactory loggerFactory,
+            params DelegatedCompletionResponseRewriter[] responseRewriters)
         {
             delegatedCompletionList ??= new VSInternalCompletionList()
             {
                 Items = Array.Empty<CompletionItem>(),
             };
             var requestResponseFactory = new StaticCompletionRequestResponseFactory(delegatedCompletionList);
-            var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory);
+            var provider = new TestDelegatedCompletionListProvider(responseRewriters, requestResponseFactory, loggerFactory);
             return provider;
         }
 
@@ -79,11 +91,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
         private class DelegatedCSharpCompletionRequestResponseFactory : CompletionRequestResponseFactory
         {
             private readonly CSharpTestLspServer _csharpServer;
+            private readonly CancellationToken _cancellationToken;
             private DelegatedCompletionParams _delegatedParams;
 
-            public DelegatedCSharpCompletionRequestResponseFactory(CSharpTestLspServer csharpServer)
+            public DelegatedCSharpCompletionRequestResponseFactory(
+                CSharpTestLspServer csharpServer,
+                CancellationToken cancellationToken)
             {
                 _csharpServer = csharpServer;
+                _cancellationToken = cancellationToken;
             }
 
             public override DelegatedCompletionParams DelegatedParams => _delegatedParams;
@@ -108,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 var delegatedCompletionList = await _csharpServer.ExecuteRequestAsync<CompletionParams, VSInternalCompletionList>(
                     Methods.TextDocumentCompletionName,
                     csharpCompletionParams,
-                    CancellationToken.None).ConfigureAwait(false);
+                    _cancellationToken);
 
                 return delegatedCompletionList;
             }

@@ -16,35 +16,50 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
-    public abstract class LanguageServerTestBase
+    public abstract class LanguageServerTestBase : TestBase
     {
-        public LanguageServerTestBase()
+        // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
+        // synchronization context from the constructing thread and binds to that. We've seen in XUnit how this can unexpectedly lead to flaky
+        // tests since it doesn't actually replicate what happens in real scenario (a separate dedicated dispatcher thread). If you're reading
+        // this write your tests using the normal Dispatcher property. Eventually this LegacyDispatcher property will go away when we've had
+        // the opportunity to re-write our tests correctly.
+        private protected ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
+        private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
+        protected FilePathNormalizer FilePathNormalizer { get; }
+        private protected IRazorSpanMappingService SpanMappingService { get; }
+
+        protected JsonSerializer Serializer { get; }
+
+        protected ILspLogger LspLogger { get; }
+
+        public LanguageServerTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             LegacyDispatcher = new TestProjectSnapshotManagerDispatcher();
 #pragma warning restore CS0618 // Type or member is obsolete
+
+            Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            AddDisposable((IDisposable)Dispatcher);
+
             FilePathNormalizer = new FilePathNormalizer();
             SpanMappingService = new ThrowingRazorSpanMappingService();
-            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
-            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
 
-            LoggerFactory = TestLoggerFactory.Instance;
-            LspLogger = TestLspLogger.Instance;
-            Logger = TestLspLogger.Instance;
+            LspLogger = Logger.AsLspLogger();
 
             Serializer = new JsonSerializer();
             Serializer.Converters.RegisterRazorConverters();
@@ -52,34 +67,11 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Serializer.AddVSExtensionConverters();
         }
 
-        // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
-        // synchronization context from the constructing thread and binds to that. We've seen in XUnit how this can unexpectedly lead to flaky
-        // tests since it doesn't actually replicate what happens in real scenario (a separate dedicated dispatcher thread). If you're reading
-        // this write your tests using the normal Dispatcher property. Eventually this LegacyDispatcher property will go away when we've had
-        // the opportunity to re-write our tests correctly.
-        internal ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
-
-        internal readonly ProjectSnapshotManagerDispatcher Dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
-
-        internal FilePathNormalizer FilePathNormalizer { get; }
-
-        protected JsonSerializer Serializer { get; }
-
-        internal IRazorSpanMappingService SpanMappingService { get; }
-
-        protected ILspLogger LspLogger { get; } = TestLspLogger.Instance;
-
-        protected ILogger Logger { get; } = TestLspLogger.Instance;
-
-        protected ILoggerFactory LoggerFactory { get; }
-
-        internal static RazorRequestContext CreateRazorRequestContext(DocumentContext? documentContext, ILspLogger? lspLogger = null, ILogger? logger = null, ILspServices? lspServices = null)
+        internal RazorRequestContext CreateRazorRequestContext(DocumentContext? documentContext, ILspServices? lspServices = null)
         {
-            lspLogger ??= TestLspLogger.Instance;
-            logger ??= TestLspLogger.Instance;
             lspServices ??= new Mock<ILspServices>(MockBehavior.Strict).Object;
 
-            var requestContext = new RazorRequestContext(documentContext, lspLogger, logger, lspServices);
+            var requestContext = new RazorRequestContext(documentContext, LspLogger, Logger, lspServices);
 
             return requestContext;
         }

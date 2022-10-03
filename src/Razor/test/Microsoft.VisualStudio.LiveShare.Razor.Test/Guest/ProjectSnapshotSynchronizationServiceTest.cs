@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,38 +11,31 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
-using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
-    public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase, IDisposable
+    public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
     {
-        public ProjectSnapshotSynchronizationServiceTest()
+        private readonly CollaborationSession _sessionContext;
+        private readonly TestProjectSnapshotManager _projectSnapshotManager;
+        private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
+
+        public ProjectSnapshotSynchronizationServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            JoinableTaskContext = new JoinableTaskContext();
-            JoinableTaskFactory = new JoinableTaskFactory(JoinableTaskContext);
+            _sessionContext = new TestCollaborationSession(isHost: false);
 
-            SessionContext = new TestCollaborationSession(isHost: false);
+            _projectSnapshotManager = new TestProjectSnapshotManager(Workspace);
 
-            ProjectSnapshotManager = new TestProjectSnapshotManager(Workspace);
-
-            ProjectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(new[]
+            _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(new[]
             {
                 TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()
-            }, default);
+            },
+            default);
         }
-
-        private JoinableTaskFactory JoinableTaskFactory { get; }
-
-        private JoinableTaskContext JoinableTaskContext { get; }
-
-        private CollaborationSession SessionContext { get; }
-
-        private TestProjectSnapshotManager ProjectSnapshotManager { get; }
-
-        private ProjectWorkspaceState ProjectWorkspaceStateWithTagHelpers { get; }
 
         [Fact]
         public async Task InitializeAsync_RetrievesHostProjectManagerStateAndInitializesGuestManager()
@@ -53,24 +45,24 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 new Uri("vsls:/path/project.csproj"),
                 RazorConfiguration.Default,
                 "project",
-                ProjectWorkspaceStateWithTagHelpers);
+                _projectWorkspaceStateWithTagHelpers);
             var state = new ProjectSnapshotManagerProxyState(new[] { projectHandle });
             var hostProjectManagerProxy = Mock.Of<IProjectSnapshotManagerProxy>(
                 proxy => proxy.GetProjectManagerStateAsync(It.IsAny<CancellationToken>()) == Task.FromResult(state), MockBehavior.Strict);
             var synchronizationService = new ProjectSnapshotSynchronizationService(
                 JoinableTaskFactory,
-                SessionContext,
+                _sessionContext,
                 hostProjectManagerProxy,
-                ProjectSnapshotManager);
+                _projectSnapshotManager);
 
             // Act
-            await synchronizationService.InitializeAsync(CancellationToken.None);
+            await synchronizationService.InitializeAsync(DisposalToken);
 
             // Assert
-            var project = Assert.Single(ProjectSnapshotManager.Projects);
+            var project = Assert.Single(_projectSnapshotManager.Projects);
             Assert.Equal("/guest/path/project.csproj", project.FilePath);
             Assert.Same(RazorConfiguration.Default, project.Configuration);
-            Assert.Same(ProjectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
         }
 
         [Fact]
@@ -81,22 +73,22 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 new Uri("vsls:/path/project.csproj"),
                 RazorConfiguration.Default,
                 "project",
-                ProjectWorkspaceStateWithTagHelpers);
+                _projectWorkspaceStateWithTagHelpers);
             var synchronizationService = new ProjectSnapshotSynchronizationService(
                 JoinableTaskFactory,
-                SessionContext,
+                _sessionContext,
                 Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
-                ProjectSnapshotManager);
+                _projectSnapshotManager);
             var args = new ProjectChangeEventProxyArgs(older: null, newHandle, ProjectProxyChangeKind.ProjectAdded);
 
             // Act
             synchronizationService.UpdateGuestProjectManager(args);
 
             // Assert
-            var project = Assert.Single(ProjectSnapshotManager.Projects);
+            var project = Assert.Single(_projectSnapshotManager.Projects);
             Assert.Equal("/guest/path/project.csproj", project.FilePath);
             Assert.Same(RazorConfiguration.Default, project.Configuration);
-            Assert.Same(ProjectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
         }
 
         [Fact]
@@ -110,18 +102,18 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 projectWorkspaceState: null);
             var synchronizationService = new ProjectSnapshotSynchronizationService(
                 JoinableTaskFactory,
-                SessionContext,
+                _sessionContext,
                 Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
-                ProjectSnapshotManager);
+                _projectSnapshotManager);
             var hostProject = new HostProject("/guest/path/project.csproj", RazorConfiguration.Default, "project");
-            ProjectSnapshotManager.ProjectAdded(hostProject);
+            _projectSnapshotManager.ProjectAdded(hostProject);
             var args = new ProjectChangeEventProxyArgs(olderHandle, newer: null, ProjectProxyChangeKind.ProjectRemoved);
 
             // Act
             synchronizationService.UpdateGuestProjectManager(args);
 
             // Assert
-            Assert.Empty(ProjectSnapshotManager.Projects);
+            Assert.Empty(_projectSnapshotManager.Projects);
         }
 
         [Fact]
@@ -141,19 +133,19 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 oldHandle.ProjectWorkspaceState);
             var synchronizationService = new ProjectSnapshotSynchronizationService(
                 JoinableTaskFactory,
-                SessionContext,
+                _sessionContext,
                 Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
-                ProjectSnapshotManager);
+                _projectSnapshotManager);
             var hostProject = new HostProject("/guest/path/project.csproj", RazorConfiguration.Default, "project");
-            ProjectSnapshotManager.ProjectAdded(hostProject);
-            ProjectSnapshotManager.ProjectConfigurationChanged(hostProject);
+            _projectSnapshotManager.ProjectAdded(hostProject);
+            _projectSnapshotManager.ProjectConfigurationChanged(hostProject);
             var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
 
             // Act
             synchronizationService.UpdateGuestProjectManager(args);
 
             // Assert
-            var project = Assert.Single(ProjectSnapshotManager.Projects);
+            var project = Assert.Single(_projectSnapshotManager.Projects);
             Assert.Equal("/guest/path/project.csproj", project.FilePath);
             Assert.Same(newConfiguration, project.Configuration);
             Assert.Empty(project.TagHelpers);
@@ -168,7 +160,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 RazorConfiguration.Default,
                 "project",
                 ProjectWorkspaceState.Default);
-            var newProjectWorkspaceState = ProjectWorkspaceStateWithTagHelpers;
+            var newProjectWorkspaceState = _projectWorkspaceStateWithTagHelpers;
             var newHandle = new ProjectSnapshotHandleProxy(
                 oldHandle.FilePath,
                 oldHandle.Configuration,
@@ -176,28 +168,22 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 newProjectWorkspaceState);
             var synchronizationService = new ProjectSnapshotSynchronizationService(
                 JoinableTaskFactory,
-                SessionContext,
+                _sessionContext,
                 Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
-                ProjectSnapshotManager);
+                _projectSnapshotManager);
             var hostProject = new HostProject("/guest/path/project.csproj", RazorConfiguration.Default, "project");
-            ProjectSnapshotManager.ProjectAdded(hostProject);
-            ProjectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.FilePath, oldHandle.ProjectWorkspaceState);
+            _projectSnapshotManager.ProjectAdded(hostProject);
+            _projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.FilePath, oldHandle.ProjectWorkspaceState);
             var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
 
             // Act
             synchronizationService.UpdateGuestProjectManager(args);
 
             // Assert
-            var project = Assert.Single(ProjectSnapshotManager.Projects);
+            var project = Assert.Single(_projectSnapshotManager.Projects);
             Assert.Equal("/guest/path/project.csproj", project.FilePath);
             Assert.Same(RazorConfiguration.Default, project.Configuration);
             Assert.Same(newProjectWorkspaceState.TagHelpers, project.TagHelpers);
-        }
-
-        [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/4801")]
-        public virtual void Dispose()
-        {
-            JoinableTaskContext.Dispose();
         }
     }
 }

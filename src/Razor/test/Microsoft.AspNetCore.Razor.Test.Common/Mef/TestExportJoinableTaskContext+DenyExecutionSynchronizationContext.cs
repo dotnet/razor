@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common
+namespace Microsoft.AspNetCore.Razor.Test.Common.Mef
 {
     public partial class TestExportJoinableTaskContext
     {

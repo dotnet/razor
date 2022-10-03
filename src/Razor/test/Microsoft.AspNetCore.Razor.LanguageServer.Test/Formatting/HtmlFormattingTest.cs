@@ -18,8 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         internal override bool DesignTime => true;
 
-        public HtmlFormattingTest(ITestOutputHelper output)
-            : base(output)
+        public HtmlFormattingTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 

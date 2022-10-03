@@ -14,12 +14,18 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
     {
         private static readonly ProjectSnapshotManagerAccessor s_projectSnapshotManager = CreateProjectSnapshotManagerAccessor();
+
+        public DefaultRazorComponentSearchEngineTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public async Task Handle_SearchFound_GenericComponent()
@@ -30,8 +36,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1).ConfigureAwait(false);
-            var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2).ConfigureAwait(false);
+            var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1);
+            var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2);
 
             // Assert
             Assert.NotNull(documentSnapshot1);
@@ -47,8 +53,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1).ConfigureAwait(false);
-            var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2).ConfigureAwait(false);
+            var documentSnapshot1 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor1);
+            var documentSnapshot2 = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor2);
 
             // Assert
             Assert.NotNull(documentSnapshot1);
@@ -63,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
 
             // Assert
             Assert.NotNull(documentSnapshot);
@@ -77,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
 
             // Assert
             Assert.Null(documentSnapshot);
@@ -91,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
 
             // Assert
             Assert.Null(documentSnapshot);
@@ -105,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
 
             // Assert
             Assert.Null(documentSnapshot);
@@ -119,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, s_projectSnapshotManager, LoggerFactory);
 
             // Act
-            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor);
 
             // Assert
             Assert.NotNull(documentSnapshot);
