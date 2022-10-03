@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
@@ -58,7 +59,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             foreach (var import in imports)
             {
                 var importFilePath = import.PhysicalPath;
-                Assumes.NotNull(importFilePath);
+                Debug.Assert(importFilePath is not null);
+
+                if (importFilePath is null)
+                    continue;
 
                 if (!_importTrackerCache.TryGetValue(importFilePath, out var importTracker))
                 {
