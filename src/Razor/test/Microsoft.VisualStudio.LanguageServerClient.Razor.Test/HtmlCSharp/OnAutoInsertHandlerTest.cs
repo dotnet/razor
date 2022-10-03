@@ -137,6 +137,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Razor,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
@@ -185,6 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionResult = new ProjectionResult()
             {
                 Uri = projectionUri,
+                Position= null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
@@ -232,6 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionResult = new ProjectionResult()
             {
                 Uri = projectionUri,
+                Position = null,
                 LanguageKind = RazorLanguageKind.CSharp,
             };
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);

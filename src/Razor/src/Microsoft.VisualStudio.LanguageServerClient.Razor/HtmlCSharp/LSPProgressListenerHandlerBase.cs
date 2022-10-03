@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         /// </summary>
         private protected CancellationToken ImmediateNotificationTimeout { get; private set; }
 
-        public async Task<TResult> HandleRequestAsync(TParams requestParams, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<TResult?> HandleRequestAsync(TParams requestParams, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             // Temporary till IProgress serialization is fixed
             var token = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
@@ -31,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal abstract Task<TResult> HandleRequestAsync(TParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken);
+        internal abstract Task<TResult?> HandleRequestAsync(TParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken);
 
         internal TestAccessor GetTestAccessor()
             => new(this);

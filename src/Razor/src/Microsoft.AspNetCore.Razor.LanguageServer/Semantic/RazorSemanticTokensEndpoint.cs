@@ -20,20 +20,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
         }
 
-        public async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorRequestContext context, CancellationToken cancellationToken)
+        public async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentContext = context.GetRequiredDocumentContext();
-            var semanticTokensInfoService = context.GetRequiredService<RazorSemanticTokensInfoService>();
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            var semanticTokensInfoService = requestContext.GetRequiredService<RazorSemanticTokensInfoService>();
 
             var semanticTokens = await semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, documentContext, cancellationToken);
             var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
-            context.Logger.LogInformation("Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.", amount, request.Range, request.TextDocument.Uri);
+            requestContext.Logger.LogInformation("Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.", amount, request.Range, request.TextDocument.Uri);
 
             if (semanticTokens is not null)
             {

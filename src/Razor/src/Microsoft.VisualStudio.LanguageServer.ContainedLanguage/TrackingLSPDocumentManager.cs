@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
@@ -19,6 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
             int hostDocumentVersion,
-            object state) where TVirtualDocument : VirtualDocument;
+            object? state) where TVirtualDocument : VirtualDocument;
     }
 }

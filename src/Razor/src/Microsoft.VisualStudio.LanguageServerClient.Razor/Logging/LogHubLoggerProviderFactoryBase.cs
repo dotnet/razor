@@ -34,11 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                if (_currentLogWriter != null)
-                {
-                    // Dispose last log writer so we can start a new session. Technically only one should only ever be active at a time.
-                    _currentLogWriter.Dispose();
-                }
+                // Dispose last log writer so we can start a new session. Technically only one should only ever be active at a time.
+                _currentLogWriter?.Dispose();
 
                 var logInstanceNumber = Interlocked.Increment(ref s_logHubSessionId);
                 var traceSource = await _traceProvider.InitializeTraceAsync(logIdentifier, logInstanceNumber, cancellationToken).ConfigureAwait(false);

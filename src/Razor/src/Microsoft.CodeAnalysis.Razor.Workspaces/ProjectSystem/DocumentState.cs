@@ -465,12 +465,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     }
                 }
 
-                RazorCodeDocument? olderOutput = null;
                 if (_older?._taskUnsafeReference != null &&
                     _older._taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
-                    VersionStamp olderInputVersion;
-                    (olderOutput, olderInputVersion) = await taskUnsafe.ConfigureAwait(false);
+                    var (olderOutput, olderInputVersion) = await taskUnsafe.ConfigureAwait(false);
                     if (inputVersion.GetNewerVersion(olderInputVersion) == olderInputVersion)
                     {
                         // Nothing has changed, we can use the cached result.

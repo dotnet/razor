@@ -1,14 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Runtime.Serialization;
+
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     // NOTE: Changes here MUST be copied over to
     // Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse
+    [DataContract]
     internal class RazorMapToDocumentRangesResponse
     {
-        public required Range[] Ranges { get; set; }
+        [DataMember(Name = "ranges")]
+        public required Range[] Ranges { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        [DataMember(Name = "hostDocumentVersion")]
+        public int? HostDocumentVersion { get; init; }
     }
 }

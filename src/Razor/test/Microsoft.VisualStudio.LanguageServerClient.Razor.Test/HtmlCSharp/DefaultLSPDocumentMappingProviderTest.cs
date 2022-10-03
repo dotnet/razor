@@ -291,7 +291,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     Kind = kind,
                     RazorDocumentUri = uri,
-                    ProjectedTextEdits = projectedEdits
+                    ProjectedTextEdits = projectedEdits,
+                    FormattingOptions = null
                 };
                 var response = new RazorMapToDocumentEditsResponse()
                 {

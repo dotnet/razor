@@ -8,8 +8,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
     internal class RazorDiagnosticsResponse
     {
-        public VSDiagnostic[]? Diagnostics { get; set; }
+        public VSDiagnostic[]? Diagnostics { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        public int? HostDocumentVersion { get; init; }
     }
 }
