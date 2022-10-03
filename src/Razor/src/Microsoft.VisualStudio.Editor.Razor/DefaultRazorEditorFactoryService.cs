@@ -78,7 +78,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out parser!))
+            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out parser) ||
+                parser is null)
             {
                 Debug.Fail("Parser should have been stored on the text buffer during initialization.");
                 return false;
