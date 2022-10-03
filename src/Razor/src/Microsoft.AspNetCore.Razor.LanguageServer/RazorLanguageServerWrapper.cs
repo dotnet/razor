@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Serialization;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -72,6 +73,7 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         var messageFormatter = new JsonMessageFormatter();
         messageFormatter.JsonSerializer.AddVSInternalExtensionConverters();
         messageFormatter.JsonSerializer.Converters.RegisterRazorConverters();
+        messageFormatter.JsonSerializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));
 

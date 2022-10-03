@@ -146,7 +146,9 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<RazorDidOpenTextDocumentEndpoint>();
         services.AddHandler<RazorDidSaveTextDocumentEndpoint>();
 
+        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
+        services.AddHandler<RazorLanguageQueryEndpoint>();
     }
 
     public static void AddOptionsServices(this IServiceCollection services)
