@@ -359,7 +359,7 @@ stages:
 
       - job: Linux
         container:
-          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-latest
+          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
