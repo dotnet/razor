@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,9 +15,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract string FilePath { get; }
 
-        public abstract RazorCodeDocument CodeDocument { get; }
+        public abstract RazorCodeDocument? CodeDocument { get; }
 
-        public abstract ITextSnapshot Snapshot { get; }
+        public abstract ITextSnapshot? Snapshot { get; }
 
         public abstract ITextBuffer TextBuffer { get; }
 
@@ -27,6 +25,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract void QueueReparse();
 
-        internal virtual Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        internal virtual Task<RazorCodeDocument?> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

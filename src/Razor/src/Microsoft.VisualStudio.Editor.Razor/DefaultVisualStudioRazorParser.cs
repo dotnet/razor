@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override ITextBuffer TextBuffer => _documentTracker.TextBuffer;
 
-        public override bool HasPendingChanges => _latestChangeReference != null;
+        public override bool HasPendingChanges => _latestChangeReference is not null;
 
         // Used in unit tests to ensure we can be notified when idle starts.
         internal ManualResetEventSlim? NotifyUIIdleStart { get; set; }
@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     _codeDocumentRequests.Add(request);
                 }
 
-                return request.Task!;
+                return request.Task;
             }
         }
 
