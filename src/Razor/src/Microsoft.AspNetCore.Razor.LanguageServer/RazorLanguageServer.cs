@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -27,6 +29,64 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
+public class VerifyingHandlerProvider : IHandlerProvider
+{
+    private readonly IHandlerProvider _baseProvider;
+    private bool _verified = false;
+
+    public VerifyingHandlerProvider(IHandlerProvider baseProvider)
+    {
+        _baseProvider = baseProvider;
+    }
+
+    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
+    {
+        if (!_verified)
+        {
+            var registeredMethods = _baseProvider.GetRegisteredMethods();
+            var handlerTypes = this.GetType().Assembly.GetTypes()
+                .Where(t => typeof(IMethodHandler).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
+
+            if (registeredMethods.Length != handlerTypes.Count())
+            {
+                var unregisteredHandlers = handlerTypes.Where(t => !registeredMethods.Any(m => m.MethodName == GetMethodFromType(t)));
+                throw new InvalidOperationException($"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t.Name))}");
+            }
+        }
+
+        return _baseProvider.GetMethodHandler(method, requestType, responseType);
+
+        static string GetMethodFromType(Type t)
+        {
+            var attribute = t.GetCustomAttribute<LanguageServerEndpointAttribute>();
+            if (attribute is null)
+            {
+                foreach(var inter in t.GetInterfaces())
+                {
+                    attribute = inter.GetCustomAttribute<LanguageServerEndpointAttribute>();
+
+                    if (attribute is not null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (attribute is null)
+            {
+                throw new NotImplementedException();
+            }
+
+            return attribute.Method;
+        }
+    }
+
+    public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
+    {
+        return _baseProvider.GetRegisteredMethods();
+    }
+}
+
 internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
@@ -48,6 +108,19 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _configureServer = configureServer;
 
         Initialize();
+    }
+
+    protected override IHandlerProvider GetHandlerProvider()
+    {
+        IHandlerProvider provider;
+#if DEBUG
+        var baseProvider = base.GetHandlerProvider();
+        provider = new VerifyingHandlerProvider(baseProvider);
+#else
+        provider = base.GetHandlerProvider();
+#endif
+
+        return provider;
     }
 
     protected override ILspServices ConstructLspServices()

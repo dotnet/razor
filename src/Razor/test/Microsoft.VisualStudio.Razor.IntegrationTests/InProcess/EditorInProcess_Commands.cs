@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.VSConstants;
@@ -25,6 +26,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var commandGuid = typeof(VSStd97CmdID).GUID;
             var commandId = VSStd97CmdID.GotoDefn;
             await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
+        }
+
+        public async Task GoToImplementationAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.GoToImplementation, cancellationToken);
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(
+                FeatureAttribute.Workspace,
+                cancellationToken);
         }
 
         public async Task InvokeGoToImplementationAsync(CancellationToken cancellationToken)
