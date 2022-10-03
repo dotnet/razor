@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,51 +19,52 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [UseExportProvider]
     public class DocumentHighlightHandlerTest : HandlerTestBase
     {
-        public DocumentHighlightHandlerTest()
+        private readonly Uri _uri;
+        private readonly LSPDocumentSnapshot _documentSnapshot;
+        private readonly TestDocumentManager _documentManager;
+        private readonly ServerCapabilities _documentHighlightServerCapabilities;
+
+        public DocumentHighlightHandlerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Uri = new Uri("C:/path/to/file.razor");
+            _uri = new Uri("C:/path/to/file.razor");
             var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(
                 new Uri("C:/path/to/file.razor__virtual.html"),
                 new StringTextSnapshot(string.Empty),
                 hostDocumentSyncVersion: 0);
-            DocumentSnapshot = new TestLSPDocumentSnapshot(Uri, version: 0, "Some Content", htmlVirtualDocument);
-            DocumentManager = new TestDocumentManager();
-            DocumentManager.AddDocument(Uri, DocumentSnapshot);
+            _documentSnapshot = new TestLSPDocumentSnapshot(_uri, version: 0, "Some Content", htmlVirtualDocument);
+            _documentManager = new TestDocumentManager();
+            _documentManager.AddDocument(_uri, _documentSnapshot);
+
+            _documentHighlightServerCapabilities = new()
+            {
+                DocumentHighlightProvider = true
+            };
         }
-
-        private Uri Uri { get; }
-
-        private LSPDocumentSnapshot DocumentSnapshot { get; }
-
-        private TestDocumentManager DocumentManager { get; }
-
-        private ServerCapabilities DocumentHighlightServerCapabilities { get; } = new()
-        {
-            DocumentHighlightProvider = true
-        };
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
             // Arrange
             var requestInvoker = new TestLSPRequestInvoker();
-            var projectionProvider = TestLSPProjectionProvider.Instance;
-            var documentMappingProvider = new TestLSPDocumentMappingProvider();
+            var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
+            var documentMappingProvider = new TestLSPDocumentMappingProvider(LoggerFactory);
             var highlightHandler = new DocumentHighlightHandler(requestInvoker, new TestDocumentManager(), projectionProvider, documentMappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 Position = new Position(0, 1)
             };
 
             // Act
-            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -74,17 +75,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var requestInvoker = new TestLSPRequestInvoker();
-            var projectionProvider = TestLSPProjectionProvider.Instance;
-            var documentMappingProvider = new TestLSPDocumentMappingProvider();
-            var highlightHandler = new DocumentHighlightHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);
+            var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
+            var documentMappingProvider = new TestLSPDocumentMappingProvider(LoggerFactory);
+            var highlightHandler = new DocumentHighlightHandler(requestInvoker, _documentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 Position = new Position(0, 1)
             };
 
             // Act
-            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -123,16 +124,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 { documentUri, (hostDocumentVersion: 1, codeDocument) }
             };
-            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
+
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap, LoggerFactory);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(
+                mappingProvider, documentUri, razorSourceText, csharpSourceText, DisposalToken);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, DocumentHighlightServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, _documentHighlightServerCapabilities, razorSpanMappingService, DisposalToken);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, documentSnapshot);
-            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
 
             var highlightHandler = new DocumentHighlightHandler(requestInvoker, documentManager, projectionProvider, mappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
@@ -145,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var secondExpectedRange = new Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 14 } };
 
             // Act
-            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.Equal(2, result.Length);
@@ -174,21 +177,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var projectionResult = new ProjectionResult()
             {
+                Uri = null,
+                Position = null,
                 LanguageKind = RazorLanguageKind.Html,
             };
             var projectionProvider = GetMockProjectionProvider(projectionResult);
 
             var documentMappingProvider = GetMockDocumentMappingProvider(expectedHighlight.Range, 0, RazorLanguageKind.Html);
 
-            var highlightHandler = new DocumentHighlightHandler(requestInvoker, DocumentManager, projectionProvider, documentMappingProvider, LoggerProvider);
+            var highlightHandler = new DocumentHighlightHandler(requestInvoker, _documentManager, projectionProvider, documentMappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 Position = new Position(10, 5)
             };
 
             // Act
-            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -229,16 +234,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 { documentUri, (hostDocumentVersion: 2, codeDocument) }
             };
-            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
+
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap, LoggerFactory);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(
+                mappingProvider, documentUri, razorSourceText, csharpSourceText, DisposalToken);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, DocumentHighlightServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, _documentHighlightServerCapabilities, razorSpanMappingService, DisposalToken);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, documentSnapshot);
-            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
 
             var highlightHandler = new DocumentHighlightHandler(requestInvoker, documentManager, projectionProvider, mappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
@@ -248,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             // Act
-            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.Empty(result);
@@ -283,16 +290,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 snapshotContent: razorSourceText.ToString(),
                 csharpDocumentSnapshot);
 
-            var mappingProvider = new TestLSPDocumentMappingProvider();
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
+            var mappingProvider = new TestLSPDocumentMappingProvider(LoggerFactory);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(
+                mappingProvider, documentUri, razorSourceText, csharpSourceText, DisposalToken);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, DocumentHighlightServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, _documentHighlightServerCapabilities, razorSpanMappingService, DisposalToken);
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(documentUri, documentSnapshot);
-            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
 
             var highlightHandler = new DocumentHighlightHandler(requestInvoker, documentManager, projectionProvider, mappingProvider, LoggerProvider);
             var highlightRequest = new DocumentHighlightParams()
@@ -302,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             // Act
-            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await highlightHandler.HandleRequestAsync(highlightRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.Empty(result);
@@ -311,7 +319,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static LSPProjectionProvider GetMockProjectionProvider(ProjectionResult expectedResult)
         {
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
-            projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(expectedResult));
+            projectionProvider
+                .Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResult);
 
             return projectionProvider.Object;
         }
@@ -321,9 +331,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(
-                    It.IsAny<ITextBuffer>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<ITextBuffer>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TParams>(),
+                    It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(new ReinvocationResponse<TResult>("LanguageClient", expectedResponse)));
+                .ReturnsAsync(new ReinvocationResponse<TResult>("LanguageClient", expectedResponse));
 
             return requestInvoker.Object;
         }
@@ -336,8 +350,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 HostDocumentVersion = expectedVersion
             };
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
-            documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(languageKind, Uri, It.IsAny<Range[]>(), It.IsAny<CancellationToken>())).
-                Returns(Task.FromResult(remappingResult));
+            documentMappingProvider
+                .Setup(d => d.MapToDocumentRangesAsync(languageKind, _uri, It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(remappingResult);
 
             return documentMappingProvider.Object;
         }

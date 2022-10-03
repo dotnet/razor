@@ -14,40 +14,36 @@ using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
-        public DefaultWindowsRazorProjectHostTest()
+        private readonly ItemCollection _configurationItems;
+        private readonly ItemCollection _extensionItems;
+        private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+        private readonly ItemCollection _razorComponentWithTargetPathItems;
+        private readonly ItemCollection _razorGenerateWithTargetPathItems;
+        private readonly PropertyCollection _razorGeneralProperties;
+        private readonly TestProjectSnapshotManager _projectManager;
+
+        public DefaultWindowsRazorProjectHostTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
+            _projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
 
             var projectConfigurationFilePathStore = new Mock<ProjectConfigurationFilePathStore>(MockBehavior.Strict);
             projectConfigurationFilePathStore.Setup(s => s.Remove(It.IsAny<string>())).Verifiable();
-            ProjectConfigurationFilePathStore = projectConfigurationFilePathStore.Object;
+            _projectConfigurationFilePathStore = projectConfigurationFilePathStore.Object;
 
-            ConfigurationItems = new ItemCollection(Rules.RazorConfiguration.SchemaName);
-            ExtensionItems = new ItemCollection(Rules.RazorExtension.SchemaName);
-            RazorComponentWithTargetPathItems = new ItemCollection(Rules.RazorComponentWithTargetPath.SchemaName);
-            RazorGenerateWithTargetPathItems = new ItemCollection(Rules.RazorGenerateWithTargetPath.SchemaName);
-            RazorGeneralProperties = new PropertyCollection(Rules.RazorGeneral.SchemaName);
+            _configurationItems = new ItemCollection(Rules.RazorConfiguration.SchemaName);
+            _extensionItems = new ItemCollection(Rules.RazorExtension.SchemaName);
+            _razorComponentWithTargetPathItems = new ItemCollection(Rules.RazorComponentWithTargetPath.SchemaName);
+            _razorGenerateWithTargetPathItems = new ItemCollection(Rules.RazorGenerateWithTargetPath.SchemaName);
+            _razorGeneralProperties = new PropertyCollection(Rules.RazorGeneral.SchemaName);
         }
-
-        private ItemCollection ConfigurationItems { get; }
-
-        private ItemCollection ExtensionItems { get; }
-
-        private ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore { get; }
-
-        private ItemCollection RazorComponentWithTargetPathItems { get; }
-
-        private ItemCollection RazorGenerateWithTargetPathItems { get; }
-
-        private PropertyCollection RazorGeneralProperties { get; }
-
-        private TestProjectSnapshotManager ProjectManager { get; }
 
         [Fact]
         public void TryGetDefaultConfiguration_FailsIfNoRule()
@@ -620,14 +616,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             // Act & Assert
             await host.LoadAsync();
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await host.DisposeAsync();
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
@@ -635,14 +631,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact] // This can happen if the .xaml files aren't included correctly.
@@ -654,14 +650,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         // [UIFact]
@@ -738,128 +734,128 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task OnProjectChanged_NoVersionFound_DoesNotIniatializeProject()
         {
             // Arrange
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "");
 
-            ConfigurationItems.Item("TestConfiguration");
+            _configurationItems.Item("TestConfiguration");
 
-            ExtensionItems.Item("TestExtension");
+            _extensionItems.Item("TestExtension");
 
-            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
 
             var changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(),
-                 ConfigurationItems.ToChange(),
-                 ExtensionItems.ToChange(),
-                 RazorComponentWithTargetPathItems.ToChange(),
-                 RazorGenerateWithTargetPathItems.ToChange(),
+                 _razorGeneralProperties.ToChange(),
+                 _configurationItems.ToChange(),
+                 _extensionItems.ToChange(),
+                 _razorComponentWithTargetPathItems.ToChange(),
+                 _razorGenerateWithTargetPathItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_UpdateProject_MarksSolutionOpen()
         {
             // Arrange
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
 
-            ConfigurationItems.Item("MVC-2.1");
-            ConfigurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+            _configurationItems.Item("MVC-2.1");
+            _configurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
 
-            ExtensionItems.Item("MVC-2.1");
-            ExtensionItems.Item("Another-Thing");
+            _extensionItems.Item("MVC-2.1");
+            _extensionItems.Item("Another-Thing");
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentImportFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentImportFile1.TargetPath);
 
-            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
-            RazorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+            _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            _razorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
 
             var changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(),
-                 ConfigurationItems.ToChange(),
-                 ExtensionItems.ToChange(),
-                 RazorComponentWithTargetPathItems.ToChange(),
-                 RazorGenerateWithTargetPathItems.ToChange(),
+                 _razorGeneralProperties.ToChange(),
+                 _configurationItems.ToChange(),
+                 _extensionItems.ToChange(),
+                 _razorComponentWithTargetPathItems.ToChange(),
+                 _razorGenerateWithTargetPathItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
-            ProjectManager.SolutionClosed();
+            _projectManager.SolutionClosed();
 
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            Assert.False(ProjectManager.IsSolutionClosing);
+            Assert.False(_projectManager.IsSolutionClosing);
         }
 
         [UIFact]
         public async Task OnProjectChanged_UpdateProject_Succeeds()
         {
             // Arrange
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
 
-            ConfigurationItems.Item("MVC-2.1");
-            ConfigurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+            _configurationItems.Item("MVC-2.1");
+            _configurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
 
-            ExtensionItems.Item("MVC-2.1");
-            ExtensionItems.Item("Another-Thing");
+            _extensionItems.Item("MVC-2.1");
+            _extensionItems.Item("Another-Thing");
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentImportFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentImportFile1.TargetPath);
 
-            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
-            RazorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+            _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            _razorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
 
             var changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(),
-                 ConfigurationItems.ToChange(),
-                 ExtensionItems.ToChange(),
-                 RazorComponentWithTargetPathItems.ToChange(),
-                 RazorGenerateWithTargetPathItems.ToChange(),
+                 _razorGeneralProperties.ToChange(),
+                 _configurationItems.ToChange(),
+                 _extensionItems.ToChange(),
+                 _razorComponentWithTargetPathItems.ToChange(),
+                 _razorGenerateWithTargetPathItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
             Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
@@ -893,33 +889,33 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 });
 
             // Act - 2
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.0");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.0");
-            ConfigurationItems.RemoveItem("MVC-2.1");
-            ConfigurationItems.Item("MVC-2.0", new Dictionary<string, string>() { { "Extensions", "MVC-2.0;Another-Thing" }, });
-            ExtensionItems.Item("MVC-2.0");
-            RazorComponentWithTargetPathItems.Item(TestProjectData.AnotherProjectNestedComponentFile3.FilePath, new Dictionary<string, string>()
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.0");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.0");
+            _configurationItems.RemoveItem("MVC-2.1");
+            _configurationItems.Item("MVC-2.0", new Dictionary<string, string>() { { "Extensions", "MVC-2.0;Another-Thing" }, });
+            _extensionItems.Item("MVC-2.0");
+            _razorComponentWithTargetPathItems.Item(TestProjectData.AnotherProjectNestedComponentFile3.FilePath, new Dictionary<string, string>()
              {
                  { Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.AnotherProjectNestedComponentFile3.TargetPath },
              });
-            RazorGenerateWithTargetPathItems.Item(TestProjectData.AnotherProjectNestedFile3.FilePath, new Dictionary<string, string>()
+            _razorGenerateWithTargetPathItems.Item(TestProjectData.AnotherProjectNestedFile3.FilePath, new Dictionary<string, string>()
              {
                  { Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.AnotherProjectNestedFile3.TargetPath },
              });
 
             changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(changes[0].After),
-                 ConfigurationItems.ToChange(changes[1].After),
-                 ExtensionItems.ToChange(changes[2].After),
-                 RazorComponentWithTargetPathItems.ToChange(changes[3].After),
-                 RazorGenerateWithTargetPathItems.ToChange(changes[4].After),
+                 _razorGeneralProperties.ToChange(changes[0].After),
+                 _configurationItems.ToChange(changes[1].After),
+                 _extensionItems.ToChange(changes[2].After),
+                 _razorComponentWithTargetPathItems.ToChange(changes[3].After),
+                 _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
             };
 
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 2
-            snapshot = Assert.Single(ProjectManager.Projects);
+            snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
             Assert.Equal(RazorLanguageVersion.Version_2_0, snapshot.Configuration.LanguageVersion);
@@ -968,48 +964,48 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 });
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_VersionRemoved_DeinitializesProject()
         {
             // Arrange
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
 
-            ConfigurationItems.Item("MVC-2.1");
-            ConfigurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+            _configurationItems.Item("MVC-2.1");
+            _configurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
 
-            ExtensionItems.Item("MVC-2.1");
-            ExtensionItems.Item("Another-Thing");
+            _extensionItems.Item("MVC-2.1");
+            _extensionItems.Item("Another-Thing");
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
 
-            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
-            RazorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+            _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            _razorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
 
             var changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(),
-                 ConfigurationItems.ToChange(),
-                 ExtensionItems.ToChange(),
-                 RazorComponentWithTargetPathItems.ToChange(),
-                 RazorGenerateWithTargetPathItems.ToChange(),
+                 _razorGeneralProperties.ToChange(),
+                 _configurationItems.ToChange(),
+                 _extensionItems.ToChange(),
+                 _razorComponentWithTargetPathItems.ToChange(),
+                 _razorGenerateWithTargetPathItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
             Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
@@ -1020,66 +1016,66 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 e => Assert.Equal("MVC-2.1", e.ExtensionName));
 
             // Act - 2
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "");
 
             changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(changes[0].After),
-                 ConfigurationItems.ToChange(changes[1].After),
-                 ExtensionItems.ToChange(changes[2].After),
-                 RazorComponentWithTargetPathItems.ToChange(changes[3].After),
-                 RazorGenerateWithTargetPathItems.ToChange(changes[4].After),
+                 _razorGeneralProperties.ToChange(changes[0].After),
+                 _configurationItems.ToChange(changes[1].After),
+                 _extensionItems.ToChange(changes[2].After),
+                 _razorComponentWithTargetPathItems.ToChange(changes[3].After),
+                 _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
             };
 
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 2
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectChanged_AfterDispose_IgnoresUpdate()
         {
             // Arrange
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
 
-            ConfigurationItems.Item("MVC-2.1");
-            ConfigurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+            _configurationItems.Item("MVC-2.1");
+            _configurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
 
-            ExtensionItems.Item("MVC-2.1");
-            ExtensionItems.Item("Another-Thing");
+            _extensionItems.Item("MVC-2.1");
+            _extensionItems.Item("Another-Thing");
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
 
-            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
-            RazorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+            _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            _razorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
 
             var changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(),
-                 ConfigurationItems.ToChange(),
-                 ExtensionItems.ToChange(),
-                 RazorComponentWithTargetPathItems.ToChange(),
-                 RazorGenerateWithTargetPathItems.ToChange(),
+                 _razorGeneralProperties.ToChange(),
+                 _configurationItems.ToChange(),
+                 _extensionItems.ToChange(),
+                 _razorComponentWithTargetPathItems.ToChange(),
+                 _razorGenerateWithTargetPathItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
 
             Assert.Equal(RazorLanguageVersion.Version_2_1, snapshot.Configuration.LanguageVersion);
@@ -1093,68 +1089,68 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(async () => await host.DisposeAsync());
 
             // Assert - 2
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 3
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.0");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.0");
-            ConfigurationItems.Item("MVC-2.0", new Dictionary<string, string>() { { "Extensions", "MVC-2.0;Another-Thing" }, });
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.0");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.0");
+            _configurationItems.Item("MVC-2.0", new Dictionary<string, string>() { { "Extensions", "MVC-2.0;Another-Thing" }, });
 
             changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(changes[0].After),
-                 ConfigurationItems.ToChange(changes[1].After),
-                 ExtensionItems.ToChange(changes[2].After),
-                 RazorComponentWithTargetPathItems.ToChange(changes[3].After),
-                 RazorGenerateWithTargetPathItems.ToChange(changes[4].After),
+                 _razorGeneralProperties.ToChange(changes[0].After),
+                 _configurationItems.ToChange(changes[1].After),
+                 _extensionItems.ToChange(changes[2].After),
+                 _razorComponentWithTargetPathItems.ToChange(changes[3].After),
+                 _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
             };
 
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 3
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         [UIFact]
         public async Task OnProjectRenamed_RemovesHostProject_CopiesConfiguration()
         {
             // Arrange
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
-            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+            _razorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
 
-            ConfigurationItems.Item("MVC-2.1");
-            ConfigurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+            _configurationItems.Item("MVC-2.1");
+            _configurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
 
-            ExtensionItems.Item("MVC-2.1");
-            ExtensionItems.Item("Another-Thing");
+            _extensionItems.Item("MVC-2.1");
+            _extensionItems.Item("Another-Thing");
 
-            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
-            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+            _razorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+            _razorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
 
-            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
-            RazorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+            _razorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            _razorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
 
             var changes = new TestProjectChangeDescription[]
             {
-                 RazorGeneralProperties.ToChange(),
-                 ConfigurationItems.ToChange(),
-                 ExtensionItems.ToChange(),
-                 RazorComponentWithTargetPathItems.ToChange(),
-                 RazorGenerateWithTargetPathItems.ToChange(),
+                 _razorGeneralProperties.ToChange(),
+                 _configurationItems.ToChange(),
+                 _extensionItems.ToChange(),
+                 _razorComponentWithTargetPathItems.ToChange(),
+                 _razorGenerateWithTargetPathItems.ToChange(),
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
-            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultWindowsRazorProjectHost(services, Workspace, Dispatcher, _projectConfigurationFilePathStore, _projectManager);
 
             await Task.Run(async () => await host.LoadAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
 
             // Act - 1
             await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
 
             // Assert - 1
-            var snapshot = Assert.Single(ProjectManager.Projects);
+            var snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
             Assert.Same("MVC-2.1", snapshot.Configuration.ConfigurationName);
 
@@ -1163,12 +1159,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(async () => await host.OnProjectRenamingAsync());
 
             // Assert - 1
-            snapshot = Assert.Single(ProjectManager.Projects);
+            snapshot = Assert.Single(_projectManager.Projects);
             Assert.Equal(TestProjectData.AnotherProject.FilePath, snapshot.FilePath);
             Assert.Same("MVC-2.1", snapshot.Configuration.ConfigurationName);
 
             await Task.Run(async () => await host.DisposeAsync());
-            Assert.Empty(ProjectManager.Projects);
+            Assert.Empty(_projectManager.Projects);
         }
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager

@@ -3,16 +3,23 @@
 
 #nullable disable
 
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DefaultLSPRequestInvokerTest
+    public class DefaultLSPRequestInvokerTest : TestBase
     {
-        private FallbackCapabilitiesFilterResolver CapabilitiesResolver => new DefaultFallbackCapabilitiesFilterResolver();
+        private readonly FallbackCapabilitiesFilterResolver _capabilitiesResolver;
+
+        public DefaultLSPRequestInvokerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _capabilitiesResolver = new DefaultFallbackCapabilitiesFilterResolver();
+        }
 
         [Fact]
         public async Task ReinvokeRequestOnServerAsync_InvokesRazorLanguageClient()
@@ -25,10 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 called = true;
                 Assert.Equal(expectedMethod, method);
             });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, CapabilitiesResolver);
+            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
             // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), CancellationToken.None).ConfigureAwait(false);
+            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+                expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -45,10 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 called = true;
                 Assert.Equal(expectedMethod, method);
             });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, CapabilitiesResolver);
+            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
             // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), CancellationToken.None).ConfigureAwait(false);
+            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+                expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -65,10 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 called = true;
                 Assert.Equal(expectedMethod, method);
             });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, CapabilitiesResolver);
+            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
             // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), CancellationToken.None).ConfigureAwait(false);
+            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+                expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -85,10 +95,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 called = true;
                 Assert.Equal(expectedMethod, method);
             });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, CapabilitiesResolver);
+            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
             // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), CancellationToken.None).ConfigureAwait(false);
+            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+                expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -105,10 +116,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 called = true;
                 Assert.Equal(expectedMethod, method);
             });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, CapabilitiesResolver);
+            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
             // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), CancellationToken.None).ConfigureAwait(false);
+            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+                expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -125,10 +137,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 called = true;
                 Assert.Equal(expectedMethod, method);
             });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, CapabilitiesResolver);
+            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
             // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), CancellationToken.None).ConfigureAwait(false);
+            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+                expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), DisposalToken);
 
             // Assert
             Assert.True(called);

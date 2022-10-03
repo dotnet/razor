@@ -4,13 +4,20 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Test;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Text
 {
-    public class TextContentChangedEventArgsExtensionsTest
+    public class TextContentChangedEventArgsExtensionsTest : TestBase
     {
+        public TextContentChangedEventArgsExtensionsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TextChangeOccurred_NoChanges_ReturnsFalse()
         {

@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                _logger.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics.Length);
+                _logger.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics?.Length ?? 0);
                 diagnosticReport.Diagnostics = processedDiagnostics.Diagnostics;
 
                 mappedDiagnosticReports.Add(diagnosticReport);

@@ -2,19 +2,25 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
+    [DataContract]
     internal class RazorMapToDocumentRangesParams
     {
-        public RazorLanguageKind Kind { get; set; }
+        [DataMember(Name = "kind")]
+        public RazorLanguageKind Kind { get; init; }
 
-        public required Uri RazorDocumentUri { get; set; }
+        [DataMember(Name = "razorDocumentUri")]
+        public required Uri RazorDocumentUri { get; init; }
 
-        public required Range[] ProjectedRanges { get; set; }
+        [DataMember(Name = "projectedRanges")]
+        public required Range[] ProjectedRanges { get; init; }
 
-        public MappingBehavior MappingBehavior { get; set; }
+        [DataMember(Name = "mappingBehavior")]
+        public MappingBehavior MappingBehavior { get; init; }
     }
 }

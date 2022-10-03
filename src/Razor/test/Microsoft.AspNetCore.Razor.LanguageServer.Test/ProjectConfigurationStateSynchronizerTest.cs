@@ -17,11 +17,17 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
     {
+        public ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task ProjectConfigurationFileChanged_Removed_UnknownDocumentNoops()
         {
@@ -33,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(
-                () => synchronizer.ProjectConfigurationFileChanged(args), CancellationToken.None);
+                () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
 
             // Assert
             projectService.VerifyAll();
@@ -71,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
@@ -81,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(removeArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert
@@ -99,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(
-                () => synchronizer.ProjectConfigurationFileChanged(args), CancellationToken.None);
+                () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
 
             // Assert
             projectService.VerifyAll();
@@ -133,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(args);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert
@@ -172,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
@@ -182,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(removeArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert
@@ -232,7 +238,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             var changedDeserializer = CreateJsonFileDeserializer(changedProjectRazorJson);
@@ -243,7 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert
@@ -294,7 +300,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(addArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
@@ -305,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert
@@ -326,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer, hasTask: false);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert
@@ -367,7 +373,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 synchronizer.ProjectConfigurationFileChanged(addedArgs);
                 synchronizer.ProjectConfigurationFileChanged(changedArgs);
                 await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, CancellationToken.None);
+            }, DisposalToken);
             await enqueueTask;
 
             // Assert

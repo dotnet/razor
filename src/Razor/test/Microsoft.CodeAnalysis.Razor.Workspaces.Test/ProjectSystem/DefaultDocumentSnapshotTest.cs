@@ -10,59 +10,52 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class DefaultDocumentSnapshotTest : WorkspaceTestBase
     {
-        public DefaultDocumentSnapshotTest()
+        private readonly SourceText _sourceText;
+        private readonly VersionStamp _version;
+        private readonly HostDocument _componentHostDocument;
+        private readonly HostDocument _componentCshtmlHostDocument;
+        private readonly HostDocument _legacyHostDocument;
+        private readonly DefaultDocumentSnapshot _componentDocument;
+        private readonly DefaultDocumentSnapshot _componentCshtmlDocument;
+        private readonly DefaultDocumentSnapshot _legacyDocument;
+        private readonly HostDocument _nestedComponentHostDocument;
+        private readonly DefaultDocumentSnapshot _nestedComponentDocument;
+
+        public DefaultDocumentSnapshotTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            SourceText = SourceText.From("<p>Hello World</p>");
-            Version = VersionStamp.Create();
+            _sourceText = SourceText.From("<p>Hello World</p>");
+            _version = VersionStamp.Create();
 
             // Create a new HostDocument to avoid mutating the code container
-            ComponentCshtmlHostDocument = new HostDocument(TestProjectData.SomeProjectCshtmlComponentFile5);
-            ComponentHostDocument = new HostDocument(TestProjectData.SomeProjectComponentFile1);
-            LegacyHostDocument = new HostDocument(TestProjectData.SomeProjectFile1);
-            NestedComponentHostDocument = new HostDocument(TestProjectData.SomeProjectNestedComponentFile3);
+            _componentCshtmlHostDocument = new HostDocument(TestProjectData.SomeProjectCshtmlComponentFile5);
+            _componentHostDocument = new HostDocument(TestProjectData.SomeProjectComponentFile1);
+            _legacyHostDocument = new HostDocument(TestProjectData.SomeProjectFile1);
+            _nestedComponentHostDocument = new HostDocument(TestProjectData.SomeProjectNestedComponentFile3);
 
             var projectState = ProjectState.Create(Workspace.Services, TestProjectData.SomeProject);
             var project = new DefaultProjectSnapshot(projectState);
 
-            var textAndVersion = TextAndVersion.Create(SourceText, Version);
+            var textAndVersion = TextAndVersion.Create(_sourceText, _version);
 
-            var documentState = DocumentState.Create(Workspace.Services, LegacyHostDocument, () => Task.FromResult(textAndVersion));
-            LegacyDocument = new DefaultDocumentSnapshot(project, documentState);
+            var documentState = DocumentState.Create(Workspace.Services, _legacyHostDocument, () => Task.FromResult(textAndVersion));
+            _legacyDocument = new DefaultDocumentSnapshot(project, documentState);
 
-            documentState = DocumentState.Create(Workspace.Services, ComponentHostDocument, () => Task.FromResult(textAndVersion));
-            ComponentDocument = new DefaultDocumentSnapshot(project, documentState);
+            documentState = DocumentState.Create(Workspace.Services, _componentHostDocument, () => Task.FromResult(textAndVersion));
+            _componentDocument = new DefaultDocumentSnapshot(project, documentState);
 
-            documentState = DocumentState.Create(Workspace.Services, ComponentCshtmlHostDocument, () => Task.FromResult(textAndVersion));
-            ComponentCshtmlDocument = new DefaultDocumentSnapshot(project, documentState);
+            documentState = DocumentState.Create(Workspace.Services, _componentCshtmlHostDocument, () => Task.FromResult(textAndVersion));
+            _componentCshtmlDocument = new DefaultDocumentSnapshot(project, documentState);
 
-            documentState = DocumentState.Create(Workspace.Services, NestedComponentHostDocument, () => Task.FromResult(textAndVersion));
-            NestedComponentDocument = new DefaultDocumentSnapshot(project, documentState);
+            documentState = DocumentState.Create(Workspace.Services, _nestedComponentHostDocument, () => Task.FromResult(textAndVersion));
+            _nestedComponentDocument = new DefaultDocumentSnapshot(project, documentState);
         }
-
-        private SourceText SourceText { get; }
-
-        private VersionStamp Version { get; }
-
-        private HostDocument ComponentHostDocument { get; }
-
-        private HostDocument ComponentCshtmlHostDocument { get; }
-
-        private HostDocument LegacyHostDocument { get; }
-
-        private DefaultDocumentSnapshot ComponentDocument { get; }
-
-        private DefaultDocumentSnapshot ComponentCshtmlDocument { get; }
-
-        private DefaultDocumentSnapshot LegacyDocument { get; }
-
-        private HostDocument NestedComponentHostDocument { get; }
-
-        private DefaultDocumentSnapshot NestedComponentDocument { get; }
 
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
@@ -73,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GCCollect_OutputIsNoLongerCached()
         {
             // Arrange
-            await Task.Run(async () => { await LegacyDocument.GetGeneratedOutputAsync(); });
+            await Task.Run(async () => { await _legacyDocument.GetGeneratedOutputAsync(); });
 
             // Act
 
@@ -81,20 +74,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             GC.Collect();
 
             // Assert
-            Assert.False(LegacyDocument.TryGetGeneratedOutput(out _));
+            Assert.False(_legacyDocument.TryGetGeneratedOutput(out _));
         }
 
         [Fact]
         public async Task RegeneratingWithReference_CachesOutput()
         {
             // Arrange
-            var output = await LegacyDocument.GetGeneratedOutputAsync();
+            var output = await _legacyDocument.GetGeneratedOutputAsync();
 
             // Mostly doing this to ensure "var output" doesn't get optimized out
             Assert.NotNull(output);
 
             // Act & Assert
-            Assert.True(LegacyDocument.TryGetGeneratedOutput(out _));
+            Assert.True(_legacyDocument.TryGetGeneratedOutput(out _));
         }
 
         // This is a sanity test that we invoke component codegen for components.It's a little fragile but
@@ -104,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GetGeneratedOutputAsync_CshtmlComponent_ContainsComponentImports()
         {
             // Act
-            var codeDocument = await ComponentCshtmlDocument.GetGeneratedOutputAsync();
+            var codeDocument = await _componentCshtmlDocument.GetGeneratedOutputAsync();
 
             // Assert
             Assert.Contains("using Microsoft.AspNetCore.Components", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
@@ -114,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GetGeneratedOutputAsync_Component()
         {
             // Act
-            var codeDocument = await ComponentDocument.GetGeneratedOutputAsync();
+            var codeDocument = await _componentDocument.GetGeneratedOutputAsync();
 
             // Assert
             Assert.Contains("ComponentBase", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
@@ -124,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GetGeneratedOutputAsync_NestedComponentDocument_SetsCorrectNamespaceAndClassName()
         {
             // Act
-            var codeDocument = await NestedComponentDocument.GetGeneratedOutputAsync();
+            var codeDocument = await _nestedComponentDocument.GetGeneratedOutputAsync();
 
             // Assert
             Assert.Contains("ComponentBase", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);
@@ -138,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task GetGeneratedOutputAsync_Legacy()
         {
             // Act
-            var codeDocument = await LegacyDocument.GetGeneratedOutputAsync();
+            var codeDocument = await _legacyDocument.GetGeneratedOutputAsync();
 
             // Assert
             Assert.Contains("Template", codeDocument.GetCSharpSourceText().ToString(), StringComparison.Ordinal);

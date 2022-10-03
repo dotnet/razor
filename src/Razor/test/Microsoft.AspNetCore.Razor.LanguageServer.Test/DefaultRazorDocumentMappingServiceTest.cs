@@ -9,23 +9,18 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class DefaultRazorDocumentMappingServiceTest
+    public class DefaultRazorDocumentMappingServiceTest : TestBase
     {
-        private ILoggerFactory LoggerFactory { get; }
-
-        public DefaultRazorDocumentMappingServiceTest()
+        public DefaultRazorDocumentMappingServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
-            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
-            LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
         }
 
         [Fact]

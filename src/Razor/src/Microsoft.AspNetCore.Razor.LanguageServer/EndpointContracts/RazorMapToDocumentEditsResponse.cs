@@ -1,14 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
 {
+    [DataContract]
     internal class RazorMapToDocumentEditsResponse
     {
-        public required TextEdit[] TextEdits { get; set; }
+        [DataMember(Name = "textEdits")]
+        public required TextEdit[] TextEdits { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        [DataMember(Name = "hostDocumentVersion")]
+        public int? HostDocumentVersion { get; init; }
     }
 }

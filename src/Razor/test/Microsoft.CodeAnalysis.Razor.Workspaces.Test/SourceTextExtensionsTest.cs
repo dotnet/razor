@@ -5,16 +5,21 @@
 
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    public class SourceTextExtensionsTest
+    public class SourceTextExtensionsTest : TestBase
     {
-        public SourceTextExtensionsTest()
+        private readonly SourceText _sourceText;
+
+        public SourceTextExtensionsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            SourceText = SourceText.From(@"
+            _sourceText = SourceText.From(@"
 @addTagHelper *, SomeApplication
 
 <p>The current time is @GetTheTime()</p>
@@ -27,17 +32,15 @@ namespace Microsoft.CodeAnalysis.Text
 }");
         }
 
-        public SourceText SourceText { get; }
-
         [Fact]
         public void GetRazorSourceDocument_BuildsSourceDocumentWithCorrectProperties()
         {
             // Arrange
             var sourceDocumentProperties = RazorSourceDocumentProperties.Default;
-            var stringSourceDocument = new StringSourceDocument(SourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
+            var stringSourceDocument = new StringSourceDocument(_sourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
 
             // Act
-            var sourceTextSourceDocument = SourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
+            var sourceTextSourceDocument = _sourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
 
             // Assert
             Assert.Equal(stringSourceDocument.Encoding, sourceTextSourceDocument.Encoding);
@@ -55,10 +58,10 @@ namespace Microsoft.CodeAnalysis.Text
         {
             // Arrange
             var sourceDocumentProperties = RazorSourceDocumentProperties.Default;
-            var stringSourceDocument = new StringSourceDocument(SourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
+            var stringSourceDocument = new StringSourceDocument(_sourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
             var stringDocumentBuffer = new char[stringSourceDocument.Length];
             stringSourceDocument.CopyTo(0, stringDocumentBuffer, 0, stringDocumentBuffer.Length);
-            var sourceTextSourceDocument = SourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
+            var sourceTextSourceDocument = _sourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
             var sourceTextDocumentBuffer = new char[sourceTextSourceDocument.Length];
 
             // Act
@@ -73,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Text
         {
             // Arrange
             var sourceDocumentProperties = RazorSourceDocumentProperties.Default;
-            var stringSourceDocument = new StringSourceDocument(SourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
+            var stringSourceDocument = new StringSourceDocument(_sourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
             var stringSourceDocumentChecksum = stringSourceDocument.GetChecksum();
-            var sourceTextSourceDocument = SourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
+            var sourceTextSourceDocument = _sourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
 
             // Act
             var sourceTextSourceDocumentChecksum = sourceTextSourceDocument.GetChecksum();
@@ -89,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Text
         {
             // Arrange
             var sourceDocumentProperties = RazorSourceDocumentProperties.Default;
-            var stringSourceDocument = new StringSourceDocument(SourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
-            var sourceTextSourceDocument = SourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
+            var stringSourceDocument = new StringSourceDocument(_sourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
+            var sourceTextSourceDocument = _sourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
             var originalLineCollection = stringSourceDocument.Lines;
             var newLineCollection = sourceTextSourceDocument.Lines;
 
@@ -110,13 +113,13 @@ namespace Microsoft.CodeAnalysis.Text
         {
             // Arrange
             var sourceDocumentProperties = RazorSourceDocumentProperties.Default;
-            var stringSourceDocument = new StringSourceDocument(SourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
-            var sourceTextSourceDocument = SourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
+            var stringSourceDocument = new StringSourceDocument(_sourceText.ToString(), Encoding.UTF8, sourceDocumentProperties);
+            var sourceTextSourceDocument = _sourceText.GetRazorSourceDocument(sourceDocumentProperties.FilePath, sourceDocumentProperties.RelativePath);
             var originalLineCollection = stringSourceDocument.Lines;
             var newLineCollection = sourceTextSourceDocument.Lines;
 
             // Act & Assert
-            for (var i = 0; i < SourceText.Length; i++)
+            for (var i = 0; i < _sourceText.Length; i++)
             {
                 var originalLocation = originalLineCollection.GetLocation(i);
                 var newLocation = newLineCollection.GetLocation(i);

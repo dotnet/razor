@@ -8,11 +8,18 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class DefaultWorkspaceDirectoryPathResolverTest
+    public class DefaultWorkspaceDirectoryPathResolverTest : TestBase
     {
+        public DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Resolve_RootUriUnavailable_UsesRootPath()
         {

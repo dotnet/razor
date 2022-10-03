@@ -11,11 +11,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class ProjectConfigurationFileChangeDetectorTest : LanguageServerTestBase
     {
+        public ProjectConfigurationFileChangeDetectorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task StartAsync_NotifiesListenersOfExistingConfigurationFiles()
         {
@@ -73,7 +79,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 CancellationTokenSource cancellationTokenSource,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                IReadOnlyList<string> existingConfigurationFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners, TestLanguageServerFeatureOptions.Instance)
+                IReadOnlyList<string> existingConfigurationFiles)
+                : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners, TestLanguageServerFeatureOptions.Instance)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingConfigurationFiles = existingConfigurationFiles;

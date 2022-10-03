@@ -34,10 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// The delegated object to send to the <see cref="CustomMessageTarget"/>
-        /// </summary>
-        protected abstract IDelegatedParams? CreateDelegatedParams(TRequest request, RazorRequestContext razorRequestContext, Projection projection, CancellationToken cancellationToken);
+        protected virtual bool OnlySingleServer { get; } = true;
 
         /// <summary>
         /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -50,6 +47,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         protected abstract string CustomMessageTarget { get; }
 
         public bool MutatesSolutionState { get; } = false;
+
+        /// <summary>
+        /// The delegated object to send to the <see cref="CustomMessageTarget"/>
+        /// </summary>
+        protected abstract Task<IDelegatedParams?> CreateDelegatedParamsAsync(TRequest request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken);
 
         /// <summary>
         /// If the response needs to be handled, such as for remapping positions back, override and handle here
@@ -75,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <summary>
         /// Implementation for <see cref="HandleRequestAsync(TRequest, RazorRequestContext, CancellationToken)"/>
         /// </summary>
-        public async Task<TResponse?> HandleRequestAsync(TRequest request, RazorRequestContext context, CancellationToken cancellationToken)
+        public async Task<TResponse?> HandleRequestAsync(TRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -87,25 +89,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var documentContext = context.DocumentContext;
+            var documentContext = requestContext.DocumentContext;
             if (documentContext is null)
             {
                 return default;
             }
 
-            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, context.Logger, cancellationToken).ConfigureAwait(false);
+            var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
             if (projection is null)
             {
                 return default;
             }
 
-            var response = await TryHandleAsync(request, context, projection, cancellationToken).ConfigureAwait(false);
+            var response = await TryHandleAsync(request, requestContext, projection, cancellationToken).ConfigureAwait(false);
             if (response is not null && response is not ISumType { Value: null })
             {
                 return response;
             }
 
-            if (!_languageServerFeatureOptions.SingleServerSupport)
+            if (OnlySingleServer && !_languageServerFeatureOptions.SingleServerSupport)
             {
                 return default;
             }
@@ -117,7 +119,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var delegatedParams = CreateDelegatedParams(request, context, projection, cancellationToken);
+            var delegatedParams = await CreateDelegatedParamsAsync(request, requestContext, projection, cancellationToken);
+
             if (delegatedParams is null)
             {
                 // I guess they don't want to delegate... fine then!
@@ -130,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return default;
             }
 
-            var remappedResponse = await HandleDelegatedResponseAsync(delegatedRequest, request, context, projection, cancellationToken).ConfigureAwait(false);
+            var remappedResponse = await HandleDelegatedResponseAsync(delegatedRequest, request, requestContext, projection, cancellationToken).ConfigureAwait(false);
 
             return remappedResponse;
         }

@@ -99,13 +99,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             };
         }
 
-        protected override IDelegatedParams CreateDelegatedParams(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             var documentContext = requestContext.GetRequiredDocumentContext();
-            return new DelegatedPositionParams(
+            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
-                    projection.LanguageKind);
+                    projection.LanguageKind));
         }
 
         protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)

@@ -15,17 +15,22 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorLanguageEndpointTest : LanguageServerTestBase
     {
-        public RazorLanguageEndpointTest()
-        {
-            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-        }
+        private readonly RazorDocumentMappingService _mappingService;
 
-        private RazorDocumentMappingService MappingService { get; }
+        public RazorLanguageEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _mappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance,
+                new TestDocumentContextFactory(),
+                LoggerFactory);
+        }
 
         // These are more integration tests to validate that all the pieces work together
         [Fact]
@@ -42,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -76,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -109,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -142,7 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -168,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -194,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.Razor,
@@ -228,7 +233,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 });
             codeDocument.SetUnsupported();
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(MappingService);
+            var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_mappingService);
             var request = new RazorMapToDocumentRangesParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -254,7 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@{}");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
@@ -280,7 +285,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<s");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
@@ -309,7 +314,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 "/* CSharp */",
                 new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,
@@ -339,7 +344,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 new[] { new SourceMapping(new SourceSpan(0, 1), new SourceSpan(0, 12)) });
             codeDocument.SetUnsupported();
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var languageEndpoint = new RazorLanguageQueryEndpoint(MappingService);
+            var languageEndpoint = new RazorLanguageQueryEndpoint(_mappingService);
             var request = new RazorLanguageQueryParams()
             {
                 Uri = documentPath,

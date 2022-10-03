@@ -5,13 +5,20 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    public class DefaultRazorCompletionFactsServiceTest
+    public class DefaultRazorCompletionFactsServiceTest : TestBase
     {
+        public DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetDirectiveCompletionItems_AllProvidersCompletionItems()
         {

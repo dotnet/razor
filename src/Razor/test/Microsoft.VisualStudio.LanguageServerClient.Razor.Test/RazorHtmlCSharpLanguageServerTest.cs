@@ -6,29 +6,38 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class RazorHtmlCSharpLanguageServerTest
+    public class RazorHtmlCSharpLanguageServerTest : TestBase
     {
+        public RazorHtmlCSharpLanguageServerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task ExecuteRequestAsync_InvokesCustomHandler()
         {
             // Arrange
             var handler = new Mock<IRequestHandler<string, int>>(MockBehavior.Strict);
-            handler.Setup(h => h.HandleRequestAsync("hello world", It.IsAny<ClientCapabilities>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(123))
+            handler
+                .Setup(h => h.HandleRequestAsync("hello world", It.IsAny<ClientCapabilities>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(123)
                 .Verifiable();
             var metadata = Mock.Of<IRequestHandlerMetadata>(rhm => rhm.MethodName == "test", MockBehavior.Strict);
             using var languageServer = new RazorHtmlCSharpLanguageServer(new[] { new Lazy<IRequestHandler, IRequestHandlerMetadata>(() => handler.Object, metadata) });
 
             // Act
-            var result = await languageServer.ExecuteRequestAsync<string, int>("test", "hello world", clientCapabilities: null, CancellationToken.None).ConfigureAwait(false);
+            var result = await languageServer.ExecuteRequestAsync<string, int>(
+                "test", "hello world", clientCapabilities: null, DisposalToken);
 
             // Assert
             Assert.Equal(123, result);
@@ -55,14 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     Assert.True((bool)initParams.Capabilities.Experimental);
                     Assert.Equal(originalInitParams.RootUri.AbsoluteUri, initParams.RootUri.AbsoluteUri);
                 })
-                .Returns(Task.FromResult(initializeResult))
+                .ReturnsAsync(initializeResult)
                 .Verifiable();
             var metadata = Mock.Of<IRequestHandlerMetadata>(rhm => rhm.MethodName == Methods.InitializeName, MockBehavior.Strict);
             using var languageServer = new RazorHtmlCSharpLanguageServer(new[] { new Lazy<IRequestHandler, IRequestHandlerMetadata>(() => handler.Object, metadata) });
             var serializedInitParams = JToken.FromObject(originalInitParams);
 
             // Act
-            var result = await languageServer.InitializeAsync(serializedInitParams, CancellationToken.None).ConfigureAwait(false);
+            var result = await languageServer.InitializeAsync(serializedInitParams, DisposalToken);
 
             // Assert
             Assert.Same(initializeResult, result);

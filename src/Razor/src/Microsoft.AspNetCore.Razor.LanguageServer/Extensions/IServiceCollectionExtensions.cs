@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -22,8 +23,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using StreamJsonRpc;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
@@ -41,6 +40,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorLifeCycleManager>(razorLifeCycleManager);
         services.AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>();
         services.AddSingleton<IRequestContextFactory<RazorRequestContext>, RazorRequestContextFactory>();
+
+        services.AddSingleton<IRegistrationExtension, RazorLanguageServerCapability>();
 
         services.AddSingleton<IOnInitialized>(serverManager);
     }
@@ -145,7 +146,9 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<RazorDidOpenTextDocumentEndpoint>();
         services.AddHandler<RazorDidSaveTextDocumentEndpoint>();
 
+        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
+        services.AddHandler<RazorLanguageQueryEndpoint>();
     }
 
     public static void AddOptionsServices(this IServiceCollection services)

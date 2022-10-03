@@ -114,5 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(DelegatedOnAutoInsertParams request, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<Range?> ValidateBreakpointRangeAsync(DelegatedValidateBreakpointRangeParams request, CancellationToken cancellationToken);
     }
 }

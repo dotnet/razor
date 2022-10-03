@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -21,6 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public bool DesignTimeOnly => false;
 
-        public string DiagnosticsLspClientName => RoslynRazorLanguageServerClientName;
+        public string? DiagnosticsLspClientName => RoslynRazorLanguageServerClientName;
     }
 }

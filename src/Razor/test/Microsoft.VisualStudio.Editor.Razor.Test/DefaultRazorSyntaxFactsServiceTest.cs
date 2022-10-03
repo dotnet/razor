@@ -5,12 +5,19 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
     {
-        protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
+        protected override RazorLanguageVersion Version { get; }
+
+        public DefaultRazorSyntaxFactsServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            Version = RazorLanguageVersion.Latest;
+        }
 
         [Fact]
         public void GetClassifiedSpans_ReturnsExpectedSpans()

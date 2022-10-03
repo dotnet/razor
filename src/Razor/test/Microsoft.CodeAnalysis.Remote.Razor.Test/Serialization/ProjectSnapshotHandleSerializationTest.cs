@@ -5,23 +5,26 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 {
-    public class ProjectSnapshotHandleSerializationTest
+    public class ProjectSnapshotHandleSerializationTest : TestBase
     {
-        public ProjectSnapshotHandleSerializationTest()
+        private readonly JsonConverter[] _converters;
+
+        public ProjectSnapshotHandleSerializationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var converters = new JsonConverterCollection();
             converters.RegisterRazorConverters();
-            Converters = converters.ToArray();
+            _converters = converters.ToArray();
         }
-
-        public JsonConverter[] Converters { get; }
 
         [Fact]
         public void ProjectSnapshotHandleJsonConverter_Serialization_CanKindaRoundTrip()
@@ -40,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                 "Test");
 
             // Act
-            var json = JsonConvert.SerializeObject(snapshot, Converters);
-            var obj = JsonConvert.DeserializeObject<ProjectSnapshotHandle>(json, Converters);
+            var json = JsonConvert.SerializeObject(snapshot, _converters);
+            var obj = JsonConvert.DeserializeObject<ProjectSnapshotHandle>(json, _converters);
 
             // Assert
             Assert.Equal(snapshot.FilePath, obj.FilePath);
@@ -61,8 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             var snapshot = new ProjectSnapshotHandle("Test.csproj", null, null);
 
             // Act
-            var json = JsonConvert.SerializeObject(snapshot, Converters);
-            var obj = JsonConvert.DeserializeObject<ProjectSnapshotHandle>(json, Converters);
+            var json = JsonConvert.SerializeObject(snapshot, _converters);
+            var obj = JsonConvert.DeserializeObject<ProjectSnapshotHandle>(json, _converters);
 
             // Assert
             Assert.Equal(snapshot.FilePath, obj.FilePath);

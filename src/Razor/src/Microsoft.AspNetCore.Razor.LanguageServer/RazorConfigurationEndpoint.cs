@@ -26,9 +26,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public bool MutatesSolutionState => true;
 
-        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RazorRequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
-            context.Logger.LogInformation("Settings changed. Updating the server.");
+            requestContext.Logger.LogInformation("Settings changed. Updating the server.");
 
             await _optionsMonitor.UpdateAsync(cancellationToken);
         }

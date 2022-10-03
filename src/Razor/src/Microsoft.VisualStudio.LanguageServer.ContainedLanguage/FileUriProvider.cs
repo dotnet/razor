@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
@@ -29,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <param name="textBuffer">A text buffer</param>
         /// <param name="uri">A <see cref="Uri"/> that can be used to locate the provided <paramref name="textBuffer"/>.</param>
         /// <returns><c>true</c> if a Razor based <see cref="Uri"/> existed on the buffer, other wise <c>false</c>.</returns>
-        public abstract bool TryGet(ITextBuffer textBuffer, out Uri uri);
+        public abstract bool TryGet(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Uri? uri);
 
         /// <summary>
         /// Adds or updates the provided <paramref name="uri"/> for the given <paramref name="textBuffer"/> under a Razor property name.

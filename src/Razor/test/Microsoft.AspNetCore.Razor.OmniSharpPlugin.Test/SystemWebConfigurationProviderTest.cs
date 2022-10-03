@@ -8,11 +8,17 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class SystemWebConfigurationProviderTest : OmniSharpTestBase
     {
+        public SystemWebConfigurationProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryResolveConfiguration_RazorCoreCapability_ReturnsFalse()
         {

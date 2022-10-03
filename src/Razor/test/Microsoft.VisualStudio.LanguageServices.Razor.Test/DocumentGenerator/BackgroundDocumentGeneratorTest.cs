@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
@@ -20,27 +21,25 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     // the only thing in here is threading.
     public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
-        public BackgroundDocumentGeneratorTest()
+        private readonly HostDocument[] _documents;
+        private readonly HostProject _hostProject1;
+        private readonly HostProject _hostProject2;
+        private readonly TestDynamicFileInfoProvider _dynamicFileInfoProvider;
+
+        public BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Documents = new HostDocument[]
+            _documents = new HostDocument[]
             {
                 TestProjectData.SomeProjectFile1,
                 TestProjectData.AnotherProjectFile1,
             };
 
-            HostProject1 = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-            HostProject2 = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.AnotherProject.RootNamespace);
+            _hostProject1 = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+            _hostProject2 = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.AnotherProject.RootNamespace);
 
-            DynamicFileInfoProvider = new TestDynamicFileInfoProvider();
+            _dynamicFileInfoProvider = new TestDynamicFileInfoProvider();
         }
-
-        private HostDocument[] Documents { get; }
-
-        private HostProject HostProject1 { get; }
-
-        private HostProject HostProject2 { get; }
-
-        private TestDynamicFileInfoProvider DynamicFileInfoProvider { get; }
 
         protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
         {
@@ -52,17 +51,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
-            projectManager.ProjectAdded(HostProject1);
+            projectManager.ProjectAdded(_hostProject1);
 
             // We utilize a task completion source here so we can "fake" a document parse taking a significant amount of time
             var tcs = new TaskCompletionSource<TextAndVersion>();
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
             textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()))
                 .Returns(tcs.Task);
-            var hostDocument = Documents[0];
+            var hostDocument = _documents[0];
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var project = projectManager.GetLoadedProject(_hostProject1.FilePath);
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -75,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             projectManager.AllowNotifyListeners = true;
 
             // Act & Assert
-            projectManager.DocumentAdded(HostProject1, hostDocument, textLoader.Object);
+            projectManager.DocumentAdded(_hostProject1, hostDocument, textLoader.Object);
 
             queue.NotifyBackgroundCapturedWorkload.Wait();
 
-            projectManager.DocumentOpened(HostProject1.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
+            projectManager.DocumentOpened(_hostProject1.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
 
             // Verify document was suppressed because it was opened
-            Assert.Null(DynamicFileInfoProvider.DynamicDocuments[hostDocument.FilePath]);
+            Assert.Null(_dynamicFileInfoProvider.DynamicDocuments[hostDocument.FilePath]);
 
             // Unblock document processing
             tcs.SetResult(TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default));
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(() => queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
             // Validate that even though document parsing took a significant amount of time that the dynamic document wasn't "unsuppressed"
-            Assert.Null(DynamicFileInfoProvider.DynamicDocuments[hostDocument.FilePath]);
+            Assert.Null(_dynamicFileInfoProvider.DynamicDocuments[hostDocument.FilePath]);
         }
 
         [UIFact]
@@ -98,16 +97,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
-            projectManager.ProjectAdded(HostProject1);
+            projectManager.ProjectAdded(_hostProject1);
 
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
             textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()))
                 .Throws<FileNotFoundException>();
-            projectManager.DocumentAdded(HostProject1, Documents[0], textLoader.Object);
+            projectManager.DocumentAdded(_hostProject1, _documents[0], textLoader.Object);
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
+            var project = projectManager.GetLoadedProject(_hostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             queue.Initialize(projectManager);
 
             // Act & Assert
-            queue.Enqueue(project, project.GetDocument(Documents[0].FilePath));
+            queue.Enqueue(project, project.GetDocument(_documents[0].FilePath));
 
             await Task.Run(() => queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
@@ -129,16 +128,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
-            projectManager.ProjectAdded(HostProject1);
+            projectManager.ProjectAdded(_hostProject1);
 
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
             textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()))
                 .Throws<UnauthorizedAccessException>();
-            projectManager.DocumentAdded(HostProject1, Documents[0], textLoader.Object);
+            projectManager.DocumentAdded(_hostProject1, _documents[0], textLoader.Object);
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
+            var project = projectManager.GetLoadedProject(_hostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             queue.Initialize(projectManager);
 
             // Act & Assert
-            queue.Enqueue(project, project.GetDocument(Documents[0].FilePath));
+            queue.Enqueue(project, project.GetDocument(_documents[0].FilePath));
 
             await Task.Run(() => queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
@@ -160,14 +159,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
-            projectManager.ProjectAdded(HostProject1);
-            projectManager.ProjectAdded(HostProject2);
-            projectManager.DocumentAdded(HostProject1, Documents[0], null);
-            projectManager.DocumentAdded(HostProject1, Documents[1], null);
+            projectManager.ProjectAdded(_hostProject1);
+            projectManager.ProjectAdded(_hostProject2);
+            projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+            projectManager.DocumentAdded(_hostProject1, _documents[1], null);
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
+            var project = projectManager.GetLoadedProject(_hostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             queue.Initialize(projectManager);
 
             // Act & Assert
-            queue.Enqueue(project, project.GetDocument(Documents[0].FilePath));
+            queue.Enqueue(project, project.GetDocument(_documents[0].FilePath));
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -199,14 +198,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
-            projectManager.ProjectAdded(HostProject1);
-            projectManager.ProjectAdded(HostProject2);
-            projectManager.DocumentAdded(HostProject1, Documents[0], null);
-            projectManager.DocumentAdded(HostProject1, Documents[1], null);
+            projectManager.ProjectAdded(_hostProject1);
+            projectManager.ProjectAdded(_hostProject2);
+            projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+            projectManager.DocumentAdded(_hostProject1, _documents[1], null);
 
-            var project = projectManager.GetLoadedProject(HostProject1.FilePath);
+            var project = projectManager.GetLoadedProject(_hostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             queue.Initialize(projectManager);
 
             // Act & Assert
-            queue.Enqueue(project, project.GetDocument(Documents[0].FilePath));
+            queue.Enqueue(project, project.GetDocument(_documents[0].FilePath));
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -234,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             await Task.Run(() => queue.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(1)));
             Assert.False(queue.HasPendingNotifications, "Worker should have taken all notifications");
 
-            queue.Enqueue(project, project.GetDocument(Documents[1].FilePath));
+            queue.Enqueue(project, project.GetDocument(_documents[1].FilePath));
             Assert.True(queue.HasPendingNotifications); // Now we should see the worker restart when it finishes.
 
             // Allow work to complete, which should restart the timer.
@@ -270,13 +269,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 TestProjectData.SomeProjectComponentFile1,
                 TestProjectData.SomeProjectImportFile
             };
-            projectManager.ProjectAdded(HostProject1);
+            projectManager.ProjectAdded(_hostProject1);
             for (var i = 0; i < documents.Length; i++)
             {
-                projectManager.DocumentAdded(HostProject1, documents[i], null);
+                projectManager.DocumentAdded(_hostProject1, documents[i], null);
             }
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -290,14 +289,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             queue.Initialize(projectManager);
 
             // Act & Assert
-            projectManager.DocumentChanged(HostProject1.FilePath, TestProjectData.SomeProjectImportFile.FilePath, changedSourceText);
+            projectManager.DocumentChanged(_hostProject1.FilePath, TestProjectData.SomeProjectImportFile.FilePath, changedSourceText);
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
 
             for (var i = 0; i < documents.Length; i++)
             {
-                var key = new DocumentKey(HostProject1.FilePath, documents[i].FilePath);
+                var key = new DocumentKey(_hostProject1.FilePath, documents[i].FilePath);
                 Assert.True(queue.Work.ContainsKey(key));
             }
 
@@ -328,11 +327,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 AllowNotifyListeners = true,
             };
-            projectManager.ProjectAdded(HostProject1);
-            projectManager.DocumentAdded(HostProject1, TestProjectData.SomeProjectComponentFile1, null);
-            projectManager.DocumentAdded(HostProject1, TestProjectData.SomeProjectImportFile, null);
+            projectManager.ProjectAdded(_hostProject1);
+            projectManager.DocumentAdded(_hostProject1, TestProjectData.SomeProjectComponentFile1, null);
+            projectManager.DocumentAdded(_hostProject1, TestProjectData.SomeProjectImportFile, null);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, _dynamicFileInfoProvider)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -345,13 +344,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             queue.Initialize(projectManager);
 
             // Act & Assert
-            projectManager.DocumentRemoved(HostProject1, TestProjectData.SomeProjectImportFile);
+            projectManager.DocumentRemoved(_hostProject1, TestProjectData.SomeProjectImportFile);
 
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
 
             var kvp = Assert.Single(queue.Work);
-            var expectedKey = new DocumentKey(HostProject1.FilePath, TestProjectData.SomeProjectComponentFile1.FilePath);
+            var expectedKey = new DocumentKey(_hostProject1.FilePath, TestProjectData.SomeProjectComponentFile1.FilePath);
             Assert.Equal(expectedKey, kvp.Key);
 
             // Allow the background work to start.
