@@ -354,7 +354,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                ILoggerFactory loggerFactory) : base(
+                ILoggerFactory loggerFactory)
+                : base(
                     projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,

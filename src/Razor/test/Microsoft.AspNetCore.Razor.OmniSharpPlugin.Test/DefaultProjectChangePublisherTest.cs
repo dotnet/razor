@@ -165,8 +165,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             public TestProjectChangePublisher(
                 ILoggerFactory loggerFactory,
-                Action<OmniSharpProjectSnapshot, string> onSerializeToFile = null
-            ) : base(loggerFactory)
+                Action<OmniSharpProjectSnapshot, string> onSerializeToFile = null)
+                : base(loggerFactory)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             }

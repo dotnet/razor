@@ -148,7 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 #pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
         private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
         {
-            public TestLSPEditorFeatureDetector(RazorLogger logger) : base(projectCapabilityResolver: null, logger)
+            public TestLSPEditorFeatureDetector(RazorLogger logger)
+                : base(projectCapabilityResolver: null, logger)
             {
             }
 

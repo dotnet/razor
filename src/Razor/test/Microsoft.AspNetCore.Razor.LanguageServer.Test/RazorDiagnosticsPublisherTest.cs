@@ -274,7 +274,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             public TestRazorDiagnosticsPublisher(
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 ClientNotifierServiceBase languageServer,
-                ILoggerFactory loggerFactory) : base(projectSnapshotManagerDispatcher, languageServer, loggerFactory)
+                ILoggerFactory loggerFactory)
+                : base(projectSnapshotManagerDispatcher, languageServer, loggerFactory)
             {
                 // The diagnostics publisher by default will wait 2 seconds until publishing diagnostics. For testing purposes we redcuce
                 // the amount of time we wait for diagnostic publishing because we have more concrete control of the timer and its lifecycle.

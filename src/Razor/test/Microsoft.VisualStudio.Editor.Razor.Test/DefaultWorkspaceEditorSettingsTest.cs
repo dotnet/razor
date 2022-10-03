@@ -84,7 +84,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class TestEditorSettingsManagerInternal : DefaultWorkspaceEditorSettings
         {
-            public TestEditorSettingsManagerInternal() : base(Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
+            public TestEditorSettingsManagerInternal()
+                : base(Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
             {
             }
 

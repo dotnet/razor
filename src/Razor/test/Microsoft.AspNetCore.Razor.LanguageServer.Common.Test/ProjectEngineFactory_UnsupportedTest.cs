@@ -14,7 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public class ProjectEngineFactory_UnsupportedTest : TestBase
     {
-        public ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput) : base(testOutput)
+        public ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 

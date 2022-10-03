@@ -49,7 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestDefaultWorkspaceSemanticTokensRefreshTrigger : DefaultWorkspaceSemanticTokensRefreshTrigger
         {
-            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(workspaceSemanticTokensRefreshPublisher)
+            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
+                : base(workspaceSemanticTokensRefreshPublisher)
             {
             }
         }

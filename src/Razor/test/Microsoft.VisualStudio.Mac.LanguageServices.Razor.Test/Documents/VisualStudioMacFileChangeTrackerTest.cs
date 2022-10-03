@@ -77,7 +77,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             public TestFileChangeTracker(
                 string filePath,
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(filePath, projectSnapshotManagerDispatcher)
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+                : base(filePath, projectSnapshotManagerDispatcher)
             {
             }
 

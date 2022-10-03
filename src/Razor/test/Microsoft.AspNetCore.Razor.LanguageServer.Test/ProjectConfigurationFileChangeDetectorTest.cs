@@ -79,7 +79,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 CancellationTokenSource cancellationTokenSource,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                IReadOnlyList<string> existingConfigurationFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners, TestLanguageServerFeatureOptions.Instance)
+                IReadOnlyList<string> existingConfigurationFiles)
+                : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners, TestLanguageServerFeatureOptions.Instance)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingConfigurationFiles = existingConfigurationFiles;

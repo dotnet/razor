@@ -445,7 +445,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             private readonly bool _canResolve;
 
-            public TestOnAutoInsertProvider(string triggerCharacter, bool canResolve, ILoggerFactory loggerFactory) : base(loggerFactory)
+            public TestOnAutoInsertProvider(string triggerCharacter, bool canResolve, ILoggerFactory loggerFactory)
+                : base(loggerFactory)
             {
                 TriggerCharacter = triggerCharacter;
                 _canResolve = canResolve;

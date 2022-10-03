@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Razor.Test
             public static int SizeLimit = 10;
             public bool _wasCompacted = false;
 
-            public TestMemoryCache() : base(SizeLimit)
+            public TestMemoryCache()
+                : base(SizeLimit)
             {
             }
 

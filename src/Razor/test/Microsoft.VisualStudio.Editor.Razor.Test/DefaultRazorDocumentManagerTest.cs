@@ -33,7 +33,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private readonly Workspace _workspace;
 
-        public DefaultRazorDocumentManagerTest(ITestOutputHelper testOutput) : base(testOutput)
+        public DefaultRazorDocumentManagerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             _razorCoreContentType = Mock.Of<IContentType>(
                 c => c.IsOfType(RazorLanguage.CoreContentType) == true,

@@ -102,8 +102,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
                 IContentTypeRegistryService contentTypeRegistryService,
                 ITextBufferFactoryService textBufferFactoryService,
                 ITextDocumentFactoryService textDocumentFactoryService,
-                FileUriProvider fileUriProvider
-                ) : base(contentTypeRegistryService, textBufferFactoryService, textDocumentFactoryService, fileUriProvider) { }
+                FileUriProvider fileUriProvider)
+                : base(contentTypeRegistryService, textBufferFactoryService, textDocumentFactoryService, fileUriProvider) { }
 
             protected override IContentType LanguageContentType => LanguageLSPContentTypeInstance;
 
