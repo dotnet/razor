@@ -8,17 +8,24 @@ using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
-    public class SemanticTokensRefreshEndpointTest
+    public class SemanticTokensRefreshEndpointTest : TestBase
     {
+        public SemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_QueuesRefresh()
         {
@@ -34,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var requestContext = new RazorRequestContext();
 
             // Act
-            await refreshEndpoint.HandleNotificationAsync(refreshParams, requestContext, CancellationToken.None);
+            await refreshEndpoint.HandleNotificationAsync(refreshParams, requestContext, DisposalToken);
             semanticTokensRefreshPublisher.GetTestAccessor().WaitForEmpty();
 
             // Assert

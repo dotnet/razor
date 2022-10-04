@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -10,16 +11,22 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
+    [DataContract]
     internal class RazorMapToDocumentEditsParams : IEquatable<RazorMapToDocumentEditsParams>
     {
+        [DataMember(Name = "kind")]
         public RazorLanguageKind Kind { get; init; }
 
+        [DataMember(Name = "razorDocumentUri")]
         public required Uri RazorDocumentUri { get; init; }
 
+        [DataMember(Name = "projectedTextEdits")]
         public required TextEdit[] ProjectedTextEdits { get; init; }
 
+        [DataMember(Name = "textEditKind")]
         public TextEditKind TextEditKind { get; init; }
 
+        [DataMember(Name = "formattingOptions")]
         public required FormattingOptions? FormattingOptions { get; init; }
 
         // Everything below this is for testing purposes only.

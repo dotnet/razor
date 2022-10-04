@@ -9,18 +9,24 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.DirectoryHelper;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     public class DirectoryHelperTest : TagHelperServiceTestBase
     {
+        public DirectoryHelperTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetFilteredFiles_FindsFiles()
         {
             // Arrange
-            var firstProjectRazorJson = "HigherDirectory\\project.razor.json";
-            var secondProjectRazorJson = "HigherDirectory\\RealDirectory\\project.razor.json";
+            var firstProjectRazorJson = @"HigherDirectory\project.razor.json";
+            var secondProjectRazorJson = @"HigherDirectory\RealDirectory\project.razor.json";
 
             var workspaceDirectory = Path.Combine("LowerDirectory");
             var searchPattern = "project.razor.json";

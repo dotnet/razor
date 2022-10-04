@@ -4,12 +4,19 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
 {
-    public class TagHelperTooltipFactoryBaseTest
+    public class TagHelperTooltipFactoryBaseTest : TestBase
     {
+        public TagHelperTooltipFactoryBaseTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void ReduceTypeName_Plain()
         {

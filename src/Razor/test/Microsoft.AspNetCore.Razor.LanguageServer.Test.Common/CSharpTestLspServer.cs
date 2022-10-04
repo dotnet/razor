@@ -29,12 +29,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
         private readonly HeaderDelimitedMessageHandler _serverMessageHandler;
 
+        private readonly CancellationToken _cancellationToken;
+
         private CSharpTestLspServer(
             AdhocWorkspace testWorkspace,
             ExportProvider exportProvider,
-            ServerCapabilities serverCapabilities)
+            ServerCapabilities serverCapabilities,
+            CancellationToken cancellationToken)
         {
             _testWorkspace = testWorkspace;
+            _cancellationToken = cancellationToken;
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
@@ -86,16 +90,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             AdhocWorkspace testWorkspace,
             ExportProvider exportProvider,
             ClientCapabilities clientCapabilities,
-            ServerCapabilities serverCapabilities)
+            ServerCapabilities serverCapabilities,
+            CancellationToken cancellationToken)
         {
-            var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities);
+            var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities, cancellationToken);
 
-            await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams
-            {
-                Capabilities = clientCapabilities,
-            }, CancellationToken.None);
+            await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(
+                Methods.InitializeName,
+                new InitializeParams
+                {
+                    Capabilities = clientCapabilities,
+                },
+                cancellationToken);
 
-            await server.ExecuteRequestAsync(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
+            await server.ExecuteRequestAsync(Methods.InitializedName, new InitializedParams(), cancellationToken);
+
             return server;
         }
 
@@ -136,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         public async Task OpenDocumentAsync(Uri documentUri, string documentText)
         {
             var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, documentText);
-            await ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None).ConfigureAwait(false);
+            await ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, _cancellationToken);
 
             static DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
                 => new()
@@ -154,7 +163,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             var didChangeParams = CreateDidChangeTextDocumentParams(
                 documentUri,
                 changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
-            await ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None).ConfigureAwait(false);
+
+            await ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, _cancellationToken);
 
             static DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(Uri documentUri, ImmutableArray<(Range Range, string Text)> changes)
             {
@@ -186,7 +196,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 _serverCapabilities = serverCapabilities;
             }
 
-            public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities) => _serverCapabilities;
+            public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+                => _serverCapabilities;
         }
     }
 }

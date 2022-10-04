@@ -12,11 +12,17 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     {
+        public TagHelperCompletionProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetNearestAncestorTagInfo_MarkupElement()
         {

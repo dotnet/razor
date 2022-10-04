@@ -9,11 +9,17 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class MSBuildProjectDocumentChangeDetectorTest : OmniSharpTestBase
     {
+        public MSBuildProjectDocumentChangeDetectorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void FileSystemWatcher_RazorDocumentEvent_InvokesOutputListeners()
         {

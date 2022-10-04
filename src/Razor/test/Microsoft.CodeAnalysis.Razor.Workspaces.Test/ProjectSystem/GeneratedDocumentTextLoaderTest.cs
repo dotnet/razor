@@ -7,19 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
     {
-        public GeneratedDocumentTextLoaderTest()
-        {
-            HostProject = TestProjectData.SomeProject;
-            HostDocument = TestProjectData.SomeProjectFile1;
-        }
+        private readonly HostProject _hostProject;
+        private readonly HostDocument _hostDocument;
 
-        private HostProject HostProject { get; }
-        private HostDocument HostDocument { get; }
+        public GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _hostProject = TestProjectData.SomeProject;
+            _hostDocument = TestProjectData.SomeProjectFile1;
+        }
 
         // See https://github.com/dotnet/aspnetcore/issues/7997
         [Fact]
@@ -27,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()))));
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()))));
 
-            var document = project.GetDocument(HostDocument.FilePath);
+            var document = project.GetDocument(_hostDocument.FilePath);
 
             var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
 

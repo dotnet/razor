@@ -4,13 +4,20 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
-    public class DefaultProxyAccessorTest
+    public class DefaultProxyAccessorTest : TestBase
     {
+        public DefaultProxyAccessorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetProjectHierarchyProxy_Caches()
         {

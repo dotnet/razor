@@ -11,17 +11,22 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 {
     public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     {
-        public RazorBreakpointSpanEndpointTest()
-        {
-            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-        }
+        private readonly RazorDocumentMappingService _mappingService;
 
-        private RazorDocumentMappingService MappingService { get; }
+        public RazorBreakpointSpanEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _mappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance,
+                new TestDocumentContextFactory(),
+                LoggerFactory);
+        }
 
         [Fact]
         public void GetMappingBehavior_CSHTML()
@@ -60,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@DateTime.Now</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
@@ -85,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@{var abc = 123;}</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
@@ -111,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p>@{var abc;}</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
@@ -135,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 <p></p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
@@ -162,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 }</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,
@@ -189,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 }</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
             var request = new RazorBreakpointSpanParams()
             {
                 Uri = documentPath,

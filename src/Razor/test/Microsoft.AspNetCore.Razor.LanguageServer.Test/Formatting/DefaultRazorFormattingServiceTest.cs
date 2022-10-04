@@ -5,14 +5,21 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    public class DefaultRazorFormattingServiceTest
+    public class DefaultRazorFormattingServiceTest : TestBase
     {
+        public DefaultRazorFormattingServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void MergeEdits_ReturnsSingleEditAsExpected()
         {

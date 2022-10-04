@@ -5,11 +5,17 @@
 
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     public class VisualStudioMacFileChangeTrackerTest : ProjectSnapshotManagerDispatcherTestBase
     {
+        public VisualStudioMacFileChangeTrackerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [UIFact]
         public void StartListening_AdvisesForFileChange()
         {
@@ -71,7 +77,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             public TestFileChangeTracker(
                 string filePath,
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(filePath, projectSnapshotManagerDispatcher)
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+                : base(filePath, projectSnapshotManagerDispatcher)
             {
             }
 

@@ -6,15 +6,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Text.Adornments;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
-    public class DefaultVSLSPTagHelperTooltipFactoryTest
+    public class DefaultVSLSPTagHelperTooltipFactoryTest : TestBase
     {
+        public DefaultVSLSPTagHelperTooltipFactoryTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void CleanAndClassifySummaryContent_ClassifiedTextElement_ReplacesSeeCrefs()
         {

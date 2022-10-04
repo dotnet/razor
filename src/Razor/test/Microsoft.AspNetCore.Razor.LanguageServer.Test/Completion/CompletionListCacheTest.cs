@@ -3,38 +3,46 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    public class CompletionListCacheTest
+    public class CompletionListCacheTest : TestBase
     {
-        private CompletionListCache CompletionListCache { get; } = new CompletionListCache();
+        private readonly CompletionListCache _completionListCache;
+        private readonly object _context;
 
-        private object Context { get; } = new object();
+        public CompletionListCacheTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _completionListCache = new CompletionListCache();
+            _context = new object();
+        }
 
         [Fact]
         public void TryGet_SetCompletionList_ReturnsTrue()
         {
             // Arrange
             var completionList = new VSInternalCompletionList();
-            var resultId = CompletionListCache.Set(completionList, Context);
+            var resultId = _completionListCache.Set(completionList, _context);
 
             // Act
-            var result = CompletionListCache.TryGet(resultId, out var cacheEntry);
+            var result = _completionListCache.TryGet(resultId, out var cacheEntry);
 
             // Assert
             Assert.True(result);
             Assert.Same(completionList, cacheEntry.CompletionList);
-            Assert.Same(Context, cacheEntry.Context);
+            Assert.Same(_context, cacheEntry.Context);
         }
 
         [Fact]
         public void TryGet_UnknownCompletionList_ReturnsTrue()
         {
             // Act
-            var result = CompletionListCache.TryGet(1234, out var cachedEntry);
+            var result = _completionListCache.TryGet(1234, out var cachedEntry);
 
             // Assert
             Assert.False(result);
@@ -46,15 +54,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var initialCompletionList = new VSInternalCompletionList();
-            var initialCompletionListResultId = CompletionListCache.Set(initialCompletionList, Context);
+            var initialCompletionListResultId = _completionListCache.Set(initialCompletionList, _context);
             for (var i = 0; i < CompletionListCache.MaxCacheSize; i++)
             {
                 // We now fill the completion list cache up until its cache max so that the initial completion list we set gets evicted.
-                CompletionListCache.Set(new VSInternalCompletionList(), Context);
+                _completionListCache.Set(new VSInternalCompletionList(), _context);
             }
 
             // Act
-            var result = CompletionListCache.TryGet(initialCompletionListResultId, out var cachedEntry);
+            var result = _completionListCache.TryGet(initialCompletionListResultId, out var cachedEntry);
 
             // Assert
             Assert.False(result);

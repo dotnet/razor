@@ -3,12 +3,19 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    public class FilePathNormalizerTest
+    public class FilePathNormalizerTest : TestBase
     {
+        public FilePathNormalizerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [OSSkipConditionFact(new[] { "OSX", "Linux" })]
         public void Normalize_Windows_StripsPrecedingSlash()
         {

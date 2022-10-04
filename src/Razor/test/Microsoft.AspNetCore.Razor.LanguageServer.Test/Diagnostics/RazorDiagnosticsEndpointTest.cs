@@ -16,17 +16,20 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     public class RazorDiagnosticsEndpointTest : LanguageServerTestBase
     {
-        public RazorDiagnosticsEndpointTest()
-        {
-            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-        }
+        private readonly RazorDocumentMappingService _mappingService;
 
-        private RazorDocumentMappingService MappingService { get; }
+        public RazorDiagnosticsEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _mappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        }
 
         [Fact(Skip = "Debug.Fail doesn't work in CI")]
         public async Task Handle_DocumentResolveFailed_ThrowsDebugFail()
@@ -34,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             // Arrange
             var documentPath = new Uri("C:/path/to/document.cshtml");
 
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -62,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument, documentFound: false);
 
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -94,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -127,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(2, 15))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -162,7 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(6, 25))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -202,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(15, 13))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -236,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -273,7 +276,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -309,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -346,7 +349,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -384,7 +387,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -420,7 +423,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -458,7 +461,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -494,7 +497,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 12))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -526,7 +529,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
                 sourceMappings: Array.Empty<SourceMapping>());
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -559,7 +562,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
                 sourceMappings: Array.Empty<SourceMapping>());
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithRazorDiagnostic(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithRazorDiagnostic(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -596,7 +599,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 13))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -627,7 +630,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -651,7 +654,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Razor,
@@ -683,7 +686,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 });
             codeDocument.SetUnsupported();
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -713,7 +716,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     GetButtonTagHelperDescriptor().Build()
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -743,7 +746,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     GetButtonTagHelperDescriptor().Build()
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -774,7 +777,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 14))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -805,7 +808,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                         new SourceSpan(10, 14))
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -856,7 +859,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     descriptor.Build()
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -903,7 +906,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     descriptor.Build()
                 });
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -940,7 +943,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -973,7 +976,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now", kind: FileKinds.Component);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -1003,7 +1006,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<!body></body>", kind: FileKinds.Component);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -1036,7 +1039,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<html><!body><div></div></!body></html>", kind: FileKinds.Component);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,
@@ -1077,7 +1080,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var documentPath = new Uri("C:/path/to/document.razor");
             var codeDocument = CreateCodeDocument("<!body></!body>", kind: FileKinds.Component);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(_mappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Html,

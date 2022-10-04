@@ -6,12 +6,16 @@
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
     public class TextEditResponseRewriterTest : ResponseRewriterTestBase
     {
-        private protected override DelegatedCompletionResponseRewriter Rewriter => new TextEditResponseRewriter();
+        public TextEditResponseRewriterTest(ITestOutputHelper testOutput)
+            : base(new TextEditResponseRewriter(), testOutput)
+        {
+        }
 
         [Fact]
         public async Task RewriteAsync_NotCSharp_Noops()
@@ -27,7 +31,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var delegatedCompletionList = GenerateCompletionList(textEditRange);
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             Assert.Equal(textEditRange, rewrittenCompletionList.Items[0].TextEdit.Range);
@@ -53,7 +58,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             };
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             Assert.Equal(expectedRange, rewrittenCompletionList.Items[0].TextEdit.Range);
@@ -83,7 +89,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             };
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             Assert.Equal(expectedRange, rewrittenCompletionList.ItemDefaults.EditRange);

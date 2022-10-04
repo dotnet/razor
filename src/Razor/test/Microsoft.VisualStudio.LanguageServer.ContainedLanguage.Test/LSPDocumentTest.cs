@@ -4,22 +4,25 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class LSPDocumentTest
+    public class LSPDocumentTest : TestBase
     {
-        public LSPDocumentTest()
-        {
-            Uri = new Uri("C:/path/to/file.razor");
-        }
+        private readonly Uri _uri;
 
-        private Uri Uri { get; }
+        public LSPDocumentTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _uri = new Uri("C:/path/to/file.razor");
+        }
 
         [Fact]
         public void TryGetVirtualDocument_NoCSharpDocument_ReturnsFalse()
@@ -27,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var virtualDocumentMock = new Mock<VirtualDocument>(MockBehavior.Strict);
             virtualDocumentMock.Setup(d => d.Dispose()).Verifiable();
-            using var lspDocument = new DefaultLSPDocument(Uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { virtualDocumentMock.Object });
+            using var lspDocument = new DefaultLSPDocument(_uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { virtualDocumentMock.Object });
 
             // Act
             var result = lspDocument.TryGetVirtualDocument<TestVirtualDocument>(out var virtualDocument);
@@ -45,10 +48,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             textBuffer.SetupGet(b => b.CurrentSnapshot).Returns((ITextSnapshot)null);
             textBuffer.Setup(b => b.ChangeContentType(It.IsAny<IContentType>(), null)).Verifiable();
             textBuffer.SetupGet(b => b.Properties).Returns(new PropertyCollection());
-            var testVirtualDocument = new TestVirtualDocument(Uri, textBuffer.Object);
+            var testVirtualDocument = new TestVirtualDocument(_uri, textBuffer.Object);
             var virtualDocumentMock = new Mock<VirtualDocument>(MockBehavior.Strict);
             virtualDocumentMock.Setup(d => d.Dispose()).Verifiable();
-            using var lspDocument = new DefaultLSPDocument(Uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { virtualDocumentMock.Object, testVirtualDocument });
+            using var lspDocument = new DefaultLSPDocument(_uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { virtualDocumentMock.Object, testVirtualDocument });
 
             // Act
             var result = lspDocument.TryGetVirtualDocument<TestVirtualDocument>(out var virtualDocument);

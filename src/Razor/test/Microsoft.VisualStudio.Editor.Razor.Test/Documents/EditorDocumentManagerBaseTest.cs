@@ -10,37 +10,38 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
     public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public EditorDocumentManagerBaseTest()
+        private readonly TestEditorDocumentManager _manager;
+        private readonly string _project1;
+        private readonly string _project2;
+        private readonly string _file1;
+        private readonly string _file2;
+        private readonly TestTextBuffer _textBuffer;
+
+        public EditorDocumentManagerBaseTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-
-            Manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskFactory.Context);
+            _manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskFactory.Context);
+            _project1 = TestProjectData.SomeProject.FilePath;
+            _project2 = TestProjectData.AnotherProject.FilePath;
+            _file1 = TestProjectData.SomeProjectFile1.FilePath;
+            _file2 = TestProjectData.AnotherProjectFile2.FilePath;
+            _textBuffer = new TestTextBuffer(new StringTextSnapshot("HI"));
         }
-
-        private TestEditorDocumentManager Manager { get; }
-
-        public string Project1 => TestProjectData.SomeProject.FilePath;
-
-        public string Project2 => TestProjectData.AnotherProject.FilePath;
-
-        public string File1 => TestProjectData.SomeProjectFile1.FilePath;
-
-        public string File2 => TestProjectData.AnotherProjectFile2.FilePath;
-
-        public TestTextBuffer TextBuffer => new TestTextBuffer(new StringTextSnapshot("HI"));
 
         [UIFact]
         public void GetOrCreateDocument_CreatesAndCachesDocument()
         {
             // Arrange
-            var expected = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var expected = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
 
             // Act
-            Manager.TryGetDocument(new DocumentKey(Project1, File1), out var actual);
+            _manager.TryGetDocument(new DocumentKey(_project1, _file1), out var actual);
 
             // Assert
             Assert.Same(expected, actual);
@@ -50,10 +51,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_NoOp()
         {
             // Arrange
-            var expected = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var expected = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
 
             // Act
-            var actual = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var actual = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
 
             // Assert
             Assert.Same(expected, actual);
@@ -63,10 +64,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_SameFile_MulipleProjects()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document1 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
 
             // Act
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document2 = _manager.GetOrCreateDocument(new DocumentKey(_project2, _file1), null, null, null, null);
 
             // Assert
             Assert.NotSame(document1, document2);
@@ -76,10 +77,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_MulipleFiles_SameProject()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document1 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
 
             // Act
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File2), null, null, null, null);
+            var document2 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file2), null, null, null, null);
 
             // Assert
             Assert.NotSame(document1, document2);
@@ -89,28 +90,28 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_WithBuffer_AttachesBuffer()
         {
             // Arrange
-            Manager.Buffers.Add(File1, TextBuffer);
+            _manager.Buffers.Add(_file1, _textBuffer);
 
             // Act
-            var document = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
 
             // Assert
             Assert.True(document.IsOpenInEditor);
             Assert.NotNull(document.EditorTextBuffer);
 
-            Assert.Same(document, Assert.Single(Manager.Opened));
-            Assert.Empty(Manager.Closed);
+            Assert.Same(document, Assert.Single(_manager.Opened));
+            Assert.Empty(_manager.Closed);
         }
 
         [UIFact]
         public void TryGetMatchingDocuments_MultipleDocuments()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
+            var document2 = _manager.GetOrCreateDocument(new DocumentKey(_project2, _file1), null, null, null, null);
 
             // Act
-            Manager.TryGetMatchingDocuments(File1, out var documents);
+            _manager.TryGetMatchingDocuments(_file1, out var documents);
 
             // Assert
             Assert.Collection(
@@ -123,14 +124,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void RemoveDocument_MultipleDocuments_RemovesOne()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
+            var document2 = _manager.GetOrCreateDocument(new DocumentKey(_project2, _file1), null, null, null, null);
 
             // Act
-            Manager.RemoveDocument(document1);
+            _manager.RemoveDocument(document1);
 
             // Assert
-            Manager.TryGetMatchingDocuments(File1, out var documents);
+            _manager.TryGetMatchingDocuments(_file1, out var documents);
             Assert.Collection(
                 documents.OrderBy(d => d.ProjectFilePath),
                 d => Assert.Same(document2, d));
@@ -140,15 +141,15 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void DocumentOpened_MultipleDocuments_OpensAll()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
+            var document2 = _manager.GetOrCreateDocument(new DocumentKey(_project2, _file1), null, null, null, null);
 
             // Act
-            Manager.DocumentOpened(File1, TextBuffer);
+            _manager.DocumentOpened(_file1, _textBuffer);
 
             // Assert
             Assert.Collection(
-                Manager.Opened.OrderBy(d => d.ProjectFilePath),
+                _manager.Opened.OrderBy(d => d.ProjectFilePath),
                 d => Assert.Same(document2, d),
                 d => Assert.Same(document1, d));
         }
@@ -157,16 +158,16 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void DocumentOpened_MultipleDocuments_ClosesAll()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
-            Manager.DocumentOpened(File1, TextBuffer);
+            var document1 = _manager.GetOrCreateDocument(new DocumentKey(_project1, _file1), null, null, null, null);
+            var document2 = _manager.GetOrCreateDocument(new DocumentKey(_project2, _file1), null, null, null, null);
+            _manager.DocumentOpened(_file1, _textBuffer);
 
             // Act
-            Manager.DocumentClosed(File1);
+            _manager.DocumentClosed(_file1);
 
             // Assert
             Assert.Collection(
-                Manager.Closed.OrderBy(d => d.ProjectFilePath),
+                _manager.Closed.OrderBy(d => d.ProjectFilePath),
                 d => Assert.Same(document2, d),
                 d => Assert.Same(document1, d));
         }

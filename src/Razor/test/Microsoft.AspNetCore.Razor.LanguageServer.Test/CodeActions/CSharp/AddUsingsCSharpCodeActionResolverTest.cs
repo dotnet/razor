@@ -16,15 +16,21 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class AddUsingsCSharpCodeActionResolverTest : LanguageServerTestBase
     {
-        private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
+        private static readonly CodeAction s_defaultUnresolvedCodeAction = new()
         {
             Title = "@using System.Net"
         };
+
+        public AddUsingsCSharpCodeActionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public async Task ResolveAsync_ReturnsResolvedCodeAction()
@@ -186,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
                 .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(resolvedCodeAction));
+                .ReturnsAsync(resolvedCodeAction);
 
             return languageServer.Object;
         }

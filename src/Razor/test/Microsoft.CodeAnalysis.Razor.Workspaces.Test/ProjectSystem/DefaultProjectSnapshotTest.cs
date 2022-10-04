@@ -8,23 +8,30 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class DefaultProjectSnapshotTest : WorkspaceTestBase
     {
-        public DefaultProjectSnapshotTest()
-        {
-            TagHelperResolver = new TestTagHelperResolver();
+        private readonly HostDocument[] _documents;
+        private readonly HostProject _hostProject;
+        private readonly ProjectWorkspaceState _projectWorkspaceState;
+        private readonly TestTagHelperResolver _tagHelperResolver;
 
-            HostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-            ProjectWorkspaceState = new ProjectWorkspaceState(new[]
+        public DefaultProjectSnapshotTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _tagHelperResolver = new TestTagHelperResolver();
+
+            _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+            _projectWorkspaceState = new ProjectWorkspaceState(new[]
             {
                 TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
             },
             default);
 
-            Documents = new HostDocument[]
+            _documents = new HostDocument[]
             {
                 TestProjectData.SomeProjectFile1,
                 TestProjectData.SomeProjectFile2,
@@ -34,17 +41,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
         }
 
-        private HostDocument[] Documents { get; }
-
-        private HostProject HostProject { get; }
-
-        private ProjectWorkspaceState ProjectWorkspaceState { get; }
-
-        private TestTagHelperResolver TagHelperResolver { get; }
-
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
-            services.Add(TagHelperResolver);
+            services.Add(_tagHelperResolver);
         }
 
         protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
@@ -56,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void ProjectSnapshot_CachesDocumentSnapshots()
         {
             // Arrange
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[2], DocumentState.EmptyLoader);
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader);
             var snapshot = new DefaultProjectSnapshot(state);
 
             // Act
@@ -77,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void IsImportDocument_NonImportDocument_ReturnsFalse()
         {
             // Arrange
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader);
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
             var snapshot = new DefaultProjectSnapshot(state);
 
-            var document = snapshot.GetDocument(Documents[0].FilePath);
+            var document = snapshot.GetDocument(_documents[0].FilePath);
 
             // Act
             var result = snapshot.IsImportDocument(document);
@@ -94,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void IsImportDocument_ImportDocument_ReturnsTrue()
         {
             // Arrange
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader)
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
             var snapshot = new DefaultProjectSnapshot(state);
 
@@ -112,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void GetRelatedDocuments_NonImportDocument_ReturnsEmpty()
         {
             // Arrange
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader);
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader);
             var snapshot = new DefaultProjectSnapshot(state);
 
-            var document = snapshot.GetDocument(Documents[0].FilePath);
+            var document = snapshot.GetDocument(_documents[0].FilePath);
 
             // Act
             var documents = snapshot.GetRelatedDocuments(document);
@@ -129,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public void GetRelatedDocuments_ImportDocument_ReturnsRelated()
         {
             // Arrange
-            var state = ProjectState.Create(Workspace.Services, HostProject, ProjectWorkspaceState)
-                .WithAddedHostDocument(Documents[0], DocumentState.EmptyLoader)
-                .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader)
+            var state = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState)
+                .WithAddedHostDocument(_documents[0], DocumentState.EmptyLoader)
+                .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
             var snapshot = new DefaultProjectSnapshot(state);
 
@@ -143,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Assert
             Assert.Collection(
                 documents.OrderBy(d => d.FilePath),
-                d => Assert.Equal(Documents[0].FilePath, d.FilePath),
-                d => Assert.Equal(Documents[1].FilePath, d.FilePath));
+                d => Assert.Equal(_documents[0].FilePath, d.FilePath),
+                d => Assert.Equal(_documents[1].FilePath, d.FilePath));
         }
     }
 }

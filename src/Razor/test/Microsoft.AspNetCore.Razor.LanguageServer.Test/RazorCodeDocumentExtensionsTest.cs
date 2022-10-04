@@ -5,12 +5,19 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RazorCodeDocumentExtensionsTest
+    public class RazorCodeDocumentExtensionsTest : TestBase
     {
+        public RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void IsUnsupported_Unset_ReturnsFalse()
         {

@@ -16,12 +16,18 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
     {
-        public LegacyRazorCompletionEndpointTest()
+        private readonly RazorCompletionFactsService _completionFactsService;
+        private readonly CompletionListCache _completionListCache;
+        private readonly VSInternalClientCapabilities _clientCapabilities;
+
+        public LegacyRazorCompletionEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             // Working around strong naming restriction.
             var tagHelperFactsService = new DefaultTagHelperFactsService();
@@ -33,9 +39,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
                 new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService)
             };
-            CompletionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
-            CompletionListCache = new CompletionListCache();
-            ClientCapabilities = new VSInternalClientCapabilities()
+
+            _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
+            _completionListCache = new CompletionListCache();
+            _clientCapabilities = new VSInternalClientCapabilities()
             {
                 TextDocument = new TextDocumentClientCapabilities()
                 {
@@ -54,12 +61,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 }
             };
         }
-
-        private RazorCompletionFactsService CompletionFactsService { get; }
-
-        private CompletionListCache CompletionListCache { get; }
-
-        private VSInternalClientCapabilities ClientCapabilities { get; }
 
         [Fact]
         public void IsApplicableTriggerContext_Deletion_ReturnsFalse()
@@ -118,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -137,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
             var description = "Something";
             completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
-            LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Act & Assert
             JsonConvert.SerializeObject(converted);
@@ -148,7 +149,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
-            LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Act & Assert
             JsonConvert.SerializeObject(converted);
@@ -161,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -182,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -200,7 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
-            LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Act & Assert
             JsonConvert.SerializeObject(converted);
@@ -213,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -234,7 +235,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.DirectiveAttributeParameter);
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -254,7 +255,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperElement);
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -278,7 +279,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -301,7 +302,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -322,7 +323,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
 
             // Act
-            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = LegacyRazorCompletionEndpoint.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -345,8 +346,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@");
             codeDocument.SetUnsupported();
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -374,8 +375,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument("@");
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -417,8 +418,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@in");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -460,8 +461,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -497,8 +498,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -541,8 +542,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("<");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -581,8 +582,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("<test  ");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = CreateDocumentContext(documentPath, codeDocument);
-            var completionEndpoint = new LegacyRazorCompletionEndpoint(CompletionFactsService, CompletionListCache);
-            completionEndpoint.GetRegistration(ClientCapabilities);
+            var completionEndpoint = new LegacyRazorCompletionEndpoint(_completionFactsService, _completionListCache);
+            completionEndpoint.GetRegistration(_clientCapabilities);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
