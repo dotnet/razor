@@ -149,6 +149,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     _codeDocumentRequests.Add(request);
                 }
 
+                // Null suppression is required here to convert from Task<RazorCodeDocument> to Task<RazorCodeDocument?>
+                // The task itself can never be null, so this is safe
                 return request.Task!;
             }
         }
