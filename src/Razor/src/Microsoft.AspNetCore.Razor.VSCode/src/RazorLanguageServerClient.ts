@@ -11,6 +11,7 @@ import {
     RequestType,
 } from 'vscode-jsonrpc';
 import {
+    GenericNotificationHandler,
     InitializeResult,
     LanguageClientOptions,
     State,
@@ -163,6 +164,14 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         }
 
         this.client.onRequest(method, handler);
+    }
+
+    public onNotification(method: string, handler: GenericNotificationHandler) {
+        if (!this.isStarted) {
+            throw new Error('Tried to bind on notification logic while server is not started.');
+        }
+
+        this.client.onNotification(method, handler);
     }
 
     public dispose() {

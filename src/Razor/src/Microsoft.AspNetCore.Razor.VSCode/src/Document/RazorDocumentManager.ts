@@ -95,11 +95,11 @@ export class RazorDocumentManager implements IRazorDocumentManager {
 
             this.closeDocument(document.uri);
         });
-        this.serverClient.onRequest(
+        this.serverClient.onNotification(
             'razor/updateCSharpBuffer',
             async updateBufferRequest => this.updateCSharpBuffer(updateBufferRequest));
 
-        this.serverClient.onRequest(
+        this.serverClient.onNotification(
             'razor/updateHtmlBuffer',
             async updateBufferRequest => this.updateHtmlBuffer(updateBufferRequest));
 
