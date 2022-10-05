@@ -961,7 +961,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentManager.AddDocument(documentUri, documentSnapshot);
             var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
             var completionHandler = new CompletionHandler(
-                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, _textStructureNavigatorSelectorService, _completionRequestContextCache, _formattingOptionsProvider, LoggerProvider); ;
+                JoinableTaskContext, requestInvoker, documentManager, projectionProvider, _textStructureNavigatorSelectorService, _completionRequestContextCache, _formattingOptionsProvider, LoggerProvider);
 
             var projectionResult = new ProjectionResult()
             {

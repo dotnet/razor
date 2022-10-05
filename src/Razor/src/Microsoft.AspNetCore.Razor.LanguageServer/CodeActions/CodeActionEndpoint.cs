@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return codeActions.Where(codeAction =>
             {
                 // Note: we may see a perf benefit from using a JsonConverter
-                var tags = ((JToken?)codeAction.Data)?["CustomTags"]?.ToObject<string[]>(); ;
+                var tags = ((JToken?)codeAction.Data)?["CustomTags"]?.ToObject<string[]>();
                 if (tags is null || tags.Length == 0)
                 {
                     return false;
