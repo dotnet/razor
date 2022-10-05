@@ -7,59 +7,18 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 using Nerdbank.Streams;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class WrappingLspLogger : ILspLogger
-{
-    private readonly ILogger _logger;
-
-    public WrappingLspLogger(ILogger logger)
-    {
-        _logger = logger;
-    }
-
-    public void LogEndContext(string message, params object[] @params)
-    {
-    }
-
-    public void LogError(string message, params object[] @params)
-    {
-#pragma warning disable CA2254 // Template should be a static expression
-        _logger.LogError(message, @params);
-    }
-
-    public void LogException(Exception exception, string? message = null, params object[] @params)
-    {
-        _logger.LogError(exception, message, @params);
-    }
-
-    public void LogInformation(string message, params object[] @params)
-    {
-        _logger.LogInformation(message, @params);
-    }
-
-    public void LogStartContext(string message, params object[] @params)
-    {
-    }
-
-    public void LogWarning(string message, params object[] @params)
-    {
-        _logger.LogWarning(message, @params);
-#pragma warning restore CA2254 // Template should be a static expression
-    }
-}
-
 public class RazorLanguageServerTest : TestBase
 {
     public RazorLanguageServerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        LspLogger = new WrappingLspLogger(Logger);
+        LspLogger = new LoggerAdapter(Logger);
     }
 
     private ILspLogger LspLogger { get; }
