@@ -4,14 +4,21 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultFormattingOptionsProviderTest
+    public class DefaultFormattingOptionsProviderTest : TestBase
     {
+        public DefaultFormattingOptionsProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetOptions_UsesIndentationManagerInformation()
         {

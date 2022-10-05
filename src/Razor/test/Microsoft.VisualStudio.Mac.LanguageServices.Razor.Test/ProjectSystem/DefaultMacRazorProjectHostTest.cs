@@ -7,13 +7,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using MonoDevelop.Projects.MSBuild;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    public class DefaultMacRazorProjectHostTest
+    public class DefaultMacRazorProjectHostTest : TestBase
     {
+        public DefaultMacRazorProjectHostTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void IsRazorDocumentItem_NonContentItem_ReturnsFalse()
         {

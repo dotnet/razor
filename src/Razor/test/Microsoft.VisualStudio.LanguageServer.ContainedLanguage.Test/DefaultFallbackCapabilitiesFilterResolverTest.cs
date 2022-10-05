@@ -3,15 +3,22 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultFallbackCapabilitiesFilterResolverTest
+    public class DefaultFallbackCapabilitiesFilterResolverTest : TestBase
     {
-        private static DefaultFallbackCapabilitiesFilterResolver Resolver => new();
+        private static readonly DefaultFallbackCapabilitiesFilterResolver s_resolver = new();
+
+        public DefaultFallbackCapabilitiesFilterResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public void Resolve_Implementation_ReturnsTrue()
@@ -23,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 ImplementationProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -42,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 ImplementationProvider = new ImplementationOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -61,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 TypeDefinitionProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -80,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 TypeDefinitionProvider = new TypeDefinitionOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -99,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 ReferencesProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -118,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 ReferencesProvider = new ReferenceOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -137,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 RenameProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -156,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 RenameProvider = new RenameOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -175,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 SignatureHelpProvider = new SignatureHelpOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -197,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 },
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -219,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 },
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -238,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentRangeFormattingProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -257,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentRangeFormattingProvider = new DocumentRangeFormattingOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -276,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 WorkspaceSymbolProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -295,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 WorkspaceSymbolProvider = new WorkspaceSymbolOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -314,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -333,7 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentFormattingProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -352,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentFormattingProvider = new DocumentFormattingOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -371,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 HoverProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -390,7 +397,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 HoverProvider = new HoverOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -409,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 CodeActionProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -428,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 CodeActionProvider = new CodeActionOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -447,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 CodeLensProvider = new CodeLensOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -466,7 +473,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentColorProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -485,7 +492,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentColorProvider = new DocumentColorOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -504,7 +511,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 CompletionProvider = new CompletionOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -526,7 +533,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 },
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -545,7 +552,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DefinitionProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -564,7 +571,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DefinitionProvider = new DefinitionOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -583,7 +590,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentHighlightProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -602,7 +609,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 DocumentHighlightProvider = new DocumentHighlightOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -621,7 +628,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 MSReferencesProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -640,7 +647,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 ProjectContextProvider = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -662,7 +669,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 },
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -681,7 +688,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions(),
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -700,7 +707,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 SupportsDiagnosticRequests = true,
             };
             var jobjectCapabilities = JObject.FromObject(capabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -740,7 +747,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var emptyCapabilities = new VSServerCapabilities();
             var jobjectCapabilities = JObject.FromObject(emptyCapabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);
@@ -756,7 +763,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var methodName = "razor/languageQuery";
             var emptyCapabilities = new VSServerCapabilities();
             var jobjectCapabilities = JObject.FromObject(emptyCapabilities);
-            var filter = Resolver.Resolve(methodName);
+            var filter = s_resolver.Resolve(methodName);
 
             // Act
             var result = filter(jobjectCapabilities);

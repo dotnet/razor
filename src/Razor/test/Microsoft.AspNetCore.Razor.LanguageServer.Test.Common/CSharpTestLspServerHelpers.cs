@@ -24,22 +24,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
     {
         private const string EditRangeSetting = "editRange";
 
-        public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(SourceText csharpSourceText, Uri csharpDocumentUri, ServerCapabilities serverCapabilities) =>
-            CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService());
+        public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+            SourceText csharpSourceText,
+            Uri csharpDocumentUri,
+            ServerCapabilities serverCapabilities,
+            CancellationToken cancellationToken) =>
+            CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), cancellationToken);
 
         public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
             SourceText csharpSourceText,
             Uri csharpDocumentUri,
             ServerCapabilities serverCapabilities,
-            IRazorSpanMappingService razorSpanMappingService)
+            IRazorSpanMappingService razorSpanMappingService,
+            CancellationToken cancellationToken)
         {
-            var files = new List<CSharpFile>
+            var files = new[]
             {
                 new CSharpFile(csharpDocumentUri, csharpSourceText)
             };
 
             var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-            var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
+            var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
             var workspace = CreateCSharpTestWorkspace(files, exportProvider, metadataReferences, razorSpanMappingService);
             var clientCapabilities = new VSInternalClientCapabilities
             {
@@ -61,7 +66,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             };
 
             var testLspServer = await CSharpTestLspServer.CreateAsync(
-                workspace, exportProvider, clientCapabilities, serverCapabilities).ConfigureAwait(false);
+                workspace, exportProvider, clientCapabilities, serverCapabilities, cancellationToken);
+
             return testLspServer;
         }
 
@@ -81,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 name: "TestProject",
                 assemblyName: "TestProject.dll",
                 language: LanguageNames.CSharp,
-                filePath: "C:\\TestSolution\\TestProject.csproj",
+                filePath: @"C:\TestSolution\TestProject.csproj",
                 metadataReferences: metadataReferences);
 
             var solutionInfo = SolutionInfo.Create(

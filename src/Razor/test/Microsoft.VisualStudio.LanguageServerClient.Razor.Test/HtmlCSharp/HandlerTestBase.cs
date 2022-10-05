@@ -5,15 +5,23 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public abstract class HandlerTestBase
+    public abstract class HandlerTestBase : TestBase
     {
-        internal TestLoggerProvider LoggerProvider { get; } = new();
+        private protected TestLoggerProvider LoggerProvider { get; }
+
+        protected HandlerTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            LoggerProvider = new();
+        }
 
         internal static RazorCodeDocument CreateCodeDocument(
             string text,

@@ -5,11 +5,17 @@
 
 using Microsoft.CodeAnalysis;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public class PrecompiledRazorPageSuppressorTest : OmniSharpWorkspaceTestBase
     {
+        public PrecompiledRazorPageSuppressorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Workspace_WorkspaceChanged_NullFilePath_Noops()
         {

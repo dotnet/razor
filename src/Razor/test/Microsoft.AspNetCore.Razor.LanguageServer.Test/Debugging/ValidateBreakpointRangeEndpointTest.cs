@@ -5,12 +5,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -18,11 +16,17 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
     public class ValidateBreakpointRangeEndpointTest : SingleServerDelegatingEndpointTestBase
     {
+        public ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_CSharp_ValidBreakpoint()
         {
@@ -112,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
         {
             await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-            var endpoint = new ValidateBreakpointRangeEndpoint(DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new ValidateBreakpointRangeEndpoint(DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
 
             var request = new ValidateBreakpointRangeParamsBridge
             {
@@ -123,10 +127,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 Range = breakpointSpan.AsRange(codeDocument.GetSourceText())
             };
 
-            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
             var requestContext = CreateValidateBreakpointRangeRequestContext(documentContext);
 
-            return await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
         }
 
         private RazorRequestContext CreateValidateBreakpointRangeRequestContext(DocumentContext documentContext)

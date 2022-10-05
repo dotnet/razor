@@ -4,13 +4,20 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Serialization.Internal;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class StringCacheTest
+    public class StringCacheTest : TestBase
     {
+        public StringCacheTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetOrAdd_EquivilentStrings_RetrievesFirstReference()
         {

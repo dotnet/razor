@@ -9,11 +9,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorDidCloseTextDocumentEndpointTest : LanguageServerTestBase
     {
+        public RazorDidCloseTextDocumentEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         // This is more of an integration test to validate that all the pieces work together
         [Fact]
         public async Task Handle_DidCloseTextDocument_ClosesDocument()

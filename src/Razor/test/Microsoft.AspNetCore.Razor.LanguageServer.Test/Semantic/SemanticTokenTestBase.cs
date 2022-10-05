@@ -14,11 +14,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -26,7 +26,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
         private static readonly AsyncLocal<string?> s_fileName = new();
-
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
 
         protected static readonly ServerCapabilities SemanticTokensServerCapabilities = new()
@@ -37,7 +36,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 Range = true
             }
         };
-
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
         {
@@ -53,6 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         protected int BaselineTestCount { get; set; }
         protected int BaselineEditTestCount { get; set; }
+
+        protected SemanticTokenTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         protected void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
         {
@@ -120,11 +123,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
 
                 await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService).ConfigureAwait(false);
+                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
                 var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
                     CreateVSSemanticTokensRangeParams(csharpRange, csharpDocumentUri),
-                    CancellationToken.None).ConfigureAwait(false);
+                    DisposalToken);
 
                 csharpTokens = result?.Data;
             }
@@ -133,9 +136,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpResponse;
         }
 
-        protected static Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
+        protected Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
         {
-            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
+            var documentMappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
                 !DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {

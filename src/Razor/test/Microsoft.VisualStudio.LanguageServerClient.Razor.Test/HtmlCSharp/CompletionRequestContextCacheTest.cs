@@ -4,29 +4,37 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class CompletionRequestContextCacheTest
+    public class CompletionRequestContextCacheTest : TestBase
     {
-        private Uri HostDocumentUri { get; } = new Uri("C:/path/to/file.razor");
+        private readonly Uri _hostDocumentUri;
+        private readonly Uri _projectedUri;
+        private readonly LanguageServerKind _languageServerKind;
+        private readonly CompletionRequestContextCache _cache;
 
-        private Uri ProjectedUri { get; } = new Uri("C:/path/to/file.foo");
-
-        private LanguageServerKind LanguageServerKind { get; } = LanguageServerKind.CSharp;
-
-        private CompletionRequestContextCache Cache { get; } = new CompletionRequestContextCache();
+        public CompletionRequestContextCacheTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _hostDocumentUri = new Uri("C:/path/to/file.razor");
+            _projectedUri = new Uri("C:/path/to/file.foo");
+            _languageServerKind = LanguageServerKind.CSharp;
+            _cache = new CompletionRequestContextCache();
+        }
 
         [Fact]
         public void TryGet_SetRequestContext_ReturnsTrue()
         {
             // Arrange
-            var requestContext = new CompletionRequestContext(HostDocumentUri, ProjectedUri, LanguageServerKind);
-            var resultId = Cache.Set(requestContext);
+            var requestContext = new CompletionRequestContext(_hostDocumentUri, _projectedUri, _languageServerKind);
+            var resultId = _cache.Set(requestContext);
 
             // Act
-            var result = Cache.TryGet(resultId, out var retrievedRequestContext);
+            var result = _cache.TryGet(resultId, out var retrievedRequestContext);
 
             // Assert
             Assert.True(result);
@@ -37,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public void TryGet_UnknownRequestContext_ReturnsTrue()
         {
             // Act
-            var result = Cache.TryGet(1234, out var retrievedRequestContext);
+            var result = _cache.TryGet(1234, out var retrievedRequestContext);
 
             // Assert
             Assert.False(result);
@@ -48,16 +56,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public void TryGet_EvictedCompletionList_ReturnsFalse()
         {
             // Arrange
-            var initialRequestContext = new CompletionRequestContext(HostDocumentUri, ProjectedUri, LanguageServerKind);
-            var initialRequestContextId = Cache.Set(initialRequestContext);
+            var initialRequestContext = new CompletionRequestContext(_hostDocumentUri, _projectedUri, _languageServerKind);
+            var initialRequestContextId = _cache.Set(initialRequestContext);
             for (var i = 0; i < CompletionRequestContextCache.MaxCacheSize; i++)
             {
                 // We now fill the completion list cache up until its cache max so that the initial completion list we set gets evicted.
-                Cache.Set(new CompletionRequestContext(HostDocumentUri, ProjectedUri, LanguageServerKind));
+                _cache.Set(new CompletionRequestContext(_hostDocumentUri, _projectedUri, _languageServerKind));
             }
 
             // Act
-            var result = Cache.TryGet(initialRequestContextId, out var retrievedRequestContext);
+            var result = _cache.TryGet(initialRequestContextId, out var retrievedRequestContext);
 
             // Assert
             Assert.False(result);

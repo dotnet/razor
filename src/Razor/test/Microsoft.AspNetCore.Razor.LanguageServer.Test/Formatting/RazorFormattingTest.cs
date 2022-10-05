@@ -12,8 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class RazorFormattingTest : FormattingTestBase
     {
-        public RazorFormattingTest(ITestOutputHelper output)
-            : base(output)
+        public RazorFormattingTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 

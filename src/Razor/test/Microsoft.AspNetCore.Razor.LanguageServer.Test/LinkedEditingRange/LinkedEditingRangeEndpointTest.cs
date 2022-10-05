@@ -5,17 +5,22 @@
 
 using System;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
 {
     public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     {
+        public LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
@@ -30,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -67,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -105,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -143,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -167,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -190,7 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -227,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -265,7 +270,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -303,7 +308,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -327,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);

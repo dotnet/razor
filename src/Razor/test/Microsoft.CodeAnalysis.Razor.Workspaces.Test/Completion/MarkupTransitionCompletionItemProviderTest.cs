@@ -7,19 +7,22 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Xunit;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    public class MarkupTransitionCompletionItemProviderTest
+    public class MarkupTransitionCompletionItemProviderTest : TestBase
     {
-        public MarkupTransitionCompletionItemProviderTest()
-        {
-            Provider = new MarkupTransitionCompletionItemProvider(new DefaultHtmlFactsService());
-        }
+        private readonly MarkupTransitionCompletionItemProvider _provider;
 
-        private MarkupTransitionCompletionItemProvider Provider { get; }
+        public MarkupTransitionCompletionItemProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _provider = new MarkupTransitionCompletionItemProvider(new DefaultHtmlFactsService());
+        }
 
         [Fact]
         public void GetCompletionItems_ReturnsEmptyCompletionItemInUnopenedMarkupContext()
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -225,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -240,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -255,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -270,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -285,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -300,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);
@@ -315,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var razorCompletionContext = CreateRazorCompletionContext(absoluteIndex, syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(razorCompletionContext);
+            var completionItems = _provider.GetCompletionItems(razorCompletionContext);
 
             // Assert
             Assert.Empty(completionItems);

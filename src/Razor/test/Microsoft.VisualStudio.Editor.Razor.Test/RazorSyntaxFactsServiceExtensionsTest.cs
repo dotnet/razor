@@ -5,12 +5,19 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class RazorSyntaxFactsServiceExtensionsTest
+    public class RazorSyntaxFactsServiceExtensionsTest : TestBase
     {
+        public RazorSyntaxFactsServiceExtensionsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void IsTagHelperSpan_ReturnsTrue()
         {

@@ -10,29 +10,38 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class RazorDocumentInfoProviderTest : WorkspaceTestBase
     {
-        public RazorDocumentInfoProviderTest()
+        private readonly VisualStudioMacDocumentInfoFactory _factory;
+        private readonly DefaultRazorDynamicFileInfoProvider _innerDynamicDocumentInfoProvider;
+        private readonly TestProjectSnapshotManager _projectSnapshotManager;
+        private readonly ProjectSnapshot _projectSnapshot;
+        private readonly DocumentSnapshot _documentSnapshot;
+
+        public RazorDocumentInfoProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var serviceProviderFactory = new DefaultRazorDocumentServiceProviderFactory();
             var lspEditorEnabledFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable() == true, MockBehavior.Strict);
-            InnerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector, TestLanguageServerFeatureOptions.Instance);
-            ProjectSnapshotManager = new TestProjectSnapshotManager(Workspace);
+            _innerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector, TestLanguageServerFeatureOptions.Instance);
+            _projectSnapshotManager = new TestProjectSnapshotManager(Workspace);
 
             var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "RootNamespace");
-            ProjectSnapshotManager.ProjectAdded(hostProject);
+            _projectSnapshotManager.ProjectAdded(hostProject);
 
             var hostDocument = new HostDocument("C:/path/to/document.cshtml", "/C:/path/to/document.cshtml");
             var sourceText = SourceText.From("Hello World");
             var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, hostDocument.FilePath);
-            ProjectSnapshotManager.DocumentAdded(hostProject, hostDocument, TextLoader.From(textAndVersion));
+            _projectSnapshotManager.DocumentAdded(hostProject, hostDocument, TextLoader.From(textAndVersion));
 
-            ProjectSnapshot = ProjectSnapshotManager.Projects[0];
-            DocumentSnapshot = ProjectSnapshot.GetDocument(hostDocument.FilePath);
+            _projectSnapshot = _projectSnapshotManager.Projects[0];
+            _documentSnapshot = _projectSnapshot.GetDocument(hostDocument.FilePath);
+
             var factory = new Mock<VisualStudioMacDocumentInfoFactory>(MockBehavior.Strict);
             factory.Setup(f => f.CreateEmpty(It.IsAny<string>(), It.IsAny<ProjectId>()))
                 .Returns<string, ProjectId>((razorFilePath, projectId) =>
@@ -41,122 +50,113 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     var documentInfo = DocumentInfo.Create(documentId, "testDoc", filePath: razorFilePath);
                     return documentInfo;
                 });
-            Factory = factory.Object;
+
+            _factory = factory.Object;
         }
-
-        private VisualStudioMacDocumentInfoFactory Factory { get; }
-
-        private DefaultRazorDynamicFileInfoProvider InnerDynamicDocumentInfoProvider { get; }
-
-        private TestProjectSnapshotManager ProjectSnapshotManager { get; }
-
-        private ProjectSnapshot ProjectSnapshot { get; }
-
-        private DocumentSnapshot DocumentSnapshot { get; }
 
         [Fact]
         public void DelegatedUpdateFileInfo_UnknownDocument_Noops()
         {
             // Arrange
-            var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
+            var provider = new RazorDynamicDocumentInfoProvider(_factory, _innerDynamicDocumentInfoProvider);
             provider.Updated += (_) => throw new XunitException("This should not have been called.");
-            var documentContainer = new DefaultDynamicDocumentContainer(DocumentSnapshot);
+            var documentContainer = new DefaultDynamicDocumentContainer(_documentSnapshot);
 
             // Act & Assert
-            InnerDynamicDocumentInfoProvider.UpdateFileInfo(ProjectSnapshot.FilePath, documentContainer);
+            _innerDynamicDocumentInfoProvider.UpdateFileInfo(_projectSnapshot.FilePath, documentContainer);
         }
 
         [Fact]
         public void DelegatedUpdateFileInfo_KnownDocument_TriggersUpdate()
         {
             // Arrange
-            var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
+            var provider = new RazorDynamicDocumentInfoProvider(_factory, _innerDynamicDocumentInfoProvider);
             DocumentInfo documentInfo = null;
             provider.Updated += (info) => documentInfo = info;
 
             // Populate the providers understanding of our project/document
-            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
-            var documentContainer = new DefaultDynamicDocumentContainer(DocumentSnapshot);
+            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), _projectSnapshot.FilePath, _documentSnapshot.FilePath);
+            var documentContainer = new DefaultDynamicDocumentContainer(_documentSnapshot);
 
             // Act
-            InnerDynamicDocumentInfoProvider.UpdateFileInfo(ProjectSnapshot.FilePath, documentContainer);
+            _innerDynamicDocumentInfoProvider.UpdateFileInfo(_projectSnapshot.FilePath, documentContainer);
 
             // Assert
             Assert.NotNull(documentInfo);
-            Assert.Equal(DocumentSnapshot.FilePath, documentInfo.FilePath);
+            Assert.Equal(_documentSnapshot.FilePath, documentInfo.FilePath);
         }
 
         [Fact]
         public void DelegatedSuppressDocument_UnknownDocument_Noops()
         {
             // Arrange
-            var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
+            var provider = new RazorDynamicDocumentInfoProvider(_factory, _innerDynamicDocumentInfoProvider);
             provider.Updated += (_) => throw new XunitException("This should not have been called.");
-            var documentContainer = new DefaultDynamicDocumentContainer(DocumentSnapshot);
+            var documentContainer = new DefaultDynamicDocumentContainer(_documentSnapshot);
 
             // Act & Assert
-            InnerDynamicDocumentInfoProvider.SuppressDocument(ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
+            _innerDynamicDocumentInfoProvider.SuppressDocument(_projectSnapshot.FilePath, _documentSnapshot.FilePath);
         }
 
         [Fact]
         public void DelegatedSuppressDocument_KnownDocument_NotUpdated_Noops()
         {
             // Arrange
-            var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
+            var provider = new RazorDynamicDocumentInfoProvider(_factory, _innerDynamicDocumentInfoProvider);
             provider.Updated += (_) => throw new XunitException("This should not have been called.");
 
             // Populate the providers understanding of our project/document
-            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
-            var documentContainer = new DefaultDynamicDocumentContainer(DocumentSnapshot);
+            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), _projectSnapshot.FilePath, _documentSnapshot.FilePath);
+            var documentContainer = new DefaultDynamicDocumentContainer(_documentSnapshot);
 
             // Act & Assert
-            InnerDynamicDocumentInfoProvider.SuppressDocument(ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
+            _innerDynamicDocumentInfoProvider.SuppressDocument(_projectSnapshot.FilePath, _documentSnapshot.FilePath);
         }
 
         [Fact]
         public void DelegatedSuppressDocument_KnownAndUpdatedDocument_TriggersUpdate()
         {
             // Arrange
-            var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
+            var provider = new RazorDynamicDocumentInfoProvider(_factory, _innerDynamicDocumentInfoProvider);
             DocumentInfo documentInfo = null;
             provider.Updated += (info) => documentInfo = info;
 
             // Populate the providers understanding of our project/document
-            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
-            var documentContainer = new DefaultDynamicDocumentContainer(DocumentSnapshot);
+            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), _projectSnapshot.FilePath, _documentSnapshot.FilePath);
+            var documentContainer = new DefaultDynamicDocumentContainer(_documentSnapshot);
 
             // Update the document with content
-            InnerDynamicDocumentInfoProvider.UpdateFileInfo(ProjectSnapshot.FilePath, documentContainer);
+            _innerDynamicDocumentInfoProvider.UpdateFileInfo(_projectSnapshot.FilePath, documentContainer);
 
             // Act
-            InnerDynamicDocumentInfoProvider.SuppressDocument(ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
+            _innerDynamicDocumentInfoProvider.SuppressDocument(_projectSnapshot.FilePath, _documentSnapshot.FilePath);
 
             // Assert
             Assert.NotNull(documentInfo);
-            Assert.Equal(DocumentSnapshot.FilePath, documentInfo.FilePath);
+            Assert.Equal(_documentSnapshot.FilePath, documentInfo.FilePath);
         }
 
         [Fact]
         public void DelegatedRemoveDynamicDocumentInfo_UntracksDocument()
         {
             // Arrange
-            var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
+            var provider = new RazorDynamicDocumentInfoProvider(_factory, _innerDynamicDocumentInfoProvider);
 
             // Populate the providers understanding of our project/document
-            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
-            var documentContainer = new DefaultDynamicDocumentContainer(DocumentSnapshot);
+            provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), _projectSnapshot.FilePath, _documentSnapshot.FilePath);
+            var documentContainer = new DefaultDynamicDocumentContainer(_documentSnapshot);
 
             // Update the document with content
-            InnerDynamicDocumentInfoProvider.UpdateFileInfo(ProjectSnapshot.FilePath, documentContainer);
+            _innerDynamicDocumentInfoProvider.UpdateFileInfo(_projectSnapshot.FilePath, documentContainer);
 
             // Now explode if any further updates happen
             provider.Updated += (_) => throw new XunitException("This should not have been called.");
 
             // Act
-            provider.RemoveDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
+            provider.RemoveDynamicDocumentInfo(ProjectId.CreateNewId(), _projectSnapshot.FilePath, _documentSnapshot.FilePath);
 
             // Assert this should not update
-            InnerDynamicDocumentInfoProvider.UpdateFileInfo(ProjectSnapshot.FilePath, documentContainer);
+            _innerDynamicDocumentInfoProvider.UpdateFileInfo(_projectSnapshot.FilePath, documentContainer);
         }
     }
 }

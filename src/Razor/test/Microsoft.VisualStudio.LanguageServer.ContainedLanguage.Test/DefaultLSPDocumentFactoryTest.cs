@@ -5,15 +5,22 @@
 
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultLSPDocumentFactoryTest
+    public class DefaultLSPDocumentFactoryTest : TestBase
     {
+        public DefaultLSPDocumentFactoryTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Create_BuildsLSPDocumentWithTextBufferURI()
         {

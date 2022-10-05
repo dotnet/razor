@@ -6,21 +6,25 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
 {
     public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
     {
+        public ImplementationEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_SingleServer_CSharp_Method()
         {
@@ -95,9 +99,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
             var codeDocument = CreateCodeDocument(output);
             var razorFilePath = "C:/path/to/file.razor";
 
-            await CreateLanguageServerAsync(codeDocument, razorFilePath).ConfigureAwait(false);
+            await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-            var endpoint = new ImplementationEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new ImplementationEndpoint(
+                LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new TextDocumentPositionParamsBridge
@@ -108,11 +113,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
                 },
                 Position = new Position(line, offset)
             };
-            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, CancellationToken.None);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result.First);

@@ -2,17 +2,22 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServerTestBase
     {
+        public RazorDocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_FormattingEnabled_InvokesFormattingService()
         {
@@ -33,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -55,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -80,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -97,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);

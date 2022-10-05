@@ -10,11 +10,17 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class BraceSmartIndenterTestBase : ProjectSnapshotManagerDispatcherTestBase
     {
+        public BraceSmartIndenterTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         protected static VisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
         {
             var tracker = new Mock<VisualStudioDocumentTracker>(MockBehavior.Strict);

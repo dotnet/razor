@@ -12,11 +12,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DocumentProjectResolverTest : LanguageServerTestBase
     {
+        public DocumentProjectResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryResolveProject_NoProjects_ReturnsFalse()
         {

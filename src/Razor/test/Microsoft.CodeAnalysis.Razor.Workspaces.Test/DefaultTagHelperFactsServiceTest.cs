@@ -6,14 +6,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultTagHelperFactsServiceTest
+    public class DefaultTagHelperFactsServiceTest : TestBase
     {
         // Purposefully not thoroughly testing DefaultTagHelperFactsService.GetTagHelperBinding because it's a pass through
         // into TagHelperDescriptorProvider.GetTagHelperBinding.
+
+        public DefaultTagHelperFactsServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public void GetTagHelperBinding_DoesNotAllowOptOutCharacterPrefix()

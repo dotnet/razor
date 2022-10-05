@@ -8,21 +8,31 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
     public abstract class ResponseRewriterTestBase : LanguageServerTestBase
     {
-        private protected abstract DelegatedCompletionResponseRewriter Rewriter { get; }
+        private protected DelegatedCompletionResponseRewriter Rewriter { get; }
+
+        private protected ResponseRewriterTestBase(
+            DelegatedCompletionResponseRewriter rewriter,
+            ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            Rewriter = rewriter;
+        }
 
         protected async Task<VSInternalCompletionList> GetRewrittenCompletionListAsync(int absoluteIndex, string documentContent, VSInternalCompletionList initialCompletionList)
         {
             var completionContext = new VSInternalCompletionContext();
             var codeDocument = CreateCodeDocument(documentContent);
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument);
-            var provider = TestDelegatedCompletionListProvider.Create(initialCompletionList, Rewriter);
+            var provider = TestDelegatedCompletionListProvider.Create(initialCompletionList, LoggerFactory, Rewriter);
             var clientCapabilities = new VSInternalClientCapabilities();
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(absoluteIndex, completionContext, documentContext, clientCapabilities, DisposalToken);
+
             return completionList;
         }
     }

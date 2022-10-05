@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -19,9 +19,9 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using CompletionItem = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionItem;
 using CompletionOptions = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionOptions;
 using CompletionParams = Microsoft.VisualStudio.LanguageServer.Protocol.CompletionParams;
@@ -34,49 +34,45 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [UseExportProvider]
     public class CompletionResolveHandlerTest : HandlerTestBase
     {
-        public CompletionResolveHandlerTest()
-        {
-#pragma warning disable VSSDK005 // Avoid instantiating JoinableTaskContext
-            JoinableTaskContext = new JoinableTaskContext();
-#pragma warning restore VSSDK005 // Avoid instantiating JoinableTaskContext
+        private readonly ITextStructureNavigatorSelectorService _textStructureNavigatorSelectorService;
+        private readonly TestDocumentManager _documentManager;
+        private readonly TestLSPDocumentMappingProvider _documentMappingProvider;
+        private readonly FormattingOptionsProvider _formattingOptionsProvider;
+        private readonly CompletionRequestContextCache _completionRequestContextCache;
+        private readonly Uri _hostDocumentUri;
+        private readonly TestTextBuffer _textBuffer;
+        private readonly ServerCapabilities _completionResolveServerCapabilities;
 
-            TextStructureNavigatorSelectorService = new TestTextStructureNavigatorSelectorService();
-            HostDocumentUri = new Uri("C:/path/to/file.razor");
-            TextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-            DocumentManager.AddDocument(
-                HostDocumentUri,
+        public CompletionResolveHandlerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _textStructureNavigatorSelectorService = new TestTextStructureNavigatorSelectorService();
+            _hostDocumentUri = new Uri("C:/path/to/file.razor");
+            _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+
+            _documentManager = new();
+            _documentManager.AddDocument(
+                _hostDocumentUri,
                 new TestLSPDocumentSnapshot(
-                    HostDocumentUri,
+                    _hostDocumentUri,
                     version: 0,
-                    new CSharpVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor.g.cs"), TextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0),
-                    new HtmlVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor__virtual.html"), TextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0)));
-        }
+                    new CSharpVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0),
+                    new HtmlVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor__virtual.html"), _textBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0)));
 
-        private JoinableTaskContext JoinableTaskContext { get; }
+            _documentMappingProvider = new(LoggerFactory);
+            _formattingOptionsProvider = TestFormattingOptionsProvider.Default;
+            _completionRequestContextCache = new();
 
-        private ITextStructureNavigatorSelectorService TextStructureNavigatorSelectorService { get; }
-
-        private TestDocumentManager DocumentManager { get; } = new();
-
-        private TestLSPDocumentMappingProvider DocumentMappingProvider { get; } = new();
-
-        private FormattingOptionsProvider FormattingOptionsProvider { get; } = TestFormattingOptionsProvider.Default;
-
-        private CompletionRequestContextCache CompletionRequestContextCache { get; } = new();
-
-        private Uri HostDocumentUri { get; }
-
-        private TestTextBuffer TextBuffer { get; }
-
-        private ServerCapabilities CompletionResolveServerCapabilities { get; } = new()
-        {
-            CompletionProvider = new CompletionOptions
+            _completionResolveServerCapabilities = new()
             {
-                ResolveProvider = true,
-                AllCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray(),
-                TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray(),
-            }
-        };
+                CompletionProvider = new CompletionOptions
+                {
+                    ResolveProvider = true,
+                    AllCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray(),
+                    TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray(),
+                }
+            };
+        }
 
         [Fact]
         public async Task HandleRequestAsync_CSharpProjection_RemapsComplexTextEdit()
@@ -110,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Act
             var (unresolvedItem, resolvedItem, textEditRemapCount) = await ExecuteCSharpCompletionResolveRequestAsync(
-                documentUri, text, completionParams, itemLabel: "Equals(object obj)").ConfigureAwait(false);
+                documentUri, text, completionParams, itemLabel: "Equals(object obj)");
 
             // Assert
             Assert.True(unresolvedItem.VsResolveTextEditOnCommit);
@@ -145,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Act
             var (unresolvedItem, resolvedItem, textEditRemapCount) = await ExecuteCSharpCompletionResolveRequestAsync(
-                documentUri, text, completionParams, itemLabel: "Now").ConfigureAwait(false);
+                documentUri, text, completionParams, itemLabel: "Now");
 
             // Assert
             Assert.Null(unresolvedItem.TextEdit);
@@ -179,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Act
             var (unresolvedItem, resolvedItem, _) = await ExecuteCSharpCompletionResolveRequestAsync(
-                documentUri, text, completionParams, itemLabel: "Now").ConfigureAwait(false);
+                documentUri, text, completionParams, itemLabel: "Now");
 
             // Assert
             Assert.Null(unresolvedItem.Description);
@@ -196,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 InsertText = "strong",
             };
-            AssociateRequest(LanguageServerKind.Html, request, CompletionRequestContextCache, originalData);
+            AssociateRequest(LanguageServerKind.Html, request, _completionRequestContextCache, originalData);
             var expectedResponse = new CompletionItem()
             {
                 InsertText = "strong",
@@ -212,10 +208,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return expectedResponse;
             });
 
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, _documentManager, _documentMappingProvider, _formattingOptionsProvider, _completionRequestContextCache, LoggerProvider);
 
             // Act
-            var result = await handler.HandleRequestAsync(request, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await handler.HandleRequestAsync(request, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -228,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
-                    TextBuffer,
+                    _textBuffer,
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CompletionItem>(),
@@ -262,18 +258,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 { documentUri, (hostDocumentVersion: 1, codeDocument) }
             };
-            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap);
-            var razorSpanMappingService = new TestRazorLSPSpanMappingService(mappingProvider, documentUri, razorSourceText, csharpSourceText);
+
+            var mappingProvider = new TestLSPDocumentMappingProvider(uriToCodeDocumentMap, LoggerFactory);
+            var razorSpanMappingService = new TestRazorLSPSpanMappingService(
+                mappingProvider, documentUri, razorSourceText, csharpSourceText, DisposalToken);
 
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, CompletionResolveServerCapabilities, razorSpanMappingService).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, _completionResolveServerCapabilities, razorSpanMappingService, DisposalToken);
 
-            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
             var requestInvoker = new TestLSPRequestInvoker(csharpServer);
             var documentManager = new TestDocumentManager(csharpServer);
             documentManager.AddDocument(documentUri, documentSnapshot);
-            var projectionProvider = TestLSPProjectionProvider.Instance;
+            var projectionProvider = new TestLSPProjectionProvider(LoggerFactory);
 
             // Execute completion request
             var completionHandler = new CompletionHandler(
@@ -281,21 +279,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 requestInvoker,
                 documentManager,
                 projectionProvider,
-                TextStructureNavigatorSelectorService,
-                CompletionRequestContextCache,
-                FormattingOptionsProvider,
+                _textStructureNavigatorSelectorService,
+                _completionRequestContextCache,
+                _formattingOptionsProvider,
                 LoggerProvider);
             var completionResult = await completionHandler.HandleRequestAsync(
-                completionParams, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+                completionParams, new ClientCapabilities(), DisposalToken);
 
             var completionList = Assert.IsType<OptimizedVSCompletionList>(completionResult.Value.Value);
             var unresolvedCompletionItem = completionList.Items.Where(c => c.Label == itemLabel).Single();
 
             // Execute resolve request
             var resolveHandler = new CompletionResolveHandler(
-                requestInvoker, documentManager, mappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+                requestInvoker, documentManager, mappingProvider, _formattingOptionsProvider, _completionRequestContextCache, LoggerProvider);
             var resolvedCompletionItem = await resolveHandler.HandleRequestAsync(
-                unresolvedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+                unresolvedCompletionItem, new ClientCapabilities(), DisposalToken);
 
             var vsUnresolvedCompletionItem = Assert.IsType<VSInternalCompletionItem>(unresolvedCompletionItem);
             var vsResolvedCompletionItem = Assert.IsType<VSInternalCompletionItem>(resolvedCompletionItem);

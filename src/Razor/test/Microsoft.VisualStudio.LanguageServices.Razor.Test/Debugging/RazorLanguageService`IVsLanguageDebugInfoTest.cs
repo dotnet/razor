@@ -6,34 +6,30 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using Position = Microsoft.VisualStudio.LanguageServer.Protocol.Position;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class RazorLanguageService_IVsLanguageDebugInfoTest
+    public class RazorLanguageService_IVsLanguageDebugInfoTest : TestBase
     {
-        public RazorLanguageService_IVsLanguageDebugInfoTest()
+        private readonly TextSpan[] _textSpans;
+
+        public RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            var joinableTaskContext = new JoinableTaskContextNode(new JoinableTaskContext());
-            JoinableTaskFactory = new JoinableTaskFactory(joinableTaskContext.Context);
+            _textSpans = new[] { new TextSpan() };
         }
-
-        private JoinableTaskFactory JoinableTaskFactory { get; set; }
-
-        private TextSpan[] TextSpans { get; } = new[]
-        {
-            new TextSpan()
-        };
 
         [Fact]
         public void ValidateBreakpointLocation_CanNotGetBackingTextBuffer_ReturnsNotImpl()
@@ -44,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var languageService = CreateLanguageServiceWith(editorAdaptersFactory: editorAdaptersFactoryService.Object);
 
             // Act
-            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, TextSpans);
+            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
 
             // Assert
             Assert.Equal(VSConstants.E_NOTIMPL, result);
@@ -57,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var languageService = CreateLanguageServiceWith();
 
             // Act
-            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), int.MaxValue, 0, TextSpans);
+            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), int.MaxValue, 0, _textSpans);
 
             // Assert
             Assert.Equal(VSConstants.E_FAIL, result);
@@ -70,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var languageService = CreateLanguageServiceWith();
 
             // Act
-            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, TextSpans);
+            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
 
             // Assert
             Assert.Equal(VSConstants.E_FAIL, result);
@@ -89,11 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var languageService = CreateLanguageServiceWith(breakpointResolver);
 
             // Act
-            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, TextSpans);
+            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
 
             // Assert
             Assert.Equal(VSConstants.S_OK, result);
-            var span = Assert.Single(TextSpans);
+            var span = Assert.Single(_textSpans);
             Assert.Equal(2, span.iStartLine);
             Assert.Equal(4, span.iStartIndex);
             Assert.Equal(3, span.iEndLine);
@@ -109,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var languageService = CreateLanguageServiceWith(uiThreadOperationExecutor: uiThreadExecutor.Object);
 
             // Act
-            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, TextSpans);
+            var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
 
             // Assert
             Assert.Equal(VSConstants.E_FAIL, result);
@@ -197,13 +193,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             if (breakpointResolver is null)
             {
                 breakpointResolver = new Mock<RazorBreakpointResolver>(MockBehavior.Strict).Object;
-                Mock.Get(breakpointResolver).Setup(r => r.TryResolveBreakpointRangeAsync(It.IsAny<ITextBuffer>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(value: null);
+                Mock.Get(breakpointResolver)
+                    .Setup(r => r.TryResolveBreakpointRangeAsync(
+                        It.IsAny<ITextBuffer>(),
+                        It.IsAny<int>(),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(value: null);
             }
 
             if (proximityExpressionResolver is null)
             {
                 proximityExpressionResolver = new Mock<RazorProximityExpressionResolver>(MockBehavior.Strict).Object;
-                Mock.Get(proximityExpressionResolver).Setup(r => r.TryResolveProximityExpressionsAsync(It.IsAny<ITextBuffer>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(value: null);
+                Mock.Get(proximityExpressionResolver)
+                    .Setup(r => r.TryResolveProximityExpressionsAsync(
+                        It.IsAny<ITextBuffer>(),
+                        It.IsAny<int>(),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(value: null);
             }
 
             uiThreadOperationExecutor ??= new TestIUIThreadOperationExecutor();
