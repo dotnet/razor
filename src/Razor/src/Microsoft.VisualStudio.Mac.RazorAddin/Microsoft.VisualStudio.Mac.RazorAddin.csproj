@@ -79,7 +79,6 @@
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Common.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\MediatR.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\OmniSharp.Extensions.JsonRpc.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\OmniSharp.Extensions.LanguageProtocol.dll" />

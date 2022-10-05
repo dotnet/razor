@@ -19,8 +19,4 @@
     <PackageReference Include="Microsoft.Extensions.NonCapturingTimer.Sources" Version="$(MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion)" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Common\Microsoft.AspNetCore.Razor.Common.csproj" />
-  </ItemGroup>
-
 </Project>
