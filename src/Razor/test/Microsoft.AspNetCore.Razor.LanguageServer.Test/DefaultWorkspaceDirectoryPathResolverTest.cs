@@ -3,27 +3,37 @@
 
 #nullable disable
 
+using System;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using DocumentUri = OmniSharp.Extensions.LanguageServer.Protocol.DocumentUri;
 using Xunit;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class DefaultWorkspaceDirectoryPathResolverTest
+    public class DefaultWorkspaceDirectoryPathResolverTest : TestBase
     {
+        public DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Resolve_RootUriUnavailable_UsesRootPath()
         {
             // Arrange
             var expectedWorkspaceDirectory = "/testpath";
+#pragma warning disable CS0618 // Type or member is obsolete
             var clientSettings = new InitializeParams()
             {
                 RootPath = expectedWorkspaceDirectory
             };
-            var server = Mock.Of<IClientLanguageServer>(server => server.ClientSettings == clientSettings, MockBehavior.Strict);
-            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server);
+#pragma warning restore CS0618 // Type or member is obsolete
+            var server = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
+            server.Setup(m => m.GetInitializeParams()).Returns(clientSettings);
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server.Object);
 
             // Act
             var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
@@ -36,20 +46,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void Resolve_RootUriPrefered()
         {
             // Arrange
-            var initialWorkspaceDirectory = "\\\\testpath";
+            var initialWorkspaceDirectory = "C:\\testpath";
+            var uriBuilder = new UriBuilder
+            {
+                Scheme = "file",
+                Host = null,
+                Path = initialWorkspaceDirectory,
+            };
+#pragma warning disable CS0618 // Type or member is obsolete
             var clientSettings = new InitializeParams()
             {
                 RootPath = "/somethingelse",
-                RootUri = new DocumentUri("file", authority: null, path: initialWorkspaceDirectory, query: null, fragment: null),
+                RootUri = uriBuilder.Uri,
             };
-            var server = Mock.Of<IClientLanguageServer>(server => server.ClientSettings == clientSettings, MockBehavior.Strict);
-            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server);
+#pragma warning restore CS0618 // Type or member is obsolete
+            var server = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
+            server.Setup(s => s.GetInitializeParams()).Returns(clientSettings);
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server.Object);
 
             // Act
             var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
 
             // Assert
-            var expectedWorkspaceDirectory = "/"+initialWorkspaceDirectory;
+            var expectedWorkspaceDirectory = "C:/testpath";
             Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
         }
     }

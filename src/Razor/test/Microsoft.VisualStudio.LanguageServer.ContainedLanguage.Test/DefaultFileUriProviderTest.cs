@@ -4,21 +4,24 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultFileUriProviderTest
+    public class DefaultFileUriProviderTest : TestBase
     {
-        public DefaultFileUriProviderTest()
-        {
-            TextBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
-        }
+        private readonly ITextBuffer _textBuffer;
 
-        private ITextBuffer TextBuffer { get; }
+        public DefaultFileUriProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
+        }
 
         [Fact]
         public void AddOrUpdate_Adds()
@@ -28,10 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
 
             // Act
-            uriProvider.AddOrUpdate(TextBuffer, expectedUri);
+            uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
             // Assert
-            Assert.True(uriProvider.TryGet(TextBuffer, out var uri));
+            Assert.True(uriProvider.TryGet(_textBuffer, out var uri));
             Assert.Same(expectedUri, uri);
         }
 
@@ -41,13 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var expectedUri = new Uri("C:/path/to/file.razor");
             var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
-            uriProvider.AddOrUpdate(TextBuffer, new Uri("C:/original/uri.razor"));
+            uriProvider.AddOrUpdate(_textBuffer, new Uri("C:/original/uri.razor"));
 
             // Act
-            uriProvider.AddOrUpdate(TextBuffer, expectedUri);
+            uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
             // Assert
-            Assert.True(uriProvider.TryGet(TextBuffer, out var uri));
+            Assert.True(uriProvider.TryGet(_textBuffer, out var uri));
             Assert.Same(expectedUri, uri);
         }
 
@@ -57,10 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var expectedUri = new Uri("C:/path/to/file.razor");
             var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
-            uriProvider.AddOrUpdate(TextBuffer, expectedUri);
+            uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
             // Act
-            var result = uriProvider.TryGet(TextBuffer, out var uri);
+            var result = uriProvider.TryGet(_textBuffer, out var uri);
 
             // Assert
             Assert.True(result);
@@ -74,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
 
             // Act
-            var result = uriProvider.TryGet(TextBuffer, out var uri);
+            var result = uriProvider.TryGet(_textBuffer, out var uri);
 
             // Assert
             Assert.False(result);
@@ -86,11 +89,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
-            textDocumentFactoryService.Setup(s => s.TryGetTextDocument(TextBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
+            textDocumentFactoryService.Setup(s => s.TryGetTextDocument(_textBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
             var uriProvider = new DefaultFileUriProvider(textDocumentFactoryService.Object);
 
             // Act
-            var uri = uriProvider.GetOrCreate(TextBuffer);
+            var uri = uriProvider.GetOrCreate(_textBuffer);
 
             // Assert
             Assert.NotNull(uri);
@@ -101,12 +104,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
-            textDocumentFactoryService.Setup(s => s.TryGetTextDocument(TextBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
+            textDocumentFactoryService.Setup(s => s.TryGetTextDocument(_textBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
             var uriProvider = new DefaultFileUriProvider(textDocumentFactoryService.Object);
 
             // Act
-            var uri1 = uriProvider.GetOrCreate(TextBuffer);
-            var uri2 = uriProvider.GetOrCreate(TextBuffer);
+            var uri1 = uriProvider.GetOrCreate(_textBuffer);
+            var uri2 = uriProvider.GetOrCreate(_textBuffer);
 
             // Assert
             Assert.NotNull(uri1);
@@ -120,12 +123,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var factory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
             var expectedFilePath = "C:/path/to/file.razor";
             var textDocument = Mock.Of<ITextDocument>(document => document.FilePath == expectedFilePath, MockBehavior.Strict);
-            factory.Setup(f => f.TryGetTextDocument(TextBuffer, out textDocument))
+            factory.Setup(f => f.TryGetTextDocument(_textBuffer, out textDocument))
                 .Returns(true);
             var uriProvider = new DefaultFileUriProvider(factory.Object);
 
             // Act
-            var uri = uriProvider.GetOrCreate(TextBuffer);
+            var uri = uriProvider.GetOrCreate(_textBuffer);
 
             // Assert
             Assert.Equal(expectedFilePath, uri.OriginalString);

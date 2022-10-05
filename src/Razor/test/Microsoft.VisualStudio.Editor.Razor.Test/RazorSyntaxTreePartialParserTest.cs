@@ -10,12 +10,18 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class RazorSyntaxTreePartialParserTest : ParserTestBase
     {
         private const string NewLine = "\r\n";
+
+        public RazorSyntaxTreePartialParserTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         public static TheoryData TagHelperPartialParseRejectData
         {

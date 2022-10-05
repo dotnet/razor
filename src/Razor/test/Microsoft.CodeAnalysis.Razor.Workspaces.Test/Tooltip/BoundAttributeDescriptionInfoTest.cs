@@ -3,12 +3,19 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip
 {
-    public class BoundAttributeDescriptionInfoTest
+    public class BoundAttributeDescriptionInfoTest : TestBase
     {
+        public BoundAttributeDescriptionInfoTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void ResolveTagHelperTypeName_ExtractsTypeName_SimpleReturnType()
         {

@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
 {
     internal class RazorSyntaxNodeList : IEnumerable<RazorSyntaxNode>
     {
-        private ChildSyntaxList _childSyntaxList;
+        private readonly ChildSyntaxList _childSyntaxList;
 
         public RazorSyntaxNodeList(ChildSyntaxList childSyntaxList)
         {

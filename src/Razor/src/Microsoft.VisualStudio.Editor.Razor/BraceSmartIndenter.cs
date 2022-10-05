@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -36,11 +35,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
-        private readonly StringBuilder _indentBuilder = new StringBuilder();
-        private BraceIndentationContext _context;
+        private readonly StringBuilder _indentBuilder = new();
+        private BraceIndentationContext? _context;
 
         // Internal for testing
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal BraceSmartIndenter()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var context = _context;
             _context = null;
 
-            if (context != null)
+            if (context is not null)
             {
                 // Save the current caret position
                 var textView = context.FocusedTextView;
@@ -209,7 +210,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string finalText,
             RazorSyntaxTree syntaxTree,
             VisualStudioDocumentTracker documentTracker,
-            out BraceIndentationContext context)
+            [NotNullWhen(returnValue: true)] out BraceIndentationContext? context)
         {
             var focusedTextView = documentTracker.GetFocusedTextView();
             if (focusedTextView != null && ParserHelpers.IsNewLine(finalText))
@@ -285,7 +286,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var children = owner.ChildNodes();
             for (var i = 0; i < children.Count; i++)
             {
-                if (!(children[i] is SyntaxToken token) ||
+                if (children[i] is not SyntaxToken token ||
                     !string.IsNullOrWhiteSpace(token.Content))
                 {
                     return true;

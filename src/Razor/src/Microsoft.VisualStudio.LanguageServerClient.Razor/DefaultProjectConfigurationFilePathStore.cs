@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -79,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Changed?.Invoke(this, args);
         }
 
-        public override bool TryGet(string projectFilePath, out string configurationFilePath)
+        public override bool TryGet(string projectFilePath, [NotNullWhen(returnValue: true)] out string? configurationFilePath)
         {
             if (projectFilePath is null)
             {

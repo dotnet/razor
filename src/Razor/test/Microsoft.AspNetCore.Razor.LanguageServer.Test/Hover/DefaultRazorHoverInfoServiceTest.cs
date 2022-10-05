@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -25,9 +26,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Extensions.SourceTextExtensions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
 
@@ -36,39 +36,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
     [UseExportProvider]
     public class DefaultRazorHoverInfoServiceTest : TagHelperServiceTestBase
     {
-        internal static VSInternalClientCapabilities MarkDownCapabilities
+        public DefaultRazorHoverInfoServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            get
-            {
-                return new VSInternalClientCapabilities
-                {
-                    TextDocument = new TextDocumentClientCapabilities
-                    {
-                        Hover = new HoverSetting
-                        {
-                            ContentFormat = new MarkupKind[] { MarkupKind.Markdown },
-                        }
-                    }
-                };
-            }
         }
 
-        internal static VSInternalClientCapabilities PlainTextCapabilities
-        {
-            get
+        private static VSInternalClientCapabilities CreateMarkDownCapabilities()
+            => CreateCapabilities(MarkupKind.Markdown);
+
+        private static VSInternalClientCapabilities CreatePlainTextCapabilities()
+            => CreateCapabilities(MarkupKind.PlainText);
+
+        private static VSInternalClientCapabilities CreateCapabilities(MarkupKind markupKind)
+            => new()
             {
-                return new VSInternalClientCapabilities
+                TextDocument = new()
                 {
-                    TextDocument = new TextDocumentClientCapabilities
+                    Hover = new()
                     {
-                        Hover = new HoverSetting
-                        {
-                            ContentFormat = new MarkupKind[] { MarkupKind.PlainText },
-                        }
+                        ContentFormat = new[] { markupKind },
                     }
-                };
-            }
-        }
+                }
+            };
 
         [Fact]
         public void GetHoverInfo_TagHelper_Element()
@@ -85,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -112,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -139,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -168,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(edgeLocation, 0, edgeLocation);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -196,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Null(hover);
@@ -217,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Null(hover);
@@ -238,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Null(hover);
@@ -259,7 +248,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -291,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.NotNull(hover);
@@ -319,7 +308,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -346,7 +335,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -374,7 +363,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, MarkDownCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreateMarkDownCapabilities());
 
             // Assert
             Assert.Null(hover);
@@ -396,7 +385,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
 
             // Assert
             Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -425,7 +414,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
 
             // Assert
             Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -454,7 +443,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
 
             // Assert
             Assert.Contains("BoolVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
@@ -484,7 +473,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
 
             // Assert
             Assert.Null(hover);
@@ -506,7 +495,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(cursorPosition, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location, PlainTextCapabilities);
+            var hover = service.GetHoverInfo(codeDocument, location, CreatePlainTextCapabilities());
 
             // Assert
             Assert.Null(hover);
@@ -525,7 +514,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(cursorPosition, -1, -1);
-            var clientCapabilities = MarkDownCapabilities;
+            var clientCapabilities = CreateMarkDownCapabilities();
             clientCapabilities.SupportsVisualStudioExtensions = true;
 
             // Act
@@ -568,7 +557,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var service = GetDefaultRazorHoverInfoService();
             var location = new SourceLocation(cursorPosition, -1, -1);
-            var clientCapabilities = MarkDownCapabilities;
+            var clientCapabilities = CreateMarkDownCapabilities();
             clientCapabilities.SupportsVisualStudioExtensions = true;
 
             // Act
@@ -609,20 +598,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SingleServerSupport == true, MockBehavior.Strict);
 
             var delegatedHover = new VSInternalHover();
-            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturnsMock
-                .Setup(l => l.Returning<VSInternalHover>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(delegatedHover));
 
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServerMock
-                .Setup(c => c.SendRequestAsync<IDelegatedParams>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>()))
-                .Returns(Task.FromResult(responseRouterReturnsMock.Object));
+                .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(delegatedHover);
 
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingServiceMock
                 .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-                .Returns(Protocol.RazorLanguageKind.CSharp);
+                .Returns(RazorLanguageKind.CSharp);
 
             var outRange = new Range();
             documentMappingServiceMock
@@ -637,7 +622,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 
             var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
 
-            var request = new VSHoverParamsBridge
+            var request = new TextDocumentPositionParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -645,9 +630,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 },
                 Position = new Position(1, 0),
             };
+            var documentContext = CreateDefaultDocumentContext();
+            var requestContext = CreateRazorRequestContext(documentContext: documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Same(delegatedHover, result);
@@ -733,8 +720,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 HoverProvider = true
             };
 
-            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null).ConfigureAwait(false);
-            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null, DisposalToken);
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
             var razorFilePath = "C:/path/to/file.razor";
             var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
@@ -745,38 +733,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 options.HtmlVirtualDocumentSuffix == ".g.html" &&
                 options.RegisterBuiltInFeatures == true
                 , MockBehavior.Strict);
-            var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri);
+            var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
             var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
             var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
             var hoverInfoService = GetDefaultRazorHoverInfoService();
 
             var endpoint = new RazorHoverEndpoint(
-                documentContextFactory,
                 hoverInfoService,
                 languageServerFeatureOptions,
                 documentMappingService,
                 languageServer,
                 LoggerFactory);
 
-            var clientCapabilities = MarkDownCapabilities;
+            var clientCapabilities = CreateMarkDownCapabilities();
             clientCapabilities.SupportsVisualStudioExtensions = true;
 
             _ = endpoint.GetRegistration(clientCapabilities);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new VSHoverParamsBridge
+            var razorFileUri = new Uri(razorFilePath);
+            var request = new TextDocumentPositionParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri(razorFilePath)
+                    Uri = razorFileUri,
                 },
                 Position = new Position(line, offset)
             };
+            var documentContext = CreateDocumentContext(razorFileUri, codeDocument);
+            var requestContext = CreateRazorRequestContext(documentContext: documentContext);
 
-            return await endpoint.Handle(request, CancellationToken.None);
+            return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
         }
 
-        private RazorHoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, RazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)
+        private DocumentContext CreateDefaultDocumentContext()
         {
             var txt = """
                 @addTagHelper *, TestAssembly
@@ -788,10 +778,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 """;
             var path = "C:/text.razor";
             var codeDocument = CreateCodeDocument(txt, path, DefaultTagHelpers);
-            var sourceText = SourceText.From(txt);
-
             var projectWorkspaceState = new ProjectWorkspaceState(DefaultTagHelpers, LanguageVersion.Default);
             var projectSnapshot = TestProjectSnapshot.Create("C:/project.csproj", projectWorkspaceState);
+            var sourceText = SourceText.From(txt);
 
             var snapshot = Mock.Of<DocumentSnapshot>(d =>
                 d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
@@ -800,9 +789,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 d.GetTextAsync() == Task.FromResult(sourceText) &&
                 d.Project == projectSnapshot, MockBehavior.Strict);
 
-            var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
-                d.TryCreateAsync(new Uri(path), It.IsAny<CancellationToken>()) == Task.FromResult(new DocumentContext(new Uri(path), snapshot, 1337)),
-                MockBehavior.Strict);
+            var documentContext = new DocumentContext(new Uri(path), snapshot, 1337);
+
+            return documentContext;
+        }
+
+        private RazorHoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null,
+            RazorDocumentMappingService documentMappingService = null,
+            ClientNotifierServiceBase languageServer = null)
+        {
 
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
 
@@ -815,12 +810,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             var endpoint = new RazorHoverEndpoint(
-                documentContextFactory,
                 GetDefaultRazorHoverInfoService(),
                 languageServerFeatureOptions,
                 documentMappingService,
                 languageServer,
-                TestLoggerFactory.Instance);
+                LoggerFactory);
 
             return endpoint;
         }
@@ -836,26 +830,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         {
             private readonly CSharpTestLspServer _csharpServer;
             private readonly Uri _csharpDocumentUri;
+            private readonly CancellationToken _cancellationToken;
 
-            public HoverLanguageServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri)
+            public HoverLanguageServer(
+                CSharpTestLspServer csharpServer,
+                Uri csharpDocumentUri,
+                CancellationToken cancellationToken)
             {
                 _csharpServer = csharpServer;
                 _csharpDocumentUri = csharpDocumentUri;
+                _cancellationToken = cancellationToken;
             }
 
-            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings { get; }
-
-            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }
 
-            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }
-#nullable enable
-            public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+
+            public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, method);
                 var hoverParams = Assert.IsType<DelegatedPositionParams>(@params);
@@ -869,9 +871,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                     Position = hoverParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, VSInternalHover?>(Methods.TextDocumentHoverName, hoverRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, TResponse>(
+                    Methods.TextDocumentHoverName, hoverRequest, _cancellationToken);
 
-                return new TestResponseRouterReturn(result);
+                return result;
             }
         }
     }

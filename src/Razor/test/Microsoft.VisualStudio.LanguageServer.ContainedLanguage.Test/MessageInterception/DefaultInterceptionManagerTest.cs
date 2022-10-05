@@ -5,15 +5,22 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageInterception
 {
-    public class DefaultInterceptionManagerTest
+    public class DefaultInterceptionManagerTest : TestBase
     {
+        public DefaultInterceptionManagerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Ctor_NullArguments_Throws()
         {
@@ -72,7 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
-            await Assert.ThrowsAsync<ArgumentException>(async () => await sut.ProcessInterceptorsAsync(input, JToken.Parse("{}"), "valid", CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentException>(
+                () => sut.ProcessInterceptorsAsync(input, JToken.Parse("{}"), "valid", DisposalToken));
         }
 
         [Fact]
@@ -80,7 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await sut.ProcessInterceptorsAsync("valid", null!, "valid", CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(
+                () => sut.ProcessInterceptorsAsync("valid", null!, "valid", DisposalToken));
         }
 
         [Theory]
@@ -90,7 +99,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
-            await Assert.ThrowsAsync<ArgumentException>(async () => await sut.ProcessInterceptorsAsync("valid", JToken.Parse("{}"), input, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentException>(
+                () => sut.ProcessInterceptorsAsync("valid", JToken.Parse("{}"), input, DisposalToken));
         }
 
         [Fact]
@@ -100,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
+            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", DisposalToken);
 
             Assert.Equal(testToken, result);
         }
@@ -110,12 +120,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var expected = JToken.Parse("\"new token\"");
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                                     .Returns(Task.FromResult(new InterceptionResult(expected, false)));
+            Mock.Get(fakeInterceptor)
+                .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new InterceptionResult(expected, false));
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
+            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", DisposalToken);
 
             Assert.Equal(expected, result);
         }
@@ -125,20 +136,25 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var expected = JToken.Parse("\"new token\"");
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                                     .Returns(Task.FromResult(new InterceptionResult(expected, false)));
+            Mock.Get(fakeInterceptor)
+                .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new InterceptionResult(expected, false));
             var mockSecondInterceptor = new Mock<MessageInterceptor>(MockBehavior.Strict);
-            mockSecondInterceptor.Setup(x => x.ApplyChangesAsync(new JArray(), "testContentType", CancellationToken.None))
-                .Returns(Task.FromResult(new InterceptionResult(expected, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType"),
-                                                                             (mockSecondInterceptor.Object, "testMessage", "testContentType")));
+            mockSecondInterceptor.Setup(x => x.ApplyChangesAsync(new JArray(), "testContentType", DisposalToken))
+                .ReturnsAsync(new InterceptionResult(expected, false));
+            var sut = new DefaultInterceptorManager(
+                GenerateLazyInterceptors(
+                    (fakeInterceptor, "testMessage", "testContentType"),
+                    (mockSecondInterceptor.Object, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
+            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", DisposalToken);
 
-            mockSecondInterceptor.Verify(x => x.ApplyChangesAsync(It.Is<JToken>(t => t.Equals(expected)), It.IsAny<string>(), It.IsAny<CancellationToken>()));
-            mockSecondInterceptor.Verify(x => x.ApplyChangesAsync(It.Is<JToken>(t => t.Equals(testToken)), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-                                         Times.Never);
+            mockSecondInterceptor.Verify(
+                x => x.ApplyChangesAsync(It.Is<JToken>(t => t.Equals(expected)), It.IsAny<string>(), It.IsAny<CancellationToken>()));
+            mockSecondInterceptor.Verify(
+                x => x.ApplyChangesAsync(It.Is<JToken>(t => t.Equals(testToken)), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
@@ -146,45 +162,56 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var expected = JToken.Parse("\"new token\"");
             var mockInterceptor =new Mock<MessageInterceptor>(MockBehavior.Strict);
-            mockInterceptor.SetupSequence(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                           .Returns(Task.FromResult(new InterceptionResult(expected, true)))
-                           .Returns(Task.FromResult(new InterceptionResult(expected, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((mockInterceptor.Object, "testMessage", "testContentType")));
+            mockInterceptor
+                .SetupSequence(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new InterceptionResult(expected, true))
+                .ReturnsAsync(new InterceptionResult(expected, false));
+            var sut = new DefaultInterceptorManager(
+                GenerateLazyInterceptors(
+                    (mockInterceptor.Object, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
+            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", DisposalToken);
 
-            mockInterceptor.Verify(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-                                   Times.Exactly(2));
+            mockInterceptor.Verify(
+                x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Exactly(2));
         }
 
         [Fact]
         public async Task ProcessInterceptorsAsync_InterceptorReturnsNull_DoesNotCallAdditionalInterceptors()
         {
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                                     .Returns(Task.FromResult(new InterceptionResult(null, false)));
+            Mock.Get(fakeInterceptor)
+                .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new InterceptionResult(null, false));
             var mockSecondInterceptor = new Mock<MessageInterceptor>(MockBehavior.Strict);
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType"),
-                                                                             (mockSecondInterceptor.Object, "testMessage", "testContentType")));
+            var sut = new DefaultInterceptorManager(
+                GenerateLazyInterceptors(
+                    (fakeInterceptor, "testMessage", "testContentType"),
+                    (mockSecondInterceptor.Object, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
+            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", DisposalToken);
 
-            mockSecondInterceptor.Verify(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-                                        Times.Never);
+            mockSecondInterceptor.Verify(
+                x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
         public async Task ProcessInterceptorsAsync_InterceptorReturnsNull_ReturnsNull()
         {
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                                     .Returns(Task.FromResult(new InterceptionResult(null, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType")));
+            Mock.Get(fakeInterceptor)
+                .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new InterceptionResult(null, false));
+            var sut = new DefaultInterceptorManager(
+                GenerateLazyInterceptors(
+                    (fakeInterceptor, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
+            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", DisposalToken);
 
             Assert.Null(result);
         }

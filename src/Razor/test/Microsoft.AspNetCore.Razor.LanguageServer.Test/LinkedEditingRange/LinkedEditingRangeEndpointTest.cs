@@ -5,36 +5,37 @@
 
 using System;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
 {
     public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     {
+        public LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_DocumentNotFound_ReturnsNull()
         {
             // Arrange
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument, documentFound: false);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 3 } // <te[||]st1></test1>
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -47,10 +48,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 3 } // <te[||]st1></test1>
@@ -69,9 +69,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                     End = new Position { Line = 1, Character = 14 }
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -85,10 +86,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 6 } // <test1[||]></test1>
@@ -107,9 +107,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                     End = new Position { Line = 1, Character = 14 }
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -123,10 +124,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 9 } // <test1></[||]test1>
@@ -145,9 +145,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                     End = new Position { Line = 1, Character = 14 }
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -161,17 +162,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 0, Character = 1 } // @[||]addTagHelper *
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -184,17 +185,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 3 } // <te[||]st1 />
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -207,10 +208,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1><test1></test1></test1>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 1 } // <[||]test1><test1></test1></test1>
@@ -229,9 +229,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                     End = new Position { Line = 1, Character = 29 }
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -245,10 +246,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body></body>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 3 } // <bo[||]dy></body>
@@ -267,9 +267,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                     End = new Position { Line = 1, Character = 12 }
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -283,10 +284,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body></body>";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 8 } // <body></[||]body>
@@ -305,9 +305,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                     End = new Position { Line = 1, Character = 12 }
                 }
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
@@ -321,17 +322,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body />";
             var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
-            var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
-            var languageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-            var endpoint = new LinkedEditingRangeEndpoint(documentContextFactory, languageServerFeatureOptions, LoggerFactory);
-            var request = new LinkedEditingRangeParamsBridge
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
+            var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
                 Position = new Position { Line = 1, Character = 3 } // <bo[||]dy />
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);

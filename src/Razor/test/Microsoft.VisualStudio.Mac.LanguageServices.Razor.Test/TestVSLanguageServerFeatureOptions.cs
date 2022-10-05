@@ -15,7 +15,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 #pragma warning restore CS0618 // Type or member is obsolete
 
         [Obsolete("Use static Instance member")]
-        public TestVSLanguageServerFeatureOptions() : base(Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict))
+        public TestVSLanguageServerFeatureOptions()
+            : base(Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict))
         {
         }
     }

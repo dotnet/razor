@@ -12,8 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CodeDirectiveOnTypeFormattingTest : FormattingTestBase
     {
-        public CodeDirectiveOnTypeFormattingTest(ITestOutputHelper output)
-            : base(output)
+        public CodeDirectiveOnTypeFormattingTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 

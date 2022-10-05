@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,10 +20,11 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DocumentPullDiagnosticsHandlerTest
+    public class DocumentPullDiagnosticsHandlerTest : TestBase
     {
         private static readonly Diagnostic s_validDiagnostic_UnknownName = new()
         {
@@ -98,18 +100,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         };
 
-        public DocumentPullDiagnosticsHandlerTest()
+        private readonly Uri _uri;
+        private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
+
+        public DocumentPullDiagnosticsHandlerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Uri = new Uri("C:/path/to/file.razor");
+            _uri = new Uri("C:/path/to/file.razor");
 
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
-            LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l => l.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
+            _loggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l => l.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
         }
-
-        private Uri Uri { get; }
-        private HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
-
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ClearsDiagnostics()
         {
@@ -118,15 +120,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
             var documentSynchronizer = Mock.Of<LSPDocumentSynchronizer>(MockBehavior.Strict);
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             var report = Assert.Single(result);
@@ -152,15 +155,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticsProvider = GetDiagnosticsProvider(s_validDiagnostic_UnknownName_MappedRange, s_validDiagnostic_InvalidExpression_MappedRange);
             var documentSynchronizer = CreateDocumentSynchronizer();
 
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -199,17 +203,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(It.IsAny<int>(), It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(false));
+                .ReturnsAsync(false);
 
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer.Object, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer.Object, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.False(called);
@@ -270,15 +275,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var documentSynchronizer = CreateDocumentSynchronizer();
 
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -335,15 +341,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticsProvider = GetDiagnosticsProvider(filteredDiagnostic_mappedRange);
             var documentSynchronizer = CreateDocumentSynchronizer();
 
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -372,15 +379,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticsProvider = GetDiagnosticsProvider(s_validDiagnostic_UnknownName_MappedRange, s_validDiagnostic_InvalidExpression_MappedRange);
             var documentSynchronizer = CreateDocumentSynchronizer();
 
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -407,15 +415,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticsProvider = GetDiagnosticsProvider();
             var documentSynchronizer = CreateDocumentSynchronizer();
 
-            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                TextDocument = new TextDocumentIdentifier() { Uri = _uri },
                 PreviousResultId = "4"
             };
 
             // Act
-            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(
+                diagnosticRequest, new ClientCapabilities(), DisposalToken);
 
             // Assert
             Assert.True(called);
@@ -447,12 +456,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private LSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
         {
             var testVirtualDocUri = new Uri("C:/path/to/file.razor.g.cs");
-            var testVirtualDocument = new TestVirtualDocumentSnapshot(Uri, hostDocumentVersion);
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(_uri, hostDocumentVersion);
             var csharpTextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
             var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testVirtualDocUri, csharpTextBuffer.CurrentSnapshot, hostDocumentVersion);
-            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(Uri, hostDocumentVersion, testVirtualDocument, csharpVirtualDocument);
+            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(_uri, hostDocumentVersion, testVirtualDocument, csharpVirtualDocument);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, documentSnapshot);
+            documentManager.AddDocument(_uri, documentSnapshot);
             return documentManager;
         }
 
@@ -468,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             diagnosticsProvider.Setup(d =>
                 d.TranslateAsync(
                     RazorLanguageKind.CSharp,
-                    Uri,
+                    _uri,
                     It.IsAny<Diagnostic[]>(),
                     It.IsAny<CancellationToken>()))
                 .Returns((RazorLanguageKind lang, Uri uri, Diagnostic[] diagnostics, CancellationToken ct) =>
@@ -533,7 +542,7 @@ d.Severity != DiagnosticSeverity.Error;
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(It.IsAny<int>(), It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(true));
+                .ReturnsAsync(true);
             return documentSynchronizer.Object;
         }
     }

@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             // we're able to find both the project and solution then we use the solution to look up the corresponding
             // Workspace using MonoDevelops TypeSystemService.
 
-            var hostProject = (DotNetProject)_projectService.GetHostProject(textBuffer);
+            var hostProject = (DotNetProject?)_projectService.GetHostProject(textBuffer);
             if (hostProject is null)
             {
                 // Does not have a host project.

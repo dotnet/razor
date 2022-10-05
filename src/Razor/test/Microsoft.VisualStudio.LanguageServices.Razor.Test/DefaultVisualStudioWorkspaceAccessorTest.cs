@@ -5,17 +5,24 @@
 
 using System;
 using System.Collections.ObjectModel;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class DefaultVisualStudioWorkspaceAccessorTest
+    public class DefaultVisualStudioWorkspaceAccessorTest : TestBase
     {
+        public DefaultVisualStudioWorkspaceAccessorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryGetWorkspace_CanGetWorkspaceFromProjectionBuffersOnly()
         {

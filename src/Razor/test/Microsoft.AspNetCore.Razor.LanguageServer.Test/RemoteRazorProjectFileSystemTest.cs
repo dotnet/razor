@@ -4,18 +4,21 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RemoteRazorProjectFileSystemTest
+    public class RemoteRazorProjectFileSystemTest : TestBase
     {
-        public RemoteRazorProjectFileSystemTest()
+        private readonly FilePathNormalizer FilePathNormalizer;
+
+        public RemoteRazorProjectFileSystemTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             FilePathNormalizer = new FilePathNormalizer();
         }
-
-        private FilePathNormalizer FilePathNormalizer { get; }
 
         [Fact]
         public void GetItem_RootlessFilePath()

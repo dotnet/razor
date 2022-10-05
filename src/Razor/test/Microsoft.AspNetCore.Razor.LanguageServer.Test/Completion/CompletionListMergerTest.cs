@@ -4,59 +4,55 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    public class CompletionListMergerTest
+    public class CompletionListMergerTest : TestBase
     {
-        public CompletionListMergerTest()
+        private readonly VSInternalCompletionItem _completionItem1;
+        private readonly VSInternalCompletionItem _completionItem2;
+        private readonly VSInternalCompletionItem _completionItem3;
+        private readonly VSInternalCompletionList _completionListWith1;
+        private readonly VSInternalCompletionList _completionListWith2;
+        private readonly VSInternalCompletionList _completionListWith13;
+
+        public CompletionListMergerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            var completionItem1 = new VSInternalCompletionItem()
+            _completionItem1 = new VSInternalCompletionItem()
             {
                 Label = "CompletionItem1"
             };
-            var completionItem2 = new VSInternalCompletionItem()
+
+            _completionItem2 = new VSInternalCompletionItem()
             {
                 Label = "CompletionItem2"
             };
-            var completionItem3 = new VSInternalCompletionItem()
+
+            _completionItem3 = new VSInternalCompletionItem()
             {
                 Label = "CompletionItem3"
             };
-            var completionListWith1 = new VSInternalCompletionList()
+
+            _completionListWith1 = new VSInternalCompletionList()
             {
-                Items = new[] { completionItem1 }
-            };
-            var completionListWith2 = new VSInternalCompletionList()
-            {
-                Items = new[] { completionItem2 }
-            };
-            var completionListWith13 = new VSInternalCompletionList()
-            {
-                Items = new[] { completionItem1, completionItem3 }
+                Items = new[] { _completionItem1 }
             };
 
-            CompletionItem1 = completionItem1;
-            CompletionItem2 = completionItem2;
-            CompletionItem3 = completionItem3;
-            CompletionListWith1 = completionListWith1;
-            CompletionListWith2 = completionListWith2;
-            CompletionListWith13 = completionListWith13;
+            _completionListWith2 = new VSInternalCompletionList()
+            {
+                Items = new[] { _completionItem2 }
+            };
+
+            _completionListWith13 = new VSInternalCompletionList()
+            {
+                Items = new[] { _completionItem1, _completionItem3 }
+            };
         }
-
-        private VSInternalCompletionItem CompletionItem1 { get; }
-
-        private VSInternalCompletionItem CompletionItem2 { get; }
-
-        private VSInternalCompletionItem CompletionItem3 { get; }
-
-        private VSInternalCompletionList CompletionListWith1 { get; }
-
-        private VSInternalCompletionList CompletionListWith2 { get; }
-
-        private VSInternalCompletionList CompletionListWith13 { get; }
 
         [Fact]
         public void Merge_FirstCompletionListNull_ReturnsSecond()
@@ -64,10 +60,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // Act
-            var merged = CompletionListMerger.Merge(razorCompletionList: null, CompletionListWith1);
+            var merged = CompletionListMerger.Merge(razorCompletionList: null, _completionListWith1);
 
             // Assert
-            Assert.Same(merged, CompletionListWith1);
+            Assert.Same(merged, _completionListWith1);
         }
 
         [Fact]
@@ -76,20 +72,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, delegatedCompletionList: null);
+            var merged = CompletionListMerger.Merge(_completionListWith1, delegatedCompletionList: null);
 
             // Assert
-            Assert.Same(merged, CompletionListWith1);
+            Assert.Same(merged, _completionListWith1);
         }
 
         [Fact]
         public void Merge_RepresentsAllItems()
         {
             // Arrange
-            var expected = new[] { CompletionItem1, CompletionItem2 };
+            var expected = new[] { _completionItem1, _completionItem2 };
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, CompletionListWith2);
+            var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
             // Assert
             AssertCompletionItemsEqual(expected, merged.Items);
@@ -99,11 +95,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void Merge_RepresentsIsIncompleteOfBothLists()
         {
             // Arrange
-            CompletionListWith1.IsIncomplete = false;
-            CompletionListWith2.IsIncomplete = true;
+            _completionListWith1.IsIncomplete = false;
+            _completionListWith2.IsIncomplete = true;
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, CompletionListWith2);
+            var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
             // Assert
             Assert.True(merged.IsIncomplete);
@@ -113,11 +109,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void Merge_RepresentsSuggestionModeOfBothLists()
         {
             // Arrange
-            CompletionListWith1.SuggestionMode = false;
-            CompletionListWith2.SuggestionMode = true;
+            _completionListWith1.SuggestionMode = false;
+            _completionListWith2.SuggestionMode = true;
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, CompletionListWith2);
+            var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
             // Assert
             Assert.True(merged.SuggestionMode);
@@ -128,10 +124,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var expectedCommitCharacters = new string[] { " " };
-            CompletionListWith1.CommitCharacters = expectedCommitCharacters;
+            _completionListWith1.CommitCharacters = expectedCommitCharacters;
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, CompletionListWith2);
+            var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
             // Assert
             Assert.Equal(expectedCommitCharacters, merged.CommitCharacters);
@@ -142,19 +138,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var lesserCommitCharacters = new string[] { " " };
-            CompletionListWith2.CommitCharacters = lesserCommitCharacters;
+            _completionListWith2.CommitCharacters = lesserCommitCharacters;
             var expectedCommitCharacters = new string[] { ".", ">" };
-            CompletionListWith13.CommitCharacters = expectedCommitCharacters;
+            _completionListWith13.CommitCharacters = expectedCommitCharacters;
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith2, CompletionListWith13);
+            var merged = CompletionListMerger.Merge(_completionListWith2, _completionListWith13);
 
             // Assert
             Assert.Equal(expectedCommitCharacters, merged.CommitCharacters);
 
             // Inherited commit characters got populated onto the non-chosen item.
-            Assert.Equal(CompletionItem2.VsCommitCharacters, lesserCommitCharacters);
-            Assert.Null(CompletionItem3.VsCommitCharacters);
+            Assert.Equal(_completionItem2.VsCommitCharacters, lesserCommitCharacters);
+            Assert.Null(_completionItem3.VsCommitCharacters);
         }
 
         [Fact]
@@ -162,15 +158,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var expectedData = new object();
-            CompletionListWith1.Data = expectedData;
+            _completionListWith1.Data = expectedData;
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, CompletionListWith2);
+            var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
             // Assert
             Assert.Same(expectedData, merged.Data);
-            Assert.NotNull(CompletionItem2.Data);
-            Assert.NotSame(expectedData, CompletionItem2.Data);
+            Assert.NotNull(_completionItem2.Data);
+            Assert.NotSame(expectedData, _completionItem2.Data);
         }
 
         [Fact]
@@ -178,12 +174,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var data1 = new object();
-            CompletionListWith1.Data = data1;
+            _completionListWith1.Data = data1;
             var data2 = new object();
-            CompletionListWith2.Data = data2;
+            _completionListWith2.Data = data2;
 
             // Act
-            var merged = CompletionListMerger.Merge(CompletionListWith1, CompletionListWith2);
+            var merged = CompletionListMerger.Merge(_completionListWith1, _completionListWith2);
 
             // Assert
             Assert.NotSame(data1, merged.Data);

@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -13,7 +10,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         private readonly EditorSettingsManager _editorSettingsManager;
         private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
-        private EventHandler<EditorSettingsChangedEventArgs> _changed;
+        private EventHandler<EditorSettingsChangedEventArgs>? _changed;
         private int _listenerCount = 0;
 
         public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager)
@@ -73,10 +70,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
         {
-            Debug.Assert(_changed != null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
+            Assumes.True(_changed is not null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
 
             var args = new EditorSettingsChangedEventArgs(Current);
-            _changed?.Invoke(this, args);
+            _changed.Invoke(this, args);
         }
     }
 }

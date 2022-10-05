@@ -21,8 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorProvideHtmlColorPresentationEndpoint = "razor/provideHtmlColorPresentation";
 
-        public const string RazorServerReadyEndpoint = "razor/serverReady";
-
         public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
 
         public const string RazorFoldingRangeEndpoint = "razor/foldingRange";
@@ -46,5 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public const string RazorImplementationEndpointName = "razor/implementation";
 
         public const string RazorOnAutoInsertEndpointName = "razor/onAutoInsert";
+
+        public const string RazorValidateBreakpointRangeName = "razor/validateBreakpointRange";
     }
 }

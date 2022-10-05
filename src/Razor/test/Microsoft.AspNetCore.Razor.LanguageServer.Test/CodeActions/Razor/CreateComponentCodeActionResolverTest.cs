@@ -16,12 +16,23 @@ using Microsoft.CodeAnalysis;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
     {
-        private readonly DocumentContextFactory _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null), MockBehavior.Strict);
+        private readonly DocumentContextFactory _emptyDocumentContextFactory;
+
+        public CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
+                r => r.TryCreateAsync(
+                    It.IsAny<Uri>(),
+                    It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
+                MockBehavior.Strict);
+        }
 
         [Fact]
         public async Task Handle_MissingFile()

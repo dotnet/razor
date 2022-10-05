@@ -5,19 +5,18 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(MessageInterceptor))]
-    [InterceptMethod(WorkspaceNames.SemanticTokensRefresh)]
+    [InterceptMethod(Methods.WorkspaceSemanticTokensRefreshName)]
     [ContentType(RazorLSPConstants.CSharpContentTypeName)]
     internal class RazorCSharpSemanticTokensInterceptor : MessageInterceptor
     {
@@ -45,6 +44,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 cancellationToken).ConfigureAwait(false);
 
             return InterceptionResult.NoChange;
+        }
+
+        // A basic POCO which will handle the lack of data in the response.
+        private class Unit
+        {
+
         }
     }
 }

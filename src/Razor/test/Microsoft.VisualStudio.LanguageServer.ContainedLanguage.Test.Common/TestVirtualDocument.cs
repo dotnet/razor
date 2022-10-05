@@ -8,10 +8,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common
 {
     internal class TestVirtualDocument : VirtualDocumentBase<TestVirtualDocumentSnapshot>
     {
-        public TestVirtualDocument(Uri uri, ITextBuffer textBuffer) : base(uri, textBuffer)
+        public TestVirtualDocument(Uri uri, ITextBuffer textBuffer)
+            : base(uri, textBuffer)
         {
         }
 
-        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot(object state) => new(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot, state);
+        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot, state);
     }
 }

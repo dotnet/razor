@@ -19,14 +19,15 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 {
@@ -34,8 +35,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
     public class RenameEndpointTest : LanguageServerTestBase
     {
         private readonly RenameEndpoint _endpoint;
+        private DocumentContextFactory _documentContextFactory;
 
-        public RenameEndpointTest()
+        public RenameEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             _endpoint = CreateEndpoint();
         }
@@ -46,18 +49,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             // Arrange
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == false, MockBehavior.Strict);
             var endpoint = CreateEndpoint(languageServerFeatureOptions);
+            var uri = new Uri("file:///c:/First/Component1.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/First/Component1.razor")
+                    Uri = uri,
                 },
                 Position = new Position(2, 1),
                 NewName = "Component5"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -67,18 +73,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_WithNamespaceDirective()
         {
             // Arrange
+            var uri = new Uri("file:///c:/First/Component1.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/First/Component1.razor")
+                    Uri = uri,
                 },
                 Position = new Position(2, 1),
                 NewName = "Component5"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -115,18 +124,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentParameter_ReturnsNull()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Second/ComponentWithParam.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 14),
                 NewName = "Test2"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -136,18 +148,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnOpeningBrace_ReturnsNull()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Second/ComponentWithParam.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 0),
                 NewName = "Test2"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -157,18 +172,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentNameLeadingEdge_ReturnsResult()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Second/ComponentWithParam.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 1),
                 NewName = "Test2"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -178,18 +196,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentName_ReturnsResult()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Second/ComponentWithParam.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 3),
                 NewName = "Test2"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -199,18 +220,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_OnComponentNameTrailingEdge_ReturnsResult()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Second/ComponentWithParam.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 10),
                 NewName = "Test2"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -220,18 +244,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_FullyQualifiedAndNot()
         {
             // Arrange
+            var uri = new Uri("file:///c:/First/Index.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/First/Index.razor")
+                    Uri = uri,
                 },
                 Position = new Position(2, 1),
                 NewName = "Component5"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -290,18 +317,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_MultipleFileUsages()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Second/Component3.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/Component3.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 1),
                 NewName = "Component5"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -341,18 +371,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         public async Task Handle_Rename_DifferentDirectories()
         {
             // Arrange
+            var uri = new Uri("file:///c:/Dir1/Directory1.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Dir1/Directory1.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 1),
                 NewName = "TestComponent"
             };
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await _endpoint.Handle(request, CancellationToken.None);
+            var result = await _endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -391,23 +424,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
 
             var delegatedEdit = new WorkspaceEdit();
-            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturnsMock
-                .Setup(l => l.Returning<WorkspaceEdit>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(delegatedEdit));
 
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServerMock
-                .Setup(c => c.SendRequestAsync<IDelegatedParams>(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>()))
-                .Returns(Task.FromResult(responseRouterReturnsMock.Object));
+                .Setup(c => c.SendRequestAsync<IDelegatedParams, WorkspaceEdit>(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(delegatedEdit);
 
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingServiceMock
                 .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
-                .Returns(Protocol.RazorLanguageKind.CSharp);
+                .Returns(RazorLanguageKind.CSharp);
             documentMappingServiceMock
                 .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(delegatedEdit));
+                .ReturnsAsync(delegatedEdit);
 
             var projectedPosition = new Position(1, 1);
             var projectedIndex = 1;
@@ -415,18 +444,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
 
+            var uri = new Uri("file:///c:/Second/ComponentWithParam.razor");
             var request = new RenameParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                    Uri = uri,
                 },
                 Position = new Position(1, 0),
                 NewName = "Test2"
             };
 
+            var documentContext = await GetDocumentContextAsync(uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Same(delegatedEdit, result);
@@ -437,7 +470,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         {
             // Arrange
             var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
-            var responseRouterReturnsMock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             documentMappingServiceMock
@@ -456,11 +488,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 NewName = "Test2"
             };
 
+            var documentContext = await GetDocumentContextAsync(request.TextDocument.Uri);
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
+        }
+
+        private Task<DocumentContext> GetDocumentContextAsync(Uri file)
+        {
+            return _documentContextFactory.TryCreateAsync(file, DisposalToken);
         }
 
         private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)
@@ -555,6 +595,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var directory1Component = CreateRazorDocumentContext(projectEngine, itemDirectory1, "Test.Components", tagHelperDescriptors);
             var directory2Component = CreateRazorDocumentContext(projectEngine, itemDirectory2, "Test.Components", tagHelperDescriptors);
 
+            _documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
+                d.TryCreateAsync(new Uri("c:/First/Component1.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component1) &&
+                d.TryCreateAsync(new Uri("c:/First/Component2.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component2) &&
+                d.TryCreateAsync(new Uri("c:/Second/Component3.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component3) &&
+                d.TryCreateAsync(new Uri("c:/Second/Component4.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component4) &&
+                d.TryCreateAsync(new Uri("c:/Second/ComponentWithParam.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(componentWithParam) &&
+                d.TryCreateAsync(new Uri(index.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(index) &&
+                d.TryCreateAsync(new Uri(component1337.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(component1337) &&
+                d.TryCreateAsync(new Uri(itemDirectory1.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory1Component) &&
+                d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory2Component), MockBehavior.Strict);
+
             var firstProject = Mock.Of<ProjectSnapshot>(p =>
                 p.FilePath == "c:/First/First.csproj" &&
                 p.DocumentFilePaths == new[] { "c:/First/Component1.razor", "c:/First/Component2.razor", itemDirectory1.FilePath, itemDirectory2.FilePath, component1337.FilePath } &&
@@ -577,7 +628,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
 
-            var documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
+            _documentContextFactory = Mock.Of<DocumentContextFactory>(d =>
                 d.TryCreateAsync(new Uri("c:/First/Component1.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component1) &&
                 d.TryCreateAsync(new Uri("c:/First/Component2.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component2) &&
                 d.TryCreateAsync(new Uri("c:/Second/Component3.razor"), It.IsAny<CancellationToken>()) == Task.FromResult(component3) &&
@@ -599,7 +650,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             languageServer ??= Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
-            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, documentContextFactory, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);
+            var endpoint = new RenameEndpoint(
+                projectSnapshotManagerDispatcher,
+                _documentContextFactory,
+                searchEngine,
+                projectSnapshotManagerAccessor,
+                languageServerFeatureOptions,
+                documentMappingService,
+                languageServer,
+                LoggerFactory);
+
             return endpoint;
         }
     }

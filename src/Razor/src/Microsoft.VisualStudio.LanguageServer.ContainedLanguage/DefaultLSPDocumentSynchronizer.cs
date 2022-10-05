@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -99,13 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        public override void Changed(LSPDocumentSnapshot old, LSPDocumentSnapshot @new, VirtualDocumentSnapshot virtualOld, VirtualDocumentSnapshot virtualNew, LSPDocumentChangeKind kind)
+        public override void Changed(LSPDocumentSnapshot? old, LSPDocumentSnapshot? @new, VirtualDocumentSnapshot? virtualOld, VirtualDocumentSnapshot? virtualNew, LSPDocumentChangeKind kind)
         {
             lock (_documentContextLock)
             {
                 if (kind == LSPDocumentChangeKind.Added)
                 {
-                    var lspDocument = @new;
+                    var lspDocument = @new!;
                     for (var i = 0; i < lspDocument.VirtualDocuments.Count; i++)
                     {
                         var virtualDocument = lspDocument.VirtualDocuments[i];
@@ -119,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 }
                 else if (kind == LSPDocumentChangeKind.Removed)
                 {
-                    var lspDocument = old;
+                    var lspDocument = old!;
                     for (var i = 0; i < lspDocument.VirtualDocuments.Count; i++)
                     {
                         var virtualDocument = lspDocument.VirtualDocuments[i];
@@ -139,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 }
                 else if (kind == LSPDocumentChangeKind.VirtualDocumentChanged)
                 {
-                    if (virtualOld.Snapshot.Version == virtualNew.Snapshot.Version)
+                    if (virtualOld!.Snapshot.Version == virtualNew!.Snapshot.Version)
                     {
                         // UpdateDocumentContextVersionInternal is typically invoked through a buffer notification,
                         //   however in the case where VirtualDocumentBase.Update is called with a zero change edit,

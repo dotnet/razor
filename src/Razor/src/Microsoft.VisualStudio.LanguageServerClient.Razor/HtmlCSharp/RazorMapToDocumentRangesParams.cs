@@ -1,34 +1,38 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
+    [DataContract]
     internal class RazorMapToDocumentRangesParams : IEquatable<RazorMapToDocumentRangesParams>
     {
-        public RazorLanguageKind Kind { get; set; }
+        [DataMember(Name = "kind")]
+        public RazorLanguageKind Kind { get; init; }
 
-        public Uri RazorDocumentUri { get; set; }
+        [DataMember(Name = "razorDocumentUri")]
+        public required Uri RazorDocumentUri { get; init; }
 
-        public Range[] ProjectedRanges { get; set; }
+        [DataMember(Name = "projectedRanges")]
+        public required Range[] ProjectedRanges { get; init; }
 
-        public LanguageServerMappingBehavior MappingBehavior { get; set; }
+        [DataMember(Name = "mappingBehavior")]
+        public LanguageServerMappingBehavior MappingBehavior { get; init; }
 
-        public bool Equals(RazorMapToDocumentRangesParams other)
+        public bool Equals(RazorMapToDocumentRangesParams? other)
         {
             return
                 other is not null &&
                 Kind == other.Kind &&
                 RazorDocumentUri == other.RazorDocumentUri &&
                 MappingBehavior == other.MappingBehavior &&
-                Enumerable.SequenceEqual(ProjectedRanges, other.ProjectedRanges);
+                ProjectedRanges.SequenceEqual(other.ProjectedRanges);
         }
 
         public override bool Equals(object obj)

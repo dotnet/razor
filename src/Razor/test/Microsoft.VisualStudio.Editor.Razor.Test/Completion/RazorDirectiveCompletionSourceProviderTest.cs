@@ -13,16 +13,29 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
     public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        private IContentType RazorContentType { get; } = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType), MockBehavior.Strict);
+        private readonly IContentType _razorContentType;
+        private readonly IContentType _nonRazorContentType;
+        private readonly RazorCompletionFactsService _completionFactsService;
 
-        private IContentType NonRazorContentType { get; } = Mock.Of<IContentType>(c => c.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
+        public RazorDirectiveCompletionSourceProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _razorContentType = Mock.Of<IContentType>(
+                c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType),
+                MockBehavior.Strict);
 
-        private RazorCompletionFactsService CompletionFactsService { get; } = Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict);
+            _nonRazorContentType = Mock.Of<IContentType>(
+                c => c.IsOfType(It.IsAny<string>()) == false,
+                MockBehavior.Strict);
+
+            _completionFactsService = Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict);
+        }
 
         [Fact]
         public void CreateCompletionSource_ReturnsNullIfParserHasNotBeenAssocitedWithRazorBuffer()
@@ -31,8 +44,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var expectedParser = Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
             var properties = new PropertyCollection();
             properties.AddProperty(typeof(VisualStudioRazorParser), expectedParser);
-            var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == RazorContentType && buffer.Properties == properties, MockBehavior.Strict);
-            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(CompletionFactsService);
+            var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == _razorContentType && buffer.Properties == properties, MockBehavior.Strict);
+            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
 
             // Act
             var completionSource = completionSourceProvider.CreateCompletionSource(razorBuffer);
@@ -46,8 +59,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         public void CreateCompletionSource_CreatesACompletionSourceWithTextBuffersParser()
         {
             // Arrange
-            var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == RazorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
-            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(CompletionFactsService);
+            var razorBuffer = Mock.Of<ITextBuffer>(buffer => buffer.ContentType == _razorContentType && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
+            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
 
             // Act
             var completionSource = completionSourceProvider.CreateCompletionSource(razorBuffer);
@@ -60,8 +73,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         public void GetOrCreate_ReturnsNullIfRazorBufferHasNotBeenAssociatedWithTextView()
         {
             // Arrange
-            var textView = CreateTextView(NonRazorContentType, new PropertyCollection());
-            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(CompletionFactsService);
+            var textView = CreateTextView(_nonRazorContentType, new PropertyCollection());
+            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
 
             // Act
             var completionSource = completionSourceProvider.GetOrCreate(textView);
@@ -77,8 +90,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var expectedParser = Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict);
             var properties = new PropertyCollection();
             properties.AddProperty(typeof(VisualStudioRazorParser), expectedParser);
-            var textView = CreateTextView(RazorContentType, properties);
-            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(CompletionFactsService);
+            var textView = CreateTextView(_razorContentType, properties);
+            var completionSourceProvider = new RazorDirectiveCompletionSourceProvider(_completionFactsService);
 
             // Act
             var completionSource1 = completionSourceProvider.GetOrCreate(textView);

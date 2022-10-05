@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -17,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor
     internal sealed class DefaultDynamicDocumentContainer : DynamicDocumentContainer
     {
         private readonly DocumentSnapshot _documentSnapshot;
-        private RazorDocumentExcerptService _excerptService;
-        private RazorSpanMappingService _mappingService;
+        private RazorDocumentExcerptService? _excerptService;
+        private RazorSpanMappingService? _mappingService;
 
         public DefaultDynamicDocumentContainer(DocumentSnapshot documentSnapshot)
         {
@@ -49,15 +47,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override IRazorSpanMappingService GetMappingService()
         {
-            if (_mappingService is null)
-            {
-                _mappingService = new RazorSpanMappingService(_documentSnapshot);
-            }
+            _mappingService ??= new RazorSpanMappingService(_documentSnapshot);
 
             return _mappingService;
         }
 
-        public override IRazorDocumentPropertiesService GetDocumentPropertiesService()
+        public override IRazorDocumentPropertiesService? GetDocumentPropertiesService()
         {
             // DocumentPropertiesServices are used to tell Roslyn to provide C# diagnostics for LSP provided documents to be shown
             // in the editor given a specific Language Server Client. Given this type is a container for DocumentSnapshots, we don't

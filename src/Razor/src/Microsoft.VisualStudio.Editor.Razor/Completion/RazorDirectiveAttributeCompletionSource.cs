@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,12 +25,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
     {
         // Internal for testing
-        internal static readonly object DescriptionKey = new object();
+        internal static readonly object DescriptionKey = new();
 
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        private static readonly Guid s_imageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement s_directiveAttributeImageGlyph = new ImageElement(
+        private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly ImageElement s_directiveAttributeImageGlyph = new(
             new ImageId(s_imageCatalogGuid, 3564), // KnownImageIds.Type = 3564
             "Razor Directive Attribute.");
         private static readonly ImmutableArray<CompletionFilter> s_directiveAttributeCompletionFilters = new[] {
@@ -118,7 +116,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                     // Legacy completion is also active, we need to dismiss it.
 
-                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+                    await _joinableTaskFactory.SwitchToMainThreadAsync(token);
 
                     activeSession.Dismiss();
                 }

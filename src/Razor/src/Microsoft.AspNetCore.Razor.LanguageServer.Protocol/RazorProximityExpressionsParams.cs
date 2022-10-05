@@ -1,16 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-internal abstract class RazorProximityExpressionsParams
+internal class RazorProximityExpressionsParams
 {
-    public Uri Uri { get; set; }
+    public required Uri Uri { get; init; }
 
-    public Position Position { get; set; }
+    public required Position Position { get; init; }
 }

@@ -5,12 +5,19 @@
 
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class EmptyTextLoaderTest
+    public class EmptyTextLoaderTest : TestBase
     {
+        public EmptyTextLoaderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         // See https://github.com/dotnet/aspnetcore/issues/7997
         [Fact]
         public async Task LoadAsync_SpecifiesEncoding()

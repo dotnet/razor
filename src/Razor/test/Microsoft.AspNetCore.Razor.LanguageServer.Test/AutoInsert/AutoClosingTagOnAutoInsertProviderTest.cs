@@ -7,11 +7,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     public class AutoClosingTagOnAutoInsertProviderTest : RazorOnAutoInsertProviderTestBase
     {
+        public AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         private RazorLSPOptions Options { get; set; } = RazorLSPOptions.Default;
 
         private static TagHelperDescriptor CatchAllTagHelper

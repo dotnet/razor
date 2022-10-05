@@ -33,15 +33,15 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
     private readonly RazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
-    private readonly ILogger _logger;
+
+    public bool MutatesSolutionState => false;
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
         DocumentContextFactory documentContextFactory,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
-        AdhocWorkspaceFactory adhocWorkspaceFactory,
-        ILoggerFactory loggerFactory)
+        AdhocWorkspaceFactory adhocWorkspaceFactory)
     {
         if (documentContextFactory is null)
         {
@@ -63,19 +63,13 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
         }
 
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
         _documentContextFactory = documentContextFactory;
         _documentMappingService = documentMappingService;
         _languageServer = languageServer;
         _adhocWorkspaceFactory = adhocWorkspaceFactory;
-        _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
     }
 
-    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
 
@@ -87,14 +81,19 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    public async Task<VSInternalInlineCompletionList?> Handle(VSInternalInlineCompletionRequestBridge request, CancellationToken cancellationToken)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    {
+        return request.TextDocument;
+    }
+
+    public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (request is null)
         {
             throw new ArgumentNullException(nameof(request));
         }
 
-        _logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
+        requestContext.Logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
 
         var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
@@ -118,7 +117,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         if (languageKind != RazorLanguageKind.CSharp ||
             !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
         {
-            _logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
+            requestContext.Logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
             return null;
         }
 
@@ -132,11 +131,13 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         };
 
         request.Position = projectedPosition;
-        var response = await _languageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint, razorRequest).ConfigureAwait(false);
-        var list = await response.Returning<VSInternalInlineCompletionList>(cancellationToken).ConfigureAwait(false);
-        if (list == null || !list.Items.Any())
+        var list = await _languageServer.SendRequestAsync<RazorInlineCompletionRequest, VSInternalInlineCompletionList?>(
+            RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint,
+            razorRequest,
+            cancellationToken).ConfigureAwait(false);
+        if (list is null || !list.Items.Any())
         {
-            _logger.LogInformation("Did not get any inline completions from delegation.");
+            requestContext.Logger.LogInformation("Did not get any inline completions from delegation.");
             return null;
         }
 
@@ -148,7 +149,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var rangeInRazorDoc))
             {
-                _logger.LogWarning("Could not remap projected range {range} to razor document", range);
+                requestContext.Logger.LogWarning("Could not remap projected range {range} to razor document", range);
                 continue;
             }
 
@@ -170,11 +171,11 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         if (items.Count == 0)
         {
-            _logger.LogInformation("Could not format / map the items from delegation.");
+            requestContext.Logger.LogInformation("Could not format / map the items from delegation.");
             return null;
         }
 
-        _logger.LogInformation("Returning {itemsCount} items.", items.Count);
+        requestContext.Logger.LogInformation("Returning {itemsCount} items.", items.Count);
         return new VSInternalInlineCompletionList
         {
             Items = items.ToArray()

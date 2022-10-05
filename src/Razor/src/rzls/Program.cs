@@ -44,12 +44,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            var server = await RazorLanguageServer.CreateAsync(
+            var server = RazorLanguageServerWrapper.Create(
                 Console.OpenStandardInput(),
                 Console.OpenStandardOutput(),
                 trace);
-            await server.InitializedAsync(CancellationToken.None);
-            await server.WaitForExit;
+            await server.WaitForExitAsync();
         }
     }
 }

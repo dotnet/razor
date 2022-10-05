@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -29,20 +27,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             }
 
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
-            if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveAttributeCommitManager), out IAsyncCompletionCommitManager completionSource) ||
+            if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveAttributeCommitManager), out IAsyncCompletionCommitManager? completionSource) ||
                 completionSource is null)
             {
-                completionSource = CreateCommitManager();
+                completionSource = new RazorDirectiveAttributeCommitManager();
                 razorBuffer.Properties.AddProperty(typeof(RazorDirectiveAttributeCommitManager), completionSource);
             }
 
-            return completionSource;
-        }
-
-        // Internal for testing
-        internal IAsyncCompletionCommitManager CreateCommitManager()
-        {
-            var completionSource = new RazorDirectiveAttributeCommitManager();
             return completionSource;
         }
     }

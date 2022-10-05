@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
-
             _textSnapshot = textSnapshot;
             _documentSnapshot = documentSnapshot;
         }
@@ -90,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         internal static ImmutableArray<RazorMappedSpanResult> GetMappedSpanResults(
             string localFilePath,
             SourceText sourceTextRazor,
-            RazorMapToDocumentRangesResponse mappedResult)
+            RazorMapToDocumentRangesResponse? mappedResult)
         {
             var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
 

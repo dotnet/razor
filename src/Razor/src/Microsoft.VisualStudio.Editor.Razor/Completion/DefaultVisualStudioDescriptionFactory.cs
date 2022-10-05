@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -17,38 +15,19 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     internal class DefaultVisualStudioDescriptionFactory : VisualStudioDescriptionFactory
     {
         // Internal for testing
-        internal static readonly ContainerElement SeparatorElement = new ContainerElement(
+        internal static readonly ContainerElement SeparatorElement = new(
             ContainerElementStyle.Wrapped,
             new ClassifiedTextElement(
                 new ClassifiedTextRun(PredefinedClassificationNames.Comment, "------------")));
 
-        private static readonly IReadOnlyDictionary<string, string> s_keywordTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            [typeof(byte).FullName] = "byte",
-            [typeof(sbyte).FullName] = "sbyte",
-            [typeof(int).FullName] = "int",
-            [typeof(uint).FullName] = "uint",
-            [typeof(short).FullName] = "short",
-            [typeof(ushort).FullName] = "ushort",
-            [typeof(long).FullName] = "long",
-            [typeof(ulong).FullName] = "ulong",
-            [typeof(float).FullName] = "float",
-            [typeof(double).FullName] = "double",
-            [typeof(char).FullName] = "char",
-            [typeof(bool).FullName] = "bool",
-            [typeof(object).FullName] = "object",
-            [typeof(string).FullName] = "string",
-            [typeof(decimal).FullName] = "decimal",
-        };
-
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        private static readonly Guid s_imageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement s_propertyGlyph = new ImageElement(
+        private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly ImageElement s_propertyGlyph = new(
             new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
             "Razor Attribute Glyph");
-        private static readonly ClassifiedTextRun s_spaceLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, " ");
-        private static readonly ClassifiedTextRun s_dotLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, ".");
+        private static readonly ClassifiedTextRun s_spaceLiteral = new(PredefinedClassificationNames.Literal, " ");
+        private static readonly ClassifiedTextRun s_dotLiteral = new(PredefinedClassificationNames.Literal, ".");
 
         public override ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription)
         {
