@@ -37,8 +37,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool SingleServerSupport => false;
 
-        public override bool RegisterBuiltInFeatures => true;
-
         private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
     }
