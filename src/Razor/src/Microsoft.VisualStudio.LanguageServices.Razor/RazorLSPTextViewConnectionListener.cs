@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         private static void InitializeRazorTextViewOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
         {
-            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } }; ;
+            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } };
             if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
             {
                 return;
@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var insertSpaces = true;
             var tabSize = 4;
 
-            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } }; ;
+            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorVisualStudioWindowsConstants.RazorLanguageServiceGuid } };
             if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
             {
                 return new EditorSettings(indentWithTabs: !insertSpaces, tabSize);

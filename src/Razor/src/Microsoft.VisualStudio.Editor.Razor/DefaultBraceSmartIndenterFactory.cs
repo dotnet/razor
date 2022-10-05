@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _joinableTaskContext.AssertUIThread();
 
-            var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _codeDocumentProvider, _editorOperationsFactory); ;
+            var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _codeDocumentProvider, _editorOperationsFactory);
             return braceSmartIndenter;
         }
     }
