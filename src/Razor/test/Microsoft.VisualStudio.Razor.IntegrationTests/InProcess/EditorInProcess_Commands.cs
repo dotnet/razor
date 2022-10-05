@@ -28,21 +28,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
         }
 
-        public async Task GoToImplementationAsync(CancellationToken cancellationToken)
-        {
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.GoToImplementation, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(
-                FeatureAttribute.Workspace,
-                cancellationToken);
-        }
-
-        public async Task InvokeGoToImplementationAsync(CancellationToken cancellationToken)
-        {
-            var commandGuid = typeof(VSStd97CmdID).GUID;
-            var commandId = VSStd97CmdID.GotoDecl;
-            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
-        }
-
         public async Task CloseDocumentWindowAsync(CancellationToken cancellationToken)
         {
             var commandGuid = typeof(VSStd97CmdID).GUID;

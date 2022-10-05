@@ -94,10 +94,3 @@ using Microsoft.VisualStudio.Shell;
     OldVersionLowerBound = "2.0.0.0",
     OldVersionUpperBound = "2.0.0.0",
     NewVersion = "6.0.0.0")]
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.VisualStudio.LanguageServer.Protocol",
-    GenerateCodeBase = true,
-    PublicKeyToken = "adb9793829ddae60",
-    OldVersionLowerBound = "17.4.1004.0",
-    OldVersionUpperBound = "17.4.1008.0",
-    NewVersion = "17.4.1008.0")]
