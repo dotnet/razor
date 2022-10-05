@@ -6,7 +6,6 @@
 import { EventEmitter } from 'events';
 import * as vscode from 'vscode';
 import {
-    GenericRequestHandler,
     RequestHandler,
     RequestType,
 } from 'vscode-jsonrpc';
@@ -148,14 +147,6 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         }
 
         return this.client.sendRequest<TResponseType>(method, param);
-    }
-
-    public onRequest<TResponse, TError>(method: string, handler: GenericRequestHandler<TResponse, TError>) {
-        if (!this.isStarted) {
-            throw new Error('Tried to bind on request logic while server is not started.');
-        }
-
-        this.client.onRequest(method, handler);
     }
 
     public async onRequestWithParams<P, R, E>(method: RequestType<P, R, E>, handler: RequestHandler<P, R, E>) {
