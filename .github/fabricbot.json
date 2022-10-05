@@ -246,74 +246,8 @@
             {
               "name": "addedToMilestone",
               "parameters": {
-                "milestoneName": "17.4-Preview3 CC:~9/29"
+                "milestoneName": "17.5 P1"
               }
-            },
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToUser",
-                  "parameters": {
-                    "user": "DustinCampbell"
-                  }
-                }
-              ]
-            },
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToUser",
-                  "parameters": {
-                    "user": "allisonchou"
-                  }
-                }
-              ]
-            },
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToUser",
-                  "parameters": {
-                    "user": "ryzngard"
-                  }
-                }
-              ]
-            },
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToUser",
-                  "parameters": {
-                    "user": "davidwengier"
-                  }
-                }
-              ]
-            },
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToUser",
-                  "parameters": {
-                    "user": "ryanbrandenburg"
-                  }
-                }
-              ]
-            },
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToUser",
-                  "parameters": {
-                    "user": "arkalyanms"
-                  }
-                }
-              ]
             }
           ]
         },
@@ -326,7 +260,7 @@
           {
             "name": "addToProject",
             "parameters": {
-              "projectName": "17.4 Current Sprint",
+              "projectName": "17.5 Preview 1",
               "columnName": "To do"
             }
           }
@@ -397,7 +331,7 @@
             {
               "name": "removedFromMilestone",
               "parameters": {
-                "milestoneName": "17.4-Preview3 CC:~9/29"
+                "milestoneName": "17.5 P1"
               }
             }
           ]
@@ -412,7 +346,7 @@
           {
             "name": "removeFromProject",
             "parameters": {
-              "projectName": "17.4 Current Sprint"
+              "projectName": "17.5 Preview 1"
             }
           }
         ]
@@ -1666,302 +1600,6 @@
           "operator": "and",
           "operands": [
             {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "arkalyanms"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "addedToMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                },
-                {
-                  "name": "isInMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Arun)",
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "projectName": "17.4 Current Sprint",
-              "columnName": "Arun"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "allisonchou"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "addedToMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                },
-                {
-                  "name": "isInMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Allison)",
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "projectName": "17.4 Current Sprint",
-              "columnName": "Allison"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "ryzngard"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "addedToMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                },
-                {
-                  "name": "isInMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "projectName": "17.4 Current Sprint",
-              "columnName": "Andrew"
-            }
-          }
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Andrew)"
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "davidwengier"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "addedToMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                },
-                {
-                  "name": "isInMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (David)",
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "projectName": "17.4 Current Sprint",
-              "columnName": "David"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "ryanbrandenburg"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "addedToMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                },
-                {
-                  "name": "isInMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Ryan)",
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "projectName": "17.4 Current Sprint",
-              "columnName": "Ryan"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "addedToMilestone",
-              "parameters": {
-                "milestoneName": "17.4-Preview3 CC:~9/29"
-              }
-            },
-            {
-              "name": "hasLabel",
-              "parameters": {
-                "label": "blocked"
-              }
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Move blocked issues to blocked project column",
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "groupId": "",
-              "projectName": "17.4 Current Sprint",
-              "columnName": "Blocked"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
               "name": "hasLabel",
               "parameters": {
                 "label": "vs-insertion"
@@ -1985,58 +1623,6 @@
           {
             "name": "closeIssue",
             "parameters": {}
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "DustinCampbell"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "addedToMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                },
-                {
-                  "name": "isInMilestone",
-                  "parameters": {
-                    "milestoneName": "17.4-Preview3 CC:~9/29"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Dustin)",
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "isOrgProject": false,
-              "projectName": "17.4 Current Sprint",
-              "columnName": "Dustin"
-            }
           }
         ]
       }
