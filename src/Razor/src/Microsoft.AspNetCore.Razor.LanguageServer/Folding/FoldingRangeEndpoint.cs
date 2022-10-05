@@ -48,11 +48,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
-
             const string AssociatedServerCapability = "foldingRangeProvider";
 
             var registrationOptions = new SumType<bool, FoldingRangeOptions>(new FoldingRangeOptions());

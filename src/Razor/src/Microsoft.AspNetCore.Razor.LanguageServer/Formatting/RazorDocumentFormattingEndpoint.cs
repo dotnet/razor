@@ -50,11 +50,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
-
             const string ServerCapability = "documentFormattingProvider";
 
             return new RegistrationExtensionResult(ServerCapability, new SumType<bool, DocumentFormattingOptions>(new DocumentFormattingOptions()));

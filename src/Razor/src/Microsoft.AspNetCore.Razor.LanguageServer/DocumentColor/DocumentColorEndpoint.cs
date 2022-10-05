@@ -14,9 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
     internal class DocumentColorEndpoint : IDocumentColorEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer, LanguageServerFeatureOptions languageServerFeatureOptions)
+        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
         {
             if (languageServer is null)
             {
@@ -24,18 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
             }
 
             _languageServer = languageServer;
-            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         public bool MutatesSolutionState => false;
 
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
-
             const string ServerCapabilities = "colorProvider";
             var options = new SumType<bool, DocumentColorOptions>(new DocumentColorOptions());
 

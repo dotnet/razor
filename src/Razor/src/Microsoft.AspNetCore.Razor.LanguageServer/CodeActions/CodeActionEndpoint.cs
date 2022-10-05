@@ -95,12 +95,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             _supportsCodeActionResolve = clientCapabilities.TextDocument?.CodeAction?.ResolveSupport != null;
-
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
-
             const string ServerCapability = "codeActionProvider";
 
             var options = new CodeActionOptions
