@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -18,11 +16,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public abstract event EventHandler<ContextChangeEventArgs> ContextChanged;
 
-        public abstract RazorConfiguration Configuration { get; }
+        public abstract RazorConfiguration? Configuration { get; }
 
         public abstract EditorSettings EditorSettings { get; }
 
-        public abstract IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+        public abstract IReadOnlyList<TagHelperDescriptor>? TagHelpers { get; }
 
         public abstract bool IsSupportedProject { get; }
 
@@ -30,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract string ProjectPath { get; }
 
-        internal abstract ProjectSnapshot ProjectSnapshot { get; }
+        internal abstract ProjectSnapshot? ProjectSnapshot { get; }
 
         public abstract Workspace Workspace { get; }
 
@@ -38,6 +36,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract IReadOnlyList<ITextView> TextViews { get; }
 
-        public abstract ITextView GetFocusedTextView();
+        public abstract ITextView? GetFocusedTextView();
     }
 }

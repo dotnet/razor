@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -23,10 +21,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly FileChangeTracker _fileTracker;
         private readonly SnapshotChangeTracker _snapshotTracker;
-        private readonly EventHandler _changedOnDisk;
-        private readonly EventHandler _changedInEditor;
-        private readonly EventHandler _opened;
-        private readonly EventHandler _closed;
+        private readonly EventHandler? _changedOnDisk;
+        private readonly EventHandler? _changedInEditor;
+        private readonly EventHandler? _opened;
+        private readonly EventHandler? _closed;
 
         private bool _disposed;
 
@@ -38,11 +36,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             string documentFilePath,
             TextLoader textLoader,
             FileChangeTracker fileTracker,
-            ITextBuffer textBuffer,
-            EventHandler changedOnDisk,
-            EventHandler changedInEditor,
-            EventHandler opened,
-            EventHandler closed)
+            ITextBuffer? textBuffer,
+            EventHandler? changedOnDisk,
+            EventHandler? changedInEditor,
+            EventHandler? opened,
+            EventHandler? closed)
         {
             if (documentManager is null)
             {
@@ -98,7 +96,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             if (textBuffer is null)
             {
                 _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    () => _fileTracker.StartListening(), CancellationToken.None).ConfigureAwait(false);
+                    _fileTracker.StartListening, CancellationToken.None).ConfigureAwait(false);
             }
             else
             {
@@ -116,9 +114,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public bool IsOpenInEditor => EditorTextBuffer != null;
 
-        public SourceTextContainer EditorTextContainer { get; private set; }
+        public SourceTextContainer? EditorTextContainer { get; private set; }
 
-        public ITextBuffer EditorTextBuffer { get; private set; }
+        public ITextBuffer? EditorTextBuffer { get; private set; }
 
         public TextLoader TextLoader { get; }
 
@@ -130,7 +128,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _fileTracker.StopListening(), CancellationToken.None).ConfigureAwait(false);
+                _fileTracker.StopListening, CancellationToken.None).ConfigureAwait(false);
 
             _snapshotTracker.StartTracking(textBuffer);
             EditorTextBuffer = textBuffer;
@@ -146,12 +144,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             _snapshotTracker.StopTracking(EditorTextBuffer);
 
-            EditorTextContainer.TextChanged -= TextContainer_Changed;
+            EditorTextContainer!.TextChanged -= TextContainer_Changed;
             EditorTextContainer = null;
             EditorTextBuffer = null;
 
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _fileTracker.StartListening(), CancellationToken.None);
+                _fileTracker.StartListening, CancellationToken.None);
         }
 
         private void ChangeTracker_Changed(object sender, FileChangeEventArgs e)
@@ -176,15 +174,15 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 _fileTracker.Changed -= ChangeTracker_Changed;
 
                 _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    () => _fileTracker.StopListening(), CancellationToken.None);
+                    _fileTracker.StopListening, CancellationToken.None);
 
-                if (EditorTextBuffer != null)
+                if (EditorTextBuffer is not null)
                 {
                     _snapshotTracker.StopTracking(EditorTextBuffer);
                     EditorTextBuffer = null;
                 }
 
-                if (EditorTextContainer != null)
+                if (EditorTextContainer is not null)
                 {
                     EditorTextContainer.TextChanged -= TextContainer_Changed;
                     EditorTextContainer = null;

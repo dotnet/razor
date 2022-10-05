@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var service = new DefaultRazorIndentationFactsService();
 
             // Act
-            var indentLevel = service.GetIndentLevelOfLine(text, 4);
+            var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
 
             // Assert
             Assert.Equal(8, indentLevel);
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var service = new DefaultRazorIndentationFactsService();
 
             // Act
-            var indentLevel = service.GetIndentLevelOfLine(text, 4);
+            var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
 
             // Assert
             Assert.Equal(3, indentLevel);
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var service = new DefaultRazorIndentationFactsService();
 
             // Act
-            var indentLevel = service.GetIndentLevelOfLine(text, 4);
+            var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
 
             // Assert
             Assert.Equal(11, indentLevel);
@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var service = new DefaultRazorIndentationFactsService();
 
             // Act
-            var indentLevel = service.GetIndentLevelOfLine(text, 4);
+            var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
 
             // Assert
             Assert.Equal(0, indentLevel);

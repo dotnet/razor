@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ErrorReporter _errorReporter;
         private readonly Dictionary<string, ImportTracker> _importTrackerCache;
 
-        public override event EventHandler<ImportChangedEventArgs> Changed;
+        public override event EventHandler<ImportChangedEventArgs>? Changed;
 
         public DefaultImportDocumentManager(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -61,7 +59,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             foreach (var import in imports)
             {
                 var importFilePath = import.PhysicalPath;
-                Debug.Assert(importFilePath != null);
+                Debug.Assert(importFilePath is not null);
+
+                if (importFilePath is null)
+                    continue;
 
                 if (!_importTrackerCache.TryGetValue(importFilePath, out var importTracker))
                 {
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             foreach (var import in imports)
             {
                 var importFilePath = import.PhysicalPath;
-                Debug.Assert(importFilePath != null);
+                Assumes.NotNull(importFilePath);
 
                 if (_importTrackerCache.TryGetValue(importFilePath, out var importTracker))
                 {
@@ -107,15 +108,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        private IEnumerable<RazorProjectItem> GetImportItems(VisualStudioDocumentTracker tracker)
+        private static IEnumerable<RazorProjectItem> GetImportItems(VisualStudioDocumentTracker tracker)
         {
-            var projectEngine = tracker.ProjectSnapshot.GetProjectEngine();
+            var projectEngine = tracker.ProjectSnapshot!.GetProjectEngine();
             var documentSnapshot = tracker.ProjectSnapshot.GetDocument(tracker.FilePath);
             var fileKind = documentSnapshot?.FileKind;
             var trackerItem = projectEngine.FileSystem.GetItem(tracker.FilePath, fileKind);
             var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
             var importItems = importFeatures.SelectMany(f => f.GetImports(trackerItem));
-            var physicalImports = importItems.Where(import => import.FilePath != null);
+            var physicalImports = importItems.Where(import => import.FilePath is not null);
 
             return physicalImports;
         }

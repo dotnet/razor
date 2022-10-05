@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Text.Operations;
@@ -50,8 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _joinableTaskContext.AssertUIThread();
 
-            var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _codeDocumentProvider, _editorOperationsFactory);
-
+            var braceSmartIndenter = new BraceSmartIndenter(_joinableTaskContext, documentTracker, _codeDocumentProvider, _editorOperationsFactory); ;
             return braceSmartIndenter;
         }
     }

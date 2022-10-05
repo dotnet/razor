@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
@@ -13,10 +11,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     // Since we're interacting with the workspace in the same way, we're doing the same thing.
     internal class SnapshotChangeTracker
     {
-        private ITextBuffer _textBuffer;
-        private ITextSnapshot _snapshot;
+        private ITextBuffer? _textBuffer;
+        private ITextSnapshot? _snapshot;
 
-        public void StartTracking(ITextBuffer buffer)
+        public void StartTracking(ITextBuffer? buffer)
         {
             // buffer has changed. stop tracking old buffer
             if (_textBuffer is not null && buffer != _textBuffer)
@@ -37,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public void StopTracking(ITextBuffer buffer)
+        public void StopTracking(ITextBuffer? buffer)
         {
             if (_textBuffer == buffer && buffer is not null && _snapshot is not null)
             {

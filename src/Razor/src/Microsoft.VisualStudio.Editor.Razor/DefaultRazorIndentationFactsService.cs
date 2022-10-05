@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor.Language;
@@ -76,7 +74,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             int? desiredIndentation = null;
-            while (owner.Parent != null)
+            while (owner.Parent is not null)
             {
                 var children = owner.Parent.ChildNodes();
                 for (var i = 0; i < children.Count; i++)
@@ -107,7 +105,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-        internal int GetIndentLevelOfLine(string line, int tabSize)
+        internal static int GetIndentLevelOfLine(string line, int tabSize)
         {
             var indentLevel = 0;
 
