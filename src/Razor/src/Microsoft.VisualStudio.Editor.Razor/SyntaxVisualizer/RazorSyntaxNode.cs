@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
     /// </summary>
     internal class RazorSyntaxNode : IEnumerable<RazorSyntaxNode>
     {
-        private SyntaxNode _node;
+        private readonly SyntaxNode _node;
 
         public int SpanStart => _node.SpanStart;
 

@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 {
                     lock (_lock)
                     {
-                        if (_spanMappingService is null)
-                        {
-                            _spanMappingService = _documentContainer.GetMappingService();
-                        }
+                        _spanMappingService ??= _documentContainer.GetMappingService();
                     }
                 }
 
@@ -61,10 +58,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 {
                     lock (_lock)
                     {
-                        if (_documentExcerptService is null)
-                        {
-                            _documentExcerptService = _documentContainer.GetExcerptService();
-                        }
+                        _documentExcerptService ??= _documentContainer.GetExcerptService();
                     }
                 }
 
@@ -77,10 +71,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 {
                     lock (_lock)
                     {
-                        if (_documentPropertiesService is null)
-                        {
-                            _documentPropertiesService = _documentContainer.GetDocumentPropertiesService();
-                        }
+                        _documentPropertiesService ??= _documentContainer.GetDocumentPropertiesService();
                     }
                 }
 

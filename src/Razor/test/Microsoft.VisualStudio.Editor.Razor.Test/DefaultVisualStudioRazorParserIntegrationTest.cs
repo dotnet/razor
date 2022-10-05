@@ -717,7 +717,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public async Task WaitForReparseAsync()
             {
-                Assert.True(_parser._idleTimer != null);
+                Assert.True(_parser._idleTimer is not null);
 
                 // Allow background idle work to continue
                 _parser.BlockBackgroundIdleWork.Set();

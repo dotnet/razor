@@ -10,11 +10,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultProjectPathProvider : ProjectPathProvider
     {
         private readonly TextBufferProjectService _projectService;
-        private readonly LiveShareProjectPathProvider _liveShareProjectPathProvider;
+        private readonly LiveShareProjectPathProvider? _liveShareProjectPathProvider;
 
         public DefaultProjectPathProvider(
             TextBufferProjectService projectService,
-            LiveShareProjectPathProvider liveShareProjectPathProvider)
+            LiveShareProjectPathProvider? liveShareProjectPathProvider)
         {
             if (projectService is null)
             {
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            if (_liveShareProjectPathProvider != null &&
+            if (_liveShareProjectPathProvider is not null &&
                 _liveShareProjectPathProvider.TryGetProjectPath(textBuffer, out filePath))
             {
                 return true;
