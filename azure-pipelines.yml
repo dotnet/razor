@@ -107,7 +107,7 @@ stages:
         enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
       jobs:
       - job: Windows
-        timeoutInMinutes: 120
+        timeoutInMinutes: 30
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore-Public

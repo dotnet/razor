@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var projectEngine = ProjectEngine;
             var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
             var projectItem = projectEngine.FileSystem.GetItem(hostDocument.TargetPath, hostDocument.FileKind);
-            Environment.FailFast("stop here");
+            Debug.Assert(false);
             var importItems = importFeatures.SelectMany(f => f.GetImports(projectItem)).Where(i => i.FilePath != null);
 
             // Target path looks like `Foo\\Bar.cshtml`
