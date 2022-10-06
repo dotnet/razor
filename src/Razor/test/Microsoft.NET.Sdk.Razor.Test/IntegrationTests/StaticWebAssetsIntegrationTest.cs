@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         [InitializeTestProject("AppWithPackageAndP2PReference", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
         public async Task Publish_WithBuildReferencesDisabled_CopiesStaticWebAssetsToDestinationFolder()
         {
-            var build = await DotnetMSBuild("Build", "/restore");
+            var build = await DotnetMSBuild("Build", "/restore", suppressTimeout: true);
 
             Assert.BuildPassed(build);
 
