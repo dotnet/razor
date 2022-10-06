@@ -55,10 +55,10 @@ stages:
           pool:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
               name: NetCore-Svc-Public
-              demands: ImageOverride -equals Build.Server.Amd64.VS2019.Open
+              demands: ImageOverride -equals 1es-windows-2019-open
             ${{ if ne(variables['System.TeamProject'], 'public') }}:
               name: NetCore1ESPool-Svc-Internal
-              demands: ImageOverride -equals Build.Server.Amd64.VS2019
+              demands: ImageOverride -equals 1es-windows-2019
           steps:
           - task: NodeTool@0
             displayName: Install Node 10.x
@@ -88,7 +88,7 @@ stages:
           image: centos:7
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
-          vmImage: ubuntu-18.04
+          vmImage: ubuntu-20.04
         variables:
         - LC_ALL: 'en_US.UTF-8'
         - LANG: 'en_US.UTF-8'
@@ -157,10 +157,10 @@ stages:
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore-Svc-Public
-            demands: ImageOverride -equals Build.Server.Amd64.VS2019.Open
+            demands: ImageOverride -equals 1es-windows-2019-open
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Svc-Internal
-            demands: ImageOverride -equals Build.Server.Amd64.VS2019
+            demands: ImageOverride -equals 1es-windows-2019
         strategy:
           matrix:
             debug:
@@ -312,7 +312,7 @@ stages:
           image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-14.04-cross-0cd4667-20170319080304
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
-          vmImage: ubuntu-18.04
+          vmImage: ubuntu-20.04
         variables:
         - LC_ALL: 'en_US.UTF-8'
         - LANG: 'en_US.UTF-8'
