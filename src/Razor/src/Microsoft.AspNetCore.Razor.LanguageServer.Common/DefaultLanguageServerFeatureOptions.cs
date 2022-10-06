@@ -19,7 +19,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public override bool SingleServerCompletionSupport => false;
 
         public override bool SingleServerSupport => false;
-
-        public override bool RegisterBuiltInFeatures => false;
     }
 }
