@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -20,28 +21,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
     internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>, ITextDocumentUriPresentationHandler
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
+        private readonly DocumentResolver _documentResolver;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ILogger _logger;
 
         public TextDocumentUriPresentationEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService razorDocumentMappingService,
             RazorComponentSearchEngine razorComponentSearchEngine,
             ClientNotifierServiceBase languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions,
+            DocumentResolver documentResolver,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ILoggerFactory loggerFactory)
             : base(razorDocumentMappingService,
                  languageServer,
                  languageServerFeatureOptions)
         {
-            if (razorComponentSearchEngine is null)
-            {
-                throw new ArgumentNullException(nameof(razorComponentSearchEngine));
-            }
+            _razorComponentSearchEngine = razorComponentSearchEngine ?? throw new ArgumentNullException(nameof(razorComponentSearchEngine));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
 
-            _documentContextFactory = documentContextFactory;
-            _razorComponentSearchEngine = razorComponentSearchEngine;
             _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
         }
 
@@ -131,8 +131,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
         {
             _logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                if (_documentResolver.TryResolveDocument(uri.GetAbsoluteOrUNCPath(), out var documentSnapshot))
+                {
+                    return documentSnapshot;
+                }
+
+                return null;
+            }, cancellationToken).ConfigureAwait(false);
+
+            if (documentSnapshot is null)
             {
                 _logger.LogInformation("Failed to find document for component {uri}.", uri);
                 return null;
@@ -140,7 +149,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
+            var descriptor = await _razorComponentSearchEngine.TryGetTagHelperDescriptorAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
             if (descriptor is null)
             {
                 _logger.LogInformation("Failed to find tag helper descriptor.");
