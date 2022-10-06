@@ -14,9 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
     internal class DocumentColorEndpoint : IDocumentColorEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer, LanguageServerFeatureOptions languageServerFeatureOptions)
+        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
         {
             if (languageServer is null)
             {
@@ -24,26 +23,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
             }
 
             _languageServer = languageServer;
-            _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        {
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
+        public bool MutatesSolutionState => false;
 
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
             const string ServerCapabilities = "colorProvider";
-            var options = new DocumentColorOptions();
+            var options = new SumType<bool, DocumentColorOptions>(new DocumentColorOptions());
 
             return new RegistrationExtensionResult(ServerCapabilities, options);
         }
 
-        public async Task<ColorInformation[]> Handle(DocumentColorParamsBridge request, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
         {
-            var delegatedRequest = await _languageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint, request).ConfigureAwait(false);
-            var documentColors = await delegatedRequest.Returning<ColorInformation[]>(cancellationToken).ConfigureAwait(false);
+            return request.TextDocument;
+        }
+
+        public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentColors = await _languageServer.SendRequestAsync<DocumentColorParams, ColorInformation[]>(
+                RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint,
+                request,
+                cancellationToken).ConfigureAwait(false);
 
             if (documentColors is null)
             {
@@ -51,7 +53,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
             }
 
             // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
-
             return documentColors;
         }
     }

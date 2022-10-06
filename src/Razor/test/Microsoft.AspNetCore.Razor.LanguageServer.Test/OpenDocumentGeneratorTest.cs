@@ -13,28 +13,28 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class OpenDocumentGeneratorTest : LanguageServerTestBase
     {
-        public OpenDocumentGeneratorTest()
+        private readonly HostDocument[] _documents;
+        private readonly HostProject _hostProject1;
+        private readonly HostProject _hostProject2;
+
+        public OpenDocumentGeneratorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Documents = new HostDocument[]
+            _documents = new HostDocument[]
             {
                 new HostDocument("c:/Test1/Index.cshtml", "Index.cshtml"),
                 new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
             };
 
-            HostProject1 = new HostProject("c:/Test1/Test1.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            HostProject2 = new HostProject("c:/Test2/Test2.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            _hostProject1 = new HostProject("c:/Test1/Test1.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            _hostProject2 = new HostProject("c:/Test2/Test2.csproj", RazorConfiguration.Default, "TestRootNamespace");
         }
-
-        private HostDocument[] Documents { get; }
-
-        private HostProject HostProject1 { get; }
-
-        private HostProject HostProject2 { get; }
 
         [Fact]
         public async Task DocumentAdded_IgnoresClosedDocument()
@@ -46,15 +46,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
                 projectManager.AllowNotifyListeners = true;
 
                 queue.Initialize(projectManager);
 
                 // Act
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
-            }, CancellationToken.None);
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+            }, DisposalToken);
 
             // Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() => listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromMilliseconds(50)));
@@ -70,16 +70,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
                 projectManager.AllowNotifyListeners = true;
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
 
                 queue.Initialize(projectManager);
 
                 // Act
-                projectManager.DocumentChanged(HostProject1.FilePath, Documents[0].FilePath, SourceText.From("new"));
-            }, CancellationToken.None);
+                projectManager.DocumentChanged(_hostProject1.FilePath, _documents[0].FilePath, SourceText.From("new"));
+            }, DisposalToken);
 
             // Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() => listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromMilliseconds(50)));
@@ -95,22 +95,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
                 projectManager.AllowNotifyListeners = true;
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
-                projectManager.DocumentOpened(HostProject1.FilePath, Documents[0].FilePath, SourceText.From(string.Empty));
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+                projectManager.DocumentOpened(_hostProject1.FilePath, _documents[0].FilePath, SourceText.From(string.Empty));
 
                 queue.Initialize(projectManager);
 
                 // Act
-                projectManager.DocumentChanged(HostProject1.FilePath, Documents[0].FilePath, SourceText.From("new"));
-            }, CancellationToken.None);
+                projectManager.DocumentChanged(_hostProject1.FilePath, _documents[0].FilePath, SourceText.From("new"));
+            }, DisposalToken);
 
             // Assert
 
             var document = await listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromSeconds(10));
-            Assert.Equal(document.FilePath, Documents[0].FilePath);
+            Assert.Equal(document.FilePath, _documents[0].FilePath);
         }
 
         [Fact]
@@ -123,16 +123,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
                 projectManager.AllowNotifyListeners = true;
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
 
                 queue.Initialize(projectManager);
 
                 // Act
-                projectManager.ProjectWorkspaceStateChanged(HostProject1.FilePath, new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp8));
-            }, CancellationToken.None);
+                projectManager.ProjectWorkspaceStateChanged(_hostProject1.FilePath, new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp8));
+            }, DisposalToken);
 
             // Assert
             await Assert.ThrowsAsync<TaskCanceledException>(() => listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromMilliseconds(50)));
@@ -148,22 +148,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                projectManager.ProjectAdded(HostProject1);
-                projectManager.ProjectAdded(HostProject2);
+                projectManager.ProjectAdded(_hostProject1);
+                projectManager.ProjectAdded(_hostProject2);
                 projectManager.AllowNotifyListeners = true;
-                projectManager.DocumentAdded(HostProject1, Documents[0], null);
-                projectManager.DocumentOpened(HostProject1.FilePath, Documents[0].FilePath, SourceText.From(string.Empty));
+                projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+                projectManager.DocumentOpened(_hostProject1.FilePath, _documents[0].FilePath, SourceText.From(string.Empty));
 
                 queue.Initialize(projectManager);
 
                 // Act
-                projectManager.ProjectWorkspaceStateChanged(HostProject1.FilePath, new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp8));
-            }, CancellationToken.None);
+                projectManager.ProjectWorkspaceStateChanged(_hostProject1.FilePath, new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp8));
+            }, DisposalToken);
 
             // Assert
 
             var document = await listener.GetProcessedDocumentAsync(cancelAfter: TimeSpan.FromSeconds(10));
-            Assert.Equal(document.FilePath, Documents[0].FilePath);
+            Assert.Equal(document.FilePath, _documents[0].FilePath);
         }
 
         private class TestOpenDocumentGenerator : OpenDocumentGenerator

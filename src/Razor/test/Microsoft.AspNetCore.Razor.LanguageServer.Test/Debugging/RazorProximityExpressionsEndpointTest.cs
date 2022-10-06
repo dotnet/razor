@@ -5,22 +5,27 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 {
     public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
     {
-        public RazorProximityExpressionsEndpointTest()
-        {
-            MappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-        }
+        private readonly RazorDocumentMappingService _mappingService;
 
-        private RazorDocumentMappingService MappingService { get; }
+        public RazorProximityExpressionsEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _mappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance,
+                new TestDocumentContextFactory(),
+                LoggerFactory);
+        }
 
         [Fact]
         public async Task Handle_UnsupportedDocument_ReturnsNull()
@@ -29,18 +34,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p>@DateTime.Now</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParamsBridge()
+            var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
+            var request = new RazorProximityExpressionsParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0),
             };
             codeDocument.SetUnsupported();
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);
@@ -53,17 +59,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var endpoint = new RazorProximityExpressionsEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParamsBridge()
+            var endpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
+            var request = new RazorProximityExpressionsParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 8),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => endpoint.Handle(request, default));
+            var response = await endpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Contains("abc", response!.Expressions);
@@ -77,17 +84,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var endpoint = new RazorProximityExpressionsEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParamsBridge()
+            var endpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
+            var request = new RazorProximityExpressionsParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => endpoint.Handle(request, default));
+            var response = await endpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Contains("abc", response!.Expressions);
@@ -101,17 +109,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
             var documentPath = new Uri("C:/path/to/document.cshtml");
             var codeDocument = CreateCodeDocument(@"
 <p></p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParamsBridge()
+            var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
+            var request = new RazorProximityExpressionsParams()
             {
                 Uri = documentPath,
                 Position = new Position(1, 0),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);
@@ -127,17 +136,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Debugging
 
     var abc = 123;
 }</p>");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
-            var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(documentContextFactory, MappingService, LoggerFactory);
-            var request = new RazorProximityExpressionsParamsBridge()
+            var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
+            var request = new RazorProximityExpressionsParams()
             {
                 Uri = documentPath,
                 Position = new Position(0, 0),
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+            var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(response);

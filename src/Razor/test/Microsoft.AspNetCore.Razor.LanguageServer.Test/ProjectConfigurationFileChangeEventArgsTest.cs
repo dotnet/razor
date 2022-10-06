@@ -10,11 +10,17 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class ProjectConfigurationFileChangeEventArgsTest
+    public class ProjectConfigurationFileChangeEventArgsTest : TestBase
     {
+        public ProjectConfigurationFileChangeEventArgsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryDeserialize_RemovedKind_ReturnsFalse()
         {

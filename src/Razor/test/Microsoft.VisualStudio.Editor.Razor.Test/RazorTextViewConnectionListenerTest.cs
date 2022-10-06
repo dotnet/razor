@@ -9,11 +9,17 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class RazorTextViewConnectionListenerTest : ProjectSnapshotManagerDispatcherTestBase
     {
+        public RazorTextViewConnectionListenerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [UIFact]
         public void SubjectBuffersConnected_CallsRazorDocumentManager_OnTextViewOpened()
         {

@@ -4,12 +4,19 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    public class AddUsingsCodeActionProviderFactoryTest
+    public class AddUsingsCodeActionProviderFactoryTest : TestBase
     {
+        public AddUsingsCodeActionProviderFactoryTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetNamespaceFromFQN_Invalid_ReturnsEmpty()
         {

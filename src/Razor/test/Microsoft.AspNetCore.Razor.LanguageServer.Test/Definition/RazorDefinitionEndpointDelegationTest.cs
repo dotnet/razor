@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable disable
@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
@@ -26,16 +27,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     public class RazorDefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
     {
+        public RazorDefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_SingleServer_CSharp_Method()
         {
             var input = """
                 <div></div>
-
                 @{
                     var x = Ge$$tX();
                 }
-
                 @functions
                 {
                     void [|GetX|]()
@@ -52,15 +56,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         {
             var input = """
                 <div></div>
-
                 @{
                     var x = GetX();
                 }
-
                 @functions
                 {
                     private string [|_name|];
-
                     string GetX()
                     {
                         return _na$$me;
@@ -76,7 +77,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         {
             var input = """
                 <div></div>
-
                 @functions
                 {
                     private stri$$ng _name;
@@ -130,10 +130,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
 
-            var endpoint = new RazorDefinitionEndpoint(DocumentContextFactory, searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, TestLoggerFactory.Instance);
+            var razorUri = new Uri(razorFilePath);
+            var documentContext = await DocumentContextFactory.TryCreateAsync(razorUri, DisposalToken);
+            var requestContext = CreateRazorRequestContext(documentContext);
+
+            var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new DefinitionParamsBridge
+            var request = new TextDocumentPositionParamsBridge
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -142,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 Position = new Position(line, offset)
             };
 
-            return await endpoint.Handle(request, CancellationToken.None);
+            return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
         }
     }
 }

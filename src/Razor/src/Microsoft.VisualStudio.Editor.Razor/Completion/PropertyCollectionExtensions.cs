@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Utilities;
 
@@ -12,7 +11,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
     internal static class PropertyCollectionExtensions
     {
-        public static object CompletionItemKindsKey = new object();
+        public static object CompletionItemKindsKey = new();
 
         public static void SetCompletionItemKinds(this PropertyCollection properties, ICollection<RazorCompletionItemKind> completionItemKinds)
         {
@@ -29,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             properties[CompletionItemKindsKey] = completionItemKinds;
         }
 
-        public static bool TryGetCompletionItemKinds(this PropertyCollection properties, out ICollection<RazorCompletionItemKind> completionItemKinds)
+        public static bool TryGetCompletionItemKinds(this PropertyCollection properties, [NotNullWhen(returnValue: true)] out ICollection<RazorCompletionItemKind>? completionItemKinds)
         {
             if (properties is null)
             {

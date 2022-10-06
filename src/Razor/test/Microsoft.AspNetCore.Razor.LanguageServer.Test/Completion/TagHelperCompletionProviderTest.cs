@@ -11,57 +11,28 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
-using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     {
-        protected static ILanguageServer LanguageServer
+        public TagHelperCompletionProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            get
-            {
-                var initializeParams = new InitializeParams
-                {
-                    Capabilities = new ClientCapabilities
-                    {
-                        TextDocument = new TextDocumentClientCapabilities
-                        {
-                            Completion = new Supports<CompletionCapability>
-                            {
-                                Value = new CompletionCapability
-                                {
-                                    CompletionItem = new CompletionItemCapabilityOptions
-                                    {
-                                        SnippetSupport = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var languageServer = new Mock<ILanguageServer>(MockBehavior.Strict);
-                languageServer.SetupGet(server => server.ClientSettings)
-                    .Returns(initializeParams);
-
-                return languageServer.Object;
-            }
         }
 
         [Fact]
         public void GetNearestAncestorTagInfo_MarkupElement()
         {
             // Arrange
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <p><$$strong></strong></p>
-                                                       """, isRazorFile: false);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <p><$$strong></strong></p>
+                """,
+                isRazorFile: false);
             var element = context.Owner.FirstAncestorOrSelf<MarkupElementSyntax>();
             var service = new DefaultTagHelperFactsService();
 
@@ -77,10 +48,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetNearestAncestorTagInfo_TagHelperElement()
         {
             // Arrange
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test1><$$test2></test2></test1>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test1><$$test2></test2></test1>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
             var element = context.Owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
             var service = new DefaultTagHelperFactsService();
 
@@ -97,10 +71,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <$$
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <$$
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -117,10 +94,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <br $$/>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <br $$/>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -134,10 +114,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       </t$$
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                </t$$
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -152,10 +135,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <br$$ />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <br$$ />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -171,10 +157,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test1$$ />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test1$$ />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -189,10 +178,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test1 $$/>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test1 $$/>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -220,10 +212,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var options = new RazorCompletionOptions(SnippetsSupported: true);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test1 $$/>
-                                                       """, isRazorFile: false, options, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test1 $$/>
+                """,
+                isRazorFile: false,
+                options,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -252,10 +248,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <title $$ mutator />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <title $$ mutator />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -276,12 +275,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2>
-                                                           <$$
-                                                       </test2>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2>
+                    <$$
+                </test2>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -304,12 +306,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test1>
-                                                           <$$
-                                                       </test1>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test1>
+                    <$$
+                </test1>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -336,10 +341,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 $$/>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 $$/>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -376,10 +384,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attribute.AsDictionary("bool-val-", typeof(bool).FullName);
             });
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test $$/>
-                                                       """, isRazorFile: false, tagHelpers: tagHelper.Build());
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test $$/>
+                """,
+                isRazorFile: false,
+                tagHelpers: tagHelper.Build());
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -416,10 +427,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attribute.AsDictionary("int-val-", typeof(int).FullName);
             });
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test $$/>
-                                                       """, isRazorFile: false, tagHelpers: tagHelper.Build());
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test $$/>
+                """,
+                isRazorFile: false,
+                tagHelpers: tagHelper.Build());
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -446,10 +460,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 bo$$o />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 bo$$o />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -463,10 +480,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 un$$bound />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 un$$bound />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -480,10 +500,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 bo$$ol-val />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 bo$$ol-val />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -497,10 +520,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 cl$$ass='' />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 cl$$ass='' />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -514,10 +540,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 in$$t-val='123' />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 in$$t-val='123' />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -532,10 +561,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 int$$ />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 int$$ />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -550,10 +582,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 in$$t-val='>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 in$$t-val='>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -567,10 +602,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 $$int->
-                                                       """ , isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 $$int->
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -584,10 +622,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 class='$$' />
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 class='$$' />
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -601,10 +642,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2   $$     class=''>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2   $$     class=''>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -619,10 +663,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <test2 int-$$val=''>
-                                                       """, options: new(SnippetsSupported: true), isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <test2 int-$$val=''>
+                """,
+                isRazorFile: false,
+                options: new(SnippetsSupported: true),
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -647,10 +695,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <tes$$DF></tesDF>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <tes$$DF></tesDF>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);
@@ -664,10 +715,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var context = CreateRazorCompletionContext("""
-                                                       @addTagHelper *, TestAssembly
-                                                       <tesDF$$></tesDF>
-                                                       """, isRazorFile: false, tagHelpers: DefaultTagHelpers);
+            var context = CreateRazorCompletionContext(
+                """
+                @addTagHelper *, TestAssembly
+                <tesDF$$></tesDF>
+                """,
+                isRazorFile: false,
+                tagHelpers: DefaultTagHelpers);
 
             // Act
             var completions = service.GetCompletionItems(context);

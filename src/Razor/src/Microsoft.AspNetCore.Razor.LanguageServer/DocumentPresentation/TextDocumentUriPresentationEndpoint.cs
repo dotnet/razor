@@ -20,7 +20,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
 {
     internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresentationEndpointBase<UriPresentationParams>, ITextDocumentUriPresentationHandler
     {
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorComponentSearchEngine _razorComponentSearchEngine;
+        private readonly ILogger _logger;
 
         public TextDocumentUriPresentationEndpoint(
             DocumentContextFactory documentContextFactory,
@@ -29,27 +31,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
             ClientNotifierServiceBase languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory,
-                 razorDocumentMappingService,
+            : base(razorDocumentMappingService,
                  languageServer,
-                 languageServerFeatureOptions,
-                 loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>())
+                 languageServerFeatureOptions)
         {
             if (razorComponentSearchEngine is null)
             {
                 throw new ArgumentNullException(nameof(razorComponentSearchEngine));
             }
 
+            _documentContextFactory = documentContextFactory;
             _razorComponentSearchEngine = razorComponentSearchEngine;
+            _logger = loggerFactory.CreateLogger<TextDocumentUriPresentationEndpoint>();
         }
 
         public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint;
 
-        public override RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public override RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "_vs_uriPresentationProvider";
 
             return new RegistrationExtensionResult(AssociatedServerCapability, options: true);
+        }
+
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(UriPresentationParams request)
+        {
+            return request.TextDocument;
         }
 
         protected override IRazorPresentationParams CreateRazorRequestParameters(UriPresentationParams request)

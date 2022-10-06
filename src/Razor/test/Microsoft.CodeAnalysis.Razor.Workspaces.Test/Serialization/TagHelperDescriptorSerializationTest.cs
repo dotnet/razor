@@ -8,15 +8,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class TagHelperDescriptorSerializationTest
+    public class TagHelperDescriptorSerializationTest : TestBase
     {
+        public TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TagHelperDescriptor_DefaultBlazorServerProject_RoundTrips()
         {

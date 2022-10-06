@@ -2,12 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
-using OmniSharp.Extensions.JsonRpc;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-[Parallel, Method(ColorPresentationEndpoint.ColorPresentationMethodName)]
-internal interface IColorPresentationEndpoint : IJsonRpcRequestHandler<ColorPresentationParamsBridge, ColorPresentation.ColorPresentation[]>,
-    IRegistrationExtension
+[LanguageServerEndpoint(ColorPresentationEndpoint.ColorPresentationMethodName)]
+internal interface IColorPresentationEndpoint : IRazorRequestHandler<ColorPresentationParams, ColorPresentation.ColorPresentation[]>
 {
 }

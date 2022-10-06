@@ -12,24 +12,39 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
-        private readonly DocumentContextFactory _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null), MockBehavior.Strict);
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
-        private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly ClientNotifierServiceBase _languageServer;
+
+        public CodeActionEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _documentMappingService = Mock.Of<RazorDocumentMappingService>(
+                s => s.TryMapToProjectedDocumentRange(
+                    It.IsAny<RazorCodeDocument>(),
+                    It.IsAny<Range>(),
+                    out It.Ref<Range>.IsAny) == false,
+                MockBehavior.Strict);
+
+            _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
+                l => l.SupportsFileManipulation == true,
+                MockBehavior.Strict);
+
+            _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        }
 
         [Fact]
         public async Task Handle_NoDocument()
@@ -40,21 +55,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
-                _emptyDocumentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new CodeActionContext()
             };
 
+            var requestContext = CreateRazorRequestContext(documentContext: null);
+
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(commandOrCodeActionContainer);
@@ -66,27 +82,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             codeDocument.SetUnsupported();
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(commandOrCodeActionContainer);
@@ -98,26 +114,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(commandOrCodeActionContainer);
@@ -129,29 +145,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Single(commandOrCodeActionContainer);
@@ -163,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var documentMappingService = CreateDocumentMappingService();
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
@@ -172,22 +188,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
-                documentContextFactory,
                 languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Single(commandOrCodeActionContainer);
@@ -199,29 +215,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockMultipleRazorCodeActionProvider(),
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(2, commandOrCodeActionContainer.Count());
@@ -233,7 +249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var documentMappingService = CreateDocumentMappingService();
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
@@ -247,22 +263,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
-                documentContextFactory,
                 languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(7, commandOrCodeActionContainer.Count());
@@ -274,7 +290,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var documentMappingService = CreateDocumentMappingService();
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
@@ -288,22 +304,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
-                documentContextFactory,
                 languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(5, commandOrCodeActionContainer.Count());
@@ -315,29 +331,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Null(commandOrCodeActionContainer);
@@ -349,7 +365,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var documentMappingService = CreateDocumentMappingService();
             var languageServer = CreateLanguageServer();
             var codeActionEndpoint = new CodeActionEndpoint(
@@ -364,22 +380,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
-                documentContextFactory,
                 languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Equal(4, commandOrCodeActionContainer.Count());
@@ -391,7 +407,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
@@ -400,22 +416,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = true
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Collection(commandOrCodeActionContainer,
@@ -437,7 +453,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
@@ -446,22 +462,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
 
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = new Range { Start = new Position(0, 1), End = new Position(0, 1) },
                 Context = new VSInternalCodeActionContext()
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+            var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
             // Assert
             Assert.Collection(commandOrCodeActionContainer,
@@ -482,14 +498,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -498,7 +513,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
             var selectionRange = new Range { Start = new Position(0, 5), End = new Position(0, 5) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
@@ -509,7 +524,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             // Act
-            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
+            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Assert
             Assert.NotNull(razorCodeActionContext);
@@ -522,14 +537,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
                 _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -537,7 +551,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
@@ -548,7 +562,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             // Act
-            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
+            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Assert
             Assert.NotNull(razorCodeActionContext);
@@ -561,7 +575,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             Range projectedRange = null;
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
                 d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == false
@@ -572,7 +586,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
-                documentContextFactory,
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -580,14 +593,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
                 Context = new VSInternalCodeActionContext()
             };
 
-            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
+            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Act
             var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(context, default);
@@ -603,7 +616,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = new Uri("C:/path/to/Page.razor");
             var codeDocument = CreateCodeDocument("@code {}");
-            var documentContextFactory = CreateDocumentContextFactory(documentPath, codeDocument);
+            var documentContext = CreateDocumentContext(documentPath, codeDocument);
             var projectedRange = new Range { Start = new Position(15, 2), End = new Position(15, 2) };
             var documentMappingService = CreateDocumentMappingService(projectedRange);
             var languageServer = CreateLanguageServer();
@@ -613,7 +626,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
-                documentContextFactory,
                 languageServer,
                 _languageServerFeatureOptions)
             {
@@ -621,7 +633,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range { Start = new Position(0, 1), End = new Position(0, 1) };
-            var request = new CodeActionParamsBridge()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = documentPath },
                 Range = initialRange,
@@ -631,7 +643,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             };
 
-            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
+            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
 
             // Act
             var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(context, default);
@@ -733,21 +745,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class TestLanguageServer : ClientNotifierServiceBase
         {
-            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings => throw new NotImplementedException();
+            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+                => Task.CompletedTask;
 
-            public override Task OnStarted(OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServer server, CancellationToken cancellationToken) => Task.CompletedTask;
-
-            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 if (method != RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint)
                 {
                     throw new InvalidOperationException($"Unexpected method {method}");
                 }
 
-                return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(null));
+                return Task.CompletedTask;
             }
 
-            public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+            public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 if (method != RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint)
                 {
@@ -784,27 +800,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     }
                 };
 
-                return Task.FromResult<IResponseRouterReturns>(new TestResponseRouterReturns(result));
-            }
-
-            private class TestResponseRouterReturns : IResponseRouterReturns
-            {
-                private readonly object _result;
-
-                public TestResponseRouterReturns(object result)
-                {
-                    _result = result;
-                }
-
-                public Task<Response> Returning<Response>(CancellationToken cancellationToken)
-                {
-                    return Task.FromResult((Response)_result);
-                }
-
-                public Task ReturningVoid(CancellationToken cancellationToken)
-                {
-                    return Task.CompletedTask;
-                }
+                return Task.FromResult((TResponse)(object)result);
             }
         }
     }

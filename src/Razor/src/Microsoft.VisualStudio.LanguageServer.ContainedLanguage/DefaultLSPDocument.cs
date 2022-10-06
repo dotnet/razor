@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
@@ -11,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal class DefaultLSPDocument : LSPDocument
     {
-        private LSPDocumentSnapshot _currentSnapshot;
+        private LSPDocumentSnapshot? _currentSnapshot;
 
         public DefaultLSPDocument(
             Uri uri,
@@ -54,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 {
                     // TextBuffer is tearing itself down, return last known snapshot to avoid generating
                     // a snapshot for an invalid TextBuffer
-                    return _currentSnapshot;
+                    return _currentSnapshot!;
                 }
 
                 if (_currentSnapshot?.Snapshot != TextBuffer.CurrentSnapshot)
@@ -66,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
+        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
         {
             if (!TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument))
             {

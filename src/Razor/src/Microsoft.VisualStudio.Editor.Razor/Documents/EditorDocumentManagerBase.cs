@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -58,13 +57,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected JoinableTaskContext JoinableTaskContext { get; }
 
-        protected abstract ITextBuffer GetTextBufferForOpenDocument(string filePath);
+        protected abstract ITextBuffer? GetTextBufferForOpenDocument(string filePath);
 
         protected abstract void OnDocumentOpened(EditorDocument document);
 
         protected abstract void OnDocumentClosed(EditorDocument document);
 
-        public sealed override bool TryGetDocument(DocumentKey key, out EditorDocument document)
+        public sealed override bool TryGetDocument(DocumentKey key, [NotNullWhen(returnValue: true)] out EditorDocument? document)
         {
             JoinableTaskContext.AssertUIThread();
 
@@ -74,7 +73,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public sealed override bool TryGetMatchingDocuments(string filePath, out EditorDocument[] documents)
+        public sealed override bool TryGetMatchingDocuments(string filePath, [NotNullWhen(returnValue: true)] out EditorDocument[]? documents)
         {
             JoinableTaskContext.AssertUIThread();
 
@@ -98,10 +97,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override EditorDocument GetOrCreateDocument(
             DocumentKey key,
-            EventHandler changedOnDisk,
-            EventHandler changedInEditor,
-            EventHandler opened,
-            EventHandler closed)
+            EventHandler? changedOnDisk,
+            EventHandler? changedInEditor,
+            EventHandler? opened,
+            EventHandler? closed)
         {
             JoinableTaskContext.AssertUIThread();
 

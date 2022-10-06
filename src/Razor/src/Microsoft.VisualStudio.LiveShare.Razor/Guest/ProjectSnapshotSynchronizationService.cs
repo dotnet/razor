@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             if (args.Kind == ProjectProxyChangeKind.ProjectAdded)
             {
                 var guestPath = ResolveGuestPath(args.ProjectFilePath);
-                var hostProject = new HostProject(guestPath, args.Newer.Configuration, args.Newer.RootNamespace);
+                var hostProject = new HostProject(guestPath, args.Newer!.Configuration, args.Newer.RootNamespace);
                 _projectSnapshotManager.ProjectAdded(hostProject);
 
                 if (args.Newer.ProjectWorkspaceState != null)
@@ -99,12 +99,12 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             else if (args.Kind == ProjectProxyChangeKind.ProjectRemoved)
             {
                 var guestPath = ResolveGuestPath(args.ProjectFilePath);
-                var hostProject = new HostProject(guestPath, args.Older.Configuration, args.Older.RootNamespace);
+                var hostProject = new HostProject(guestPath, args.Older!.Configuration, args.Older.RootNamespace);
                 _projectSnapshotManager.ProjectRemoved(hostProject);
             }
             else if (args.Kind == ProjectProxyChangeKind.ProjectChanged)
             {
-                if (!args.Older.Configuration.Equals(args.Newer.Configuration))
+                if (!args.Older!.Configuration.Equals(args.Newer!.Configuration))
                 {
                     var guestPath = ResolveGuestPath(args.Newer.FilePath);
                     var hostProject = new HostProject(guestPath, args.Newer.Configuration, args.Newer.RootNamespace);
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
                 var hostProject = new HostProject(guestPath, projectHandle.Configuration, projectHandle.RootNamespace);
                 _projectSnapshotManager.ProjectAdded(hostProject);
 
-                if (projectHandle.ProjectWorkspaceState != null)
+                if (projectHandle.ProjectWorkspaceState is not null)
                 {
                     _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, projectHandle.ProjectWorkspaceState);
                 }

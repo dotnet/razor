@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using MonoDevelop.Ide;
@@ -31,7 +30,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             _projectService = projectService;
         }
 
-        public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
+        public override bool TryGetWorkspace(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Workspace? workspace)
         {
             if (textBuffer is null)
             {
@@ -43,7 +42,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             // we're able to find both the project and solution then we use the solution to look up the corresponding
             // Workspace using MonoDevelops TypeSystemService.
 
-            var hostProject = (DotNetProject)_projectService.GetHostProject(textBuffer);
+            var hostProject = (DotNetProject?)_projectService.GetHostProject(textBuffer);
             if (hostProject is null)
             {
                 // Does not have a host project.
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             return TryGetWorkspace(hostSolution, out workspace);
         }
 
-        public override bool TryGetWorkspace(Solution solution, out Workspace workspace)
+        public override bool TryGetWorkspace(Solution solution, [NotNullWhen(returnValue: true)] out Workspace? workspace)
         {
             if (solution is null)
             {

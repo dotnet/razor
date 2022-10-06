@@ -12,10 +12,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -23,18 +23,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         private readonly DocumentContextFactory _emptyDocumentContextFactory;
 
-        private readonly ILogger _logger;
-
-        public ExtractToCodeBehindCodeActionResolverTest()
+        public ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             _emptyDocumentContextFactory = new Mock<DocumentContextFactory>(MockBehavior.Strict).Object;
-            Mock.Get(_emptyDocumentContextFactory).Setup(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).Returns(value: Task.FromResult<DocumentContext?>(null));
 
-            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
-            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
-
-            _logger = logger;
+            Mock.Get(_emptyDocumentContextFactory)
+                .Setup(r => r.TryCreateAsync(
+                    It.IsAny<Uri>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(value: null);
         }
 
         [Fact]
@@ -149,9 +147,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var editCodeDocumentChange = documentChanges[1];
             Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
             var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
-            Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), _logger, out var removeStart));
+            Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
             Assert.Equal(actionParams.RemoveStart, removeStart);
-            Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), _logger, out var removeEnd));
+            Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
             Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
             var editCodeBehindChange = documentChanges[2];
@@ -198,9 +196,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var editCodeDocumentChange = documentChanges[1];
             Assert.True(editCodeDocumentChange.TryGetFirst(out var editCodeDocument));
             var editCodeDocumentEdit = editCodeDocument!.Edits.First();
-            Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), _logger, out var removeStart));
+            Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
             Assert.Equal(actionParams.RemoveStart, removeStart);
-            Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), _logger, out var removeEnd));
+            Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
             Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
             var editCodeBehindChange = documentChanges[2];
@@ -247,9 +245,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var editCodeDocumentChange = documentChanges[1];
             Assert.True(editCodeDocumentChange.TryGetFirst(out var editCodeDocument));
             var editCodeDocumentEdit = editCodeDocument!.Edits.First();
-            Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), _logger, out var removeStart));
+            Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
             Assert.Equal(actionParams.RemoveStart, removeStart);
-            Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), _logger, out var removeEnd));
+            Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
             Assert.Equal(actionParams.RemoveEnd, removeEnd);
 
             var editCodeBehindChange = documentChanges[2];

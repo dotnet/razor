@@ -5,24 +5,29 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     [UseExportProvider]
     public class RenameEndpointDelegationTest: SingleServerDelegatingEndpointTestBase
     {
+        public RenameEndpointDelegationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_Rename_SingleServer_CSharpEditsAreMapped()
         {
@@ -57,10 +62,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
             var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            using var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
 
-            var endpoint = new RenameEndpoint(projectSnapshotManagerDispatcher, DocumentContextFactory, searchEngine, projectSnapshotManagerAccessor, LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, TestLoggerFactory.Instance);
+            var endpoint = new RenameEndpoint(
+                projectSnapshotManagerDispatcher,
+                DocumentContextFactory,
+                searchEngine,
+                projectSnapshotManagerAccessor,
+                LanguageServerFeatureOptions,
+                DocumentMappingService,
+                LanguageServer,
+                LoggerFactory);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new RenameParamsBridge
@@ -72,9 +85,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Position = new Position(line, offset),
                 NewName = newName
             };
+            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             var edits = result.DocumentChanges.Value.First.FirstOrDefault().Edits.Select(e => e.AsTextChange(codeDocument.GetSourceText()));

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
@@ -30,8 +28,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            var fileChangeTracker = new VisualStudioMacFileChangeTracker(filePath, _projectSnapshotManagerDispatcher);
-            return fileChangeTracker;
+            return new VisualStudioMacFileChangeTracker(filePath, _projectSnapshotManagerDispatcher);
         }
     }
 }

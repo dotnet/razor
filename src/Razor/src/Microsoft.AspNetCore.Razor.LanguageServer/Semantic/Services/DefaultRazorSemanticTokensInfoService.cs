@@ -24,20 +24,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private const int TokenSize = 5;
 
-        private readonly ClientNotifierServiceBase _languageServer;
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly DocumentContextFactory _documentContextFactory;
+        private readonly ClientNotifierServiceBase _languageServer;
         private readonly ILogger _logger;
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
-            DocumentContextFactory documentContextFactory,
             ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
 
             if (loggerFactory is null)
             {
@@ -48,23 +45,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         public override async Task<SemanticTokens?> GetSemanticTokensAsync(
-            TextDocumentIdentifier textDocumentIdentifier,
-            Range range,
-            CancellationToken cancellationToken)
-        {
-            var documentContext = await _documentContextFactory.TryCreateAsync(textDocumentIdentifier.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
-
-            var tokens = await GetSemanticTokensAsync(
-                textDocumentIdentifier, range, documentContext, cancellationToken);
-            return tokens;
-        }
-
-        // Internal for benchmarks
-        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
             DocumentContext documentContext,
@@ -83,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range");
+                _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
             }
 
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
@@ -240,8 +220,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken)
         {
             var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
-            var request = await _languageServer.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, parameter);
-            var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
+
+            var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
+                RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
+                parameter,
+                cancellationToken);
 
             if (csharpResponse is null)
             {

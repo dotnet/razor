@@ -4,15 +4,22 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultTextBufferCodeDocumentProviderTest
+    public class DefaultTextBufferCodeDocumentProviderTest : TestBase
     {
+        public DefaultTextBufferCodeDocumentProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryGetFromBuffer_SucceedsIfParserHasCodeDocument()
         {

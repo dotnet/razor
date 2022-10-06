@@ -7,12 +7,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
     public class DesignTimeHelperResponseRewriterTest : ResponseRewriterTestBase
     {
-        private protected override DesignTimeHelperResponseRewriter Rewriter => new DesignTimeHelperResponseRewriter();
+        public DesignTimeHelperResponseRewriterTest(ITestOutputHelper testOutput)
+            : base(new DesignTimeHelperResponseRewriter(), testOutput)
+        {
+        }
 
         [Fact]
         public async Task RewriteAsync_NotCSharp_Noops()
@@ -23,7 +27,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var delegatedCompletionList = GenerateCompletionList("p", "div");
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             Assert.Equal(2, rewrittenCompletionList.Items.Length);
@@ -38,7 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var delegatedCompletionList = GenerateCompletionList("__helper", "DateTime");
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             var item = Assert.Single(rewrittenCompletionList.Items);
@@ -54,7 +60,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var delegatedCompletionList = GenerateCompletionList("__helper", "DateTime");
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             Assert.Equal(2, rewrittenCompletionList.Items.Length);
@@ -69,7 +76,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var delegatedCompletionList = GenerateCompletionList("__helper", "__builder");
 
             // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(getCompletionsAt, documentContent, delegatedCompletionList);
+            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+                getCompletionsAt, documentContent, delegatedCompletionList);
 
             // Assert
             var item = Assert.Single(rewrittenCompletionList.Items);

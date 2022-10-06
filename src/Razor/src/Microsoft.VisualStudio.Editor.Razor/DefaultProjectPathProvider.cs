@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -11,11 +10,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultProjectPathProvider : ProjectPathProvider
     {
         private readonly TextBufferProjectService _projectService;
-        private readonly LiveShareProjectPathProvider _liveShareProjectPathProvider;
+        private readonly LiveShareProjectPathProvider? _liveShareProjectPathProvider;
 
         public DefaultProjectPathProvider(
             TextBufferProjectService projectService,
-            LiveShareProjectPathProvider liveShareProjectPathProvider)
+            LiveShareProjectPathProvider? liveShareProjectPathProvider)
         {
             if (projectService is null)
             {
@@ -26,14 +25,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _liveShareProjectPathProvider = liveShareProjectPathProvider;
         }
 
-        public override bool TryGetProjectPath(ITextBuffer textBuffer, out string filePath)
+        public override bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
         {
             if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            if (_liveShareProjectPathProvider != null &&
+            if (_liveShareProjectPathProvider is not null &&
                 _liveShareProjectPathProvider.TryGetProjectPath(textBuffer, out filePath))
             {
                 return true;

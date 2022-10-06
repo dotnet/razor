@@ -10,16 +10,22 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DocumentDocumentResolverTest : LanguageServerTestBase
     {
+        public DocumentDocumentResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsTracking_ReturnsTrue()
         {
             // Arrange
-            var documentFilePath = "C:\\path\\to\\document.cshtml";
+            var documentFilePath = @"C:\path\to\document.cshtml";
             var normalizedFilePath = "C:/path/to/document.cshtml";
             var filePathNormalizer = new FilePathNormalizer();
             var expectedDocument = Mock.Of<DocumentSnapshot>(MockBehavior.Strict);
@@ -39,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryResolveDocument_AsksMiscellaneousProjectForDocumentItIsTracking_ReturnsTrue()
         {
             // Arrange
-            var documentFilePath = "C:\\path\\to\\document.cshtml";
+            var documentFilePath = @"C:\path\to\document.cshtml";
             var normalizedFilePath = "C:/path/to/document.cshtml";
             var filePathNormalizer = new FilePathNormalizer();
             var expectedDocument = Mock.Of<DocumentSnapshot>(MockBehavior.Strict);
@@ -59,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsNotTrackingAndMiscellaneousProjectIsNotTrackingEither_ReturnsFalse()
         {
             // Arrange
-            var documentFilePath = "C:\\path\\to\\document.cshtml";
+            var documentFilePath = @"C:\path\to\document.cshtml";
             var normalizedFilePath = "C:/path/to/document.cshtml";
             var filePathNormalizer = new FilePathNormalizer();
             var project = Mock.Of<ProjectSnapshot>(shim => shim.DocumentFilePaths == Array.Empty<string>(), MockBehavior.Strict);
@@ -81,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsNotTrackingButMiscellaneousProjectIs_ReturnsTrue()
         {
             // Arrange
-            var documentFilePath = "C:\\path\\to\\document.cshtml";
+            var documentFilePath = @"C:\path\to\document.cshtml";
             var normalizedFilePath = "C:/path/to/document.cshtml";
             var filePathNormalizer = new FilePathNormalizer();
             var expectedDocument = Mock.Of<DocumentSnapshot>(MockBehavior.Strict);

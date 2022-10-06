@@ -19,11 +19,17 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
     public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
     {
+        public RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task RazorDocumentOptionsService_ReturnsCorrectOptions_UseTabs()
         {
@@ -40,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var indentationSizeOptionKey = GetIndentationSizeOptionKey(document);
 
             // Act
-            var documentOptions = await optionsService.GetOptionsForDocumentAsync(document, CancellationToken.None);
+            var documentOptions = await optionsService.GetOptionsForDocumentAsync(document, DisposalToken);
             documentOptions.TryGetDocumentOption(useTabsOptionKey, out var useTabs);
             documentOptions.TryGetDocumentOption(tabSizeOptionKey, out var tabSize);
             documentOptions.TryGetDocumentOption(indentationSizeOptionKey, out var indentationSize);
@@ -67,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var indentationSizeOptionKey = GetIndentationSizeOptionKey(document);
 
             // Act
-            var documentOptions = await optionsService.GetOptionsForDocumentAsync(document, CancellationToken.None);
+            var documentOptions = await optionsService.GetOptionsForDocumentAsync(document, DisposalToken);
             documentOptions.TryGetDocumentOption(useTabsOptionKey, out var useTabs);
             documentOptions.TryGetDocumentOption(tabSizeOptionKey, out var tabSize);
             documentOptions.TryGetDocumentOption(indentationSizeOptionKey, out var indentationSize);

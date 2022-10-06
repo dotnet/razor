@@ -18,8 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         internal override bool DesignTime => true;
 
-        public HtmlFormattingTest(ITestOutputHelper output)
-            : base(output)
+        public HtmlFormattingTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 
@@ -1586,9 +1586,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     """,
                 expected: """
                     @page "Goo"
-                    
+
                     <div></div>
-                    
+
                     <button
                     @functions {
                      void M() { }
@@ -1642,9 +1642,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await RunFormattingTestAsync(
                 input: """
                     @page "Goo"
-                    
+
                     [|      <div></div>|]
-                    
+
                     <button
                     @functions {
                      void M() { }
@@ -1652,9 +1652,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     """,
                 expected: """
                     @page "Goo"
-                    
+
                     <div></div>
-                    
+
                     <button
                     @functions {
                      void M() { }
@@ -1669,7 +1669,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await RunFormattingTestAsync(
                 input: """
                     Welcome.
-                    
+
                     <div class="goo"
                      align="center">
                     </div>
@@ -1716,7 +1716,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                     <SurveyPrompt Title="How is Blazor working for you?"
                                   Color="Red" />
-                    
+
                     @if (true)
                     {
                         <div class="goo"

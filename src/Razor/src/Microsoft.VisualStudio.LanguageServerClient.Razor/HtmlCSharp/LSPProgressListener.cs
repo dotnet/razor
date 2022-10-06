@@ -16,6 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
             Func<CancellationToken, Task> delayAfterLastNotifyAsync,
             CancellationToken handlerCancellationToken,
-            [NotNullWhen(true)] out Task? onCompleted);
+            [NotNullWhen(returnValue: true)] out Task? onCompleted);
     }
 }

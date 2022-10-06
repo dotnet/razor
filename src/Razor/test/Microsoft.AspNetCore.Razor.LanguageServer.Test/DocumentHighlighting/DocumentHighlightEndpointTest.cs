@@ -12,24 +12,28 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test
 {
     [UseExportProvider]
     public class DocumentHighlightEndpointTest : LanguageServerTestBase
     {
+        public DocumentHighlightEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_SingleServer_Local()
         {
@@ -111,8 +115,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test
             {
                 DocumentHighlightProvider = true
             };
-            var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null).ConfigureAwait(false);
-            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+            var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null, DisposalToken);
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
             var razorFilePath = "C:/path/to/file.razor";
             var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
@@ -120,12 +125,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test
                 options.SupportsFileManipulation == true &&
                 options.SingleServerSupport == true &&
                 options.CSharpVirtualDocumentSuffix == ".g.cs" &&
-                options.HtmlVirtualDocumentSuffix == ".g.html"
-                , MockBehavior.Strict);
+                options.HtmlVirtualDocumentSuffix == ".g.html",
+                MockBehavior.Strict);
+
             var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);
             var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
 
-            var endpoint = new DocumentHighlightEndpoint(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, TestLoggerFactory.Instance);
+            var endpoint = new DocumentHighlightEndpoint(
+                languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);
 
             codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
             var request = new DocumentHighlightParamsBridge
@@ -137,13 +144,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test
                 Position = new Position(line, offset)
             };
 
+            var documentContext = CreateDocumentContext(request.TextDocument.Uri, codeDocument);
+            var requestContext = CreateRazorRequestContext(documentContext);
+
             // Act
-            var result = await endpoint.Handle(request, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
             var sourceText = codeDocument.GetSourceText();
-            var expected = spans.Select(s => s.AsRange(sourceText)).OrderBy(s => s.Start.Line).ThenBy(s => s.Start.Character).ToArray();
-            var actual = result.Select(r => r.Range).OrderBy(s => s.Start.Line).ThenBy(s => s.Start.Character).ToArray();
+            var expected = spans
+                .Select(s => s.AsRange(sourceText))
+                .OrderBy(s => s.Start.Line)
+                .ThenBy(s => s.Start.Character)
+                .ToArray();
+            var actual = result
+                .Select(r => r.Range)
+                .OrderBy(s => s.Start.Line)
+                .ThenBy(s => s.Start.Character)
+                .ToArray();
             Assert.Equal(actual, expected);
         }
 
@@ -158,19 +176,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test
                 _csharpDocumentUri = csharpDocumentUri;
             }
 
-            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings { get; }
-
-            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }
 
-            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }
 
-            public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+            public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
             {
                 Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName, method);
                 var highlightParams = Assert.IsType<DelegatedPositionParams>(@params);
@@ -184,9 +205,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test
                     Position = highlightParams.ProjectedPosition,
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(Methods.TextDocumentDocumentHighlightName, highlightRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(
+                    Methods.TextDocumentDocumentHighlightName, highlightRequest, cancellationToken);
 
-                return new TestResponseRouterReturn(result);
+                return (TResponse)(object)result;
             }
         }
     }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\MediatR.dll")]
@@ -10,6 +8,7 @@ using Microsoft.VisualStudio.Shell;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.LanguageProtocol.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.LanguageServer.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\OmniSharp.Extensions.LanguageServer.Shared.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CommonLanguageServerProtocol.Framework.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Options.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Primitives.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.DependencyInjection.dll")]

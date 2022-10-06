@@ -15,12 +15,18 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class BraceSmartIndenterTest : BraceSmartIndenterTestBase
     {
+        public BraceSmartIndenterTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void AtApplicableRazorBlock_NestedIfBlock_ReturnsFalse()
         {

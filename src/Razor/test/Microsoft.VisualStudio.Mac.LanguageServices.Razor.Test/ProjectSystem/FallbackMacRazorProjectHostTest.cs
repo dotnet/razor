@@ -3,14 +3,21 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using MonoDevelop.Core;
 using MonoDevelop.Projects;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    public class FallbackMacRazorProjectHostTest
+    public class FallbackMacRazorProjectHostTest : TestBase
     {
+        public FallbackMacRazorProjectHostTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

@@ -2,13 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -39,11 +38,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 var request = GenerateConfigParams();
 
-                var response = await _server.SendRequestAsync("workspace/configuration", request);
-                var result = await response.Returning<JObject[]>(cancellationToken);
+                var result = await _server.SendRequestAsync<ConfigurationParams, JObject[]>(Methods.WorkspaceConfigurationName, request, cancellationToken);
 
                 // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
-                if (result?.Length != request.Items.Count() || result[0] is null)
+                if (result?.Length != request.Items.Length || result[0] is null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;

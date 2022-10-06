@@ -7,13 +7,13 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
@@ -28,7 +28,10 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private readonly ConstructorInfo _omniSharpProjectSnapshotMangerConstructor;
         private readonly ConstructorInfo _omniSharpSnapshotConstructor;
 
-        public OmniSharpTestBase()
+        protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
+
+        protected OmniSharpTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var commonTestAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.LanguageServer.Test.Common");
             var testProjectSnapshotType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshot");
@@ -46,9 +49,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
             Dispatcher = new DefaultOmniSharpProjectSnapshotManagerDispatcher();
+            AddDisposable((IDisposable)Dispatcher.DispatcherScheduler);
         }
-
-        protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
 
         private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
         {
@@ -82,26 +84,26 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         protected Task RunOnDispatcherThreadAsync(Action action)
         {
             return Task.Factory.StartNew(
-                () => action(),
-                CancellationToken.None,
+                action,
+                DisposalToken,
                 TaskCreationOptions.None,
                 Dispatcher.DispatcherScheduler);
         }
 
-        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
+        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> func)
         {
             return Task.Factory.StartNew(
-                () => action(),
-                CancellationToken.None,
+                func,
+                DisposalToken,
                 TaskCreationOptions.None,
                 Dispatcher.DispatcherScheduler);
         }
 
-        protected Task RunOnDispatcherThreadAsync(Func<Task> action)
+        protected Task RunOnDispatcherThreadAsync(Func<Task> func)
         {
             return Task.Factory.StartNew(
-                async () => await action(),
-                CancellationToken.None,
+                func,
+                DisposalToken,
                 TaskCreationOptions.None,
                 Dispatcher.DispatcherScheduler);
         }

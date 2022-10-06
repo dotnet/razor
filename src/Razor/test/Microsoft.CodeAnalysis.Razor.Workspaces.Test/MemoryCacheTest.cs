@@ -9,12 +9,19 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Test
 {
-    public class MemoryCacheTest
+    public class MemoryCacheTest : TestBase
     {
+        public MemoryCacheTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task ConcurrentSets_DoesNotThrow()
         {
@@ -115,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Razor.Test
             public static int SizeLimit = 10;
             public bool _wasCompacted = false;
 
-            public TestMemoryCache() : base(SizeLimit)
+            public TestMemoryCache()
+                : base(SizeLimit)
             {
             }
 

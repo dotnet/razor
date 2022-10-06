@@ -46,19 +46,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _optionsMonitor = optionsMonitor;
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        {
-            if (!_languageServerFeatureOptions.RegisterBuiltInFeatures)
-            {
-                return null;
-            }
+        public bool MutatesSolutionState => false;
 
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
             const string ServerCapability = "documentFormattingProvider";
 
-            return new RegistrationExtensionResult(ServerCapability, new DocumentFormattingOptions());
+            return new RegistrationExtensionResult(ServerCapability, new SumType<bool, DocumentFormattingOptions>(new DocumentFormattingOptions()));
         }
 
-        public async Task<TextEdit[]?> Handle(DocumentFormattingParamsBridge request, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentFormattingParams request)
+        {
+            return request.TextDocument;
+        }
+
+        public async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
             {

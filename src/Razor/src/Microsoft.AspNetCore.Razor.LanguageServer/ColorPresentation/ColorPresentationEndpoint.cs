@@ -26,26 +26,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation
             _languageServer = languageServer;
         }
 
-        // Per the LSP spec, there are no special capabilities or options for textDocument/colorPresentation
-        // since it is sent as a resolve request for textDocument/documentColor
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        {
-            return null;
-        }
+        public bool MutatesSolutionState => false;
 
-        public async Task<ColorPresentation[]> Handle(ColorPresentationParamsBridge request, CancellationToken cancellationToken)
-        {
-            var delegatedRequest = await _languageServer.SendRequestAsync(
-                RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint, request).ConfigureAwait(false);
-            var colorPresentation = await delegatedRequest.Returning<ColorPresentation[]>(cancellationToken).ConfigureAwait(false);
+        public TextDocumentIdentifier GetTextDocumentIdentifier(ColorPresentationParams request) => request.TextDocument;
 
-            if (colorPresentation is null)
+        public async Task<ColorPresentation[]> HandleRequestAsync(ColorPresentationParams request, RazorRequestContext context, CancellationToken cancellationToken)
+        {
+            var colorPresentations = await _languageServer.SendRequestAsync<ColorPresentationParams, ColorPresentation[]>(
+                RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint,
+                request,
+                cancellationToken).ConfigureAwait(false);
+
+            if (colorPresentations is null)
             {
                 return Array.Empty<ColorPresentation>();
             }
 
             // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
-            return colorPresentation;
+            return colorPresentations;
         }
     }
 }

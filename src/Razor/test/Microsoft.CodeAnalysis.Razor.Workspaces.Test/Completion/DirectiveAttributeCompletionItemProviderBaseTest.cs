@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
+using Xunit.Abstractions;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
@@ -15,8 +16,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     public class DirectiveAttributeCompletionItemProviderBaseTest : RazorIntegrationTestBase
     {
         internal override string FileKind => FileKinds.Component;
-
         internal override bool UseTwoPhaseCompilation => true;
+
+        public DirectiveAttributeCompletionItemProviderBaseTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public void TryGetAttributeInfo_NonAttribute_ReturnsFalse()

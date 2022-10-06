@@ -2,34 +2,40 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultWorkspaceDirectoryPathResolver : WorkspaceDirectoryPathResolver
     {
-        private readonly IClientLanguageServer _languageServer;
+        private readonly IInitializeManager<InitializeParams, InitializeResult> _settingsManager;
 
-        public DefaultWorkspaceDirectoryPathResolver(IClientLanguageServer languageServer)
+        public DefaultWorkspaceDirectoryPathResolver(IInitializeManager<InitializeParams, InitializeResult> settingsManager)
         {
-            if (languageServer is null)
+            if (settingsManager is null)
             {
-                throw new ArgumentNullException(nameof(languageServer));
+                throw new ArgumentNullException(nameof(settingsManager));
             }
 
-            _languageServer = languageServer;
+            _settingsManager = settingsManager;
         }
 
         public override string Resolve()
         {
-            if (_languageServer.ClientSettings.RootUri is null)
+            var clientSettings = _settingsManager.GetInitializeParams();
+            if (clientSettings.RootUri is null)
             {
-                Assumes.NotNull(_languageServer.ClientSettings.RootPath);
+#pragma warning disable CS0618 // Type or member is obsolete
+                Assumes.NotNull(clientSettings.RootPath);
                 // RootUri was added in LSP3, fallback to RootPath
-                return _languageServer.ClientSettings.RootPath;
+                return clientSettings.RootPath;
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
-            return _languageServer.ClientSettings.RootUri.GetFileSystemPath();
+            var normalized = clientSettings.RootUri.GetAbsoluteOrUNCPath();
+            return normalized;
         }
     }
 }

@@ -11,36 +11,35 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     {
-        public CodeDocumentReferenceHolderTest()
+        private readonly TestProjectSnapshotManager _projectManager;
+        private readonly CodeDocumentReferenceHolder _referenceHolder;
+        private readonly HostProject _hostProject;
+        private readonly HostDocument _hostDocument;
+
+        public CodeDocumentReferenceHolderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            ProjectManager = TestProjectSnapshotManager.Create(Dispatcher);
-            ProjectManager.AllowNotifyListeners = true;
-            ReferenceHolder = new CodeDocumentReferenceHolder();
-            ReferenceHolder.Initialize(ProjectManager);
+            _projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            _projectManager.AllowNotifyListeners = true;
+            _referenceHolder = new CodeDocumentReferenceHolder();
+            _referenceHolder.Initialize(_projectManager);
 
-            HostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
-            HostDocument = new HostDocument("C:/path/to/file.razor", "file.razor");
+            _hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
+            _hostDocument = new HostDocument("C:/path/to/file.razor", "file.razor");
         }
-
-        private TestProjectSnapshotManager ProjectManager { get; }
-
-        private CodeDocumentReferenceHolder ReferenceHolder { get; }
-
-        private HostProject HostProject { get; }
-
-        private HostDocument HostDocument { get; }
 
         [Fact]
         public async Task DocumentProcessed_ReferencesGeneratedCodeDocument()
         {
             // Arrange
-            var documentSnapshot = await CreateDocumentSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
-            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, CancellationToken.None).ConfigureAwait(false);
+            var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
             // Act
             GC.Collect();
@@ -53,25 +52,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task UnrelatedDocumentChanged_ReferencesGeneratedCodeDocument()
         {
             // Arrange
-            var documentSnapshot = await CreateDocumentSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
+            var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
             var unrelatedHostDocument = new HostDocument("C:/path/to/otherfile.razor", "otherfile.razor");
             var unrelatedDocumentSnapshot = await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
-                ProjectManager.DocumentAdded(HostProject, unrelatedHostDocument, unrelatedTextLoader);
-                var project = ProjectManager.GetLoadedProject(HostProject.FilePath);
+                _projectManager.DocumentAdded(_hostProject, unrelatedHostDocument, unrelatedTextLoader);
+                var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
                 var document = project.GetDocument(unrelatedHostDocument.FilePath);
                 return document;
-            }, CancellationToken.None).ConfigureAwait(false);
+            }, DisposalToken);
 
-            var mainCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, CancellationToken.None).ConfigureAwait(false);
-            var unrelatedCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(unrelatedDocumentSnapshot, CancellationToken.None).ConfigureAwait(false);
+            var mainCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
+            var unrelatedCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(unrelatedDocumentSnapshot, DisposalToken);
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ProjectManager.DocumentChanged(HostProject.FilePath, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
-            }, CancellationToken.None).ConfigureAwait(false);
+                _projectManager.DocumentChanged(_hostProject.FilePath, unrelatedHostDocument.FilePath, SourceText.From(string.Empty));
+            }, DisposalToken);
 
             GC.Collect();
 
@@ -84,14 +83,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task DocumentChanged_DereferencesGeneratedCodeDocument()
         {
             // Arrange
-            var documentSnapshot = await CreateDocumentSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
-            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, CancellationToken.None).ConfigureAwait(false);
+            var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ProjectManager.DocumentChanged(HostProject.FilePath, HostDocument.FilePath, SourceText.From(string.Empty));
-            }, CancellationToken.None).ConfigureAwait(false);
+                _projectManager.DocumentChanged(_hostProject.FilePath, _hostDocument.FilePath, SourceText.From(string.Empty));
+            }, DisposalToken);
 
             GC.Collect();
 
@@ -103,14 +102,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task DocumentRemoved_DereferencesGeneratedCodeDocument()
         {
             // Arrange
-            var documentSnapshot = await CreateDocumentSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
-            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, CancellationToken.None).ConfigureAwait(false);
+            var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ProjectManager.DocumentRemoved(HostProject, HostDocument);
-            }, CancellationToken.None).ConfigureAwait(false);
+                _projectManager.DocumentRemoved(_hostProject, _hostDocument);
+            }, DisposalToken);
 
             GC.Collect();
 
@@ -122,14 +121,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task ProjectChanged_DereferencesGeneratedCodeDocument()
         {
             // Arrange
-            var documentSnapshot = await CreateDocumentSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
-            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, CancellationToken.None).ConfigureAwait(false);
+            var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ProjectManager.ProjectConfigurationChanged(new HostProject(HostProject.FilePath, RazorConfiguration.Default, rootNamespace: "NewRootNamespace"));
-            }, CancellationToken.None).ConfigureAwait(false);
+                _projectManager.ProjectConfigurationChanged(new HostProject(_hostProject.FilePath, RazorConfiguration.Default, rootNamespace: "NewRootNamespace"));
+            }, DisposalToken);
 
             GC.Collect();
 
@@ -141,14 +140,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task ProjectRemoved_DereferencesGeneratedCodeDocument()
         {
             // Arrange
-            var documentSnapshot = await CreateDocumentSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
-            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, CancellationToken.None).ConfigureAwait(false);
+            var documentSnapshot = await CreateDocumentSnapshotAsync(DisposalToken);
+            var codeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
 
             // Act
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ProjectManager.ProjectRemoved(HostProject);
-            }, CancellationToken.None).ConfigureAwait(false);
+                _projectManager.ProjectRemoved(_hostProject);
+            }, DisposalToken);
 
             GC.Collect();
 
@@ -160,11 +159,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             return Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ProjectManager.ProjectAdded(HostProject);
-                var textLoader = new SourceTextLoader("<p>Hello World</p>", HostDocument.FilePath);
-                ProjectManager.DocumentAdded(HostProject, HostDocument, textLoader);
-                var project = ProjectManager.GetLoadedProject(HostProject.FilePath);
-                var document = project.GetDocument(HostDocument.FilePath);
+                _projectManager.ProjectAdded(_hostProject);
+                var textLoader = new SourceTextLoader("<p>Hello World</p>", _hostDocument.FilePath);
+                _projectManager.DocumentAdded(_hostProject, _hostDocument, textLoader);
+                var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
+                var document = project.GetDocument(_hostDocument.FilePath);
                 return document;
             }, cancellationToken);
         }
@@ -172,11 +171,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         [MethodImpl(MethodImplOptions.NoInlining)]
         private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
         {
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                ReferenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
-            }, cancellationToken).ConfigureAwait(false);
+                _referenceHolder.DocumentProcessed(codeDocument, documentSnapshot);
+            }, cancellationToken);
             var codeDocumentReference = new WeakReference<RazorCodeDocument>(codeDocument);
 
             return codeDocumentReference;
@@ -193,7 +192,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(
+                Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 return Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Default, _filePath));
             }
