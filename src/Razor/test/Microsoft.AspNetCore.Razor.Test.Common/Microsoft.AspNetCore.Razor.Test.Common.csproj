@@ -10,14 +10,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisAnalyzerTestingPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(Tooling_MicrosoftCodeAnalysisCSharpPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Razor.Tooling.Internal" Version="$(MicrosoftCodeAnalysisRazorToolingInternalPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" Version="$(MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingPackageVersion)" />
@@ -27,7 +26,6 @@
     <PackageReference Include="xunit.extensibility.execution" Version="$(XunitExtensibilityExecutionPackageVersion)" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialPackageVersion)" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="WindowsBase" />
   </ItemGroup>
