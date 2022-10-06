@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task ExitAsync()
         {
             await _languageServer.ExitAsync();
-            _tcs.SetResult(0);
+            _tcs.TrySetResult(0);
         }
 
         public async Task ShutdownAsync(string message = "Shutting down")
