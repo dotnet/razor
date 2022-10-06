@@ -178,33 +178,6 @@ stages:
               arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-
-        - script: eng\CIBuild.cmd
-            -restore
-            -build
-            -sign
-            -pack
-            -publish
-            -configuration $(_BuildConfig)
-            -msbuildEngine dotnet
-            -prepareMachine
-            $(_BuildArgs)
-            $(_PublishArgs)
-            $(_InternalRuntimeDownloadArgs)
-          name: Build
-          displayName: Build
-          condition: succeeded()
-
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Build BinLog
-          condition: always()
-          continueOnError: true
-          inputs:
-              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
-              artifactType: Container
-              parallel: true
-
         - script: eng\cibuild.cmd
             -configuration $(_BuildConfig)
             -msbuildEngine vs
@@ -212,23 +185,21 @@ stages:
             -restore
             -build
             -pack
+            -publish
             -sign
-            /p:BuildVsix=true
-            /p:BuildProjectReferences=false
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
-          name: Build_Vsix
+          name: Build
           displayName: Build and Deploy Vsix
           condition: succeeded()
-
         - task: PublishBuildArtifacts@1
-          displayName: Upload Build VSIX BinLog
+          displayName: Upload Build BinLog
           condition: always()
           continueOnError: true
           inputs:
               pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
+              artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
               artifactType: Container
               parallel: true
 
@@ -240,7 +211,6 @@ stages:
             -prepareMachine
             -test
             -integrationTest
-            /p:BuildProjectReferences=false
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()

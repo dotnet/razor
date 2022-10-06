@@ -51,9 +51,7 @@ steps:
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
       -prepareMachine
-      /p:BuildVsix=true
       /p:BuildDependencyVsix=false
-      /p:BuildProjectReferences=false
     name: BuildVSIX
     displayName: Build and Deploy VSIX
     condition: succeeded()
@@ -74,7 +72,6 @@ steps:
       -prepareMachine
       -integrationTest
       /p:BuildDependencyVsix=false
-      /p:BuildProjectReferences=false
     name: RunIntegrationTests
     displayName: Run Integration Tests
     condition: succeeded()
