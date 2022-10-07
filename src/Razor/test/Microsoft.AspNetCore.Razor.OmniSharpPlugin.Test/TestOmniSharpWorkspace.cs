@@ -14,13 +14,12 @@ namespace OmniSharp
     {
         private static readonly object s_workspaceLock = new();
 
-        public static OmniSharpWorkspace Create()
+        public static OmniSharpWorkspace Create(ILoggerFactory loggerFactory)
         {
             lock (s_workspaceLock)
             {
-                var factory = LoggerFactory.Create((b) => { });
-                var hostServicesAggregator = new HostServicesAggregator(Enumerable.Empty<IHostServicesProvider>(), factory);
-                var workspace = new OmniSharpWorkspace(hostServicesAggregator, factory, TestFileSystemWatcher.Instance);
+                var hostServicesAggregator = new HostServicesAggregator(Enumerable.Empty<IHostServicesProvider>(), loggerFactory);
+                var workspace = new OmniSharpWorkspace(hostServicesAggregator, loggerFactory, TestFileSystemWatcher.Instance);
 
                 return workspace;
             }

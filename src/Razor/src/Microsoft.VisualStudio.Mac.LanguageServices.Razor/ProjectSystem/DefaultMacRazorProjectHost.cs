@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -136,7 +135,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             return true;
         }
 
-        private string GetAbsolutePath(string projectDirectory, string relativePath)
+        private static string GetAbsolutePath(string projectDirectory, string relativePath)
         {
             if (!Path.IsPathRooted(relativePath))
             {
@@ -153,7 +152,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         internal static bool TryGetConfiguration(
             IMSBuildEvaluatedPropertyCollection projectProperties,
             IEnumerable<IMSBuildItemEvaluated> projectItems,
-            out RazorConfiguration configuration)
+            [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
         {
             if (!TryGetDefaultConfiguration(projectProperties, out var defaultConfiguration))
             {
@@ -180,7 +179,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal static bool TryGetDefaultConfiguration(IMSBuildEvaluatedPropertyCollection projectProperties, out string defaultConfiguration)
+        internal static bool TryGetDefaultConfiguration(IMSBuildEvaluatedPropertyCollection projectProperties, [NotNullWhen(returnValue: true)] out string? defaultConfiguration)
         {
             defaultConfiguration = projectProperties.GetValue(RazorDefaultConfigurationProperty);
             if (string.IsNullOrEmpty(defaultConfiguration))
@@ -193,7 +192,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal static bool TryGetLanguageVersion(IMSBuildEvaluatedPropertyCollection projectProperties, out RazorLanguageVersion languageVersion)
+        internal static bool TryGetLanguageVersion(IMSBuildEvaluatedPropertyCollection projectProperties, [NotNullWhen(returnValue: true)] out RazorLanguageVersion? languageVersion)
         {
             var languageVersionValue = projectProperties.GetValue(RazorLangVersionProperty);
             if (string.IsNullOrEmpty(languageVersionValue))
@@ -214,7 +213,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         internal static bool TryGetConfigurationItem(
             string configuration,
             IEnumerable<IMSBuildItemEvaluated> projectItems,
-            out IMSBuildItemEvaluated configurationItem)
+            [NotNullWhen(returnValue: true)] out IMSBuildItemEvaluated? configurationItem)
         {
             foreach (var item in projectItems)
             {
@@ -268,7 +267,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal static bool TryGetRootNamespace(IMSBuildEvaluatedPropertyCollection projectProperties, out string rootNamespace)
+        internal static bool TryGetRootNamespace(IMSBuildEvaluatedPropertyCollection projectProperties, [NotNullWhen(returnValue: true)] out string? rootNamespace)
         {
             rootNamespace = projectProperties.GetValue(RootNamespaceProperty);
             if (string.IsNullOrEmpty(rootNamespace))

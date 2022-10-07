@@ -5,27 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
-using Moq;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Progress;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server.WorkDone;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class TestClient : IClientLanguageServer
+    internal class TestClient : ClientNotifierServiceBase
     {
-        public TestClient(InitializeParams clientSettings)
+        public TestClient( )
         {
-            ClientSettings = clientSettings;
-        }
-
-        public TestClient()
-        {
-            ClientSettings = new InitializeParams();
         }
 
         private readonly List<UpdateBufferRequest> _updateRequests = new();
@@ -36,50 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public IReadOnlyList<RequestPair> Requests => _requests;
 
-        public IProgressManager ProgressManager => throw new NotImplementedException();
-
-        public IServerWorkDoneManager WorkDoneManager => throw new NotImplementedException();
-
-        public ILanguageServerConfiguration Configuration => throw new NotImplementedException();
-
-        public InitializeParams ClientSettings { get; }
-
         public InitializeResult ServerSettings => throw new NotImplementedException();
-
-        public void SendNotification(string method) => throw new NotImplementedException();
-
-        public void SendNotification<T>(string method, T @params) => throw new NotImplementedException();
-
-        public void SendNotification(IRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        IResponseRouterReturns IResponseRouter.SendRequest<T>(string method, T @params)
-        {
-            if (@params is UpdateBufferRequest updateRequest)
-            {
-                _updateRequests.Add(updateRequest);
-            }
-            else
-            {
-                _requests.Add(new RequestPair(method, @params));
-            }
-
-            return GetResponseRouterReturns();
-        }
-
-        public IResponseRouterReturns SendRequest(string method)
-        {
-            _requests.Add(new RequestPair(method, Params: null));
-
-            return GetResponseRouterReturns();
-        }
-
-        public Task<TResponse> SendRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
 
         public object GetService(Type serviceType)
         {
@@ -91,11 +36,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             throw new NotImplementedException();
         }
 
-        private static IResponseRouterReturns GetResponseRouterReturns()
+        public override Task SendNotificationAsync(string methodName, CancellationToken cancellationToken)
         {
-            var mock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            mock.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            return mock.Object;
+            _requests.Add(new RequestPair(methodName, Params: null));
+
+            return Task.CompletedTask;
+        }
+
+        public override Task SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
+        {
+            if (@params is UpdateBufferRequest updateRequest)
+            {
+                _updateRequests.Add(updateRequest);
+            }
+            else
+            {
+                _requests.Add(new RequestPair(methodName, @params));
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         internal record RequestPair(string Method, object? Params);

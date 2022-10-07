@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Alias="Range" Include="Microsoft.VisualStudio.LanguageServer.Protocol.Range" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\test.taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="..\OSSkipConditionFactAttribute.cs" LinkBase="Shared" />
@@ -25,7 +29,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Web" Version="$(MicrosoftVisualStudioWebPackageVersion)" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.WebTools.Shared" Version="$(MicrosoftWebToolsSharedPackageVersion)" NoWarn="NU1701" />
-
+    <!-- Included for tests only -->
+    <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="$(OmniSharpExtensionsLanguageProtocolPackageVersion)" />
+    
     <!--
         Nuget changed behaviour and now validates transitive references, so the NU1701 suppressions above don't affect those
         packages dependencies. We reference them here directly in order to do so, and set ExcludeAssets and PrivateAssets so

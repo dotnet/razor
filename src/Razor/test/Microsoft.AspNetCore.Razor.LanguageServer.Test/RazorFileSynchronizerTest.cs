@@ -8,11 +8,17 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorFileSynchronizerTest : LanguageServerTestBase
     {
+        public RazorFileSynchronizerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void RazorFileChanged_Added_AddsRazorDocument()
         {

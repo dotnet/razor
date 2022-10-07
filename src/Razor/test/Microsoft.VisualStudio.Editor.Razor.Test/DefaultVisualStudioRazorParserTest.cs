@@ -12,41 +12,40 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public DefaultVisualStudioRazorParserTest()
+        private readonly ProjectSnapshot _projectSnapshot;
+        private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+        private readonly Workspace _workspace;
+
+        public DefaultVisualStudioRazorParserTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Workspace = TestWorkspace.Create();
-            ProjectSnapshot = new EphemeralProjectSnapshot(Workspace.Services, "c:\\SomeProject.csproj");
+            _workspace = TestWorkspace.Create();
+            AddDisposable(_workspace);
+
+            _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, "c:\\SomeProject.csproj");
 
             var engine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Empty);
-            ProjectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(
+            _projectEngineFactory = Mock.Of<ProjectSnapshotProjectEngineFactory>(
                 f => f.Create(
                     It.IsAny<RazorConfiguration>(),
                     It.IsAny<RazorProjectFileSystem>(),
                     It.IsAny<Action<RazorProjectEngineBuilder>>()) == engine, MockBehavior.Strict);
         }
 
-        private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
-
-        private ProjectSnapshot ProjectSnapshot { get; }
-
-        private ProjectSnapshotProjectEngineFactory ProjectEngineFactory { get; }
-
-        private Workspace Workspace { get; }
-
         private VisualStudioDocumentTracker CreateDocumentTracker(bool isSupportedProject = true, int versionNumber = 0)
         {
             var documentTracker = Mock.Of<VisualStudioDocumentTracker>(tracker =>
             tracker.TextBuffer == new TestTextBuffer(new StringTextSnapshot(string.Empty, versionNumber)) &&
                 tracker.ProjectPath == "c:\\SomeProject.csproj" &&
-                tracker.ProjectSnapshot == ProjectSnapshot &&
+                tracker.ProjectSnapshot == _projectSnapshot &&
                 tracker.FilePath == "c:\\SomeFilePath.cshtml" &&
                 tracker.IsSupportedProject == isSupportedProject, MockBehavior.Strict);
 
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -103,7 +102,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -142,7 +141,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -168,7 +167,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -196,7 +195,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -239,7 +238,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -274,7 +273,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, CancellationToken.None);
+            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
             // Act & Assert
             request.Complete(codeDocument);
@@ -287,7 +286,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, CancellationToken.None);
+            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
             // Act
             request.Complete(codeDocument);
@@ -302,7 +301,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void CodeDocumentRequest_Cancel_CanBeCalledMultipleTimes()
         {
             // Arrange
-            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, CancellationToken.None);
+            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
             // Act & Assert
             request.Cancel();
@@ -314,7 +313,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void CodeDocumentRequest_Cancel_CancelsTask()
         {
             // Arrange
-            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, CancellationToken.None);
+            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
             // Act
             request.Cancel();
@@ -342,7 +341,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, CancellationToken.None);
+            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
             // Act - 1
             request.Complete(codeDocument);
@@ -362,7 +361,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var codeDocument = RazorCodeDocument.Create(TestRazorSourceDocument.Create());
-            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, CancellationToken.None);
+            var request = new DefaultVisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
             // Act - 1
             request.Cancel();
@@ -381,7 +380,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
             parser.Dispose();
@@ -397,7 +396,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
             parser.Dispose();
@@ -413,7 +412,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
             parser.Dispose();
@@ -429,7 +428,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -456,7 +455,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -487,7 +486,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -526,7 +525,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
             {
@@ -556,7 +555,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
             {
@@ -585,7 +584,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -609,7 +608,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 documentTracker,
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -629,7 +628,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(isSupportedProject: true),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
@@ -648,7 +647,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             using (var parser = new DefaultVisualStudioRazorParser(
                 JoinableTaskContext,
                 CreateDocumentTracker(isSupportedProject: false),
-                ProjectEngineFactory,
+                _projectEngineFactory,
                 new DefaultErrorReporter(),
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {

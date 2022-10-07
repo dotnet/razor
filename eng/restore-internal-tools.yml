@@ -4,8 +4,7 @@ steps:
       nuGetServiceConnections: 'devdiv/dotnet-core-internal-tooling'
       forceReinstallCredentialProvider: true
 
-  - script: $(Build.SourcesDirectory)\build.cmd
-            -ci
+  - script: $(Build.SourcesDirectory)/eng/CIBuild.cmd
             -restore
             -projects $(Build.SourcesDirectory)/eng/common/internal/Tools.csproj
             /bl:$(Build.SourcesDirectory)/artifacts/log/$(_BuildConfig)/RestoreInternal.binlog

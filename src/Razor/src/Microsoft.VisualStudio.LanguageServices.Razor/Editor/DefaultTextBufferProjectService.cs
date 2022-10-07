@@ -1,11 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -52,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             _documentTable = new RunningDocumentTable(services);
         }
 
-        public override object GetHostProject(ITextBuffer textBuffer)
+        public override object? GetHostProject(ITextBuffer textBuffer)
         {
             if (textBuffer is null)
             {
@@ -88,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             }
 
             var hierarchy = project as IVsHierarchy;
-            Debug.Assert(hierarchy != null);
+            Assumes.NotNull(hierarchy);
 
             ErrorHandler.ThrowOnFailure(((IVsProject)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var path), VSConstants.E_NOTIMPL);
             return path;
@@ -105,15 +102,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
             return capabilitySupported;
         }
 
-        public override string GetProjectName(object project)
+        public override string? GetProjectName(object project)
         {
             if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var hierarchy = project as IVsHierarchy;
-            Debug.Assert(hierarchy != null);
+            var hierarchy = (IVsHierarchy)project;
 
             if (ErrorHandler.Failed(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var name)))
             {

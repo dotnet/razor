@@ -7,12 +7,19 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        private IEnumerable<EditorSettingsChangedTrigger> EditorSettingsChangeTriggers => Array.Empty<EditorSettingsChangedTrigger>();
+        private readonly IEnumerable<EditorSettingsChangedTrigger> _editorSettingsChangeTriggers;
+
+        public DefaultEditorSettingsManagerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _editorSettingsChangeTriggers = Array.Empty<EditorSettingsChangedTrigger>();
+        }
 
         [Fact]
         public void ChangeTriggersGetInitialized()
@@ -33,7 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void InitialSettingsAreDefault()
         {
             // Act
-            var manager = new DefaultEditorSettingsManager(EditorSettingsChangeTriggers);
+            var manager = new DefaultEditorSettingsManager(_editorSettingsChangeTriggers);
 
             // Assert
             Assert.Equal(EditorSettings.Default, manager.Current);
@@ -43,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void Update_TriggersChangedIfEditorSettingsAreDifferent()
         {
             // Arrange
-            var manager = new DefaultEditorSettingsManager(EditorSettingsChangeTriggers);
+            var manager = new DefaultEditorSettingsManager(_editorSettingsChangeTriggers);
             var called = false;
             manager.Changed += (caller, args) => called = true;
             var settings = new EditorSettings(indentWithTabs: true, indentSize: 7);
@@ -60,7 +67,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void Update_DoesNotTriggerChangedIfEditorSettingsAreSame()
         {
             // Arrange
-            var manager = new DefaultEditorSettingsManager(EditorSettingsChangeTriggers);
+            var manager = new DefaultEditorSettingsManager(_editorSettingsChangeTriggers);
             var called = false;
             manager.Changed += (caller, args) => called = true;
             var originalSettings = manager.Current;

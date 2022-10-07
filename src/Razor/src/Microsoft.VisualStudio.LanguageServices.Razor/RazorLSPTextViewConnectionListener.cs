@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         #region protected by _lock
         private readonly List<ITextView> _activeTextViews = new();
 
-        private ITextBuffer _textBuffer;
+        private ITextBuffer? _textBuffer;
         #endregion
 
         [ImportingConstructor]
@@ -105,6 +103,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             }
 
             var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
+
+            Assumes.NotNull(vsTextView);
 
             // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
             // Because of this we don't want to break that experience so we ensure not to "set" a langauge service for remote clients.
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             }
         }
 
-        private void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
+        private void RazorOptions_OptionChanged(object? sender, EditorOptionChangedEventArgs? e)
         {
             Assumes.NotNull(_textBuffer);
 
@@ -298,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             {
             }
 
-            private IOleCommandTarget _next;
+            private IOleCommandTarget? _next;
 
             private IOleCommandTarget Next
             {
@@ -341,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             public int GetDataTipText(TextSpan[] pSpan, out string pbstrText)
             {
-                pbstrText = null;
+                pbstrText = null!;
                 return VSConstants.E_NOTIMPL;
             }
 

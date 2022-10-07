@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains a Razor language server.</Description>
     <EnableApiCheck>false</EnableApiCheck>
-    <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-musl-x64;linux-arm64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <IsShippingPackage>false</IsShippingPackage>
     <RemoveDevicePlatformSupport>true</RemoveDevicePlatformSupport>
   </PropertyGroup>
@@ -46,8 +46,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" PrivateAssets="All" />
-    <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
-    <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriPackageVersion)" ExcludeAssets="true" PrivateAssets="true" />
   </ItemGroup>
 
   <Target Name="PublishAllRids">

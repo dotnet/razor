@@ -11,19 +11,21 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
     public class RazorSpanMappingServiceTest : WorkspaceTestBase
     {
-        public RazorSpanMappingServiceTest()
-        {
-            HostProject = TestProjectData.SomeProject;
-            HostDocument = TestProjectData.SomeProjectFile1;
-        }
+        private readonly HostProject _hostProject;
+        private readonly HostDocument _hostDocument;
 
-        private HostProject HostProject { get; }
-        private HostDocument HostDocument { get; }
+        public RazorSpanMappingServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _hostProject = TestProjectData.SomeProject;
+            _hostDocument = TestProjectData.SomeProjectFile1;
+        }
 
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
@@ -39,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Razor
 ");
 
             var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
-            var document = project.GetDocument(HostDocument.FilePath);
+            var document = project.GetDocument(_hostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
 
             var output = await document.GetGeneratedOutputAsync();
@@ -71,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Razor
 ");
 
             var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
-            var document = project.GetDocument(HostDocument.FilePath);
+            var document = project.GetDocument(_hostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
 
             var output = await document.GetGeneratedOutputAsync();
@@ -104,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Razor
 ");
 
             var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
-            var document = project.GetDocument(HostDocument.FilePath);
+            var document = project.GetDocument(_hostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
 
             var output = await document.GetGeneratedOutputAsync();
@@ -136,10 +138,10 @@ namespace Microsoft.CodeAnalysis.Razor
 ");
 
             var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
-            var document = project.GetDocument(HostDocument.FilePath);
+            var document = project.GetDocument(_hostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
 
             var output = await document.GetGeneratedOutputAsync();

@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
@@ -14,12 +15,14 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    public class SerializationTest
+    public class SerializationTest : TestBase
     {
-        public SerializationTest()
+        public SerializationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var languageVersion = RazorLanguageVersion.Experimental;
             var extensions = new RazorExtension[]

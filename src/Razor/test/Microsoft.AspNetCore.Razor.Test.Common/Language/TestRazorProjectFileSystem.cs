@@ -20,7 +20,8 @@ namespace Microsoft.AspNetCore.Razor.Language
         {
         }
 
-        public TestRazorProjectFileSystem(IList<RazorProjectItem> items) : base("/")
+        public TestRazorProjectFileSystem(IList<RazorProjectItem> items)
+            : base("/")
         {
             _lookup = items.ToDictionary(item => item.FilePath);
         }

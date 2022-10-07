@@ -1,36 +1,33 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     {
-        public GeneratedDocumentSynchronizerTest()
+        private readonly DefaultDocumentVersionCache _cache;
+        private readonly GeneratedDocumentSynchronizer _synchronizer;
+        private readonly TestGeneratedDocumentPublisher _publisher;
+        private readonly DocumentSnapshot _document;
+        private readonly RazorCodeDocument _codeDocument;
+
+        public GeneratedDocumentSynchronizerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Cache = new DefaultDocumentVersionCache(Dispatcher);
-            Publisher = new TestGeneratedDocumentPublisher();
-            Synchronizer = new GeneratedDocumentSynchronizer(Publisher, Cache, Dispatcher);
-            Document = TestDocumentSnapshot.Create("C:/path/to/file.razor");
-            CodeDocument = CreateCodeDocument("<p>Hello World</p>");
+            _cache = new DefaultDocumentVersionCache(Dispatcher);
+            _publisher = new TestGeneratedDocumentPublisher();
+            _synchronizer = new GeneratedDocumentSynchronizer(_publisher, _cache, Dispatcher);
+            _document = TestDocumentSnapshot.Create("C:/path/to/file.razor");
+            _codeDocument = CreateCodeDocument("<p>Hello World</p>");
         }
-
-        private DefaultDocumentVersionCache Cache { get; }
-
-        private GeneratedDocumentSynchronizer Synchronizer { get; }
-
-        private TestGeneratedDocumentPublisher Publisher { get; }
-
-        private DocumentSnapshot Document { get; }
-
-        private RazorCodeDocument CodeDocument { get; }
 
         [Fact]
         public async Task DocumentProcessed_UnknownVersion_Noops()
@@ -38,11 +35,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
 
             // Act
-            await Dispatcher.RunOnDispatcherThreadAsync(() => Synchronizer.DocumentProcessed(CodeDocument, Document), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(
+                () => _synchronizer.DocumentProcessed(_codeDocument, _document), DisposalToken);
 
             // Assert
-            Assert.False(Publisher.PublishedCSharp);
-            Assert.False(Publisher.PublishedHtml);
+            Assert.False(_publisher.PublishedCSharp);
+            Assert.False(_publisher.PublishedHtml);
         }
 
         [Fact]
@@ -51,15 +49,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                Cache.TrackDocumentVersion(Document, version: 1337);
+                _cache.TrackDocumentVersion(_document, version: 1337);
 
                 // Act
-                Synchronizer.DocumentProcessed(CodeDocument, Document);
-            }, CancellationToken.None);
+                _synchronizer.DocumentProcessed(_codeDocument, _document);
+            }, DisposalToken);
 
             // Assert
-            Assert.True(Publisher.PublishedCSharp);
-            Assert.True(Publisher.PublishedHtml);
+            Assert.True(_publisher.PublishedCSharp);
+            Assert.True(_publisher.PublishedHtml);
         }
 
         private class TestGeneratedDocumentPublisher : GeneratedDocumentPublisher

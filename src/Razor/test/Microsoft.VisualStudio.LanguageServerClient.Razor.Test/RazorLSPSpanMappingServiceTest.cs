@@ -4,32 +4,40 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Xunit.Abstractions;
 using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using System.Linq;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class RazorLSPSpanMappingServiceTest
+    public class RazorLSPSpanMappingServiceTest : TestBase
     {
         private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
         private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
         private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
 
-        private readonly SourceText _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
-        private readonly SourceText _sourceTextRazor = SourceText.From(s_mockRazorContent);
+        private readonly SourceText _sourceTextGenerated;
+        private readonly SourceText _sourceTextRazor;
+
+        public RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
+            _sourceTextRazor = SourceText.From(s_mockRazorContent);
+        }
 
         [Fact]
         public async Task MapSpans_WithinRange_ReturnsMapping()
@@ -65,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     Assert.Single(ranges, textSpanAsRange);
                     called = true;
                 })
-                .Returns(Task.FromResult(mappingResult));
+                .ReturnsAsync(mappingResult);
 
             var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
@@ -107,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     Assert.Single(ranges, textSpanAsRange);
                     called = true;
                 })
-                .Returns(Task.FromResult<RazorMapToDocumentRangesResponse>(null));
+                .ReturnsAsync(value: null);
 
             var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 

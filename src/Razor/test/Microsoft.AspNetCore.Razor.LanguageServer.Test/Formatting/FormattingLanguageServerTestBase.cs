@@ -13,17 +13,23 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
     {
-        public FormattingLanguageServerTestBase()
-        {
-            EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(r => r.TryCreateAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null), MockBehavior.Strict);
-        }
-
         internal DocumentContextFactory EmptyDocumentContextFactory { get; }
+
+        public FormattingLanguageServerTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
+                r => r.TryCreateAsync(
+                    It.IsAny<Uri>(),
+                    It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
+                MockBehavior.Strict);
+        }
 
         internal static RazorCodeDocument CreateCodeDocument(string content, IReadOnlyList<SourceMapping> sourceMappings)
         {

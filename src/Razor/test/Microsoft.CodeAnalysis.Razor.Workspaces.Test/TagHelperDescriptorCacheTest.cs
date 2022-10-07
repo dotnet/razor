@@ -7,15 +7,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test
 {
-    public class TagHelperDescriptorCacheTest
+    public class TagHelperDescriptorCacheTest : TestBase
     {
-        private static readonly TestFile TagHelpersTestFile = TestFile.Create("taghelpers.json", typeof(TagHelperDescriptorCacheTest));
+        private static readonly TestFile s_tagHelpersTestFile = TestFile.Create("taghelpers.json", typeof(TagHelperDescriptorCacheTest));
+
+        public TagHelperDescriptorCacheTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public void TagHelperDescriptorCache_TypeNameAffectsHash()
@@ -60,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test
             // Reads 5 copies of the TagHelpers (with 5x references)
             for (var i = 0; i < 5; ++i)
             {
-                var tagHelpersBatch = ReadTagHelpers(TagHelpersTestFile.OpenRead());
+                var tagHelpersBatch = ReadTagHelpers(s_tagHelpersTestFile.OpenRead());
                 tagHelpers.AddRange(tagHelpersBatch);
                 tagHelpersPerBatch = tagHelpersBatch.Count;
             }
@@ -77,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test
         public void GetHashCode_AllTagHelpers_NoCacheIdCollisions()
         {
             // Arrange
-            var tagHelpers = ReadTagHelpers(TagHelpersTestFile.OpenRead());
+            var tagHelpers = ReadTagHelpers(s_tagHelpersTestFile.OpenRead());
 
             // Act
             var hashes = new HashSet<int>(tagHelpers.Select(t => TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(t)));

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -98,7 +98,10 @@ public abstract class RazorProject
         StringBuilder builder;
         var fileNameIndex = path.LastIndexOf('/');
         var length = path.Length;
-        Debug.Assert(fileNameIndex != -1);
+
+        // https://github.com/dotnet/razor-tooling/issues/6965
+        // Debug.Assert(fileNameIndex != -1);
+
         if (string.Compare(path, fileNameIndex + 1, fileName, 0, fileName.Length, StringComparison.Ordinal) == 0)
         {
             // If the specified path is for the file hierarchy being constructed, then the first file that applies

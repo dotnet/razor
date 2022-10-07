@@ -12,10 +12,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
@@ -32,20 +32,20 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             RepoRoot = current.FullName;
 
             using var memoryStream = new MemoryStream();
-            RazorLanguageServerTask = RazorLanguageServer.CreateAsync(memoryStream, memoryStream, Trace.Off, configure: builder =>
-            {
-                builder.Services.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
-                Builder(builder);
+            var logger = new NoopLogger();
+            RazorLanguageServer = RazorLanguageServerWrapper.Create(memoryStream, memoryStream, logger, configure: (collection) => {
+                collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
+                Builder(collection);
             });
         }
 
-        protected internal virtual void Builder(RazorLanguageServerBuilder builder)
+        protected internal virtual void Builder(IServiceCollection collection)
         {
         }
 
         protected string RepoRoot { get; }
 
-        private protected Task<RazorLanguageServer> RazorLanguageServerTask { get; }
+        private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
 
         internal DocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
         {
@@ -66,34 +66,65 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private class NoopClientNotifierService : ClientNotifierServiceBase
         {
-            public override InitializeParams ClientSettings => new InitializeParams();
-
-            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }
 
-            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             {
-                return Task.FromResult<IResponseRouterReturns>(new NoopResponse());
+                throw new NotImplementedException();
             }
 
-            public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+            public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
             {
-                return Task.FromResult<IResponseRouterReturns>(new NoopResponse());
+                throw new NotImplementedException();
             }
 
-            class NoopResponse : IResponseRouterReturns
+            public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
             {
-                public Task<TResponse> Returning<TResponse>(CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(Activator.CreateInstance<TResponse>());
-                }
+                throw new NotImplementedException();
+            }
+        }
 
-                public Task ReturningVoid(CancellationToken cancellationToken)
-                {
-                    return Task.CompletedTask;
-                }
+        private class NoopLogger : ILspLogger, ILogger
+        {
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+            }
+
+            public void LogEndContext(string message, params object[] @params)
+            {
+            }
+
+            public void LogError(string message, params object[] @params)
+            {
+            }
+
+            public void LogException(Exception exception, string message = null, params object[] @params)
+            {
+            }
+
+            public void LogInformation(string message, params object[] @params)
+            {
+            }
+
+            public void LogStartContext(string message, params object[] @params)
+            {
+            }
+
+            public void LogWarning(string message, params object[] @params)
+            {
             }
         }
     }

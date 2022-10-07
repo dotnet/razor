@@ -11,19 +11,21 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 using TestFileMarkupParser = Microsoft.CodeAnalysis.Testing.TestFileMarkupParser;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
     public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
     {
-        private HostProject HostProject { get; }
-        private HostDocument HostDocument { get; }
+        private readonly HostProject _hostProject;
+        private readonly HostDocument _hostDocument;
 
-        public DocumentExcerptServiceTestBase()
+        public DocumentExcerptServiceTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            HostProject = TestProjectData.SomeProject;
-            HostDocument = TestProjectData.SomeProjectFile1;
+            _hostProject = TestProjectData.SomeProject;
+            _hostDocument = TestProjectData.SomeProjectFile1;
         }
 
         public static (SourceText sourceText, TextSpan span) CreateText(string text)
@@ -46,23 +48,23 @@ namespace Microsoft.CodeAnalysis.Razor
         private (DocumentSnapshot primary, Document secondary) InitializeDocument(SourceText sourceText)
         {
             var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
-            var primary = project.GetDocument(HostDocument.FilePath);
+            var primary = project.GetDocument(_hostDocument.FilePath);
 
             var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
-                ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(HostDocument.FilePath)),
+                ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(_hostDocument.FilePath)),
                 VersionStamp.Create(),
-                Path.GetFileNameWithoutExtension(HostDocument.FilePath),
-                Path.GetFileNameWithoutExtension(HostDocument.FilePath),
+                Path.GetFileNameWithoutExtension(_hostDocument.FilePath),
+                Path.GetFileNameWithoutExtension(_hostDocument.FilePath),
                 LanguageNames.CSharp,
-                HostDocument.FilePath));
+                _hostDocument.FilePath));
 
             solution = solution.AddDocument(
-                DocumentId.CreateNewId(solution.ProjectIds.Single(), HostDocument.FilePath),
-                HostDocument.FilePath,
-                new GeneratedDocumentTextLoader(primary, HostDocument.FilePath));
+                DocumentId.CreateNewId(solution.ProjectIds.Single(), _hostDocument.FilePath),
+                _hostDocument.FilePath,
+                new GeneratedDocumentTextLoader(primary, _hostDocument.FilePath));
 
             var secondary = solution.Projects.Single().Documents.Single();
             return (primary, secondary);

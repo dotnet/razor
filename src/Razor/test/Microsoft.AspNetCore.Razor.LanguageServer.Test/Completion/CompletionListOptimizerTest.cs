@@ -3,13 +3,20 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    public class CompletionListOptimizerTest
+    public class CompletionListOptimizerTest : TestBase
     {
+        public CompletionListOptimizerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Convert_CommitCharactersTrue_RemovesCommitCharactersFromItems()
         {

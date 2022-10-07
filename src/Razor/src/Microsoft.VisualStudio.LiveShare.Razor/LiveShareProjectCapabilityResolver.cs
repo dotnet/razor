@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
             // questions on hierarchy capabilities.
             return _joinableTaskFactory.Run(async () =>
             {
-                var remoteHierarchyService = await _sessionAccessor.Session.GetRemoteServiceAsync<IRemoteHierarchyService>(nameof(IRemoteHierarchyService), CancellationToken.None).ConfigureAwait(false);
+                var remoteHierarchyService = await _sessionAccessor.Session!.GetRemoteServiceAsync<IRemoteHierarchyService>(nameof(IRemoteHierarchyService), CancellationToken.None).ConfigureAwait(false);
                 var documentMonikerUri = _sessionAccessor.Session.ConvertLocalPathToSharedUri(documentMoniker);
                 var hasCapability = await remoteHierarchyService.HasCapabilityAsync(documentMonikerUri, capability, CancellationToken.None).ConfigureAwait(false);
                 return hasCapability;

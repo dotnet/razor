@@ -3,13 +3,20 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using MonoDevelop.Projects;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class VisualStudioMacLSPEditorFeatureDetectorTest
+    public class VisualStudioMacLSPEditorFeatureDetectorTest : TestBase
     {
+        public VisualStudioMacLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
         {

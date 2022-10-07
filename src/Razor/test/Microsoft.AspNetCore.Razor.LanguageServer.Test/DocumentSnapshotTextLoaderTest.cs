@@ -4,15 +4,22 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class DocumentSnapshotTextLoaderTest
+    public class DocumentSnapshotTextLoaderTest : TestBase
     {
+        public DocumentSnapshotTextLoaderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task LoadTextAndVersionAsync_CreatesTextAndVersionFromDocumentsText()
         {

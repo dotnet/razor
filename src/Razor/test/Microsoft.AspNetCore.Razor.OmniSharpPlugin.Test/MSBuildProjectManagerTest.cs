@@ -19,21 +19,23 @@ using Moq;
 using OmniSharp.MSBuild.Logging;
 using OmniSharp.MSBuild.Notification;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 {
     public class MSBuildProjectManagerTest : OmniSharpTestBase
     {
-        public MSBuildProjectManagerTest()
+        private readonly RazorConfiguration _customConfiguration;
+
+        public MSBuildProjectManagerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            CustomConfiguration = RazorConfiguration.Create(
+            _customConfiguration = RazorConfiguration.Create(
                 RazorLanguageVersion.Experimental,
                 "Custom",
                 Enumerable.Empty<RazorExtension>());
         }
-
-        public RazorConfiguration CustomConfiguration { get; }
 
         [Fact]
         public async Task SynchronizeDocuments_UpdatesDocumentKinds()
@@ -47,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 LoggerFactory);
             var projectManager = CreateProjectSnapshotManager();
             msbuildProjectManager.Initialize(projectManager);
-            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
+            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
             var configuredHostDocuments = new[]
             {
                 new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Component),
@@ -58,14 +60,14 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Legacy);
                 projectManager.DocumentAdded(hostProject, hostDocument);
                 return projectManager.GetLoadedProject(hostProject.FilePath);
-            }).ConfigureAwait(false);
+            });
 
             // Act
             await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments,
                     projectSnapshot,
-                    hostProject)).ConfigureAwait(false);
+                    hostProject));
 
             // Assert
             await RunOnDispatcherThreadAsync(() =>
@@ -76,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 Assert.Equal("file.cshtml", document.FilePath);
                 Assert.Equal("file.cshtml", document.TargetPath);
                 Assert.Equal(FileKinds.Component, document.FileKind);
-            }).ConfigureAwait(false);
+            });
         }
 
         [Fact]
@@ -91,28 +93,28 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 LoggerFactory);
             var projectManager = CreateProjectSnapshotManager();
             msbuildProjectManager.Initialize(projectManager);
-            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
+            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
             var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 var hostDocument = new OmniSharpHostDocument("file.razor", "file.razor", FileKinds.Component);
                 projectManager.DocumentAdded(hostProject, hostDocument);
                 return projectManager.GetLoadedProject(hostProject.FilePath);
-            }).ConfigureAwait(false);
+            });
 
             // Act
             await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments: Array.Empty<OmniSharpHostDocument>(),
                     projectSnapshot,
-                    hostProject)).ConfigureAwait(false);
+                    hostProject));
 
             // Assert
             await RunOnDispatcherThreadAsync(() =>
             {
                 var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
                 Assert.Empty(refreshedProject.DocumentFilePaths);
-            }).ConfigureAwait(false);
+            });
         }
 
         [Fact]
@@ -129,13 +131,13 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 LoggerFactory);
             var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
             msbuildProjectManager.Initialize(projectManager);
-            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
+            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
             var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 projectManager.DocumentAdded(hostProject, hostDocument);
                 return projectManager.GetLoadedProject(hostProject.FilePath);
-            }).ConfigureAwait(false);
+            });
             projectManager.Changed += (sender, args) => throw new XunitException("Should not have been notified");
 
             // Act & Assert
@@ -143,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments,
                     projectSnapshot,
-                    hostProject)).ConfigureAwait(false);
+                    hostProject));
         }
 
         [Fact]
@@ -161,19 +163,19 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 LoggerFactory);
             var projectManager = CreateProjectSnapshotManager();
             msbuildProjectManager.Initialize(projectManager);
-            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
+            var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
             var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 return projectManager.GetLoadedProject(hostProject.FilePath);
-            }).ConfigureAwait(false);
+            });
 
             // Act
             await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments,
                     projectSnapshot,
-                    hostProject)).ConfigureAwait(false);
+                    hostProject));
 
             // Assert
             await RunOnDispatcherThreadAsync(() =>
@@ -181,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
                 var document = refreshedProject.GetDocument("file.razor");
                 Assert.Equal(FileKinds.Component, document.FileKind);
-            }).ConfigureAwait(false);
+            });
         }
 
         // This is more of an integration level test to verify everything works end to end.
@@ -194,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             projectRootElement.AddProperty(MSBuildProjectManager.IntermediateOutputPathPropertyName, intermediateOutputPath);
             var projectInstance = new ProjectInstance(projectRootElement);
             var hostDocument = new OmniSharpHostDocument("file.razor", "file.razor", FileKinds.Component);
-            var projectConfiguration = new ProjectConfiguration(CustomConfiguration, new[] { hostDocument }, "TestRootNamespace");
+            var projectConfiguration = new ProjectConfiguration(_customConfiguration, new[] { hostDocument }, "TestRootNamespace");
             var configurationProvider = new Mock<ProjectConfigurationProvider>(MockBehavior.Strict);
             configurationProvider.Setup(provider => provider.TryResolveConfiguration(It.IsAny<ProjectConfigurationProviderContext>(), out projectConfiguration))
                 .Returns(true);
@@ -220,12 +222,12 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 sdkVersion: default);
 
             // Act
-            await msbuildProjectManager.ProjectLoadedAsync(args, CancellationToken.None);
+            await msbuildProjectManager.ProjectLoadedAsync(args, DisposalToken);
 
             // Assert
-            var project = await RunOnDispatcherThreadAsync(() => Assert.Single(projectManager.Projects)).ConfigureAwait(false);
+            var project = await RunOnDispatcherThreadAsync(() => Assert.Single(projectManager.Projects));
             Assert.Equal(projectInstance.ProjectFileLocation.File, project.FilePath);
-            Assert.Same(CustomConfiguration, project.Configuration);
+            Assert.Same(_customConfiguration, project.Configuration);
             var document = project.GetDocument(hostDocument.FilePath);
             Assert.NotNull(document);
         }

@@ -6,23 +6,25 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class TestRazorFormattingService
     {
-        public static readonly RazorFormattingService Instance = CreateWithFullSupport(TestRazorCodeDocument.CreateEmpty());
-
         private TestRazorFormattingService()
         {
         }
 
-        public static RazorFormattingService CreateWithFullSupport(RazorCodeDocument codeDocument)
+        public static RazorFormattingService CreateWithFullSupport(RazorCodeDocument? codeDocument = null, ILoggerFactory? loggerFactory = null)
         {
-            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
+            codeDocument ??= TestRazorCodeDocument.CreateEmpty();
+            loggerFactory ??= NullLoggerFactory.Instance;
 
-            var dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
+
+            var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
             var versionCache = new DefaultDocumentVersionCache(dispatcher);
 
             var client = new FormattingLanguageServerClient();
@@ -30,15 +32,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var passes = new List<IFormattingPass>()
             {
-                new HtmlFormattingPass(mappingService, FilePathNormalizer.Instance, client, versionCache, TestLoggerFactory.Instance),
-                new CSharpFormattingPass(mappingService, FilePathNormalizer.Instance, client, TestLoggerFactory.Instance),
-                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer.Instance, client, TestLoggerFactory.Instance),
-                new RazorFormattingPass(mappingService, FilePathNormalizer.Instance, client, TestLoggerFactory.Instance),
-                new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer.Instance, client, TestLoggerFactory.Instance),
-                new FormattingContentValidationPass(mappingService, FilePathNormalizer.Instance, client, TestLoggerFactory.Instance),
+                new HtmlFormattingPass(mappingService, FilePathNormalizer.Instance, client, versionCache, loggerFactory),
+                new CSharpFormattingPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
+                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
+                new RazorFormattingPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
+                new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
+                new FormattingContentValidationPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
             };
 
-            return new DefaultRazorFormattingService(passes, TestLoggerFactory.Instance, TestAdhocWorkspaceFactory.Instance);
+            return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);
         }
     }
 }

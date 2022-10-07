@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private MacRazorProjectHostBase _razorProjectHost;
+        private MacRazorProjectHostBase? _razorProjectHost;
 
         public DefaultDotNetProjectHost(
             DotNetProject project,
@@ -72,7 +71,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // Internal for testing
+#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         internal DefaultDotNetProjectHost(
+#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService,
@@ -162,7 +163,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }, CancellationToken.None);
         }
 
-        private bool TryGetProjectSnapshotManager(out ProjectSnapshotManagerBase projectSnapshotManagerBase)
+        private bool TryGetProjectSnapshotManager([NotNullWhen(returnValue: true)] out ProjectSnapshotManagerBase? projectSnapshotManagerBase)
         {
             if (!_workspaceAccessor.TryGetWorkspace(_project.ParentSolution, out var workspace))
             {

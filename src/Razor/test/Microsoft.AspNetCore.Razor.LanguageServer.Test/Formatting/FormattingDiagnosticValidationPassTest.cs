@@ -3,25 +3,29 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using Xunit;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class FormattingDiagnosticValidationPassTest : LanguageServerTestBase
     {
+        public FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task ExecuteAsync_LanguageKindCSharp_Noops()
         {
@@ -41,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Equal(input, result);
@@ -66,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Equal(input, result);
@@ -94,7 +98,7 @@ public class Foo { }
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Equal(input, result);
@@ -119,7 +123,7 @@ public class Foo { }
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Empty(result.Edits);
@@ -162,13 +166,27 @@ public class Foo { }
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
             var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.Setup(d => d.GetImports()).Returns(Array.Empty<DocumentSnapshot>());
-            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
-            documentSnapshot.Setup(d => d.Project.GetProjectEngine()).Returns(projectEngine);
-            documentSnapshot.Setup(d => d.TargetPath).Returns(path);
-            documentSnapshot.Setup(d => d.Project.TagHelpers).Returns(tagHelpers);
-            documentSnapshot.Setup(d => d.FileKind).Returns(fileKind);
-            documentSnapshot.Setup(d => d.FilePath).Returns(path);
+            documentSnapshot
+                .Setup(d => d.GetImports())
+                .Returns(Array.Empty<DocumentSnapshot>());
+            documentSnapshot
+                .Setup(d => d.GetGeneratedOutputAsync())
+                .ReturnsAsync(codeDocument);
+            documentSnapshot
+                .Setup(d => d.Project.GetProjectEngine())
+                .Returns(projectEngine);
+            documentSnapshot
+                .Setup(d => d.TargetPath)
+                .Returns(path);
+            documentSnapshot
+                .Setup(d => d.Project.TagHelpers)
+                .Returns(tagHelpers);
+            documentSnapshot
+                .Setup(d => d.FileKind)
+                .Returns(fileKind);
+            documentSnapshot
+                .Setup(d => d.FilePath)
+                .Returns(path);
 
             return (codeDocument, documentSnapshot.Object);
         }

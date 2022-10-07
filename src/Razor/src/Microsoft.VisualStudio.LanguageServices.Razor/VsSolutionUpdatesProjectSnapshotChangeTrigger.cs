@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -27,10 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
-        private ProjectSnapshotManagerBase _projectManager;
-        private CancellationTokenSource _activeSolutionCancellationTokenSource;
+        private ProjectSnapshotManagerBase? _projectManager;
+        private CancellationTokenSource? _activeSolutionCancellationTokenSource;
         private uint _updateCookie;
-        private IVsSolutionBuildManager _solutionBuildManager;
+        private IVsSolutionBuildManager? _solutionBuildManager;
 
         [ImportingConstructor]
         public VsSolutionUpdatesProjectSnapshotChangeTrigger(
@@ -73,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _activeSolutionCancellationTokenSource = new CancellationTokenSource();
         }
 
-        internal Task CurrentUpdateTaskForTests { get; private set; }
+        internal Task? CurrentUpdateTaskForTests { get; private set; }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
@@ -134,9 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 _activeSolutionCancellationTokenSource?.Dispose();
                 _activeSolutionCancellationTokenSource = null;
             }
-            else if (_activeSolutionCancellationTokenSource is null)
+            else
             {
-                _activeSolutionCancellationTokenSource = new CancellationTokenSource();
+                _activeSolutionCancellationTokenSource ??= new CancellationTokenSource();
             }
         }
 
@@ -146,12 +144,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var projectFilePath = _projectService.GetProjectPath(projectHierarchy);
             return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                var projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
-                if (projectSnapshot != null)
+                var projectSnapshot = _projectManager?.GetLoadedProject(projectFilePath);
+                if (projectSnapshot is not null)
                 {
-                    var workspaceProject = _projectManager.Workspace.CurrentSolution.Projects.FirstOrDefault(
+                    var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(
                         wp => FilePathComparer.Instance.Equals(wp.FilePath, projectSnapshot.FilePath));
-                    if (workspaceProject != null)
+                    if (workspaceProject is not null)
                     {
                         // Trigger a tag helper update by forcing the project manager to see the workspace Project
                         // from the current solution.

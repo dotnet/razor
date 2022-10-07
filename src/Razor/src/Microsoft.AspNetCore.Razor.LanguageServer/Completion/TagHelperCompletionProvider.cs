@@ -70,18 +70,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
             {
-                if ((containingTagNameToken.FullWidth > 1 || containingTagNameToken.Content == "-") &&
-                    containingTagNameToken.Span.Start != context.AbsoluteIndex &&
-                    containingTagNameToken.Span.End != context.AbsoluteIndex)
-                {
-                    // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
-                    // beginning/ending of an HTML element name.
-                    return Array.Empty<RazorCompletionItem>();
-                }
-
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var containingElement = parent.Parent;
-                var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context.TagHelperDocumentContext);
+                var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context);
                 return elementCompletions;
             }
 
@@ -180,7 +171,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 var attributeCommitCharacters = ResolveAttributeCommitCharacters(attributeContext);
                 var isSnippet = false;
                 var insertText = filterText;
-                if (TryResolveInsertText(insertText, attributeContext, out var snippetText))
+
+                // Do not turn attributes into snippets if we are in an already written full attribute (https://github.com/dotnet/razor-tooling/issues/6724)
+                if (containingAttribute is not (MarkupTagHelperAttributeSyntax or MarkupAttributeBlockSyntax) &&
+                    TryResolveInsertText(insertText, attributeContext, out var snippetText))
                 {
                     isSnippet = true;
                     insertText = snippetText;
@@ -234,13 +228,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             SyntaxNode containingElement,
             string containingTagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
-            TagHelperDocumentContext tagHelperDocumentContext)
+            RazorCompletionContext context)
         {
             var ancestors = containingElement.Ancestors();
             var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var elementCompletionContext = new ElementCompletionContext(
-                tagHelperDocumentContext,
-                existingCompletions: Enumerable.Empty<string>(),
+                context.TagHelperDocumentContext,
+                context.ExistingCompletions,
                 containingTagName,
                 attributes,
                 ancestorTagName,
@@ -293,19 +287,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private static IReadOnlyList<RazorCommitCharacter> ResolveAttributeCommitCharacters(AttributeContext attributeContext)
         {
-            switch (attributeContext)
+            return attributeContext switch
             {
-                case AttributeContext.Indexer:
-                    return s_noCommitCharacters;
-                case AttributeContext.Minimized:
-                    return MinimizedAttributeCommitCharacters;
-                case AttributeContext.Full:
-                    return AttributeCommitCharacters;
-                case AttributeContext.FullSnippet:
-                    return AttributeSnippetCommitCharacters;
-                default:
-                    throw new InvalidOperationException("Unexpected context");
-            }
+                AttributeContext.Indexer => s_noCommitCharacters,
+                AttributeContext.Minimized => MinimizedAttributeCommitCharacters,
+                AttributeContext.Full => AttributeCommitCharacters,
+                AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,
+                _ => throw new InvalidOperationException("Unexpected context"),
+            };
         }
 
         private enum AttributeContext

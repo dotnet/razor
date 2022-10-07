@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.VisualStudio.Text;
 
@@ -71,14 +70,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return uri;
         }
 
-        public override bool TryGet(ITextBuffer textBuffer, out Uri uri)
+        public override bool TryGet(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Uri? uri)
         {
             if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            if (textBuffer.Properties.TryGetProperty(TextBufferUri, out uri))
+            if (textBuffer.Properties.TryGetProperty(TextBufferUri, out uri!))
             {
                 return true;
             }

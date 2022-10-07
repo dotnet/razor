@@ -11,10 +11,11 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    public class DirectiveCompletionItemProviderTest
+    public class DirectiveCompletionItemProviderTest : TestBase
     {
         private static readonly IReadOnlyList<DirectiveDescriptor> s_defaultDirectives = new[]
         {
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             CSharpCodeParser.RemoveTagHelperDirectiveDescriptor,
             CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
         };
+
+        public DirectiveCompletionItemProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]

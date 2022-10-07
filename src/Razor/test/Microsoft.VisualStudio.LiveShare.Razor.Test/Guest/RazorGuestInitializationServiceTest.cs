@@ -6,28 +6,31 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
-    public class RazorGuestInitializationServiceTest
+    public class RazorGuestInitializationServiceTest : TestBase
     {
-        public RazorGuestInitializationServiceTest()
-        {
-            LiveShareSessionAccessor = new DefaultLiveShareSessionAccessor();
-        }
+        private readonly DefaultLiveShareSessionAccessor _liveShareSessionAccessor;
 
-        private DefaultLiveShareSessionAccessor LiveShareSessionAccessor { get; }
+        public RazorGuestInitializationServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _liveShareSessionAccessor = new DefaultLiveShareSessionAccessor();
+        }
 
         [Fact]
         public async Task CreateServiceAsync_StartsViewImportsCopy()
         {
             // Arrange
-            var service = new RazorGuestInitializationService(LiveShareSessionAccessor);
+            var service = new RazorGuestInitializationService(_liveShareSessionAccessor);
             var session = new Mock<CollaborationSession>(MockBehavior.Strict);
             session.Setup(s => s.ListRootsAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(Array.Empty<Uri>()))
+                .ReturnsAsync(Array.Empty<Uri>())
                 .Verifiable();
 
             // Act
@@ -44,7 +47,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         public async Task CreateServiceAsync_SessionDispose_CancelsListRootsToken()
         {
             // Arrange
-            var service = new RazorGuestInitializationService(LiveShareSessionAccessor);
+            var service = new RazorGuestInitializationService(_liveShareSessionAccessor);
             var session = new Mock<CollaborationSession>(MockBehavior.Strict);
             using var disposedServiceGate = new ManualResetEventSlim();
             var disposedService = false;
@@ -79,7 +82,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         public async Task CreateServiceAsync_InitializationDispose_CancelsListRootsToken()
         {
             // Arrange
-            var service = new RazorGuestInitializationService(LiveShareSessionAccessor);
+            var service = new RazorGuestInitializationService(_liveShareSessionAccessor);
             var session = new Mock<CollaborationSession>(MockBehavior.Strict);
             using var cts = new CancellationTokenSource();
             IDisposable sessionService = null;
@@ -108,7 +111,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         public async Task CreateServiceAsync_EnsureViewImportsCopiedAsync_CancellationExceptionsGetSwallowed()
         {
             // Arrange
-            var service = new RazorGuestInitializationService(LiveShareSessionAccessor);
+            var service = new RazorGuestInitializationService(_liveShareSessionAccessor);
             var session = new Mock<CollaborationSession>(MockBehavior.Strict);
             using var cts = new CancellationTokenSource();
             IDisposable sessionService = null;

@@ -6,23 +6,26 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using OmniSharp;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     public abstract class OmniSharpWorkspaceTestBase : OmniSharpTestBase
     {
-        public OmniSharpWorkspaceTestBase()
+        protected OmniSharpWorkspace Workspace { get; }
+        protected Project Project { get; }
+
+        protected OmniSharpWorkspaceTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Workspace = TestOmniSharpWorkspace.Create();
+            Workspace = TestOmniSharpWorkspace.Create(LoggerFactory);
+            AddDisposable(Workspace);
+
             var projectId = ProjectId.CreateNewId();
             var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "TestProject", "TestAssembly", LanguageNames.CSharp, filePath: "/path/to/project.csproj");
             Workspace.AddProject(projectInfo);
             Project = Workspace.CurrentSolution.Projects.FirstOrDefault();
         }
-
-        protected OmniSharpWorkspace Workspace { get; }
-
-        protected Project Project { get; }
 
         protected Document AddRoslynDocument(string filePath)
         {

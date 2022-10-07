@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -16,12 +15,19 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class RazorCompletionListProvierTest : LanguageServerTestBase
     {
-        public RazorCompletionListProvierTest()
+        private readonly RazorCompletionFactsService _completionFactsService;
+        private readonly CompletionListCache _completionListCache;
+        private readonly VSInternalClientCapabilities _clientCapabilities;
+        private readonly VSInternalCompletionContext _defaultCompletionContext;
+
+        public RazorCompletionListProvierTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             // Working around strong naming restriction.
             var tagHelperFactsService = new DefaultTagHelperFactsService();
@@ -33,9 +39,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
                 new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService)
             };
-            CompletionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
-            CompletionListCache = new CompletionListCache();
-            ClientCapabilities = new VSInternalClientCapabilities()
+
+            _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
+            _completionListCache = new CompletionListCache();
+            _clientCapabilities = new VSInternalClientCapabilities()
             {
                 TextDocument = new TextDocumentClientCapabilities()
                 {
@@ -53,15 +60,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     }
                 }
             };
+
+            _defaultCompletionContext = new VSInternalCompletionContext();
         }
-
-        private RazorCompletionFactsService CompletionFactsService { get; }
-
-        private CompletionListCache CompletionListCache { get; }
-
-        private VSInternalClientCapabilities ClientCapabilities { get; }
-
-        private VSInternalCompletionContext DefaultCompletionContext { get; } = new VSInternalCompletionContext();
 
         [Fact]
         public void IsApplicableTriggerContext_Deletion_ReturnsFalse()
@@ -120,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -139,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
             var description = "Something";
             completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
-            RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Act & Assert
             JsonConvert.SerializeObject(converted);
@@ -150,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
-            RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Act & Assert
             JsonConvert.SerializeObject(converted);
@@ -163,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -184,7 +185,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -202,7 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
-            RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Act & Assert
             JsonConvert.SerializeObject(converted);
@@ -215,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -236,7 +237,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.DirectiveAttributeParameter);
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -256,7 +257,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperElement);
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -280,7 +281,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -303,7 +304,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -324,7 +325,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
 
             // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, ClientCapabilities, out var converted);
+            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
             // Assert
             Assert.True(result);
@@ -347,10 +348,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentPath = "C:/path/to/document.cshtml";
             var codeDocument = CreateCodeDocument("@");
             var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, DefaultCompletionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
 
@@ -364,7 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 item => AssertDirectiveSnippet(item, "tagHelperPrefix")
             );
         }
-        
+
         [Fact]
         public async Task GetCompletionListAsync_ProvidesDirectiveCompletions_IncompleteTriggerOnDeletion()
         {
@@ -377,10 +379,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
                 InvokeKind = VSInternalCompletionInvokeKind.Deletion,
             };
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
 
@@ -404,14 +407,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@in");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
             var completionContext = new VSInternalCompletionContext()
             {
                 TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
             };
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -437,14 +441,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
             var completionContext = new VSInternalCompletionContext()
             {
                 TriggerKind = CompletionTriggerKind.TriggerCharacter,
             };
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
             Assert.Empty(completionList.Items);
@@ -464,14 +469,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@inje");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
             var completionContext = new VSInternalCompletionContext()
             {
                 TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
             };
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -498,10 +504,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("<");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, DefaultCompletionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "Test");
@@ -527,10 +534,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("<test  ");
             codeDocument.SetTagHelperContext(tagHelperContext);
             var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(CompletionFactsService, CompletionListCache, LoggerFactory);
+            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 6, DefaultCompletionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
             // Assert
             Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");

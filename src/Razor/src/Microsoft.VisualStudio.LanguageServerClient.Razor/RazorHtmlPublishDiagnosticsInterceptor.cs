@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -32,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLSPConventions _razorConventions;
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
 
-        private ILogger _logger;
+        private ILogger? _logger;
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
@@ -149,8 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             //
             // This'll need to be revisited based on preferences with flickering vs lingering.
 
-            _logger?.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics.Length);
-            diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
+            _logger?.LogInformation("Returning {diagnosticsLength} diagnostics.", processedDiagnostics.Diagnostics?.Length ?? 0);
+            diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics!;
 
             return CreateResponse(diagnosticParams);
 
