@@ -141,10 +141,11 @@ stages:
                     /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
                     /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
         variables:
-        - _DotNetPublishToBlobFeed : false
+        - _DotNetPublishToBlobFeed: false
         - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
         - _BuildArgs: ''
         - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)'
+        - __VSNeverShowWhatsNew: 1
 
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
