@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.Common;
 
 /// <summary>
 /// <see cref="ImmutableArray{T}"/> extension methods
