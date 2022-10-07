@@ -1,17 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using System.Runtime.Serialization;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
+    [DataContract]
     internal class RazorMapToDocumentRangesResponse
     {
-        public Range[] Ranges { get; set; }
+        [DataMember(Name = "ranges")]
+        public required Range[] Ranges { get; init; }
 
-        public int? HostDocumentVersion { get; set; }
+        [DataMember(Name = "hostDocumentVersion")]
+        public int? HostDocumentVersion { get; init; }
     }
 }

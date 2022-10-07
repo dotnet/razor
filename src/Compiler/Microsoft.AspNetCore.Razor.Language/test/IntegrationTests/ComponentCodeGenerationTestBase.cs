@@ -205,6 +205,50 @@ namespace Test
     }
 
     [Fact]
+    public void ComponentWithDecimalParameter()
+    {
+        // Arrange
+
+        // Act
+        var generated = CompileToCSharp(@"
+<strong>@TestDecimal</strong>
+
+<TestComponent TestDecimal=""4"" />
+
+@code {
+    [Parameter]
+    public decimal TestDecimal { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void ComponentWithDynamicParameter()
+    {
+        // Arrange
+
+        // Act
+        var generated = CompileToCSharp(@"
+<strong>@TestDynamic</strong>
+
+<TestComponent TestDynamic=""4"" />
+
+@code {
+    [Parameter]
+    public dynamic TestDynamic { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithTypeParameters()
     {
         // Arrange
@@ -324,6 +368,27 @@ public class Tag
     }
 
     [Fact]
+    public void ComponentWithTupleParameter()
+    {
+        // Arrange
+
+        // Act
+        var generated = CompileToCSharp(@"
+@code {
+    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
+}
+
+<TestComponent Gutter=""(32, 16)"">
+</TestComponent>
+");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithTypeParameterValueTuple()
     {
         // Arrange
@@ -377,6 +442,51 @@ public class Tag
         AssertDocumentNodeMatchesBaseline(useGenerated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(useGenerated.CodeDocument);
         CompileToAssembly(useGenerated);
+    }
+
+    [Fact]
+    public void ComponentWithTypeParameterValueTupleGloballyQualifiedTypes()
+    {
+        // Arrange
+        var classes = @"
+namespace N;
+
+public class MyClass
+{
+    public int MyClassId { get; set; }
+}
+
+public struct MyStruct
+{
+    public int MyStructId { get; set; }
+}
+";
+
+        AdditionalSyntaxTrees.Add(Parse(classes));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@using N
+@typeparam TParam
+
+@code {
+    [Parameter]
+    public TParam InferParam { get; set; }
+
+    [Parameter]
+    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }
+}
+
+<TestComponent InferParam=""1"">
+    <Template>
+        @context.I1.MyClassId - @context.I2.MyStructId
+    </Template>
+</TestComponent>");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
     }
 
     [Fact]

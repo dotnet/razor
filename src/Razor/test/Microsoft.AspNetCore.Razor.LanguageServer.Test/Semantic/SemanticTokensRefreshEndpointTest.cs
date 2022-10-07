@@ -5,37 +5,47 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
-    public class SemanticTokensRefreshEndpointTest
+    public class SemanticTokensRefreshEndpointTest : TestBase
     {
+        public SemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_QueuesRefresh()
         {
             // Arrange
             var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
-            var serverClient = new TestClient(clientSettings);
+            var clientSettingsManager = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
+            clientSettingsManager.Setup(m => m.GetInitializeParams()).Returns(clientSettings);
+            var serverClient = new TestClient();
             var errorReporter = new TestErrorReporter();
-            using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(serverClient, errorReporter);
+            using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(clientSettingsManager.Object, serverClient, errorReporter);
             var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
-            var refreshParams = new SemanticTokensRefreshParamsBridge();
+            var refreshParams = new SemanticTokensRefreshParams();
+            var requestContext = new RazorRequestContext();
 
             // Act
-            await refreshEndpoint.Handle(refreshParams, CancellationToken.None);
+            await refreshEndpoint.HandleNotificationAsync(refreshParams, requestContext, DisposalToken);
             semanticTokensRefreshPublisher.GetTestAccessor().WaitForEmpty();
 
             // Assert
-            Assert.Equal(WorkspaceNames.SemanticTokensRefresh, serverClient.Requests.Single().Method);
+            Assert.Equal(Methods.WorkspaceSemanticTokensRefreshName, serverClient.Requests.Single().Method);
         }
 
         private static InitializeParams GetInitializedParams(bool semanticRefreshEnabled)
@@ -46,12 +56,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 {
                     Workspace = new WorkspaceClientCapabilities
                     {
-                        SemanticTokens = new Supports<SemanticTokensWorkspaceCapability>(new SemanticTokensWorkspaceCapability
+                        SemanticTokens = new SemanticTokensWorkspaceSetting
                         {
                             RefreshSupport = semanticRefreshEnabled
-                        })
-                    }
-                }
+                        },
+                    },
+                },
             };
         }
 

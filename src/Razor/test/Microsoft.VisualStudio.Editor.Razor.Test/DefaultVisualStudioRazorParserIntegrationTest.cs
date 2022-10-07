@@ -18,24 +18,27 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using SystemDebugger = System.Diagnostics.Debugger;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        private const string TestLinePragmaFileName = "C:\\This\\Path\\Is\\Just\\For\\Line\\Pragmas.cshtml";
-        private const string TestProjectPath = "C:\\This\\Path\\Is\\Just\\For\\Project.csproj";
+        private const string TestLinePragmaFileName = @"C:\This\Path\Is\Just\For\Line\Pragmas.cshtml";
+        private const string TestProjectPath = @"C:\This\Path\Is\Just\For\Project.csproj";
 
-        public DefaultVisualStudioRazorParserIntegrationTest()
+        private readonly ProjectSnapshot _projectSnapshot;
+        private readonly CodeAnalysis.Workspace _workspace;
+
+        public DefaultVisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Workspace = CodeAnalysis.TestWorkspace.Create();
-            ProjectSnapshot = new EphemeralProjectSnapshot(Workspace.Services, TestProjectPath);
+            _workspace = CodeAnalysis.TestWorkspace.Create();
+            AddDisposable(_workspace);
+
+            _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, TestProjectPath);
         }
-
-        private ProjectSnapshot ProjectSnapshot { get; }
-
-        private CodeAnalysis.Workspace Workspace { get; }
 
         [UIFact]
         public async Task NoDocumentSnapshotParsesComponentFileCorrectly()
@@ -632,7 +635,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 tracker.TextViews == new[] { focusedTextView } &&
                 tracker.FilePath == filePath &&
                 tracker.ProjectPath == TestProjectPath &&
-                tracker.ProjectSnapshot == ProjectSnapshot &&
+                tracker.ProjectSnapshot == _projectSnapshot &&
                 tracker.IsSupportedProject == true, MockBehavior.Strict);
             textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
 

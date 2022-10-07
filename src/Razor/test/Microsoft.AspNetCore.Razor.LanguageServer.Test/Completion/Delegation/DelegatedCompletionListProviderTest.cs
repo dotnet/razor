@@ -4,36 +4,33 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
     [UseExportProvider]
     public class DelegatedCompletionListProviderTest : LanguageServerTestBase
     {
-        public DelegatedCompletionListProviderTest()
+        private readonly TestDelegatedCompletionListProvider _provider;
+        private readonly VSInternalClientCapabilities _clientCapabilities;
+
+        public DelegatedCompletionListProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Provider = TestDelegatedCompletionListProvider.Create();
-            ClientCapabilities = new VSInternalClientCapabilities();
+            _provider = TestDelegatedCompletionListProvider.Create(LoggerFactory);
+            _clientCapabilities = new VSInternalClientCapabilities();
         }
-
-        private TestDelegatedCompletionListProvider Provider { get; }
-
-        private VSInternalClientCapabilities ClientCapabilities { get; }
 
         [Fact]
         public async Task ResponseRewritersGetExecutedInOrder()
@@ -44,10 +41,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument);
             var rewriter1 = new TestResponseRewriter(order: 100);
             var rewriter2 = new TestResponseRewriter(order: 20);
-            var provider = TestDelegatedCompletionListProvider.Create(rewriter1, rewriter2);
+            var provider = TestDelegatedCompletionListProvider.Create(LoggerFactory, rewriter1, rewriter2);
 
             // Act
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
             Assert.Collection(completionList.Items,
@@ -64,10 +62,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
             // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            await _provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            var delegatedParameters = Provider.DelegatedParams;
+            var delegatedParameters = _provider.DelegatedParams;
             Assert.NotNull(delegatedParameters);
             Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
             Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
@@ -90,10 +89,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
             // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            await _provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            var delegatedParameters = Provider.DelegatedParams;
+            var delegatedParameters = _provider.DelegatedParams;
             Assert.NotNull(delegatedParameters);
             Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
             Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
@@ -117,10 +117,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
             // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 1, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            await _provider.GetCompletionListAsync(
+                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            var delegatedParameters = Provider.DelegatedParams;
+            var delegatedParameters = _provider.DelegatedParams;
             Assert.NotNull(delegatedParameters);
             Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
             Assert.Equal(new Position(0, 1), delegatedParameters.ProjectedPosition);
@@ -169,11 +170,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
 
             // Act
-            var completionList = await Provider.GetCompletionListAsync(absoluteIndex: 11, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await _provider.GetCompletionListAsync(
+                absoluteIndex: 11, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
             Assert.Null(completionList);
-            var delegatedParameters = Provider.DelegatedParams;
+            var delegatedParameters = _provider.DelegatedParams;
             Assert.Null(delegatedParameters);
         }
 
@@ -191,10 +193,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
             // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 10, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            await _provider.GetCompletionListAsync(
+                absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            var delegatedParameters = Provider.DelegatedParams;
+            var delegatedParameters = _provider.DelegatedParams;
             Assert.NotNull(delegatedParameters);
             Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
 
@@ -220,10 +223,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", codeDocument, hostDocumentVersion: 1337);
 
             // Act
-            await Provider.GetCompletionListAsync(absoluteIndex: 10, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            await _provider.GetCompletionListAsync(
+                absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, DisposalToken);
 
             // Assert
-            var delegatedParameters = Provider.DelegatedParams;
+            var delegatedParameters = _provider.DelegatedParams;
             Assert.NotNull(delegatedParameters);
             Assert.Equal(RazorLanguageKind.CSharp, delegatedParameters.ProjectedKind);
 
@@ -273,9 +277,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 }
             };
             await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, serverCapabilities).ConfigureAwait(false);
+                csharpSourceText, csharpDocumentUri, serverCapabilities, DisposalToken);
 
-            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+            await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
             var triggerCharacter = triggerKind == CompletionTriggerKind.TriggerCharacter ? output[cursorPosition - 1].ToString() : null;
             var invocationKind = triggerKind == CompletionTriggerKind.TriggerCharacter ? VSInternalCompletionInvokeKind.Typing : VSInternalCompletionInvokeKind.Explicit;
@@ -287,9 +291,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 InvokeKind = invocationKind,
             };
             var documentContext = TestDocumentContext.From("C:/path/to/file.razor", codeDocument, hostDocumentVersion: 1337);
-            var provider = TestDelegatedCompletionListProvider.Create(csharpServer);
+            var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
-            var completionList = await provider.GetCompletionListAsync(absoluteIndex: cursorPosition, completionContext, documentContext, ClientCapabilities, CancellationToken.None);
+            var completionList = await provider.GetCompletionListAsync(
+                absoluteIndex: cursorPosition, completionContext, documentContext, _clientCapabilities, DisposalToken);
+
             return completionList;
         }
     }

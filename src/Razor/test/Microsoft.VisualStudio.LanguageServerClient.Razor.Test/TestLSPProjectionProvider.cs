@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -19,12 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
     internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
     {
-        public static readonly TestLSPProjectionProvider Instance = new();
+        private readonly DefaultRazorDocumentMappingService _mappingService ;
 
-        private readonly DefaultRazorDocumentMappingService _mappingService = new(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), TestLoggerFactory.Instance);
-
-        private TestLSPProjectionProvider()
+        public TestLSPProjectionProvider(ILoggerFactory loggerFactory)
         {
+            _mappingService = new(
+                TestLanguageServerFeatureOptions.Instance,
+                new TestDocumentContextFactory(),
+                loggerFactory);
         }
 
         public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
@@ -65,9 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // No C# projection, return original position
             var defaultProjection = new ProjectionResult
             {
-                LanguageKind = languageKind,
+                Uri = null,
                 Position = position,
                 PositionIndex = absoluteIndex,
+                LanguageKind = languageKind,
                 HostDocumentVersion = documentSnapshot.Version
             };
 

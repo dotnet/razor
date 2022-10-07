@@ -19,14 +19,14 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
     {
-        private static readonly CodeAction s_defaultResolvedCodeAction = new CodeAction()
+        private static readonly CodeAction s_defaultResolvedCodeAction = new()
         {
             Title = "ResolvedCodeAction",
             Data = JToken.FromObject(new object()),
@@ -58,6 +58,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             Title = "Unresolved Code Action"
         };
+
+        public DefaultCSharpCodeActionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public async Task ResolveAsync_ReturnsResolvedCodeAction()
@@ -218,15 +223,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction = null)
         {
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<CodeAction>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(resolvedCodeAction ?? s_defaultResolvedCodeAction));
+            var response = resolvedCodeAction ?? s_defaultResolvedCodeAction;
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>()))
-                .Returns(Task.FromResult(responseRouterReturns.Object));
+                .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             return languageServer.Object;
         }

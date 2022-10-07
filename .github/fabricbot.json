@@ -246,7 +246,7 @@
             {
               "name": "addedToMilestone",
               "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
+                "milestoneName": "17.4-Preview3 CC:~9/29"
               }
             },
             {
@@ -255,7 +255,7 @@
                 {
                   "name": "isAssignedToUser",
                   "parameters": {
-                    "user": "NTaylorMullen"
+                    "user": "DustinCampbell"
                   }
                 }
               ]
@@ -300,6 +300,17 @@
                   "name": "isAssignedToUser",
                   "parameters": {
                     "user": "ryanbrandenburg"
+                  }
+                }
+              ]
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isAssignedToUser",
+                  "parameters": {
+                    "user": "arkalyanms"
                   }
                 }
               ]
@@ -386,7 +397,7 @@
             {
               "name": "removedFromMilestone",
               "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
+                "milestoneName": "17.4-Preview3 CC:~9/29"
               }
             }
           ]
@@ -1655,16 +1666,27 @@
           "operator": "and",
           "operands": [
             {
-              "name": "addedToMilestone",
+              "name": "isAssignedToUser",
               "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
+                "user": "arkalyanms"
               }
             },
             {
-              "name": "isAssignedToUser",
-              "parameters": {
-                "user": "NTaylorMullen"
-              }
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "addedToMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                },
+                {
+                  "name": "isInMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1673,13 +1695,13 @@
           "issues",
           "project_card"
         ],
-        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Taylor)",
+        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Arun)",
         "actions": [
           {
             "name": "addToProject",
             "parameters": {
-              "projectName": "17.4 P1 Current Sprint",
-              "columnName": "Taylor"
+              "projectName": "17.4 Current Sprint",
+              "columnName": "Arun"
             }
           }
         ]
@@ -1695,16 +1717,27 @@
           "operator": "and",
           "operands": [
             {
-              "name": "addedToMilestone",
-              "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
-              }
-            },
-            {
               "name": "isAssignedToUser",
               "parameters": {
                 "user": "allisonchou"
               }
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "addedToMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                },
+                {
+                  "name": "isInMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1718,7 +1751,7 @@
           {
             "name": "addToProject",
             "parameters": {
-              "projectName": "17.4 P1 Current Sprint",
+              "projectName": "17.4 Current Sprint",
               "columnName": "Allison"
             }
           }
@@ -1735,16 +1768,27 @@
           "operator": "and",
           "operands": [
             {
-              "name": "addedToMilestone",
-              "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
-              }
-            },
-            {
               "name": "isAssignedToUser",
               "parameters": {
                 "user": "ryzngard"
               }
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "addedToMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                },
+                {
+                  "name": "isInMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1757,7 +1801,7 @@
           {
             "name": "addToProject",
             "parameters": {
-              "projectName": "17.4 P1 Current Sprint",
+              "projectName": "17.4 Current Sprint",
               "columnName": "Andrew"
             }
           }
@@ -1775,16 +1819,27 @@
           "operator": "and",
           "operands": [
             {
-              "name": "addedToMilestone",
-              "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
-              }
-            },
-            {
               "name": "isAssignedToUser",
               "parameters": {
                 "user": "davidwengier"
               }
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "addedToMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                },
+                {
+                  "name": "isInMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1798,7 +1853,7 @@
           {
             "name": "addToProject",
             "parameters": {
-              "projectName": "17.4 P1 Current Sprint",
+              "projectName": "17.4 Current Sprint",
               "columnName": "David"
             }
           }
@@ -1815,16 +1870,27 @@
           "operator": "and",
           "operands": [
             {
-              "name": "addedToMilestone",
-              "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
-              }
-            },
-            {
               "name": "isAssignedToUser",
               "parameters": {
                 "user": "ryanbrandenburg"
               }
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "addedToMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                },
+                {
+                  "name": "isInMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1857,7 +1923,7 @@
             {
               "name": "addedToMilestone",
               "parameters": {
-                "milestoneName": "17.4-Preview2 CC:~8/29"
+                "milestoneName": "17.4-Preview3 CC:~9/29"
               }
             },
             {
@@ -1919,6 +1985,58 @@
           {
             "name": "closeIssue",
             "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isAssignedToUser",
+              "parameters": {
+                "user": "DustinCampbell"
+              }
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "addedToMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                },
+                {
+                  "name": "isInMilestone",
+                  "parameters": {
+                    "milestoneName": "17.4-Preview3 CC:~9/29"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "**UPDATE EACH SPRINT** [Issues] Add current milestone's issues to tracking project (Dustin)",
+        "actions": [
+          {
+            "name": "addToProject",
+            "parameters": {
+              "isOrgProject": false,
+              "projectName": "17.4 Current Sprint",
+              "columnName": "Dustin"
+            }
           }
         ]
       }

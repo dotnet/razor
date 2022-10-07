@@ -9,24 +9,26 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class DefaultWorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
     {
-        public DefaultWorkspaceSemanticTokensRefreshTriggerTest()
-        {
-            ProjectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
-            ProjectManager.AllowNotifyListeners = true;
-            HostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            ProjectManager.ProjectAdded(HostProject);
-            HostDocument = new HostDocument("/path/to/file.razor", "file.razor");
-            ProjectManager.DocumentAdded(HostProject, HostDocument, new EmptyTextLoader(HostDocument.FilePath));
-        }
+        private readonly TestProjectSnapshotManager _projectManager;
+        private readonly HostProject _hostProject;
+        private readonly HostDocument _hostDocument;
 
-        private TestProjectSnapshotManager ProjectManager { get; }
-        private HostProject HostProject { get; }
-        private HostDocument HostDocument { get; }
+        public DefaultWorkspaceSemanticTokensRefreshTriggerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
+            _projectManager.AllowNotifyListeners = true;
+            _hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            _projectManager.ProjectAdded(_hostProject);
+            _hostDocument = new HostDocument("/path/to/file.razor", "file.razor");
+            _projectManager.DocumentAdded(_hostProject, _hostDocument, new EmptyTextLoader(_hostDocument.FilePath));
+        }
 
         [Fact]
         public void PublishesOnWorkspaceUpdate()
@@ -35,11 +37,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var workspaceChangedPublisher = new Mock<WorkspaceSemanticTokensRefreshPublisher>(MockBehavior.Strict);
             workspaceChangedPublisher.Setup(w => w.EnqueueWorkspaceSemanticTokensRefresh());
             var defaultWorkspaceChangedRefresh = new TestDefaultWorkspaceSemanticTokensRefreshTrigger(workspaceChangedPublisher.Object);
-            defaultWorkspaceChangedRefresh.Initialize(ProjectManager);
+            defaultWorkspaceChangedRefresh.Initialize(_projectManager);
 
             // Act
             var newDocument = new HostDocument("/path/to/newFile.razor", "newFile.razor");
-            ProjectManager.DocumentAdded(HostProject, newDocument, new EmptyTextLoader(newDocument.FilePath));
+            _projectManager.DocumentAdded(_hostProject, newDocument, new EmptyTextLoader(newDocument.FilePath));
 
             // Assert
             workspaceChangedPublisher.VerifyAll();
@@ -47,7 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestDefaultWorkspaceSemanticTokensRefreshTrigger : DefaultWorkspaceSemanticTokensRefreshTrigger
         {
-            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher) : base(workspaceSemanticTokensRefreshPublisher)
+            internal TestDefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
+                : base(workspaceSemanticTokensRefreshPublisher)
             {
             }
         }

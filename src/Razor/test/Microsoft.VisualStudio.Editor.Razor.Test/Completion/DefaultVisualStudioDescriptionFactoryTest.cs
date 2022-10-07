@@ -4,14 +4,21 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Text.Adornments;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class DefaultVisualStudioDescriptionFactoryTest
+    public class DefaultVisualStudioDescriptionFactoryTest : TestBase
     {
+        public DefaultVisualStudioDescriptionFactoryTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void CreateClassifiedDescription_SingleDescription_NoSeparator()
         {

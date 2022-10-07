@@ -9,16 +9,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
+using Xunit.Abstractions;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation,
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
@@ -34,8 +33,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         internal DocumentContextFactory DocumentContextFactory { get; private set; }
         internal LanguageServerFeatureOptions LanguageServerFeatureOptions { get; private set; }
-        internal ClientNotifierServiceBase LanguageServer { get; private set; }
+        internal TestLanguageServer LanguageServer { get; private set; }
         internal RazorDocumentMappingService DocumentMappingService { get; private set; }
+
+        protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         protected async Task CreateLanguageServerAsync(RazorCodeDocument codeDocument, string razorFilePath)
         {
@@ -43,7 +47,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var csharpSourceText = codeDocument.GetCSharpSourceText();
             var csharpDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath(razorFilePath));
-            var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, new ServerCapabilities(), razorSpanMappingService: null).ConfigureAwait(false);
+            var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                csharpSourceText,
+                csharpDocumentUri,
+                new ServerCapabilities(),
+                razorSpanMappingService: null,
+                DisposalToken);
+
+            AddDisposable(csharpServer);
+
             await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
 
             DocumentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument, version: 1337);
@@ -51,48 +63,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 options.SupportsFileManipulation == true &&
                 options.SingleServerSupport == true &&
                 options.CSharpVirtualDocumentSuffix == realLanguageServerFeatureOptions.CSharpVirtualDocumentSuffix &&
-                options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix
-                , MockBehavior.Strict);
-            LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri);
+                options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+                MockBehavior.Strict);
+            LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
             DocumentMappingService = new DefaultRazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
         }
 
-        private class TestLanguageServer : ClientNotifierServiceBase
+        internal class TestLanguageServer : ClientNotifierServiceBase
         {
             private readonly CSharpTestLspServer _csharpServer;
             private readonly Uri _csharpDocumentUri;
+            private readonly CancellationToken _cancellationToken;
 
-            public TestLanguageServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri)
+            public int RequestCount;
+
+            public TestLanguageServer(
+                CSharpTestLspServer csharpServer,
+                Uri csharpDocumentUri,
+                CancellationToken cancellationToken)
             {
                 _csharpServer = csharpServer;
                 _csharpDocumentUri = csharpDocumentUri;
+                _cancellationToken = cancellationToken;
             }
 
-            public override OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings { get; }
-
-            public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+            public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }
 
-            public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+            public async override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
             {
-                throw new NotImplementedException();
-            }
-
-            public async override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
-            {
-                return await (method switch
+                RequestCount++;
+                object result = method switch
                 {
-                    RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => HandleDefinitionAsync(@params),
-                    RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => HandleImplementationAsync(@params),
-                    RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => HandleSignatureHelpAsync(@params),
-                    RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => HandleRenameAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => await HandleRenameAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
-                });
+                };
+
+                return (TResponse)result;
             }
 
-            private async Task<IResponseRouterReturns> HandleDefinitionAsync<T>(T @params)
+            private async Task<DefinitionResult?> HandleDefinitionAsync<T>(T @params)
             {
                 var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
                 var delegatedRequest = new TextDocumentPositionParams()
@@ -104,12 +121,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, DefinitionResult?>(Methods.TextDocumentDefinitionName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, DefinitionResult?>(
+                    Methods.TextDocumentDefinitionName,
+                    delegatedRequest,
+                    _cancellationToken);
 
-                return new TestResponseRouterReturn(result);
+                return result;
             }
 
-            private async Task<IResponseRouterReturns> HandleImplementationAsync<T>(T @params)
+            private async Task<ImplementationResult> HandleImplementationAsync<T>(T @params)
             {
                 var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
                 var delegatedRequest = new TextDocumentPositionParams()
@@ -121,12 +141,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, ImplementationResult>(Methods.TextDocumentImplementationName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, ImplementationResult>(
+                    Methods.TextDocumentImplementationName,
+                    delegatedRequest,
+                    _cancellationToken);
 
-                return new TestResponseRouterReturn(result);
+                return result;
             }
 
-            private async Task<IResponseRouterReturns> HandleSignatureHelpAsync<T>(T @params)
+            private async Task<VisualStudio.LanguageServer.Protocol.SignatureHelp> HandleSignatureHelpAsync<T>(T @params)
             {
                 var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
                 var delegatedRequest = new SignatureHelpParams()
@@ -138,12 +161,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = delegatedParams.ProjectedPosition,
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(Methods.TextDocumentSignatureHelpName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<SignatureHelpParams, VisualStudio.LanguageServer.Protocol.SignatureHelp>(
+                    Methods.TextDocumentSignatureHelpName,
+                    delegatedRequest,
+                    _cancellationToken);
 
-                return new TestResponseRouterReturn(result);
+                return result;
             }
 
-            private async Task<IResponseRouterReturns> HandleRenameAsync<T>(T @params)
+            private async Task<WorkspaceEdit> HandleRenameAsync<T>(T @params)
             {
                 var delegatedParams = Assert.IsType<DelegatedRenameParams>(@params);
                 var delegatedRequest = new RenameParams()
@@ -156,9 +182,62 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     NewName = delegatedParams.NewName,
                 };
 
-                var result = await _csharpServer.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName, delegatedRequest, CancellationToken.None);
+                var result = await _csharpServer.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(
+                    Methods.TextDocumentRenameName,
+                    delegatedRequest,
+                    _cancellationToken);
 
-                return new TestResponseRouterReturn(result);
+                return result;
+            }
+
+            private async Task<VSInternalDocumentOnAutoInsertResponseItem> HandleOnAutoInsertAsync<T>(T @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedOnAutoInsertParams>(@params);
+                var delegatedRequest = new VSInternalDocumentOnAutoInsertParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = delegatedParams.ProjectedPosition,
+                    Character = delegatedParams.Character,
+                    Options = delegatedParams.Options
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
+                    VSInternalMethods.OnAutoInsertName,
+                    delegatedRequest,
+                    _cancellationToken);
+
+                return result;
+            }
+
+            public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            private async Task<Range> HandleValidateBreakpointRangeAsync<T>(T @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedValidateBreakpointRangeParams>(@params);
+                var delegatedRequest = new VSInternalValidateBreakableRangeParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Range = delegatedParams.ProjectedRange,
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<VSInternalValidateBreakableRangeParams, Range>(
+                    VSInternalMethods.TextDocumentValidateBreakableRangeName, delegatedRequest, _cancellationToken);
+
+                return result;
             }
         }
     }

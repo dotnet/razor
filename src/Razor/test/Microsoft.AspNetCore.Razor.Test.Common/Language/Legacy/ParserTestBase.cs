@@ -10,7 +10,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy
@@ -22,12 +24,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
     // These tests must be run serially due to the test specific FileName static var.
     [Collection("ParserTestSerialRuns")]
-    public abstract class ParserTestBase
+    public abstract class ParserTestBase : TestBase
     {
-        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
-        private static readonly AsyncLocal<bool> s_isTheory = new AsyncLocal<bool>();
+        private static readonly AsyncLocal<string> s_fileName = new();
+        private static readonly AsyncLocal<bool> s_isTheory = new();
 
-        internal ParserTestBase()
+        protected ParserTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             TestProjectRoot = TestProject.GetProjectDirectory(GetType());
         }

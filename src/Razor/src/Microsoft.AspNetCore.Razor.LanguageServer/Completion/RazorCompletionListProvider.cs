@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal class RazorCompletionListProvider : CompletionListProvider
+    internal class RazorCompletionListProvider
     {
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly CompletionListCache _completionListCache;
@@ -39,13 +39,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _logger = loggerFactory.CreateLogger<RazorCompletionListProvider>();
         }
 
-        public override ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":", " " }.ToImmutableHashSet();
+        // virtual for tests
+        public virtual ImmutableHashSet<string> TriggerCharacters => new[] { "@", "<", ":", " " }.ToImmutableHashSet();
 
-        public override async Task<VSInternalCompletionList?> GetCompletionListAsync(
+        // virtual for tests
+        public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
             int absoluteIndex,
             VSInternalCompletionContext completionContext,
             DocumentContext documentContext,
             VSInternalClientCapabilities clientCapabilities,
+            HashSet<string>? existingCompletions,
             CancellationToken cancellationToken)
         {
             if (!IsApplicableTriggerContext(completionContext))
@@ -71,7 +74,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 syntaxTree,
                 tagHelperContext,
                 reason,
-                completionOptions);
+                completionOptions,
+                existingCompletions);
 
             var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 

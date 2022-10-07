@@ -4,12 +4,19 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class DefaultProjectConfigurationFilePathStoreTest
+    public class DefaultProjectConfigurationFilePathStoreTest : TestBase
     {
+        public DefaultProjectConfigurationFilePathStoreTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Set_ResolvesRelativePaths()
         {

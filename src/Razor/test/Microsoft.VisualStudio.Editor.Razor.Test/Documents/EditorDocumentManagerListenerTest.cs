@@ -13,30 +13,28 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
     public class EditorDocumentManagerListenerTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public EditorDocumentManagerListenerTest()
+        private readonly string _projectFilePath;
+        private readonly string _documentFilePath;
+        private readonly TextLoader _textLoader;
+        private readonly FileChangeTracker _fileChangeTracker;
+        private readonly TestTextBuffer _textBuffer;
+
+        public EditorDocumentManagerListenerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            ProjectFilePath = TestProjectData.SomeProject.FilePath;
-            DocumentFilePath = TestProjectData.SomeProjectFile1.FilePath;
-            TextLoader = TextLoader.From(TextAndVersion.Create(SourceText.From("FILE"), VersionStamp.Default));
-            FileChangeTracker = new DefaultFileChangeTracker(DocumentFilePath);
+            _projectFilePath = TestProjectData.SomeProject.FilePath;
+            _documentFilePath = TestProjectData.SomeProjectFile1.FilePath;
+            _textLoader = TextLoader.From(TextAndVersion.Create(SourceText.From("FILE"), VersionStamp.Default));
+            _fileChangeTracker = new DefaultFileChangeTracker(_documentFilePath);
 
-            TextBuffer = new TestTextBuffer(new StringTextSnapshot("Hello"));
+            _textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello"));
         }
-
-        private string ProjectFilePath { get; }
-
-        private string DocumentFilePath { get; }
-
-        private TextLoader TextLoader { get; }
-
-        private FileChangeTracker FileChangeTracker { get; }
-
-        private TestTextBuffer TextBuffer { get; }
 
         [Fact]
         public void ProjectManager_Changed_DocumentAdded_InvokesGetOrCreateDocument()
@@ -98,11 +96,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 Mock.Of<EditorDocumentManager>(MockBehavior.Strict),
                 Dispatcher,
                 JoinableTaskFactory.Context,
-                ProjectFilePath,
-                DocumentFilePath,
-                TextLoader,
-                FileChangeTracker,
-                isOpen ? TextBuffer : null,
+                _projectFilePath,
+                _documentFilePath,
+                _textLoader,
+                _fileChangeTracker,
+                isOpen ? _textBuffer : null,
                 changedOnDisk: null,
                 changedInEditor: null,
                 opened: null,

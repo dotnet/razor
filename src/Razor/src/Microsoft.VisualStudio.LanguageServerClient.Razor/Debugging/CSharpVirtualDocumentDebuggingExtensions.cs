@@ -50,11 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 syntaxTree = await document!.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            if (syntaxTree is null)
-            {
-                // Couldn't find the document in the workspace OR the version in the workspace couldn't have its syntax tree computed.
-                syntaxTree = CreateSyntaxTreeFromSnapshot(virtualDocument.Snapshot, cancellationToken);
-            }
+            // Couldn't find the document in the workspace OR the version in the workspace couldn't have its syntax tree computed.
+            syntaxTree ??= CreateSyntaxTreeFromSnapshot(virtualDocument.Snapshot, cancellationToken);
 
             return syntaxTree;
 

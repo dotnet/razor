@@ -6,15 +6,22 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Serialization;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor
 {
-    public class SerializationTest
+    public class SerializationTest : TestBase
     {
+        public SerializationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void ProjectSnapshotHandleProxy_RoundTripsProperly()
         {

@@ -4,12 +4,19 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Language
 {
-    public abstract class RazorProjectEngineTestBase
+    public abstract class RazorProjectEngineTestBase : TestBase
     {
         protected abstract RazorLanguageVersion Version { get; }
+
+        protected RazorProjectEngineTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         protected virtual void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
         {

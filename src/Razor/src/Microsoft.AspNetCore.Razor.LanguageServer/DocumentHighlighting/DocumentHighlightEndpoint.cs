@@ -13,22 +13,21 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
 {
-    internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParamsBridge, DocumentHighlight[]>, IDocumentHighlightEndpoint
+    internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParamsBridge, DocumentHighlight[]?>, IDocumentHighlightEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public DocumentHighlightEndpoint(
-            DocumentContextFactory documentContextFactory,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
-            : base(documentContextFactory, languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DocumentHighlightEndpoint>())
+            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DocumentHighlightEndpoint>())
         {
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "documentHighlightProvider";
             var options = new DocumentHighlightOptions
@@ -39,26 +38,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting
             return new RegistrationExtensionResult(ServerCapability, options);
         }
 
-        /// <inheritdoc/>
         protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName;
 
-        /// <inheritdoc/>
-        protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
+        protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
             // We don't handle this in any particular way for Razor, we just delegate
             return Task.FromResult<DocumentHighlight[]?>(null);
         }
 
-        /// <inheritdoc/>
-        protected override IDelegatedParams CreateDelegatedParams(DocumentHighlightParamsBridge request, DocumentContext documentContext, Projection projection, CancellationToken cancellationToken)
-            => new DelegatedPositionParams(
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                     documentContext.Identifier,
                     projection.Position,
-                    projection.LanguageKind);
+                    projection.LanguageKind));
+        }
 
-        /// <inheritdoc/>
-        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentContext documentContext, CancellationToken cancellationToken)
+        protected override async Task<DocumentHighlight[]?> HandleDelegatedResponseAsync(DocumentHighlight[]? response, DocumentHighlightParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         {
+            var documentContext = requestContext.GetRequiredDocumentContext();
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             if (response is null)

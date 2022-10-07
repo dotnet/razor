@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -12,27 +11,29 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     {
-        public DefaultDocumentContextFactoryTest()
-        {
-            DocumentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
-        }
+        private readonly DocumentVersionCache _documentVersionCache;
 
-        private DocumentVersionCache DocumentVersionCache { get; }
+        public DefaultDocumentContextFactoryTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+        }
 
         [Fact]
         public async Task TryCreateAsync_CanNotResolveDocument_ReturnsNull()
         {
             // Arrange
             var uri = new Uri("C:/path/to/file.cshtml");
-            var factory = new DefaultDocumentContextFactory(Dispatcher, new TestDocumentResolver(), DocumentVersionCache, LoggerFactory);
+            var factory = new DefaultDocumentContextFactory(Dispatcher, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
             // Act
-            var documentContext = await factory.TryCreateAsync(uri, CancellationToken.None);
+            var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
 
             // Assert
             Assert.Null(documentContext);
@@ -45,10 +46,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var uri = new Uri("C:/path/to/file.cshtml");
             var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
             var documentResolver = new TestDocumentResolver(documentSnapshot);
-            var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, DocumentVersionCache, LoggerFactory);
+            var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
             // Act
-            var documentContext = await factory.TryCreateAsync(uri, CancellationToken.None);
+            var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
 
             // Assert
             Assert.Null(documentContext);
@@ -63,11 +64,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
             documentSnapshot.With(codeDocument);
             var documentResolver = new TestDocumentResolver(documentSnapshot);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => DocumentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337), CancellationToken.None);
-            var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, DocumentVersionCache, LoggerFactory);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337), DisposalToken);
+            var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
             // Act
-            var documentContext = await factory.TryCreateAsync(uri, CancellationToken.None);
+            var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
 
             // Assert
             Assert.NotNull(documentContext);

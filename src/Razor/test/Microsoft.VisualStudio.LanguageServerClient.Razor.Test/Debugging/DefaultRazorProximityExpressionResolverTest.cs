@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
@@ -17,46 +18,43 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
-    public class DefaultRazorProximityExpressionResolverTest
+    public class DefaultRazorProximityExpressionResolverTest : TestBase
     {
-        public DefaultRazorProximityExpressionResolverTest()
-        {
-            DocumentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
-            CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".ide.g.cs", UriKind.Absolute);
+        private readonly string _validProximityExpressionRoot;
+        private readonly string _invalidProximityExpressionRoot;
+        private readonly ITextBuffer _csharpTextBuffer;
+        private readonly Uri _documentUri;
+        private readonly Uri _csharpDocumentUri;
+        private readonly ITextBuffer _hostTextbuffer;
 
-            ValidProximityExpressionRoot = "var abc = 123;";
-            InvalidProximityExpressionRoot = "private int bar;";
+        public DefaultRazorProximityExpressionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _documentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
+            _csharpDocumentUri = new Uri(_documentUri.OriginalString + ".ide.g.cs", UriKind.Absolute);
+
+            _validProximityExpressionRoot = "var abc = 123;";
+            _invalidProximityExpressionRoot = "private int bar;";
             var csharpTextSnapshot = new StringTextSnapshot(
 $@"public class SomeRazorFile
 {{
-    {InvalidProximityExpressionRoot}
+    {_invalidProximityExpressionRoot}
 
     public void Render()
     {{
-        {ValidProximityExpressionRoot}
+        {_validProximityExpressionRoot}
     }}
 }}
 ");
-            CSharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
+            _csharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
-            var textBufferSnapshot = new StringTextSnapshot($"@{{{InvalidProximityExpressionRoot}}} @code {{{ValidProximityExpressionRoot}}}");
-            HostTextbuffer = new TestTextBuffer(textBufferSnapshot);
+            var textBufferSnapshot = new StringTextSnapshot($"@{{{_invalidProximityExpressionRoot}}} @code {{{_validProximityExpressionRoot}}}");
+            _hostTextbuffer = new TestTextBuffer(textBufferSnapshot);
         }
-
-        private string ValidProximityExpressionRoot { get; }
-
-        private string InvalidProximityExpressionRoot { get; }
-
-        private ITextBuffer CSharpTextBuffer { get; }
-
-        private Uri DocumentUri { get; }
-
-        private Uri CSharpDocumentUri { get; }
-
-        private ITextBuffer HostTextbuffer { get; }
 
         [Fact]
         public async Task TryResolveProximityExpressionsAsync_UnaddressableTextBuffer_ReturnsNull()
@@ -66,7 +64,7 @@ $@"public class SomeRazorFile
             var resolver = CreateResolverWith();
 
             // Act
-            var expressions = await resolver.TryResolveProximityExpressionsAsync(differentTextBuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var expressions = await resolver.TryResolveProximityExpressionsAsync(differentTextBuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(expressions);
@@ -77,11 +75,13 @@ $@"public class SomeRazorFile
         {
             // Arrange
             var documentManager = new Mock<LSPDocumentManager>(MockBehavior.Strict).Object;
-            Mock.Get(documentManager).Setup(m => m.TryGetDocument(DocumentUri, out It.Ref<LSPDocumentSnapshot>.IsAny)).Returns(false);
+            Mock.Get(documentManager)
+                .Setup(m => m.TryGetDocument(_documentUri, out It.Ref<LSPDocumentSnapshot>.IsAny))
+                .Returns(false);
             var resolver = CreateResolverWith(documentManager: documentManager);
 
             // Act
-            var result = await resolver.TryResolveProximityExpressionsAsync(HostTextbuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var result = await resolver.TryResolveProximityExpressionsAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -92,13 +92,13 @@ $@"public class SomeRazorFile
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            var testCSharpDocument = new CSharpVirtualDocumentSnapshot(CSharpDocumentUri, CSharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
-            var document = new TestLSPDocumentSnapshot(DocumentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
+            var testCSharpDocument = new CSharpVirtualDocumentSnapshot(_csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
+            var document = new TestLSPDocumentSnapshot(_documentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
             documentManager.AddDocument(document.Uri, document);
             var resolver = CreateResolverWith(documentManager: documentManager);
 
             // Act
-            var expressions = await resolver.TryResolveProximityExpressionsAsync(HostTextbuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var expressions = await resolver.TryResolveProximityExpressionsAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(expressions);
@@ -108,11 +108,13 @@ $@"public class SomeRazorFile
             FileUriProvider uriProvider = null,
             LSPDocumentManager documentManager = null)
         {
-            var documentUri = DocumentUri;
-            uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(HostTextbuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(HostTextbuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
-            var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(CSharpDocumentUri, CSharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
-            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(DocumentUri, 0, csharpVirtualDocumentSnapshot);
-            documentManager ??= Mock.Of<LSPDocumentManager>(manager => manager.TryGetDocument(DocumentUri, out documentSnapshot) == true, MockBehavior.Strict);
+            var documentUri = _documentUri;
+            uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(_hostTextbuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(_hostTextbuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
+            var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(_csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
+            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(_documentUri, 0, csharpVirtualDocumentSnapshot);
+            documentManager ??= Mock.Of<LSPDocumentManager>(
+                manager => manager.TryGetDocument(_documentUri, out documentSnapshot) == true,
+                MockBehavior.Strict);
 
             var razorProximityExpressionResolver = new DefaultRazorProximityExpressionResolver(
                 uriProvider,

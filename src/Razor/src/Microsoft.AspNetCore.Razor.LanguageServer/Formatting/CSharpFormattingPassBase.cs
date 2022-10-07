@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -325,7 +324,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             if (IsRazorComment() ||
-                IsInHtmlTag() ||
+                IsInHtmlAttributeValue() ||
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
                 IsImplicitExpression() ||
@@ -368,14 +367,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return false;
             }
 
-            bool IsInHtmlTag()
+            bool IsInHtmlAttributeValue()
             {
                 // E.g, (| is position)
                 //
                 // `<p csharpattr="|Variable">` - true
                 //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is MarkupStartTagSyntax || n is MarkupTagHelperStartTagSyntax || n is MarkupEndTagSyntax || n is MarkupTagHelperEndTagSyntax);
+                    n => n is MarkupDynamicAttributeValueSyntax or
+                              MarkupLiteralAttributeValueSyntax or
+                              MarkupTagHelperAttributeValueSyntax);
             }
 
             bool IsInDirectiveWithNoKind()
@@ -434,7 +435,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     owner.Parent is MarkupBlockSyntax block &&
                     owner == block.Children[block.Children.Count - 1] &&
                     // MarkupBlock -> CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
-                    block.Parent.Parent.Parent is RazorDirectiveSyntax directive &&
+                    block.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
                     directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
                 {
                     return true;

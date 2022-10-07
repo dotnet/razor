@@ -5,18 +5,21 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    public abstract class WorkspaceTestBase
+    public abstract class WorkspaceTestBase : TestBase
     {
         private bool _initialized;
         private HostServices _hostServices;
         private Workspace _workspace;
 
-        protected WorkspaceTestBase()
+        protected WorkspaceTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
         }
 
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             _hostServices = TestServices.Create(workspaceServices, languageServices);
             _workspace = TestWorkspace.Create(_hostServices, ConfigureWorkspace);
+            AddDisposable(_workspace);
             _initialized = true;
         }
     }

@@ -4,16 +4,23 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class RazorDirectiveAttributeCommitManagerTest
+    public class RazorDirectiveAttributeCommitManagerTest : TestBase
     {
+        public RazorDirectiveAttributeCommitManagerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void ShouldCommitCompletion_NoCompletionItemKinds_ReturnsFalse()
         {

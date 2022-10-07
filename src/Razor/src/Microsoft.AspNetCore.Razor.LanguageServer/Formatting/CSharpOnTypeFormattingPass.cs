@@ -16,8 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -93,6 +91,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
                 _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
+            }
+
+            // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
+            // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
+            // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
+            // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
+            foreach (var edit in textEdits)
+            {
+                var startLine = edit.Range.Start.Line;
+                var endLine = edit.Range.End.Line;
+                var count = csharpText.Lines.Count;
+                if (startLine >= count || endLine >= count)
+                {
+                    _logger.LogWarning("Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.", startLine, endLine, count);
+                    return result;
+                }
             }
 
             var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
@@ -196,49 +210,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
                 if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
                 {
-                    finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
+                    var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken);
+                    finalEdits = usingStatementEdits.Concat(finalEdits).ToArray();
                 }
             }
 
             return new FormattingResult(finalEdits);
-        }
-
-        private async Task<TextEdit[]> AddUsingStatementEditsAsync(RazorCodeDocument codeDocument, TextEdit[] finalEdits, SourceText csharpText, SourceText originalTextWithChanges, CancellationToken cancellationToken)
-        {
-            // Now that we're done with everything, lets see if there are any using statements to fix up
-            // We do this by comparing the original generated C# code, and the changed C# code, and look for a difference
-            // in using statements. We can't use edits for this for two main reasons:
-            //
-            // 1. Using statements in the generated code might come from _Imports.razor, or from this file, and C# will shove them anywhere
-            // 2. The edit might not be clean. eg given:
-            //      using System;
-            //      using System.Text;
-            //    Adding "using System.Linq;" could result in an insert of "Linq;\r\nusing System." on line 2
-            //
-            // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
-            // to the Razor document.
-
-            // First grab the old usings. We just convert them all to strings, because we only care about how the statements are represented in code.
-            var oldSyntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-            var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken);
-            var oldUsings = oldRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
-
-            // Grab the new usings
-            var newSyntaxTree = CSharpSyntaxTree.ParseText(originalTextWithChanges, cancellationToken: cancellationToken);
-            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken);
-            var newUsings = newRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
-
-            var edits = new List<TextEdit>();
-            foreach (var usingStatement in newUsings.Except(oldUsings))
-            {
-                // This identifier will be eventually thrown away.
-                var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
-                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, codeDocumentIdentifier: identifier);
-                edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits);
-            }
-
-            edits.AddRange(finalEdits);
-            return edits.ToArray();
         }
 
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.

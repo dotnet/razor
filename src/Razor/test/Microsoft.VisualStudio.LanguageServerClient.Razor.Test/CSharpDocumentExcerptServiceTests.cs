@@ -9,11 +9,17 @@ using Xunit;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     public class CSharpDocumentExcerptServiceTest : DocumentExcerptServiceTestBase
     {
+        public CSharpDocumentExcerptServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp()
         {
@@ -44,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 razorSourceText,
                 mappedLinePositionSpan,
                 options,
-                CancellationToken.None);
+                DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -132,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 razorSourceText,
                 mappedLinePositionSpan,
                 options,
-                CancellationToken.None);
+                DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -178,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 razorSourceText,
                 mappedLinePositionSpan,
                 options,
-                CancellationToken.None);
+                DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -225,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 razorSourceText,
                 mappedLinePositionSpan,
                 options,
-                CancellationToken.None);
+                DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -271,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 razorSourceText,
                 mappedLinePositionSpan,
                 options,
-                CancellationToken.None);
+                DisposalToken);
 
             // Assert
             Assert.NotNull(result);

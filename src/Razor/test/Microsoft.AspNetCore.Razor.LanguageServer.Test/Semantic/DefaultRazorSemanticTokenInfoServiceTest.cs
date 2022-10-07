@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.Test.Common;
-using Moq;
-using OmniSharp.Extensions.JsonRpc;
-using Xunit;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Moq;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -24,6 +24,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     [UseExportProvider]
     public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
+        public DefaultRazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         #region CSharp
         [Fact]
         public async Task GetSemanticTokens_CSharp_RazorIfNotReady()
@@ -102,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_CSharp_Implicit()
         {
-            var documentText = 
+            var documentText =
                 """
                 @addTagHelper *, TestAssembly
                 @{ var d = "txt";}
@@ -669,9 +674,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
 
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
+            var documentContext = documentContexts.Peek();
 
             // Act
-            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, DisposalToken);
 
             // Assert
             AssertSemanticTokensMatchesBaseline(tokens?.Data);
@@ -681,29 +687,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             Queue<DocumentContext> documentSnapshots,
             ProvideSemanticTokensResponse? csharpTokens = null)
         {
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<ProvideSemanticTokensResponse?>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(csharpTokens));
-
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()))
-                .Returns(Task.FromResult(responseRouterReturns.Object));
+                .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
+                    RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
+                    It.IsAny<SemanticTokensParams>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(csharpTokens);
 
             var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
-            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, TestLoggerFactory.Instance);
-            var loggingFactory = TestLoggerFactory.Instance;
+            var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, LoggerFactory);
 
             var testClient = new TestClient();
-            var errorReporter = new LanguageServerErrorReporter(loggingFactory);
-            var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(testClient, errorReporter);
+            var errorReporter = new LanguageServerErrorReporter(LoggerFactory);
+            var settingsManager = new TestInitializeManager();
+            var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(settingsManager, testClient, errorReporter);
 
             return new DefaultRazorSemanticTokensInfoService(
                 languageServer.Object,
                 documentMappingService,
-                documentContextFactory,
-                loggingFactory);
+                LoggerFactory);
         }
 
         private static Range GetRange(string text)
@@ -719,6 +722,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             };
 
             return range;
+        }
+
+        private class TestInitializeManager : IInitializeManager<InitializeParams, InitializeResult>
+        {
+            public InitializeParams GetInitializeParams()
+            {
+                throw new NotImplementedException();
+            }
+
+            public InitializeResult GetInitializeResult()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void SetInitializeParams(InitializeParams request)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class TestDocumentContextFactory : DocumentContextFactory

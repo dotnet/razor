@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,59 +12,76 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
+using Newtonsoft.Json;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common
 {
-    public abstract class LanguageServerTestBase
+    public abstract class LanguageServerTestBase : TestBase
     {
-        public LanguageServerTestBase()
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            LegacyDispatcher = new TestProjectSnapshotManagerDispatcher();
-#pragma warning restore CS0618 // Type or member is obsolete
-            FilePathNormalizer = new FilePathNormalizer();
-            SpanMappingService = new ThrowingRazorSpanMappingService();
-            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
-            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>())).Verifiable();
-            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
-            LoggerFactory = TestLoggerFactory.Instance;
-            Serializer = new LspSerializer();
-            Serializer.RegisterRazorConverters();
-            Serializer.RegisterVSInternalExtensionConverters();
-        }
-
         // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
         // synchronization context from the constructing thread and binds to that. We've seen in XUnit how this can unexpectedly lead to flaky
         // tests since it doesn't actually replicate what happens in real scenario (a separate dedicated dispatcher thread). If you're reading
         // this write your tests using the normal Dispatcher property. Eventually this LegacyDispatcher property will go away when we've had
         // the opportunity to re-write our tests correctly.
-        internal ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
+        private protected ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
+        private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
+        protected FilePathNormalizer FilePathNormalizer { get; }
+        private protected IRazorSpanMappingService SpanMappingService { get; }
 
-        internal readonly ProjectSnapshotManagerDispatcher Dispatcher = new LSPProjectSnapshotManagerDispatcher(TestLoggerFactory.Instance);
+        protected JsonSerializer Serializer { get; }
 
-        internal FilePathNormalizer FilePathNormalizer { get; }
+        protected ILspLogger LspLogger { get; }
 
-        internal IRazorSpanMappingService SpanMappingService { get; }
+        public LanguageServerTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            LegacyDispatcher = new TestProjectSnapshotManagerDispatcher();
+#pragma warning restore CS0618 // Type or member is obsolete
 
-        protected LspSerializer Serializer { get; }
+            Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+            AddDisposable((IDisposable)Dispatcher);
 
-        protected ILoggerFactory LoggerFactory { get; }
+            FilePathNormalizer = new FilePathNormalizer();
+            SpanMappingService = new ThrowingRazorSpanMappingService();
+
+            LspLogger = Logger.AsLspLogger();
+
+            Serializer = new JsonSerializer();
+            Serializer.Converters.RegisterRazorConverters();
+            Serializer.AddVSInternalExtensionConverters();
+            Serializer.AddVSExtensionConverters();
+        }
+
+        internal RazorRequestContext CreateRazorRequestContext(DocumentContext? documentContext, ILspServices? lspServices = null)
+        {
+            lspServices ??= new Mock<ILspServices>(MockBehavior.Strict).Object;
+
+            var requestContext = new RazorRequestContext(documentContext, LspLogger, Logger, lspServices);
+
+            return requestContext;
+        }
 
         protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"), builder => {
+            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"), builder =>
+            {
                 RazorExtensions.Register(builder);
             });
             var defaultImportDocument = TestRazorSourceDocument.Create(
@@ -79,6 +97,20 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             var codeDocument = CreateCodeDocument(sourceText);
             return CreateDocumentContextFactory(documentPath, codeDocument);
+        }
+
+        internal static DocumentContext? CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument, [NotNullWhen(true)] bool documentFound = true)
+        {
+            return documentFound ? TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument, hostDocumentVersion: 1337) : null;
+        }
+
+        internal static string GetString(SourceText sourceText)
+        {
+            var sourceChars = new char[sourceText.Length];
+            sourceText.CopyTo(0, sourceChars, 0, sourceText.Length);
+            var sourceString = new string(sourceChars);
+
+            return sourceString;
         }
 
         internal static DocumentContextFactory CreateDocumentContextFactory(

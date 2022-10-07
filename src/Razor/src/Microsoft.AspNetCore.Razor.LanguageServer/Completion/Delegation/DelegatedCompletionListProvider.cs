@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
 {
-    internal class DelegatedCompletionListProvider : CompletionListProvider
+    internal class DelegatedCompletionListProvider
     {
         private static readonly IReadOnlyList<string> s_razorTriggerCharacters = new[] { "@" };
         private static readonly IReadOnlyList<string> s_cSharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" };
@@ -42,9 +42,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             _completionListCache = completionListCache;
         }
 
-        public override ImmutableHashSet<string> TriggerCharacters => s_allTriggerCharacters;
+        // virtual for tests
+        public virtual ImmutableHashSet<string> TriggerCharacters => s_allTriggerCharacters;
 
-        public override async Task<VSInternalCompletionList?> GetCompletionListAsync(
+        // virtual for tests
+        public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
             int absoluteIndex,
             VSInternalCompletionContext completionContext,
             DocumentContext documentContext,
@@ -75,8 +77,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
                 projection.LanguageKind,
                 completionContext,
                 provisionalTextEdit);
-            var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorCompletionEndpointName, delegatedParams).ConfigureAwait(false);
-            var delegatedResponse = await delegatedRequest.Returning<VSInternalCompletionList?>(cancellationToken).ConfigureAwait(false);
+            var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
+                LanguageServerConstants.RazorCompletionEndpointName,
+                delegatedParams,
+                cancellationToken).ConfigureAwait(false);
 
             if (delegatedResponse is null)
             {

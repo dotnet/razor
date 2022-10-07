@@ -28,7 +28,8 @@ internal class TypeNameHelper
         "string",
         "ushort",
         "double",
-        "decimal"
+        "decimal",
+        "dynamic"
     };
 
     public static void WriteGloballyQualifiedName(CodeWriter codeWriter, string typeName)
@@ -44,6 +45,14 @@ internal class TypeNameHelper
     internal static string GetGloballyQualifiedNameIfNeeded(string typeName)
     {
         if (typeName.StartsWith("global::", StringComparison.Ordinal))
+        {
+            return typeName;
+        }
+
+        // Mitigation for https://github.com/dotnet/razor-compiler/issues/332. When we add a reference to Roslyn
+        // at this layer, we can do this property by using ParseTypeName and then rewriting the tree. For now, we
+        // just skip prefixing tuples.
+        if (typeName.StartsWith("(", StringComparison.Ordinal))
         {
             return typeName;
         }
@@ -69,6 +78,15 @@ internal class TypeNameHelper
     internal static void WriteGloballyQualifiedName(CodeWriter codeWriter, StringSegment typeName)
     {
         if (typeName.StartsWith("global::", StringComparison.Ordinal))
+        {
+            codeWriter.Write(typeName);
+            return;
+        }
+
+        // Mitigation for https://github.com/dotnet/razor-compiler/issues/332. When we add a reference to Roslyn
+        // at this layer, we can do this property by using ParseTypeName and then rewriting the tree. For now, we
+        // just skip prefixing tuples.
+        if (typeName.StartsWith("(", StringComparison.Ordinal))
         {
             codeWriter.Write(typeName);
             return;

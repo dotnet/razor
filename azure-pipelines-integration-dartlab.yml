@@ -15,7 +15,7 @@ resources:
   - repository: DartLabTemplates
     type: git
     name: DartLab.Templates
-    ref: refs/heads/dev/bradwhit/RemoveCheckoutNone
+    ref: main
   - repository: RazorMirror
     endpoint: dnceng/internal dotnet-razor-tooling
     type: git

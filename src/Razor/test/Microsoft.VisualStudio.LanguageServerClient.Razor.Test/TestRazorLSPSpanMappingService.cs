@@ -22,20 +22,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         private readonly Uri _razorUri;
         private readonly SourceText _razorSourceText;
         private readonly SourceText _csharpSourceText;
+        private readonly CancellationToken _cancellationToken;
 
-        public TestRazorLSPSpanMappingService(LSPDocumentMappingProvider mappingProvider, Uri razorUri, SourceText razorSourceText, SourceText csharpSourceText)
+        public TestRazorLSPSpanMappingService(
+            LSPDocumentMappingProvider mappingProvider,
+            Uri razorUri,
+            SourceText razorSourceText,
+            SourceText csharpSourceText,
+            CancellationToken cancellationToken)
         {
             _mappingProvider = mappingProvider;
             _razorUri = razorUri;
             _razorSourceText = razorSourceText;
             _csharpSourceText = csharpSourceText;
+            _cancellationToken = cancellationToken;
         }
 
         public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
             var projectedRanges = spans.Select(span => span.AsRange(_csharpSourceText)).ToArray();
             var mappedResult = await _mappingProvider.MapToDocumentRangesAsync(
-                RazorLanguageKind.CSharp, _razorUri, projectedRanges, CancellationToken.None).ConfigureAwait(false);
+                RazorLanguageKind.CSharp, _razorUri, projectedRanges, _cancellationToken);
 
             var mappedSpanResults = RazorLSPSpanMappingService.GetMappedSpanResults(_razorUri.LocalPath, _razorSourceText, mappedResult);
             return mappedSpanResults;

@@ -7,52 +7,55 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    public class BatchingWorkQueueTest : IDisposable
+    public class BatchingWorkQueueTest : TestBase
     {
-        public BatchingWorkQueueTest()
+        private readonly BatchingWorkQueue _workQueue;
+        private readonly BatchingWorkQueue.TestAccessor _testAccessor;
+        private readonly TestErrorReporter _errorReporter;
+
+        public BatchingWorkQueueTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            ErrorReporter = new TestErrorReporter();
-            WorkQueue = new BatchingWorkQueue(TimeSpan.FromMilliseconds(1), StringComparer.Ordinal, ErrorReporter);
-            TestAccessor = WorkQueue.GetTestAccessor();
-            TestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+            _errorReporter = new TestErrorReporter();
+            _workQueue = new BatchingWorkQueue(TimeSpan.FromMilliseconds(1), StringComparer.Ordinal, _errorReporter);
+            _testAccessor = _workQueue.GetTestAccessor();
+            _testAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+
+            AddDisposable(_workQueue);
         }
-
-        private BatchingWorkQueue WorkQueue { get; }
-
-        private BatchingWorkQueue.TestAccessor TestAccessor { get; }
-
-        private TestErrorReporter ErrorReporter { get; }
 
         [Fact]
         public void Enqueue_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
             var workItem = new TestBatchableWorkItem();
-            TestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
-            TestAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
 
             // Act
-            WorkQueue.Enqueue("key", workItem);
+            _workQueue.Enqueue("key", workItem);
 
             // Assert
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.NotEmpty(TestAccessor.Work);
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Allow the background work to proceed.
-            TestAccessor.BlockBackgroundWorkStart.Set();
-            TestAccessor.BlockBackgroundWorkCompleting.Set();
+            _testAccessor.BlockBackgroundWorkStart.Set();
+            _testAccessor.BlockBackgroundWorkCompleting.Set();
 
-            TestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
 
-            Assert.False(TestAccessor.IsScheduledOrRunning, "Queue should not have restarted");
-            Assert.Empty(TestAccessor.Work);
+            Assert.False(_testAccessor.IsScheduledOrRunning, "Queue should not have restarted");
+            Assert.Empty(_testAccessor.Work);
             Assert.True(workItem.Processed);
-            Assert.Empty(ErrorReporter.ReportedExceptions);
+            Assert.Empty(_errorReporter.ReportedExceptions);
         }
 
         [Fact]
@@ -61,25 +64,25 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // Arrange
             var originalWorkItem = new ThrowingBatchableWorkItem();
             var newestWorkItem = new TestBatchableWorkItem();
-            TestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             // Act
-            WorkQueue.Enqueue("key", originalWorkItem);
-            WorkQueue.Enqueue("key", newestWorkItem);
+            _workQueue.Enqueue("key", originalWorkItem);
+            _workQueue.Enqueue("key", newestWorkItem);
 
             // Assert
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.NotEmpty(TestAccessor.Work);
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Allow the background work to start.
-            TestAccessor.BlockBackgroundWorkStart.Set();
-            TestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.BlockBackgroundWorkStart.Set();
+            _testAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
 
-            Assert.Empty(TestAccessor.Work);
+            Assert.Empty(_testAccessor.Work);
 
             Assert.False(originalWorkItem.Processed);
             Assert.True(newestWorkItem.Processed);
-            Assert.Empty(ErrorReporter.ReportedExceptions);
+            Assert.Empty(_errorReporter.ReportedExceptions);
         }
 
         [Fact]
@@ -88,52 +91,52 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // Arrange
             var initialWorkItem = new TestBatchableWorkItem();
             var workItemToCauseRestart = new TestBatchableWorkItem();
-            TestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false);
-            TestAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
             // Act & Assert
-            WorkQueue.Enqueue("key", initialWorkItem);
+            _workQueue.Enqueue("key", initialWorkItem);
 
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.NotEmpty(TestAccessor.Work);
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Allow the background work to start.
-            TestAccessor.BlockBackgroundWorkStart.Set();
+            _testAccessor.BlockBackgroundWorkStart.Set();
 
-            TestAccessor.NotifyBackgroundWorkStarting.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.NotifyBackgroundWorkStarting.Wait(TimeSpan.FromSeconds(3));
 
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Worker should be processing now");
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Worker should be processing now");
 
-            TestAccessor.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(3));
-            Assert.Empty(TestAccessor.Work);
+            _testAccessor.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(3));
+            Assert.Empty(_testAccessor.Work);
 
-            WorkQueue.Enqueue("key", workItemToCauseRestart);
-            Assert.NotEmpty(TestAccessor.Work); // Now we should see the worker restart when it finishes.
+            _workQueue.Enqueue("key", workItemToCauseRestart);
+            Assert.NotEmpty(_testAccessor.Work); // Now we should see the worker restart when it finishes.
 
             // Allow work to complete, which should restart the timer.
-            TestAccessor.BlockBackgroundWorkCompleting.Set();
+            _testAccessor.BlockBackgroundWorkCompleting.Set();
 
-            TestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
-            TestAccessor.NotifyBackgroundWorkCompleted.Reset();
+            _testAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.NotifyBackgroundWorkCompleted.Reset();
 
             // It should start running again right away.
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.NotEmpty(TestAccessor.Work);
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Allow the background work to proceed.
-            TestAccessor.BlockBackgroundWorkStart.Set();
+            _testAccessor.BlockBackgroundWorkStart.Set();
 
-            TestAccessor.BlockBackgroundWorkCompleting.Set();
-            TestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.BlockBackgroundWorkCompleting.Set();
+            _testAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
 
-            Assert.False(TestAccessor.IsScheduledOrRunning, "Queue should not have restarted");
-            Assert.Empty(TestAccessor.Work);
+            Assert.False(_testAccessor.IsScheduledOrRunning, "Queue should not have restarted");
+            Assert.Empty(_testAccessor.Work);
             Assert.True(initialWorkItem.Processed);
             Assert.True(workItemToCauseRestart.Processed);
-            Assert.Empty(ErrorReporter.ReportedExceptions);
+            Assert.Empty(_errorReporter.ReportedExceptions);
         }
 
         [Fact]
@@ -142,25 +145,25 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // Arrange
             var throwingWorkItem = new ThrowingBatchableWorkItem();
             var validWorkItem = new TestBatchableWorkItem();
-            TestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             // Act
-            WorkQueue.Enqueue("key", throwingWorkItem);
-            WorkQueue.Enqueue("key2", validWorkItem);
+            _workQueue.Enqueue("key", throwingWorkItem);
+            _workQueue.Enqueue("key2", validWorkItem);
 
             // Assert
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.NotEmpty(TestAccessor.Work);
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Allow the background work to start.
-            TestAccessor.BlockBackgroundWorkStart.Set();
-            TestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.BlockBackgroundWorkStart.Set();
+            _testAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
 
-            Assert.Empty(TestAccessor.Work);
+            Assert.Empty(_testAccessor.Work);
 
             Assert.True(throwingWorkItem.Processed);
             Assert.True(validWorkItem.Processed);
-            Assert.Single(ErrorReporter.ReportedExceptions);
+            Assert.Single(_errorReporter.ReportedExceptions);
         }
 
         [Fact]
@@ -169,58 +172,53 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // Arrange
             var initialWorkItem = new TestBatchableWorkItem();
             var workItemToCauseRestart = new TestBatchableWorkItem();
-            TestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
-            TestAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
-            TestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
+            _testAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
+            _testAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
             // Act & Assert
-            WorkQueue.Enqueue("key", initialWorkItem);
+            _workQueue.Enqueue("key", initialWorkItem);
 
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.NotEmpty(TestAccessor.Work);
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Allow the background work to start.
-            TestAccessor.BlockBackgroundWorkStart.Set();
+            _testAccessor.BlockBackgroundWorkStart.Set();
 
-            TestAccessor.NotifyBackgroundWorkStarting.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.NotifyBackgroundWorkStarting.Wait(TimeSpan.FromSeconds(3));
 
-            Assert.True(TestAccessor.IsScheduledOrRunning, "Worker should be processing now");
+            Assert.True(_testAccessor.IsScheduledOrRunning, "Worker should be processing now");
 
-            TestAccessor.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(3));
-            Assert.Empty(TestAccessor.Work);
+            _testAccessor.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(3));
+            Assert.Empty(_testAccessor.Work);
 
             // Wait for the background workload to complete
-            TestAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(5));
+            _testAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(5));
 
-            WorkQueue.Enqueue("key", workItemToCauseRestart);
-            Assert.NotEmpty(TestAccessor.Work);
+            _workQueue.Enqueue("key", workItemToCauseRestart);
+            Assert.NotEmpty(_testAccessor.Work);
 
             // Disposing before the queue has a chance to restart;
-            WorkQueue.Dispose();
+            _workQueue.Dispose();
 
             // Allow work to complete, which should restart the timer.
-            TestAccessor.BlockBackgroundWorkCompleting.Set();
+            _testAccessor.BlockBackgroundWorkCompleting.Set();
 
-            TestAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
-            TestAccessor.NotifyBackgroundWorkCompleted.Reset();
+            _testAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+            _testAccessor.NotifyBackgroundWorkCompleted.Reset();
 
             // It should start running again right away.
-            Assert.False(TestAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
+            Assert.False(_testAccessor.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
 
             // Dispose clears the work queue
-            Assert.Empty(TestAccessor.Work);
+            Assert.Empty(_testAccessor.Work);
 
             Assert.True(initialWorkItem.Processed);
             Assert.False(workItemToCauseRestart.Processed);
-            Assert.Empty(ErrorReporter.ReportedExceptions);
-        }
-
-        public void Dispose()
-        {
-            WorkQueue.Dispose();
+            Assert.Empty(_errorReporter.ReportedExceptions);
         }
 
         private class TestBatchableWorkItem : BatchableWorkItem

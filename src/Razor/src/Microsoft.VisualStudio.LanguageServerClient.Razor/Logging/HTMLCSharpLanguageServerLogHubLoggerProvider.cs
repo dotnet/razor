@@ -64,10 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
             try
             {
-                if (_loggerProvider is null)
-                {
-                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier, cancellationToken).ConfigureAwait(false);
-                }
+                _loggerProvider ??= (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier, cancellationToken).ConfigureAwait(false);
             }
             finally
             {

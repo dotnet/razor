@@ -3,12 +3,19 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip
 {
-    public class TypeNameStringResolverTest
+    public class TypeNameStringResolverTest : TestBase
     {
+        public TypeNameStringResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void TryGetSimpleName_NonPrimitiveType_ReturnsFalse()
         {

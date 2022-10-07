@@ -429,7 +429,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async override Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
         {
-            if (TryGetDocumentChanges(workspaceEdit, out var documentChanges))
+            if (workspaceEdit.TryGetDocumentChanges(out var documentChanges))
             {
                 // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
                 var remappedEdits = await RemapVersionedDocumentEditsAsync(documentChanges, cancellationToken).ConfigureAwait(false);
@@ -792,36 +792,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return position.Line < sourceText.Lines.Count;
             }
-        }
-
-        private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, [NotNullWhen(true)] out TextDocumentEdit[]? documentChanges)
-        {
-            if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
-            {
-                documentChanges = documentEdits;
-                return true;
-            }
-
-            if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
-            {
-                var documentEditList = new List<TextDocumentEdit>();
-                foreach (var sumType in sumTypeArray)
-                {
-                    if (sumType.Value is TextDocumentEdit textDocumentEdit)
-                    {
-                        documentEditList.Add(textDocumentEdit);
-                    }
-                }
-
-                if (documentEditList.Count > 0)
-                {
-                    documentChanges = documentEditList.ToArray();
-                    return true;
-                }
-            }
-
-            documentChanges = null;
-            return false;
         }
 
         private async Task<TextDocumentEdit[]> RemapVersionedDocumentEditsAsync(TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)

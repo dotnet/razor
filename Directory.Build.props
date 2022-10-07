@@ -41,6 +41,7 @@
   
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)eng\BannedSymbols.txt" />
+    <Compile Include="$(MSBuildThisFileDirectory)\src\Shared\LanguageSupport\*.cs" Link="LanguageSupport\%(Filename).%(Extension)" />
   </ItemGroup>
 
   <PropertyGroup Label="Package and Assembly Metadata">

@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -125,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
             int hostDocumentVersion,
-            object state)
+            object? state)
         {
             if (hostDocumentUri is null)
             {
@@ -145,8 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 return;
             }
 
-            var virtualDocumentAcquired = lspDocument.TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument);
-            if (!virtualDocumentAcquired)
+            if (!lspDocument.TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument))
             {
                 // Unable to locate virtual document of typeof(TVirtualDocument)
                 // Ex. Microsoft.WebTools.Languages.LanguageServer.Delegation.ContainedLanguage.Css.CssVirtualDocument
@@ -179,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             NotifyDocumentManagerChangeListeners(old, @new, oldVirtual, newVirtual, LSPDocumentChangeKind.VirtualDocumentChanged);
         }
 
-        public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
+        public override bool TryGetDocument(Uri uri, [NotNullWhen(returnValue: true)] out LSPDocumentSnapshot? lspDocumentSnapshot)
         {
             if (!_documents.TryGetValue(uri, out var lspDocument))
             {
@@ -193,23 +191,23 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         private void NotifyDocumentManagerChangeListeners(
-            LSPDocumentSnapshot old,
-            LSPDocumentSnapshot @new,
-            VirtualDocumentSnapshot virtualOld,
-            VirtualDocumentSnapshot virtualNew,
+            LSPDocumentSnapshot? old,
+            LSPDocumentSnapshot? @new,
+            VirtualDocumentSnapshot? virtualOld,
+            VirtualDocumentSnapshot? virtualNew,
             LSPDocumentChangeKind kind)
         {
             foreach (var listener in _documentManagerChangeListeners)
             {
                 var notifyListener = false;
 
-                if (old != null &&
-                    listener.Metadata.ContentTypes.Any(ct => old.Snapshot.ContentType.IsOfType(ct)))
+                if (old is not null &&
+                    listener.Metadata.ContentTypes.Any(old.Snapshot.ContentType.IsOfType))
                 {
                     notifyListener = true;
                 }
-                else if (@new != null &&
-                    listener.Metadata.ContentTypes.Any(ct => @new.Snapshot.ContentType.IsOfType(ct)))
+                else if (@new is not null &&
+                    listener.Metadata.ContentTypes.Any(@new.Snapshot.ContentType.IsOfType))
                 {
                     notifyListener = true;
                 }

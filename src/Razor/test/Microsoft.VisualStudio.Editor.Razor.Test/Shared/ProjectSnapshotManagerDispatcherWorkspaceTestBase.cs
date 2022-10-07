@@ -4,21 +4,18 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Threading;
+using Xunit.Abstractions;
 
 namespace Xunit
 {
     public abstract class ProjectSnapshotManagerDispatcherWorkspaceTestBase : WorkspaceTestBase
     {
-        internal ProjectSnapshotManagerDispatcher Dispatcher { get; } = new TestProjectSnapshotManagerDispatcher();
+        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
 
-        internal static JoinableTaskFactory JoinableTaskFactory
+        protected ProjectSnapshotManagerDispatcherWorkspaceTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            get
-            {
-                var joinableTaskContext = new JoinableTaskContextNode(new JoinableTaskContext());
-                return new JoinableTaskFactory(joinableTaskContext.Context);
-            }
+            Dispatcher = new TestProjectSnapshotManagerDispatcher();
         }
     }
 }
