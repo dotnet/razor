@@ -3,25 +3,21 @@
 
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 internal readonly struct RazorRequestContext
 {
     public readonly DocumentContext? DocumentContext;
-    public readonly ILspLogger LspLogger;
-    public readonly ILogger Logger;
+    public readonly IRazorLogger Logger;
     public readonly ILspServices LspServices;
 
     public RazorRequestContext(
         DocumentContext? documentContext,
-        ILspLogger lspLoger,
-        ILogger logger,
+        IRazorLogger logger,
         ILspServices lspServices)
     {
         DocumentContext = documentContext;
-        LspLogger = lspLoger;
         LspServices = lspServices;
         Logger = logger;
     }
