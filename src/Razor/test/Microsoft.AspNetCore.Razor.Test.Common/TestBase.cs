@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
@@ -63,12 +64,12 @@ public abstract class TestBase : IAsyncLifetime
     /// </summary>
     protected ILoggerFactory LoggerFactory { get; }
 
-    private ILogger? _logger;
+    private IRazorLogger? _logger;
 
     /// <summary>
-    ///  An <see cref="ILogger"/> for the currently running test.
+    ///  An <see cref="IRazorLogger"/> for the currently running test.
     /// </summary>
-    protected ILogger Logger => _logger ??= LoggerFactory.CreateLogger(GetType());
+    protected IRazorLogger Logger => _logger ??= new LoggerAdapter(LoggerFactory.CreateLogger(GetType()));
 
     protected TestBase(ITestOutputHelper testOutput)
     {

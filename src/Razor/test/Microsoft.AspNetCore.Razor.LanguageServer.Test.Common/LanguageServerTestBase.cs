@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -44,8 +43,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         protected JsonSerializer Serializer { get; }
 
-        protected ILspLogger LspLogger { get; }
-
         public LanguageServerTestBase(ITestOutputHelper testOutput)
             : base(testOutput)
         {
@@ -59,8 +56,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             FilePathNormalizer = new FilePathNormalizer();
             SpanMappingService = new ThrowingRazorSpanMappingService();
 
-            LspLogger = Logger.AsLspLogger();
-
             Serializer = new JsonSerializer();
             Serializer.Converters.RegisterRazorConverters();
             Serializer.AddVSInternalExtensionConverters();
@@ -71,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             lspServices ??= new Mock<ILspServices>(MockBehavior.Strict).Object;
 
-            var requestContext = new RazorRequestContext(documentContext, LspLogger, Logger, lspServices);
+            var requestContext = new RazorRequestContext(documentContext, Logger, lspServices);
 
             return requestContext;
         }
