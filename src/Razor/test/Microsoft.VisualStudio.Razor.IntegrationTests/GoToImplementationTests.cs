@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             await TestServices.Editor.PlaceCaretAsync("IncrementCount", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
-            // Act (Ctrl+12 == GoToImplementation
-            TestServices.Input.Send("^{F12}");
+            // Act
+            await TestServices.Editor.InvokeGoToImplementationAsync(ControlledHangMitigatingCancellationToken);
 
             // Assert
             await TestServices.Editor.WaitForCurrentLineTextAsync("private void IncrementCount()", ControlledHangMitigatingCancellationToken);
@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await TestServices.Editor.SetTextAsync(@"<SurveyPrompt Title=""@nameof(Program)", ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
-            // Act (Ctrl+12 == GoToImplementation
-            TestServices.Input.Send("^{F12}");
+            // Act
+            await TestServices.Editor.InvokeGoToImplementationAsync(ControlledHangMitigatingCancellationToken);
 
             // Assert
             await TestServices.Editor.WaitForActiveWindowAsync("Program.cs", ControlledHangMitigatingCancellationToken);
