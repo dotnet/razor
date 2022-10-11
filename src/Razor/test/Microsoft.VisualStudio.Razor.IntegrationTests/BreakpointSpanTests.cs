@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public class BreakpointSpanTests : AbstractRazorEditorTest
     {
-        [IdeFact(Skip = "https://github.com/dotnet/razor-tooling/issues/6974")]
+        [IdeFact]
         public async Task SetBreakpoint_FirstCharacter_SpanAdjusts()
         {
             // Open the file
