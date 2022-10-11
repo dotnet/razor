@@ -44,10 +44,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
+            var logger = new LspLogger(trace);
             var server = RazorLanguageServerWrapper.Create(
                 Console.OpenStandardInput(),
                 Console.OpenStandardOutput(),
-                trace);
+                logger);
             await server.WaitForExitAsync();
         }
     }

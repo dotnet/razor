@@ -49,11 +49,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 documentContext = await documentContextFactory.TryCreateAsync(uri, cancellationToken);
             }
 
-            var lspLogger = _lspServices.GetRequiredService<ILspLogger>();
             var loggerFactory = _lspServices.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger(queueItem.MethodName);
+            var lspLogger = new LoggerAdapter(logger);
 
-            var requestContext = new RazorRequestContext(documentContext, lspLogger, logger, _lspServices);
+            var requestContext = new RazorRequestContext(documentContext, lspLogger, _lspServices);
 
             return requestContext;
         }

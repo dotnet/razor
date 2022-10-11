@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             }
         }
 
-        private class NoopLogger : ILspLogger, ILogger
+        private class NoopLogger : IRazorLogger
         {
             public IDisposable BeginScope<TState>(TState state)
             {

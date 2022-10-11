@@ -12,9 +12,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Logging
 {
     internal static class LoggerExtensions
     {
-        public static ILspLogger AsLspLogger(this ILogger logger)
-            => new TestLspLogger(logger);
-
         private class TestLspLogger : ILspLogger
         {
             private readonly ILogger _logger;
