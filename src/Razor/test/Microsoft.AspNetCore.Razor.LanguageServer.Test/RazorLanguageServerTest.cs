@@ -18,16 +18,13 @@ public class RazorLanguageServerTest : TestBase
     public RazorLanguageServerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        LspLogger = new LoggerAdapter(Logger);
     }
-
-    private ILspLogger LspLogger { get; }
 
     [Fact]
     public async Task AllHandlersRegisteredAsync()
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        await using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, LspLogger);
+        await using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger);
 
         var innerServer = server.GetInnerLanguageServerForTesting();
         var handlerProvider = innerServer.GetTestAccessor().GetHandlerProvider();
