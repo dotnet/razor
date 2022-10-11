@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
+using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
@@ -101,6 +102,9 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddOptionsServices();
         services.AddHoverServices();
         services.AddTextDocumentServices();
+
+        // Signature Help
+        services.AddRegisteringHandler<SignatureHelpEndpoint>();
 
         // Auto insert
         services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
