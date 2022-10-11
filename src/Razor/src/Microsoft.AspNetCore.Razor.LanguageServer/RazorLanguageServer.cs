@@ -103,9 +103,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddHoverServices();
         services.AddTextDocumentServices();
 
-        // Signature Help
-        services.AddRegisteringHandler<SignatureHelpEndpoint>();
-
         // Auto insert
         services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
         services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
@@ -151,6 +148,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddRegisteringHandler<DocumentColorEndpoint>();
             services.AddRegisteringHandler<FoldingRangeEndpoint>();
             services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>();
+            services.AddRegisteringHandler<SignatureHelpEndpoint>();
         }
     }
 
