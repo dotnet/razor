@@ -23,7 +23,7 @@ export class RazorCompletionItemProvider
         if (projectedUri) {
             // "@" is not a valid trigger character for C# / HTML and therefore we need to translate
             // it into a non-trigger invocation.
-            triggerCharacter = triggerCharacter === '@' ? undefined : triggerCharacter;
+            const modifiedTriggerCharacter = triggerCharacter === '@' ? undefined : triggerCharacter;
 
             const completions = await vscode
                 .commands
@@ -31,7 +31,7 @@ export class RazorCompletionItemProvider
                     'vscode.executeCompletionItemProvider',
                     projectedUri,
                     projectedPosition,
-                    triggerCharacter);
+                    modifiedTriggerCharacter);
 
             const completionItems =
                 completions instanceof Array ? completions  // was vscode.CompletionItem[]
@@ -73,34 +73,6 @@ export class RazorCompletionItemProvider
                         const rangeEnd = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, range.end);
                         completionItem.range = new vscode.Range(rangeStart, rangeEnd);
                     }
-                } else if ((completionItem as any).range2) {
-                    const insertRange = (completionItem as any).range2.insert;
-                    if (insertRange) {
-                        const insertRangeStart = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, insertRange.start);
-                        const insertRangeEnd = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, insertRange.end);
-                        (completionItem as any).range2.insert = new vscode.Range(insertRangeStart, insertRangeEnd);
-                    }
-
-                    const replaceRange = (completionItem as any).range2.replace;
-                    if (replaceRange) {
-                        const replaceRangeStart = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, replaceRange.start);
-                        const replaceRangeEnd = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, replaceRange.end);
-                        (completionItem as any).range2.replace = new vscode.Range(replaceRangeStart, replaceRangeEnd);
-                    }
-
-                    const insertingRange = (completionItem as any).range2.inserting;
-                    if (insertingRange) {
-                        const insertingRangeStart = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, insertingRange.start);
-                        const insertingRangeEnd = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, insertingRange.end);
-                        (completionItem as any).range2.inserting = new vscode.Range(insertingRangeStart, insertingRangeEnd);
-                    }
-
-                    const replacingRange = (completionItem as any).range2.replacing;
-                    if (replacingRange) {
-                        const replacingRangeStart = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, replacingRange.start);
-                        const replacingRangeEnd = this.offsetColumn(completionCharacterOffset, hostDocumentPosition.line, replacingRange.end);
-                        (completionItem as any).range2.replacing = new vscode.Range(replacingRangeStart, replacingRangeEnd);
-                    }
                 }
 
                 // textEdit is deprecated in favor of .range. Clear out its value to avoid any unexpected behavior.
@@ -108,10 +80,10 @@ export class RazorCompletionItemProvider
 
                 if (triggerCharacter === '@' &&
                     completionItem.commitCharacters) {
-                    // We remove `{` from the commit characters to prevent auto-completing the first completion item
-                    // with a curly brace when a user intended to type `@{}`.
+                    // We remove `{` and '(' from the commit characters to prevent auto-completing the first completion item
+                    // with a curly brace when a user intended to type `@{}` or `@()`.
                     completionItem.commitCharacters = completionItem.commitCharacters.filter(
-                        commitChar => commitChar !== '{');
+                        commitChar => commitChar !== '{' && commitChar !== '(');
                 }
             }
 
