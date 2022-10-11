@@ -658,7 +658,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 csharpTask = Task.Run(async () =>
                 {
                     var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                    foldingRangeParams.HostDocumentVersion, csharpDocument, cancellationToken);
+                        foldingRangeParams.HostDocumentVersion, csharpDocument, cancellationToken);
 
                     if (synchronized)
                     {
@@ -695,7 +695,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 htmlTask = Task.Run(async () =>
                 {
                     var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                    foldingRangeParams.HostDocumentVersion, htmlDocument, cancellationToken);
+                        foldingRangeParams.HostDocumentVersion, htmlDocument, cancellationToken);
 
                     if (synchronized)
                     {

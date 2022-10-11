@@ -20,7 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
 {
     internal class FoldingRangeEndpoint : IVSFoldingRangeEndpoint
     {
-        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly IEnumerable<RazorFoldingRangeProvider> _foldingRangeProviders;
@@ -29,13 +28,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         public bool MutatesSolutionState => false;
 
         public FoldingRangeEndpoint(
-            DocumentContextFactory documentContextFactory,
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             IEnumerable<RazorFoldingRangeProvider> foldingRangeProviders,
             ILoggerFactory loggerFactory)
         {
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _foldingRangeProviders = foldingRangeProviders ?? throw new ArgumentNullException(nameof(foldingRangeProviders));
@@ -60,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
         {
             using var _ = _logger.BeginScope("FoldingRangeEndpoint.Handle");
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(@params.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var documentContext = requestContext.DocumentContext;
             if (documentContext is null)
             {
                 return null;

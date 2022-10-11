@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
             EnsureMEFCompositionSuccessForRazor();
 
+            await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
             // Close the file we opened, just in case, so the test can start with a clean slate

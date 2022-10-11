@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }
 
 ", ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("//", charsOffset: 2, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("//", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
             // Act
             TestServices.Input.Send("/");
