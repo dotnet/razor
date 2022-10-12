@@ -131,11 +131,10 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 throw new NotImplementedException($"Integration test did not load extension");
             }
 
-            var version = assembly.GetName().Version;
-
-            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
+            if (!assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
+                var version = assembly.GetName().Version;
+                throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} verion: {version}");
             }
 
             void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
