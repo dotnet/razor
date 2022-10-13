@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             await EnsureExtensionInstalledAsync(ControlledHangMitigatingCancellationToken);
             EnsureMEFCompositionSuccessForRazor();
 
+            await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
             await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
             // Close the file we opened, just in case, so the test can start with a clean slate
@@ -130,11 +131,10 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 throw new NotImplementedException($"Integration test did not load extension");
             }
 
-            var version = assembly.GetName().Version;
-
-            if (!version.Equals(new Version(42, 42, 42, 42)) || !assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
+            if (!assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException($"Integration test not running against Experimental Extension {assembly.Location}");
+                var version = assembly.GetName().Version;
+                throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} verion: {version}");
             }
 
             void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)

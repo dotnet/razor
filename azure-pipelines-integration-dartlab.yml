@@ -27,6 +27,8 @@ resources:
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+- name: __VSNeverShowWhatsNew
+  value: 1
 
 stages:
 - template: \stages\visual-studio\agent.yml@DartLabTemplates

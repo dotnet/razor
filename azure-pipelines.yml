@@ -111,7 +111,7 @@ stages:
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore-Public
-            demands: ImageOverride -equals windows.vs2022preview.amd64.open
+            demands: ImageOverride -equals windows.vs2022preview.scout.amd64.open
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Internal
             demands: ImageOverride -equals windows.vs2022preview.amd64
@@ -141,10 +141,11 @@ stages:
                     /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
                     /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
         variables:
-        - _DotNetPublishToBlobFeed : false
+        - _DotNetPublishToBlobFeed: false
         - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
         - _BuildArgs: ''
         - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)'
+        - __VSNeverShowWhatsNew: 1
 
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -241,8 +242,8 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            # -integrationTest
-            # /p:BuildProjectReferences=false
+            -integrationTest
+            /p:BuildProjectReferences=false
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()

@@ -36,9 +36,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task CloseDocumentWindowAsync(CancellationToken cancellationToken)
         {
-            var commandGuid = typeof(VSStd97CmdID).GUID;
-            var commandId = VSStd97CmdID.CloseDocument;
-            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var monitorSelection = await GetRequiredGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(monitorSelection.GetCurrentElementValue((uint)VSSELELEMID.SEID_WindowFrame, out var windowFrameObj));
+            var windowFrame = (IVsWindowFrame)windowFrameObj;
+
+            ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
         }
 
         private async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)

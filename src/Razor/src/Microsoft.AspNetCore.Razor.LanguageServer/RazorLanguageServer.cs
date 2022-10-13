@@ -10,11 +10,14 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
+using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 using Microsoft.CodeAnalysis.Razor;
@@ -35,6 +38,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly LanguageServerFeatureOptions? _featureOptions;
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
+    // Cached for testing
+    private IHandlerProvider? _handlerProvider;
 
     public RazorLanguageServer(
         JsonRpc jsonRpc,
@@ -135,6 +140,9 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         static void AddHandlers(IServiceCollection services)
         {
+            services.AddRegisteringHandler<ImplementationEndpoint>();
+            services.AddRegisteringHandler<SignatureHelpEndpoint>();
+            services.AddRegisteringHandler<DocumentHighlightEndpoint>();
             services.AddHandler<RazorDiagnosticsEndpoint>();
             services.AddHandler<RazorConfigurationEndpoint>();
             services.AddRegisteringHandler<OnAutoInsertEndpoint>();
@@ -152,10 +160,38 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
     }
 
+    protected override IHandlerProvider GetHandlerProvider()
+    {
+        _handlerProvider ??= base.GetHandlerProvider();
+
+        return _handlerProvider;
+    }
+
     internal T GetRequiredService<T>() where T : notnull
     {
         var lspServices = GetLspServices();
 
         return lspServices.GetRequiredService<T>();
+    }
+
+    // Internal for testing
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal class TestAccessor
+    {
+        private RazorLanguageServer _server;
+
+        public TestAccessor(RazorLanguageServer server)
+        {
+            _server = server;
+        }
+
+        public IHandlerProvider GetHandlerProvider()
+        {
+            return _server.GetHandlerProvider();
+        }
     }
 }

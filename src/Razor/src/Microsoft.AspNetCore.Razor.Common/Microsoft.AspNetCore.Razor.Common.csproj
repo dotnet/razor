@@ -16,4 +16,8 @@
     <Using Include="Microsoft.AspNetCore.Razor.Common.Resources" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
+  </ItemGroup>
+
 </Project>

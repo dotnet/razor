@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string ServerCapability = "implementationProvider";
-            var option = new ImplementationOptions();
+            var option = new SumType<bool, ImplementationOptions>(new ImplementationOptions());
 
             return new RegistrationExtensionResult(ServerCapability, option);
         }

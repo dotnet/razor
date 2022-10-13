@@ -3,13 +3,12 @@
 
 using System;
 using System.Threading;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LspLogger : ILspLogger, ILogger
+internal class LspLogger : IRazorLogger
 {
     private readonly LogLevel _logLevel;
     private ClientNotifierServiceBase? _serviceBase;
