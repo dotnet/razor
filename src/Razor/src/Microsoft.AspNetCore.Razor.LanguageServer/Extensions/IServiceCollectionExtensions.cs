@@ -32,7 +32,6 @@ internal static class IServiceCollectionExtensions
     {
         services.AddHandler<RazorInitializeEndpoint>();
         services.AddHandler<RazorInitializedEndpoint>();
-        services.AddHandler<ExitHandler<RazorRequestContext>>();
         services.AddHandler<ShutdownHandler<RazorRequestContext>>();
 
         var razorLifeCycleManager = new RazorLifeCycleManager(razorLanguageServer);

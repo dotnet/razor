@@ -53,7 +53,7 @@
 
   -->
   <!-- TODO: https://github.com/dotnet/razor-tooling/issues/6760 -->
-  <PropertyGroup Label="Automated">  
+  <PropertyGroup Label="Automated">
     <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.5.22364.1</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
     <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
@@ -81,7 +81,7 @@
     <RoslynPackageVersion>4.4.0-2.22424.2</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.4.1008-preview</VisualStudioLanguageServerProtocolVersion>
     <MicrosoftNetCompilersToolsetVersion>4.4.0-1.final</MicrosoftNetCompilersToolsetVersion>
-    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.5.0-1.22480.13</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
+    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.5.0-1.22513.3</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <!-- dotnet/runtime packages -->
