@@ -49,16 +49,17 @@ stages:
             command: custom
             arguments: 'locals all -clear'
 
-        - script: eng\common\build.ps1
-            -restore
-            -build
-            -sign
-            -pack
-            -publish
-            -ci
-            -configuration Debug
-            -msbuildEngine dotnet
-            -prepareMachine
-          name: Build
+        - task: PowerShell@2
           displayName: Build
           condition: succeeded()
+          inputs:
+            filePath: eng/common/build.ps1
+            arguments: -ci
+                       -restore
+                       -build
+                       -sign
+                       -pack
+                       -publish
+                       -configuration Debug
+                       -msbuildEngine dotnet
+                       -prepareMachine
