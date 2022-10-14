@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 var cref = crefMatches[i];
                 if (cref.Success)
                 {
-                    var value = cref.Groups[2].Value;
+                    var value = cref.Groups[TagContentGroupName].Value;
                     var reducedValue = ReduceCrefValue(value);
                     reducedValue = reducedValue.Replace("{", "<").Replace("}", ">");
                     summaryBuilder.Remove(cref.Index, cref.Length);
